@@ -9,6 +9,7 @@ class MiRRADevSupabaseUser extends BaseAuthUser {
   MiRRADevSupabaseUser(this.user);
   User? user;
   bool get loggedIn => user != null;
+  bool get isAnonymous => user?.isAnonymous ?? false;
 
   @override
   AuthUserInfo get authUserInfo => AuthUserInfo(

@@ -20,6 +20,9 @@ String get currentJwtToken => _currentJwtToken ?? '';
 
 bool get currentUserEmailVerified => currentUser?.emailVerified ?? false;
 
+bool get currentUserIsAnonymous =>
+    (currentUser as dynamic)?.isAnonymous ?? false;
+
 /// Create a Stream that listens to the current user's JWT Token.
 String? _currentJwtToken;
 final jwtTokenStream = SupaFlow.client.auth.onAuthStateChange

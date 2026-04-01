@@ -49,10 +49,9 @@ class _ProfileWidgetState extends State<ProfileWidget> {
       future: UsersTable().querySingleRow(
         queryFn: (q) => q.eqOrNull(
           'id',
-          valueOrDefault<String>(
-            currentUserUid,
-            '0',
-          ),
+          currentUserUid.isNotEmpty
+              ? currentUserUid
+              : '00000000-0000-0000-0000-000000000000',
         ),
       ),
       builder: (context, snapshot) {

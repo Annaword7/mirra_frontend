@@ -12,7 +12,7 @@ import 'supabase_user_provider.dart';
 export '/auth/base_auth_user_provider.dart';
 
 class SupabaseAuthManager extends AuthManager
-    with EmailSignInManager, AppleSignInManager {
+    with EmailSignInManager, AppleSignInManager, AnonymousSignInManager {
   @override
   Future signOut() {
     return SupaFlow.client.auth.signOut();
@@ -106,26 +106,111 @@ class SupabaseAuthManager extends AuthManager
     BuildContext context,
     String email,
     String password,
-  ) =>
-      _signInOrCreateAccount(
-        context,
-        () => emailSignInFunc(email, password),
-      );
+  ) async {
+    // If the current session is anonymous, capture the UID so we can
+    // reassign its scans to the real account after sign-in.
+    final anonUid = _anonUidIfAnonymous();
+
+    final result = await _signInOrCreateAccount(
+      context,
+      () => emailSignInFunc(email, password),
+    );
+
+    if (result != null && anonUid != null) {
+      await _claimAnonScans(anonUid);
+    }
+
+    return result;
+  }
 
   @override
   Future<BaseAuthUser?> createAccountWithEmail(
     BuildContext context,
     String email,
     String password,
-  ) =>
-      _signInOrCreateAccount(
-        context,
-        () => emailCreateAccountFunc(email, password),
+  ) async {
+    // If already anonymous, link the email to the existing anonymous account
+    // instead of creating a new one — the UUID stays the same, so all scans
+    // are automatically preserved.
+    if (_isCurrentUserAnonymous()) {
+      return _linkEmailToAnonymousAccount(context, email, password);
+    }
+    return _signInOrCreateAccount(
+      context,
+      () => emailCreateAccountFunc(email, password),
+    );
+  }
+
+  /// Returns the current user's UID only when the user is anonymous.
+  String? _anonUidIfAnonymous() {
+    if (!_isCurrentUserAnonymous()) return null;
+    return currentUser?.uid;
+  }
+
+  bool _isCurrentUserAnonymous() =>
+      (currentUser as MiRRADevSupabaseUser?)?.isAnonymous ?? false;
+
+  /// Converts the anonymous account to a permanent email/password account.
+  /// The user ID does NOT change, so all existing scans are preserved.
+  Future<BaseAuthUser?> _linkEmailToAnonymousAccount(
+    BuildContext context,
+    String email,
+    String password,
+  ) async {
+    try {
+      final response = await SupaFlow.client.auth.updateUser(
+        UserAttributes(email: email, password: password),
       );
+      final user = response.user;
+      final authUser = user == null ? null : MiRRADevSupabaseUser(user);
+      if (authUser != null) {
+        currentUser = authUser;
+        AppStateNotifier.instance.update(authUser);
+      }
+      return authUser;
+    } on AuthException catch (e) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.message}')),
+      );
+      return null;
+    }
+  }
+
+  /// Calls the Supabase RPC that reassigns scans owned by [anonUid] to the
+  /// currently authenticated user. Non-fatal if the RPC doesn't exist yet.
+  Future<void> _claimAnonScans(String anonUid) async {
+    try {
+      await SupaFlow.client
+          .rpc('claim_anonymous_scans', params: {'anon_uid': anonUid});
+    } catch (_) {
+      // Migration is best-effort; never block the sign-in flow.
+    }
+  }
 
   @override
   Future<BaseAuthUser?> signInWithApple(BuildContext context) =>
       _signInOrCreateAccount(context, appleSignInFunc);
+
+  @override
+  Future<BaseAuthUser?> signInAnonymously(BuildContext context) async {
+    try {
+      final response = await SupaFlow.client.auth.signInAnonymously();
+      final user = response.user;
+      final authUser = user == null ? null : MiRRADevSupabaseUser(user);
+      if (authUser != null) {
+        currentUser = authUser;
+        AppStateNotifier.instance.update(authUser);
+      }
+      return authUser;
+    } on AuthException catch (e) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.message}')),
+      );
+      return null;
+    }
+  }
 
   /// Tries to sign in or create an account using Supabase Auth.
   /// Returns the User object if sign in was successful.

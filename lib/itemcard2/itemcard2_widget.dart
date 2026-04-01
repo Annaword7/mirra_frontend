@@ -1893,6 +1893,9 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                             ),
                           ),
                         ),
+                        // bottom padding so sticky banner doesn't overlap content
+                        if (currentUserIsAnonymous)
+                          const SizedBox(height: 80),
                       ],
                     ),
                   ),
@@ -2614,11 +2617,279 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                     ),
                   ),
                 ),
+                if (currentUserIsAnonymous)
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: _AnonSaveBanner(),
+                  ),
               ],
             ),
           ),
         );
       },
+    );
+  }
+}
+
+class _AnonSaveBanner extends StatelessWidget {
+  const _AnonSaveBanner();
+
+  void _showSheet(BuildContext context) {
+    final lang = FFLocalizations.of(context).languageCode;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) => _AnonSaveSheet(lang: lang),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final lang = FFLocalizations.of(context).languageCode;
+    final label = lang == 'ru'
+        ? 'Сохранить в историю'
+        : lang == 'es'
+            ? 'Guardar en historial'
+            : 'Save to history';
+    final cta = lang == 'ru'
+        ? 'Войти / Создать аккаунт'
+        : lang == 'es'
+            ? 'Entrar / Crear cuenta'
+            : 'Sign in / Create account';
+
+    return GestureDetector(
+      onTap: () => _showSheet(context),
+      child: Container(
+        decoration: BoxDecoration(
+          color: FlutterFlowTheme.of(context).primaryBackground,
+          border: Border(
+            top: BorderSide(
+              color: FlutterFlowTheme.of(context).primary.withOpacity(0.25),
+            ),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.10),
+              blurRadius: 12,
+              offset: const Offset(0, -4),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 20.0, vertical: 14.0),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.bookmark_border_rounded,
+                  color: FlutterFlowTheme.of(context).primary,
+                  size: 22,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: FlutterFlowTheme.of(context).bodyMedium.override(
+                          fontFamily:
+                              FlutterFlowTheme.of(context).bodyMediumFamily,
+                          letterSpacing: 0,
+                          useGoogleFonts: !FlutterFlowTheme.of(context)
+                              .bodyMediumIsCustom,
+                        ),
+                  ),
+                ),
+                Text(
+                  cta,
+                  style: FlutterFlowTheme.of(context).bodyMedium.override(
+                        fontFamily:
+                            FlutterFlowTheme.of(context).bodyMediumFamily,
+                        color: FlutterFlowTheme.of(context).primary,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0,
+                        useGoogleFonts:
+                            !FlutterFlowTheme.of(context).bodyMediumIsCustom,
+                      ),
+                ),
+                const SizedBox(width: 4),
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  color: FlutterFlowTheme.of(context).primary,
+                  size: 14,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AnonSaveSheet extends StatelessWidget {
+  const _AnonSaveSheet({required this.lang});
+  final String lang;
+
+  String _t(Map<String, String> map) => map[lang] ?? map['en']!;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: FlutterFlowTheme.of(context).primaryBackground,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // drag handle
+              Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: FlutterFlowTheme.of(context).alternate,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Icon(Icons.bookmark_rounded,
+                  color: FlutterFlowTheme.of(context).primary, size: 36),
+              const SizedBox(height: 12),
+              Text(
+                _t({
+                  'ru': 'Сохраните свои анализы',
+                  'es': 'Guarda tus análisis',
+                  'en': 'Save your analyses',
+                }),
+                style: FlutterFlowTheme.of(context).titleMedium.override(
+                      fontFamily:
+                          FlutterFlowTheme.of(context).titleMediumFamily,
+                      letterSpacing: 0,
+                      useGoogleFonts:
+                          !FlutterFlowTheme.of(context).titleMediumIsCustom,
+                    ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                _t({
+                  'ru':
+                      'Создайте аккаунт — и все продукты, которые вы уже проанализировали, сохранятся в вашу историю.',
+                  'es':
+                      'Crea una cuenta y todos los productos que ya analizaste se guardarán en tu historial.',
+                  'en':
+                      'Create an account and all the products you\'ve already scanned will be saved to your history.',
+                }),
+                style: FlutterFlowTheme.of(context).bodyMedium.override(
+                      fontFamily:
+                          FlutterFlowTheme.of(context).bodyMediumFamily,
+                      color: FlutterFlowTheme.of(context).primaryText,
+                      letterSpacing: 0,
+                      useGoogleFonts:
+                          !FlutterFlowTheme.of(context).bodyMediumIsCustom,
+                    ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    context.pushNamed(CreateAccountPageWidget.routeName);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: FlutterFlowTheme.of(context).primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                    elevation: 0,
+                  ),
+                  child: Text(
+                    _t({
+                      'ru': 'Создать аккаунт',
+                      'es': 'Crear cuenta',
+                      'en': 'Create account',
+                    }),
+                    style: FlutterFlowTheme.of(context).bodyMedium.override(
+                          fontFamily:
+                              FlutterFlowTheme.of(context).bodyMediumFamily,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0,
+                          useGoogleFonts: !FlutterFlowTheme.of(context)
+                              .bodyMediumIsCustom,
+                        ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    context.pushNamed(LogInPageWidget.routeName);
+                  },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: FlutterFlowTheme.of(context).primary,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    side: BorderSide(
+                        color: FlutterFlowTheme.of(context).primary,
+                        width: 1.5),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: Text(
+                    _t({
+                      'ru': 'Войти',
+                      'es': 'Entrar',
+                      'en': 'Sign in',
+                    }),
+                    style: FlutterFlowTheme.of(context).bodyMedium.override(
+                          fontFamily:
+                              FlutterFlowTheme.of(context).bodyMediumFamily,
+                          color: FlutterFlowTheme.of(context).primary,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0,
+                          useGoogleFonts: !FlutterFlowTheme.of(context)
+                              .bodyMediumIsCustom,
+                        ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(
+                  _t({
+                    'ru': 'Пока нет',
+                    'es': 'Ahora no',
+                    'en': 'Not now',
+                  }),
+                  style: FlutterFlowTheme.of(context).bodyMedium.override(
+                        fontFamily:
+                            FlutterFlowTheme.of(context).bodyMediumFamily,
+                        color: FlutterFlowTheme.of(context).primaryText,
+                        letterSpacing: 0,
+                        useGoogleFonts:
+                            !FlutterFlowTheme.of(context).bodyMediumIsCustom,
+                      ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

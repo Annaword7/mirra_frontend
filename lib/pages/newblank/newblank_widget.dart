@@ -1,15 +1,10 @@
-import '/flutter_flow/flutter_flow_animations.dart';
+import '/auth/supabase_auth/auth_util.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
 import '/index.dart';
-import 'dart:math' as math;
-import 'package:carousel_slider/carousel_slider.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'newblank_model.dart';
 export 'newblank_model.dart';
 
@@ -23,50 +18,45 @@ class NewblankWidget extends StatefulWidget {
   State<NewblankWidget> createState() => _NewblankWidgetState();
 }
 
-class _NewblankWidgetState extends State<NewblankWidget>
-    with TickerProviderStateMixin {
+class _NewblankWidgetState extends State<NewblankWidget> {
   late NewblankModel _model;
+  bool _loading = false;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
-
-  final animationsMap = <String, AnimationInfo>{};
 
   @override
   void initState() {
     super.initState();
     _model = createModel(context, () => NewblankModel());
-
-    animationsMap.addAll({
-      'transformOnPageLoadAnimation': AnimationInfo(
-        trigger: AnimationTrigger.onPageLoad,
-        effectsBuilder: () => [
-          VisibilityEffect(duration: 1.ms),
-          MoveEffect(
-            curve: Curves.easeInOut,
-            delay: 0.0.ms,
-            duration: 600.0.ms,
-            begin: Offset(0.0, -60.0),
-            end: Offset(0.0, 0.0),
-          ),
-          FadeEffect(
-            curve: Curves.easeInOut,
-            delay: 0.0.ms,
-            duration: 600.0.ms,
-            begin: 0.0,
-            end: 1.0,
-          ),
-        ],
-      ),
-    });
-
-    WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
   }
 
   @override
   void dispose() {
     _model.dispose();
-
     super.dispose();
+  }
+
+  String _t(BuildContext context, Map<String, String> map) {
+    final lang = FFLocalizations.of(context).languageCode;
+    return map[lang] ?? map['en']!;
+  }
+
+  Future<void> _tryAnonymously() async {
+    HapticFeedback.lightImpact();
+    setState(() => _loading = true);
+    final user = await authManager.signInAnonymously(context);
+    if (mounted) setState(() => _loading = false);
+    if (user != null && mounted) {
+      context.goNamed(
+        HomeWidget.routeName,
+        extra: <String, dynamic>{
+          '__transition_info__': TransitionInfo(
+            hasTransition: true,
+            transitionType: PageTransitionType.fade,
+          ),
+        },
+      );
+    }
   }
 
   @override
@@ -81,352 +71,246 @@ class _NewblankWidgetState extends State<NewblankWidget>
         backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
         body: SafeArea(
           top: true,
-          child: Stack(
-            children: [
-              Column(
-                mainAxisSize: MainAxisSize.max,
-                children: [
-                  Flexible(
-                    child: Align(
-                      alignment: AlignmentDirectional(1.0, -0.8),
-                      child: Transform.scale(
-                        scaleX: 1.2,
-                        scaleY: 1.2,
-                        child: Transform.rotate(
-                          angle: 11.0 * (math.pi / 180),
-                          child: Container(
-                            width: double.infinity,
-                            height: 250.0,
-                            child: CarouselSlider(
-                              items: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(16.0),
-                                  child: Image.asset(
-                                    'assets/images/image11.png',
-                                    width: 300.0,
-                                    height: 200.0,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(16.0),
-                                  child: Image.asset(
-                                    'assets/images/image12.png',
-                                    width: 300.0,
-                                    height: 200.0,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(8.0),
-                                  child: Image.asset(
-                                    'assets/images/image2.png',
-                                    width: 300.0,
-                                    height: 200.0,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(16.0),
-                                  child: Image.asset(
-                                    'assets/images/image9.png',
-                                    width: 300.0,
-                                    height: 200.0,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(16.0),
-                                  child: Image.asset(
-                                    'assets/images/image13.png',
-                                    width: 300.0,
-                                    height: 200.0,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              ],
-                              carouselController: _model.carouselController ??=
-                                  CarouselSliderController(),
-                              options: CarouselOptions(
-                                initialPage: 1,
-                                viewportFraction: 0.6,
-                                disableCenter: true,
-                                enlargeCenterPage: true,
-                                enlargeFactor: 0.25,
-                                enableInfiniteScroll: true,
-                                scrollDirection: Axis.horizontal,
-                                autoPlay: true,
-                                autoPlayAnimationDuration:
-                                    Duration(milliseconds: 800),
-                                autoPlayInterval:
-                                    Duration(milliseconds: (800 + 4000)),
-                                autoPlayCurve: Curves.linear,
-                                pauseAutoPlayInFiniteScroll: true,
-                                onPageChanged: (index, _) =>
-                                    _model.carouselCurrentIndex = index,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ).animateOnPageLoad(
-                          animationsMap['transformOnPageLoadAnimation']!),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 28.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Spacer(flex: 2),
+
+                // ── Icon ──
+                _HeroIcon()
+                    .animate()
+                    .fadeIn(duration: 500.ms)
+                    .scale(
+                      begin: const Offset(0.85, 0.85),
+                      end: const Offset(1, 1),
+                      duration: 500.ms,
+                      curve: Curves.easeOut,
                     ),
+
+                const SizedBox(height: 36),
+
+                // ── Headline ──
+                Text(
+                  _t(context, {
+                    'ru': 'Проверь состав\nза 30 секунд',
+                    'es': 'Analiza el INCI\nen 30 segundos',
+                    'en': 'Check ingredients\nin 30 seconds',
+                  }),
+                  textAlign: TextAlign.center,
+                  style: FlutterFlowTheme.of(context).displaySmall.override(
+                        fontFamily:
+                            FlutterFlowTheme.of(context).displaySmallFamily,
+                        fontSize: 34.0,
+                        letterSpacing: 0.0,
+                        fontWeight: FontWeight.bold,
+                        lineHeight: 1.2,
+                        useGoogleFonts:
+                            !FlutterFlowTheme.of(context).displaySmallIsCustom,
+                      ),
+                )
+                    .animate()
+                    .fadeIn(delay: 150.ms, duration: 500.ms)
+                    .slideY(begin: 0.15, end: 0, duration: 500.ms),
+
+                const SizedBox(height: 16),
+
+                // ── Subtitle ──
+                Text(
+                  _t(context, {
+                    'ru':
+                        'Сфотографируй косметику — узнай что внутри и безопасно ли это для твоей кожи',
+                    'es':
+                        'Fotografía cualquier cosmético y descubre qué hay dentro y si es seguro para tu piel',
+                    'en':
+                        'Photograph any cosmetic and find out what\'s inside and whether it\'s safe for your skin',
+                  }),
+                  textAlign: TextAlign.center,
+                  style: FlutterFlowTheme.of(context).bodyLarge.override(
+                        fontFamily:
+                            FlutterFlowTheme.of(context).bodyLargeFamily,
+                        color: FlutterFlowTheme.of(context).secondaryText,
+                        letterSpacing: 0.0,
+                        fontWeight: FontWeight.normal,
+                        lineHeight: 1.55,
+                        useGoogleFonts:
+                            !FlutterFlowTheme.of(context).bodyLargeIsCustom,
+                      ),
+                )
+                    .animate()
+                    .fadeIn(delay: 250.ms, duration: 500.ms)
+                    .slideY(begin: 0.15, end: 0, duration: 500.ms),
+
+                const Spacer(flex: 3),
+
+                // ── Primary CTA ──
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: _loading ? null : _tryAnonymously,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: FlutterFlowTheme.of(context).primary,
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor:
+                          FlutterFlowTheme.of(context).primary.withOpacity(0.6),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                    ),
+                    child: _loading
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                _t(context, {
+                                  'ru': 'Попробовать',
+                                  'es': 'Probar gratis',
+                                  'en': 'Try it free',
+                                }),
+                                style: FlutterFlowTheme.of(context)
+                                    .titleSmall
+                                    .override(
+                                      fontFamily: FlutterFlowTheme.of(context)
+                                          .titleSmallFamily,
+                                      color: Colors.white,
+                                      letterSpacing: 0,
+                                      fontWeight: FontWeight.w600,
+                                      useGoogleFonts:
+                                          !FlutterFlowTheme.of(context)
+                                              .titleSmallIsCustom,
+                                    ),
+                              ),
+                              const SizedBox(width: 8),
+                              const Icon(Icons.arrow_forward_rounded,
+                                  color: Colors.white, size: 18),
+                            ],
+                          ),
+                  ),
+                )
+                    .animate()
+                    .fadeIn(delay: 350.ms, duration: 400.ms)
+                    .slideY(begin: 0.2, end: 0, duration: 400.ms),
+
+                const SizedBox(height: 16),
+
+                // ── Secondary link ──
+                GestureDetector(
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    context.goNamed(
+                      LogInPageWidget.routeName,
+                      extra: <String, dynamic>{
+                        '__transition_info__': TransitionInfo(
+                          hasTransition: true,
+                          transitionType: PageTransitionType.fade,
+                        ),
+                      },
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    child: Text(
+                      _t(context, {
+                        'ru': 'Войти / Зарегистрироваться',
+                        'es': 'Entrar / Crear cuenta',
+                        'en': 'Sign in / Create account',
+                      }),
+                      style: FlutterFlowTheme.of(context).bodyMedium.override(
+                            fontFamily:
+                                FlutterFlowTheme.of(context).bodyMediumFamily,
+                            color: FlutterFlowTheme.of(context).primary,
+                            letterSpacing: 0,
+                            fontWeight: FontWeight.w600,
+                            useGoogleFonts: !FlutterFlowTheme.of(context)
+                                .bodyMediumIsCustom,
+                          ),
+                    ),
+                  ),
+                )
+                    .animate()
+                    .fadeIn(delay: 450.ms, duration: 400.ms),
+
+                const SizedBox(height: 32),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _HeroIcon extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final primary = FlutterFlowTheme.of(context).primary;
+    return SizedBox(
+      width: 140,
+      height: 140,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Outer glow ring
+          Container(
+            width: 140,
+            height: 140,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: primary.withOpacity(0.08),
+            ),
+          ),
+          // Inner circle
+          Container(
+            width: 100,
+            height: 100,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: primary.withOpacity(0.14),
+            ),
+          ),
+          // Camera icon
+          Icon(
+            Icons.camera_alt_rounded,
+            size: 52,
+            color: primary,
+          ),
+          // Science badge — top right
+          Positioned(
+            top: 16,
+            right: 16,
+            child: Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: FlutterFlowTheme.of(context).primaryBackground,
+                boxShadow: [
+                  BoxShadow(
+                    color: primary.withOpacity(0.2),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
                   ),
                 ],
               ),
-              Align(
-                alignment: AlignmentDirectional(0.0, 0.0),
-                child: Padding(
-                  padding:
-                      EdgeInsetsDirectional.fromSTEB(16.0, 24.0, 16.0, 24.0),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            color: FlutterFlowTheme.of(context)
-                                .secondaryBackground,
-                          ),
-                        ),
-                        Container(
-                          constraints: BoxConstraints(
-                            maxWidth: 600.0,
-                          ),
-                          decoration: BoxDecoration(),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.max,
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              Align(
-                                alignment: AlignmentDirectional(-1.0, 0.0),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: FlutterFlowTheme.of(context).accent1,
-                                    borderRadius: BorderRadius.circular(40.0),
-                                  ),
-                                  child: Padding(
-                                    padding: EdgeInsetsDirectional.fromSTEB(
-                                        12.0, 8.0, 12.0, 8.0),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          FFLocalizations.of(context).getText(
-                                            'da2agqnn' /* INCI Decode AI */,
-                                          ),
-                                          style: FlutterFlowTheme.of(context)
-                                              .labelSmall
-                                              .override(
-                                                font:
-                                                    GoogleFonts.plusJakartaSans(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontStyle:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .labelSmall
-                                                          .fontStyle,
-                                                ),
-                                                color:
-                                                    FlutterFlowTheme.of(context)
-                                                        .primary,
-                                                letterSpacing: 1.0,
-                                                fontWeight: FontWeight.bold,
-                                                fontStyle:
-                                                    FlutterFlowTheme.of(context)
-                                                        .labelSmall
-                                                        .fontStyle,
-                                              ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Padding(
-                                padding: EdgeInsetsDirectional.fromSTEB(
-                                    0.0, 8.0, 0.0, 0.0),
-                                child: Text(
-                                  FFLocalizations.of(context).getText(
-                                    '2d4q59e7' /* Your skincare expert */,
-                                  ),
-                                  style: FlutterFlowTheme.of(context)
-                                      .displaySmall
-                                      .override(
-                                        fontFamily: FlutterFlowTheme.of(context)
-                                            .displaySmallFamily,
-                                        fontSize: 50.0,
-                                        letterSpacing: 0.0,
-                                        lineHeight: 1.2,
-                                        useGoogleFonts:
-                                            !FlutterFlowTheme.of(context)
-                                                .displaySmallIsCustom,
-                                      ),
-                                ),
-                              ),
-                              Padding(
-                                padding: EdgeInsetsDirectional.fromSTEB(
-                                    0.0, 8.0, 0.0, 0.0),
-                                child: Text(
-                                  FFLocalizations.of(context).getText(
-                                    '5t7iunbg' /* Get complete insights on formu... */,
-                                  ),
-                                  style: FlutterFlowTheme.of(context)
-                                      .bodyLarge
-                                      .override(
-                                        fontFamily: FlutterFlowTheme.of(context)
-                                            .bodyLargeFamily,
-                                        letterSpacing: 0.0,
-                                        fontWeight: FontWeight.normal,
-                                        lineHeight: 1.5,
-                                        useGoogleFonts:
-                                            !FlutterFlowTheme.of(context)
-                                                .bodyLargeIsCustom,
-                                      ),
-                                ),
-                              ),
-                              Padding(
-                                padding: EdgeInsetsDirectional.fromSTEB(
-                                    0.0, 32.0, 0.0, 0.0),
-                                child: FFButtonWidget(
-                                  onPressed: () async {
-                                    HapticFeedback.lightImpact();
-
-                                    context.goNamed(
-                                      OnboardingInstructionsWidget.routeName,
-                                      extra: <String, dynamic>{
-                                        '__transition_info__': TransitionInfo(
-                                          hasTransition: true,
-                                          transitionType:
-                                              PageTransitionType.fade,
-                                        ),
-                                      },
-                                    );
-                                  },
-                                  text: FFLocalizations.of(context).getText(
-                                    '7ujfcyzd' /* Get Started */,
-                                  ),
-                                  options: FFButtonOptions(
-                                    width: double.infinity,
-                                    height: 55.0,
-                                    padding: EdgeInsetsDirectional.fromSTEB(
-                                        24.0, 0.0, 24.0, 0.0),
-                                    iconPadding: EdgeInsetsDirectional.fromSTEB(
-                                        0.0, 0.0, 0.0, 0.0),
-                                    color: FlutterFlowTheme.of(context).primary,
-                                    textStyle: FlutterFlowTheme.of(context)
-                                        .titleSmall
-                                        .override(
-                                          font: GoogleFonts.sora(
-                                            fontWeight: FontWeight.w600,
-                                            fontStyle:
-                                                FlutterFlowTheme.of(context)
-                                                    .titleSmall
-                                                    .fontStyle,
-                                          ),
-                                          color: Colors.white,
-                                          letterSpacing: 0.0,
-                                          fontWeight: FontWeight.w600,
-                                          fontStyle:
-                                              FlutterFlowTheme.of(context)
-                                                  .titleSmall
-                                                  .fontStyle,
-                                        ),
-                                    elevation: 0.0,
-                                    borderSide: BorderSide(
-                                      color: Colors.transparent,
-                                      width: 1.0,
-                                    ),
-                                    borderRadius: BorderRadius.circular(30.0),
-                                  ),
-                                ),
-                              ),
-
-                              // You will have to add an action on this rich text to go to your login page.
-                              Align(
-                                alignment: AlignmentDirectional(0.0, 0.0),
-                                child: Padding(
-                                  padding: EdgeInsetsDirectional.fromSTEB(
-                                      0.0, 12.0, 0.0, 12.0),
-                                  child: RichText(
-                                    textScaler:
-                                        MediaQuery.of(context).textScaler,
-                                    text: TextSpan(
-                                      children: [
-                                        TextSpan(
-                                          text: FFLocalizations.of(context)
-                                              .getText(
-                                            'k2s5anzx' /* Already have an account?  */,
-                                          ),
-                                          style: TextStyle(),
-                                        ),
-                                        TextSpan(
-                                          text: FFLocalizations.of(context)
-                                              .getText(
-                                            'b3n2vltd' /* Log in */,
-                                          ),
-                                          style: FlutterFlowTheme.of(context)
-                                              .bodyMedium
-                                              .override(
-                                                fontFamily:
-                                                    FlutterFlowTheme.of(context)
-                                                        .bodyMediumFamily,
-                                                color:
-                                                    FlutterFlowTheme.of(context)
-                                                        .primary,
-                                                letterSpacing: 0.0,
-                                                fontWeight: FontWeight.w600,
-                                                useGoogleFonts:
-                                                    !FlutterFlowTheme.of(
-                                                            context)
-                                                        .bodyMediumIsCustom,
-                                              ),
-                                          mouseCursor: SystemMouseCursors.click,
-                                          recognizer: TapGestureRecognizer()
-                                            ..onTap = () async {
-                                              HapticFeedback.lightImpact();
-
-                                              context.goNamed(
-                                                LogInPageWidget.routeName,
-                                                extra: <String, dynamic>{
-                                                  '__transition_info__':
-                                                      TransitionInfo(
-                                                    hasTransition: true,
-                                                    transitionType:
-                                                        PageTransitionType.fade,
-                                                  ),
-                                                },
-                                              );
-                                            },
-                                        )
-                                      ],
-                                      style: FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .override(
-                                            fontFamily:
-                                                FlutterFlowTheme.of(context)
-                                                    .bodyMediumFamily,
-                                            letterSpacing: 0.0,
-                                            useGoogleFonts:
-                                                !FlutterFlowTheme.of(context)
-                                                    .bodyMediumIsCustom,
-                                          ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+              child: Icon(
+                Icons.science_rounded,
+                size: 18,
+                color: primary,
               ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
