@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 class ShareproductModel extends FlutterFlowModel<ShareproductWidget> {
   ///  Local state fields for this page.
 
-  bool isStory = true;
+  bool isStory = false;
 
   @override
   void initState(BuildContext context) {}

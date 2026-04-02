@@ -40,8 +40,10 @@ class _TopratedWidgetState extends State<TopratedWidget> {
           currentUserUid,
         ),
       );
-      FFAppState().userProfilePicture =
-          _model.userrow!.firstOrNull!.profileImage!;
+      final profileImg = _model.userrow?.firstOrNull?.profileImage;
+      if (profileImg != null && profileImg.isNotEmpty) {
+        FFAppState().userProfilePicture = profileImg;
+      }
       safeSetState(() {});
       await _model.listViewController?.animateTo(
         0,

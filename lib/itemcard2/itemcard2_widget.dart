@@ -2543,7 +2543,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                               hoverColor: Colors.transparent,
                               highlightColor: Colors.transparent,
                               onTap: () async {
-                                context.pushNamed(HomeWidget.routeName);
+                                context.safePop();
                               },
                               child: Icon(
                                 Icons.arrow_back,

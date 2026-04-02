@@ -150,23 +150,23 @@ class _ShareproductWidgetState extends State<ShareproductWidget> {
                               hoverColor: Colors.transparent,
                               highlightColor: Colors.transparent,
                               onTap: () async {
-                                _model.isStory = true;
+                                _model.isStory = false;
                                 safeSetState(() {});
                               },
                               child: Container(
                                 decoration: BoxDecoration(
                                   color: valueOrDefault<Color>(
                                     _model.isStory
-                                        ? Color(0xFF1A1A1D)
-                                        : Color(0xFFAFAFB0),
+                                        ? Color(0xFFAFAFB0)
+                                        : Color(0xFF1A1A1D),
                                     Color(0xFF1A1A1D),
                                   ),
                                   borderRadius: BorderRadius.circular(16.0),
                                   border: Border.all(
                                     color: valueOrDefault<Color>(
                                       _model.isStory
-                                          ? Color(0xFF1A1A1D)
-                                          : Color(0xFFAFAFB0),
+                                          ? Color(0xFFAFAFB0)
+                                          : Color(0xFF1A1A1D),
                                       Color(0xFF1A1A1D),
                                     ),
                                   ),
@@ -176,7 +176,7 @@ class _ShareproductWidgetState extends State<ShareproductWidget> {
                                       16.0, 8.0, 16.0, 8.0),
                                   child: Text(
                                     FFLocalizations.of(context).getText(
-                                      'c72tq9qs' /* Сториз */,
+                                      '731ycgiu' /* Квадрат */,
                                     ),
                                     style: FlutterFlowTheme.of(context)
                                         .bodyMedium
@@ -201,23 +201,23 @@ class _ShareproductWidgetState extends State<ShareproductWidget> {
                               hoverColor: Colors.transparent,
                               highlightColor: Colors.transparent,
                               onTap: () async {
-                                _model.isStory = false;
+                                _model.isStory = true;
                                 safeSetState(() {});
                               },
                               child: Container(
                                 decoration: BoxDecoration(
                                   color: valueOrDefault<Color>(
                                     _model.isStory
-                                        ? Color(0xFFAFAFB0)
-                                        : Color(0xFF1A1A1D),
+                                        ? Color(0xFF1A1A1D)
+                                        : Color(0xFFAFAFB0),
                                     Color(0xFFAFAFB0),
                                   ),
                                   borderRadius: BorderRadius.circular(16.0),
                                   border: Border.all(
                                     color: valueOrDefault<Color>(
                                       _model.isStory
-                                          ? Color(0xFFAFAFB0)
-                                          : Color(0xFF1A1A1D),
+                                          ? Color(0xFF1A1A1D)
+                                          : Color(0xFFAFAFB0),
                                       Color(0xFFAFAFB0),
                                     ),
                                   ),
@@ -227,7 +227,7 @@ class _ShareproductWidgetState extends State<ShareproductWidget> {
                                       16.0, 8.0, 16.0, 8.0),
                                   child: Text(
                                     FFLocalizations.of(context).getText(
-                                      '731ycgiu' /* Квадрат */,
+                                      'c72tq9qs' /* Сториз */,
                                     ),
                                     style: FlutterFlowTheme.of(context)
                                         .bodyMedium
@@ -281,6 +281,11 @@ class _ShareproductWidgetState extends State<ShareproductWidget> {
                           ),
                           isStory: _model.isStory,
                           tags: containerImagesRow!.skinTypeTags,
+                          verdict: valueOrDefault<String>(
+                            containerImagesRow.saRatingText,
+                            '',
+                          ),
+                          lang: FFLocalizations.of(context).languageCode,
                         ),
                       ),
                     ],

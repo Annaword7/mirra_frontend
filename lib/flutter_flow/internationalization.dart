@@ -1108,19 +1108,19 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
   // Shareproduct
   {
     'zgq2b7dh': {
-      'en': 'Выберите формат карточки продукта для сохранения',
-      'es': '',
-      'ru': '',
+      'en': 'Choose a card format to save',
+      'es': 'Elige el formato de tarjeta para guardar',
+      'ru': 'Выберите формат карточки для сохранения',
     },
     'c72tq9qs': {
-      'en': 'Сториз',
-      'es': '',
-      'ru': '',
+      'en': 'Story',
+      'es': 'Historia',
+      'ru': 'Сториз',
     },
     '731ycgiu': {
-      'en': 'Квадрат',
-      'es': '',
-      'ru': '',
+      'en': 'Square',
+      'es': 'Cuadrado',
+      'ru': 'Квадрат',
     },
     'sronrotm': {
       'en': 'Home',
