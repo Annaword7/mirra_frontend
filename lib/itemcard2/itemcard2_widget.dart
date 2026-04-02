@@ -2361,8 +2361,13 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                       _model.optiondropdownopen = false;
                                       safeSetState(() {});
                                       unawaited(AnalyticsService.instance.trackShareLinkTapped(imageId: widget.imageid ?? 0));
+                                      // Delay so the dropdown animation finishes before
+                                      // presenting UIActivityViewController (needed on iOS release)
+                                      await Future.delayed(const Duration(milliseconds: 300));
+                                      final size = MediaQuery.of(context).size;
                                       await Share.share(
                                         'https://mirra.app/product/${widget.imageid}',
+                                        sharePositionOrigin: Rect.fromLTWH(size.width / 2, size.height / 2, 1, 1),
                                       );
                                     },
                                     child: Row(

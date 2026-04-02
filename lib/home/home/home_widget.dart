@@ -1,5 +1,6 @@
 import '/auth/supabase_auth/auth_util.dart';
 import '/backend/supabase/supabase.dart';
+import '/flutter_flow/revenue_cat_util.dart' as revenue_cat;
 import '/components/navbar/navbar_widget.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -58,6 +59,15 @@ class _HomeWidgetState extends State<HomeWidget> {
             _model.usersanswer?.firstOrNull?.subscriptionPlan == 'premium'
                 ? true
                 : false;
+        // Fallback: verify with RevenueCat in case database update failed
+        // (e.g. after a successful purchase where the backend call timed out)
+        if (!FFAppState().isprouser) {
+          final isEntitled =
+              await revenue_cat.isEntitled('EntitlementMirra') ?? false;
+          if (isEntitled) {
+            FFAppState().isprouser = true;
+          }
+        }
         FFAppState().countrycode = _model.countrieshome!.firstOrNull!.nameEn;
         FFAppState().spamlist =
             _model.usersanswer!.firstOrNull!.spamImages.toList().cast<int>();

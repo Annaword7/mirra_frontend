@@ -1,6 +1,8 @@
+import 'dart:ui';
 import '/auth/supabase_auth/auth_util.dart';
 import '/backend/api_requests/api_calls.dart';
 import '/components/premium_features_list/premium_features_list_widget.dart';
+import '/custom_code/widgets/index.dart' as custom_widgets;
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -9,6 +11,7 @@ import '/backend/schema/structs/index.dart';
 import '/custom_code/actions/index.dart' as actions;
 import '/flutter_flow/revenue_cat_util.dart' as revenue_cat;
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'paywallpage_model.dart';
@@ -59,8 +62,14 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
       },
       child: Scaffold(
         key: scaffoldKey,
-        backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
-        body: SafeArea(
+        backgroundColor: const Color(0xFF060D1E),
+        body: Stack(
+          children: [
+            custom_widgets.AnimatedPaywallBg(
+              width: double.infinity,
+              height: double.infinity,
+            ),
+            SafeArea(
           top: true,
           child: Align(
             alignment: AlignmentDirectional(0.0, 1.0),
@@ -70,10 +79,11 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                 maxWidth: 600.0,
               ),
               decoration: BoxDecoration(
-                color: FlutterFlowTheme.of(context).primaryBackground,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(24.0),
-                  topRight: Radius.circular(24.0),
+                color: const Color(0xFF0C1A35).withOpacity(0.80),
+                borderRadius: BorderRadius.circular(28.0),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.09),
+                  width: 1.0,
                 ),
               ),
               child: Padding(
@@ -93,7 +103,7 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                             buttonSize: 60.0,
                             icon: Icon(
                               Icons.close,
-                              color: FlutterFlowTheme.of(context).primary,
+                              color: Colors.white.withOpacity(0.8),
                               size: 20.0,
                             ),
                             onPressed: () async {
@@ -146,7 +156,7 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                             ),
                           ),
                         ),
-                      ),
+                      ).animate().fadeIn(duration: 500.ms).slideY(begin: 0.12, end: 0.0, duration: 500.ms, curve: Curves.easeOut),
                       Padding(
                         padding:
                             EdgeInsetsDirectional.fromSTEB(0.0, 6.0, 0.0, 0.0),
@@ -160,7 +170,7 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                               .override(
                                 fontFamily: FlutterFlowTheme.of(context)
                                     .headlineSmallFamily,
-                                color: FlutterFlowTheme.of(context).primaryText,
+                                color: Colors.white,
                                 fontSize: 22.0,
                                 letterSpacing: 0.0,
                                 fontWeight: FontWeight.bold,
@@ -168,12 +178,12 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                                     .headlineSmallIsCustom,
                               ),
                         ),
-                      ),
+                      ).animate().fadeIn(duration: 500.ms, delay: 80.ms).slideY(begin: 0.12, end: 0.0, duration: 500.ms, delay: 80.ms, curve: Curves.easeOut),
                       wrapWithModel(
                         model: _model.premiumFeaturesListModel,
                         updateCallback: () => safeSetState(() {}),
                         child: PremiumFeaturesListWidget(),
-                      ),
+                      ).animate().fadeIn(duration: 500.ms, delay: 160.ms).slideY(begin: 0.12, end: 0.0, duration: 500.ms, delay: 160.ms, curve: Curves.easeOut),
                       InkWell(
                         splashColor: Colors.transparent,
                         focusColor: Colors.transparent,
@@ -194,12 +204,12 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                             child: Container(
                               width: double.infinity,
                               decoration: BoxDecoration(
+                                color: const Color(0xFF132444),
                                 borderRadius: BorderRadius.circular(12.0),
                                 border: Border.all(
                                   color: FFAppState().subscriptionmonth
                                       ? FlutterFlowTheme.of(context).primary
-                                      : FlutterFlowTheme.of(context)
-                                          .secondaryBackground,
+                                      : Colors.white.withOpacity(0.12),
                                   width: 2.0,
                                 ),
                               ),
@@ -229,9 +239,7 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                                                 fontFamily:
                                                     FlutterFlowTheme.of(context)
                                                         .titleMediumFamily,
-                                                color:
-                                                    FlutterFlowTheme.of(context)
-                                                        .primaryText,
+                                                color: Colors.white,
                                                 letterSpacing: 0.0,
                                                 fontWeight: FontWeight.w600,
                                                 lineHeight: 1.2,
@@ -257,9 +265,7 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                                                 fontFamily:
                                                     FlutterFlowTheme.of(context)
                                                         .titleMediumFamily,
-                                                color:
-                                                    FlutterFlowTheme.of(context)
-                                                        .primaryText,
+                                                color: Colors.white,
                                                 letterSpacing: 0.0,
                                                 fontWeight: FontWeight.w600,
                                                 lineHeight: 1.2,
@@ -508,7 +514,15 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                                           borderRadius:
                                               BorderRadius.circular(50.0),
                                         ),
-                                      ),
+                                      )
+                                          .animate(
+                                              onPlay: (c) =>
+                                                  c.repeat(reverse: true))
+                                          .shimmer(
+                                            duration: 1800.ms,
+                                            color: Colors.white.withOpacity(0.3),
+                                            angle: 0.4,
+                                          ),
                                     ),
                                   ],
                                 ),
@@ -516,7 +530,7 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                             ),
                           ),
                         ),
-                      ),
+                      ).animate().fadeIn(duration: 500.ms, delay: 240.ms).slideY(begin: 0.12, end: 0.0, duration: 500.ms, delay: 240.ms, curve: Curves.easeOut),
                       Padding(
                         padding:
                             EdgeInsetsDirectional.fromSTEB(0.0, 12.0, 0.0, 0.0),
@@ -540,12 +554,12 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                               child: Container(
                                 width: double.infinity,
                                 decoration: BoxDecoration(
+                                  color: const Color(0xFF132444),
                                   borderRadius: BorderRadius.circular(12.0),
                                   border: Border.all(
                                     color: !FFAppState().subscriptionmonth
                                         ? FlutterFlowTheme.of(context).primary
-                                        : FlutterFlowTheme.of(context)
-                                            .secondaryBackground,
+                                        : Colors.white.withOpacity(0.12),
                                     width: 2.0,
                                   ),
                                 ),
@@ -611,10 +625,7 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                                                           FlutterFlowTheme.of(
                                                                   context)
                                                               .titleMediumFamily,
-                                                      color:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .primaryText,
+                                                      color: Colors.white,
                                                       letterSpacing: 0.0,
                                                       fontWeight:
                                                           FontWeight.w600,
@@ -643,10 +654,7 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                                                           FlutterFlowTheme.of(
                                                                   context)
                                                               .titleMediumFamily,
-                                                      color:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .primaryText,
+                                                      color: Colors.white,
                                                       letterSpacing: 0.0,
                                                       fontWeight:
                                                           FontWeight.w600,
@@ -867,7 +875,7 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                                                 );
                                                 if (MessegefrompaymentStruct
                                                             .maybeFromMap(_model
-                                                                .rCPayment)
+                                                                .rCPayment2)
                                                         ?.hasOk() ==
                                                     true) {
                                                   _model.rcRefreshEntitlement2 =
@@ -906,7 +914,7 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                                                     content: Text(
                                                       MessegefrompaymentStruct
                                                               .maybeFromMap(_model
-                                                                  .rCPayment!)!
+                                                                  .rCPayment2!)!
                                                           .hasMessage()
                                                           .toString(),
                                                       style: TextStyle(
@@ -969,7 +977,16 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                                                 borderRadius:
                                                     BorderRadius.circular(50.0),
                                               ),
-                                            ),
+                                            )
+                                                .animate(
+                                                    onPlay: (c) => c.repeat(
+                                                        reverse: true))
+                                                .shimmer(
+                                                  duration: 1800.ms,
+                                                  color: Colors.white
+                                                      .withOpacity(0.3),
+                                                  angle: 0.4,
+                                                ),
                                           ),
                                         ],
                                       ),
@@ -980,7 +997,7 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                             ),
                           ),
                         ),
-                      ),
+                      ).animate().fadeIn(duration: 500.ms, delay: 320.ms).slideY(begin: 0.12, end: 0.0, duration: 500.ms, delay: 320.ms, curve: Curves.easeOut),
                       Padding(
                         padding: EdgeInsetsDirectional.fromSTEB(0.0, 16.0, 0.0, 0.0),
                         child: Text(
@@ -988,7 +1005,7 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                           textAlign: TextAlign.center,
                           style: FlutterFlowTheme.of(context).bodySmall.override(
                                 fontFamily: FlutterFlowTheme.of(context).bodySmallFamily,
-                                color: FlutterFlowTheme.of(context).secondaryText,
+                                color: Colors.white.withOpacity(0.45),
                                 fontSize: 12.0,
                                 letterSpacing: 0.0,
                                 useGoogleFonts: !FlutterFlowTheme.of(context).bodySmallIsCustom,
@@ -1083,8 +1100,7 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                               .override(
                                 fontFamily: FlutterFlowTheme.of(context)
                                     .bodyMediumFamily,
-                                color:
-                                    FlutterFlowTheme.of(context).secondaryText,
+                                color: Colors.white.withOpacity(0.35),
                                 fontSize: 12.0,
                                 letterSpacing: 0.0,
                                 fontWeight: FontWeight.w500,
@@ -1164,6 +1180,8 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
               ),
             ),
           ),
+        ),
+          ],
         ),
       ),
     );

@@ -46,12 +46,7 @@ class _LeaveReviewWidgetState extends State<LeaveReviewWidget> {
     _model.folderTitleTextController ??= TextEditingController();
     _model.folderTitleFocusNode ??= FocusNode();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {
-          _model.folderTitleTextController?.text =
-              FFLocalizations.of(context).getText(
-            'etqk72qg' /* Type a message here */,
-          );
-        }));
+    WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
   }
 
   @override
@@ -166,7 +161,7 @@ class _LeaveReviewWidgetState extends State<LeaveReviewWidget> {
                             obscureText: false,
                             decoration: InputDecoration(
                               hintText: FFLocalizations.of(context).getText(
-                                'l1p9g6sy' /* Short Description */,
+                                'etqk72qg' /* Type a message here */,
                               ),
                               hintStyle: FlutterFlowTheme.of(context)
                                   .bodyMedium

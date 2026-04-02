@@ -76,50 +76,7 @@ class _PremiumFeaturesListWidgetState extends State<PremiumFeaturesListWidget> {
                   style: FlutterFlowTheme.of(context).bodyMedium.override(
                         fontFamily:
                             FlutterFlowTheme.of(context).bodyMediumFamily,
-                        color: FlutterFlowTheme.of(context).primaryText,
-                        fontSize: 15.0,
-                        letterSpacing: 0.0,
-                        fontWeight: FontWeight.w500,
-                        lineHeight: 1.3,
-                        useGoogleFonts:
-                            !FlutterFlowTheme.of(context).bodyMediumIsCustom,
-                      ),
-                ),
-              ),
-            ].divide(SizedBox(width: 12.0)),
-          ),
-          Row(
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              Container(
-                width: 40.0,
-                height: 40.0,
-                decoration: BoxDecoration(
-                  color: FlutterFlowTheme.of(context).primary,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: FlutterFlowTheme.of(context).primary,
-                  ),
-                ),
-                child: Align(
-                  alignment: AlignmentDirectional(0.0, 0.0),
-                  child: Icon(
-                    Icons.verified_outlined,
-                    color: FlutterFlowTheme.of(context).alternate,
-                    size: 20.0,
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Text(
-                  FFLocalizations.of(context).getText(
-                    'y0rimd99' /* Personalized verdict */,
-                  ),
-                  textAlign: TextAlign.start,
-                  style: FlutterFlowTheme.of(context).bodyMedium.override(
-                        fontFamily:
-                            FlutterFlowTheme.of(context).bodyMediumFamily,
-                        color: FlutterFlowTheme.of(context).primaryText,
+                        color: Colors.white,
                         fontSize: 15.0,
                         letterSpacing: 0.0,
                         fontWeight: FontWeight.w500,
@@ -162,7 +119,7 @@ class _PremiumFeaturesListWidgetState extends State<PremiumFeaturesListWidget> {
                   style: FlutterFlowTheme.of(context).bodyMedium.override(
                         fontFamily:
                             FlutterFlowTheme.of(context).bodyMediumFamily,
-                        color: FlutterFlowTheme.of(context).primaryText,
+                        color: Colors.white,
                         fontSize: 15.0,
                         letterSpacing: 0.0,
                         fontWeight: FontWeight.w500,
@@ -205,7 +162,7 @@ class _PremiumFeaturesListWidgetState extends State<PremiumFeaturesListWidget> {
                   style: FlutterFlowTheme.of(context).bodyMedium.override(
                         fontFamily:
                             FlutterFlowTheme.of(context).bodyMediumFamily,
-                        color: FlutterFlowTheme.of(context).primaryText,
+                        color: Colors.white,
                         fontSize: 15.0,
                         letterSpacing: 0.0,
                         fontWeight: FontWeight.w500,

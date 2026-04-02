@@ -1,4 +1,6 @@
+import 'dart:ui';
 import '/custom_code/actions/index.dart' as actions;
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -24,6 +26,14 @@ void main() async {
   await environmentValues.initialize();
 
   await initFirebase();
+
+  // Catch all Flutter framework errors
+  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+  // Catch errors outside Flutter (platform, isolates, async)
+  PlatformDispatcher.instance.onError = (error, stack) {
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    return true;
+  };
 
   // Start initial custom actions code
   await actions.lockOrientation();

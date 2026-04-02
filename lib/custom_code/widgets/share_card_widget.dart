@@ -97,21 +97,41 @@ class ShareCardWidget extends StatefulWidget {
 
 class _ShareCardWidgetState extends State<ShareCardWidget> {
   final GlobalKey _repaintKey = GlobalKey();
+  final GlobalKey _shareButtonKey = GlobalKey();
   bool _isCapturing = false;
 
   double get _aspectRatio => widget.isStory ? (9 / 16) : 1.0;
 
   Future<void> _captureAndShare() async {
     setState(() => _isCapturing = true);
+    // Wait for the repaint boundary to be fully rendered (needed in release/AOT builds)
+    await Future.delayed(const Duration(milliseconds: 300));
     try {
       final boundary = _repaintKey.currentContext?.findRenderObject()
           as RenderRepaintBoundary?;
-      if (boundary == null) return;
+      if (boundary == null) {
+        debugPrint('[ShareCard] ERROR: RepaintBoundary is null');
+        return;
+      }
 
+      debugPrint('[ShareCard] Capturing image...');
       final image = await boundary.toImage(pixelRatio: 3.0);
       final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-      if (byteData == null) return;
+      if (byteData == null) {
+        debugPrint('[ShareCard] ERROR: byteData is null');
+        return;
+      }
       final bytes = byteData.buffer.asUint8List();
+      debugPrint('[ShareCard] Image captured, size: ${bytes.length} bytes. Calling Share...');
+
+      // Get share button position for iOS sharePositionOrigin (required on iPad,
+      // and by some iPhone configurations of UIActivityViewController)
+      Rect? shareOrigin;
+      final box = _shareButtonKey.currentContext?.findRenderObject() as RenderBox?;
+      if (box != null) {
+        final position = box.localToGlobal(Offset.zero);
+        shareOrigin = position & box.size;
+      }
 
       await Share.shareXFiles(
         [
@@ -121,13 +141,16 @@ class _ShareCardWidgetState extends State<ShareCardWidget> {
             mimeType: 'image/png',
           )
         ],
-        text:
-            '${widget.brandName} ${widget.productName} — ${_t('shareText', widget.lang)}',
+        text: '${widget.brandName} ${widget.productName} — ${_t('shareText', widget.lang)}',
+        sharePositionOrigin: shareOrigin,
       );
+      debugPrint('[ShareCard] Share completed');
       unawaited(AnalyticsService.instance.trackShareCardCreated(
         imageId: widget.imageId,
         format: widget.isStory ? 'story' : 'square',
       ));
+    } catch (e, stack) {
+      debugPrint('[ShareCard] EXCEPTION: $e\n$stack');
     } finally {
       if (mounted) setState(() => _isCapturing = false);
     }
@@ -171,6 +194,7 @@ class _ShareCardWidgetState extends State<ShareCardWidget> {
         SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
+            key: _shareButtonKey,
             onPressed: _isCapturing ? null : _captureAndShare,
             style: ElevatedButton.styleFrom(
               backgroundColor: FlutterFlowTheme.of(context).primary,
