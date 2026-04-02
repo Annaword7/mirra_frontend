@@ -239,7 +239,7 @@ class _TopratedWidgetState extends State<TopratedWidget> {
                                         name: imagesItem.productName,
                                         score: imagesItem.saCompositeScore,
                                         imageID: imagesItem.id,
-                                        tags: imagesItem.skinTypeTags,
+                                        tags: imagesItem.saBestForTags,
                                       ),
                                     );
                                   },

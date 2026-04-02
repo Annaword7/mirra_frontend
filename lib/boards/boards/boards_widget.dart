@@ -2,7 +2,6 @@ import '/auth/supabase_auth/auth_util.dart';
 import '/backend/supabase/supabase.dart';
 import '/boards/newboardempty/newboardempty_widget.dart';
 import '/components/album_list_loading_component/album_list_loading_component_widget.dart';
-import '/components/gallery_loading_component/gallery_loading_component_widget.dart';
 import '/components/navbar/navbar_widget.dart';
 import '/components/new_album/new_album_widget.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -28,12 +27,35 @@ class _BoardsWidgetState extends State<BoardsWidget> {
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
+  late Future<List<ImagesAlbumsConnectionRow>> _connectionsFuture;
+  late Future<List<AlbumRow>> _albumsFuture;
+
   @override
   void initState() {
     super.initState();
     _model = createModel(context, () => BoardsModel());
-
+    _connectionsFuture = ImagesAlbumsConnectionTable().queryRows(
+      queryFn: (q) => q.eqOrNull('user', currentUserUid),
+    );
+    _albumsFuture = AlbumTable().queryRows(
+      queryFn: (q) => q
+          .eqOrNull('user', currentUserUid)
+          .order('created_at'),
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
+  }
+
+  void _refresh() {
+    safeSetState(() {
+      _connectionsFuture = ImagesAlbumsConnectionTable().queryRows(
+        queryFn: (q) => q.eqOrNull('user', currentUserUid),
+      );
+      _albumsFuture = AlbumTable().queryRows(
+        queryFn: (q) => q
+            .eqOrNull('user', currentUserUid)
+            .order('created_at'),
+      );
+    });
   }
 
   @override
@@ -46,12 +68,7 @@ class _BoardsWidgetState extends State<BoardsWidget> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<ImagesAlbumsConnectionRow>>(
-      future: ImagesAlbumsConnectionTable().queryRows(
-        queryFn: (q) => q.eqOrNull(
-          'user',
-          currentUserUid,
-        ),
-      ),
+      future: _connectionsFuture,
       builder: (context, snapshot) {
         // Customize what your widget looks like when it's loading.
         if (!snapshot.hasData) {
@@ -133,7 +150,7 @@ class _BoardsWidgetState extends State<BoardsWidget> {
                                       ),
                                     );
                                   },
-                                ).then((value) => safeSetState(() {}));
+                                ).then((value) => _refresh());
                               },
                               text: FFLocalizations.of(context).getText(
                                 'lkfbdixo' /* New board */,
@@ -169,14 +186,7 @@ class _BoardsWidgetState extends State<BoardsWidget> {
                       ),
                       Expanded(
                         child: FutureBuilder<List<AlbumRow>>(
-                          future: AlbumTable().queryRows(
-                            queryFn: (q) => q
-                                .eqOrNull(
-                                  'user',
-                                  currentUserUid,
-                                )
-                                .order('created_at'),
-                          ),
+                          future: _albumsFuture,
                           builder: (context, snapshot) {
                             // Customize what your widget looks like when it's loading.
                             if (!snapshot.hasData) {
@@ -186,7 +196,9 @@ class _BoardsWidgetState extends State<BoardsWidget> {
                                 snapshot.data!;
 
                             if (gridViewAlbumRowList.isEmpty) {
-                              return NewboardemptyWidget();
+                              return NewboardemptyWidget(
+                                onBoardCreated: _refresh,
+                              );
                             }
 
                             return GridView.builder(
@@ -204,188 +216,7 @@ class _BoardsWidgetState extends State<BoardsWidget> {
                               itemBuilder: (context, gridViewIndex) {
                                 final gridViewAlbumRow =
                                     gridViewAlbumRowList[gridViewIndex];
-                                return Column(
-                                  mainAxisSize: MainAxisSize.max,
-                                  children: [
-                                    Flexible(
-                                      child: FutureBuilder<List<ImagesRow>>(
-                                        future: ImagesTable().queryRows(
-                                          queryFn: (q) => q.eqOrNull(
-                                            'id',
-                                            boardsImagesAlbumsConnectionRowList
-                                                .where((e) =>
-                                                    gridViewAlbumRow.id ==
-                                                    e.albumId)
-                                                .toList()
-                                                .firstOrNull
-                                                ?.imageId,
-                                          ),
-                                        ),
-                                        builder: (context, snapshot) {
-                                          // Customize what your widget looks like when it's loading.
-                                          if (!snapshot.hasData) {
-                                            return GalleryLoadingComponentWidget();
-                                          }
-                                          List<ImagesRow>
-                                              containerImagesRowList =
-                                              snapshot.data!;
-
-                                          return InkWell(
-                                            splashColor: Colors.transparent,
-                                            focusColor: Colors.transparent,
-                                            hoverColor: Colors.transparent,
-                                            highlightColor: Colors.transparent,
-                                            onTap: () async {
-                                              context.pushNamed(
-                                                ImagesbyAlbumWidget.routeName,
-                                                queryParameters: {
-                                                  'albumid': serializeParam(
-                                                    gridViewAlbumRow.id,
-                                                    ParamType.String,
-                                                  ),
-                                                }.withoutNulls,
-                                              );
-                                            },
-                                            child: Container(
-                                              width: MediaQuery.sizeOf(context)
-                                                      .width *
-                                                  1.0,
-                                              height: MediaQuery.sizeOf(context)
-                                                      .height *
-                                                  1.0,
-                                              decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(12.0),
-                                              ),
-                                              child: FutureBuilder<
-                                                  List<AlbumImagesRow>>(
-                                                future: AlbumImagesTable()
-                                                    .queryRows(
-                                                  queryFn: (q) => q
-                                                      .eqOrNull(
-                                                        'album_id',
-                                                        gridViewAlbumRow.id,
-                                                      )
-                                                      .eqOrNull(
-                                                        'owner_id',
-                                                        currentUserUid,
-                                                      ),
-                                                  limit: 4,
-                                                ),
-                                                builder: (context, snapshot) {
-                                                  // Customize what your widget looks like when it's loading.
-                                                  if (!snapshot.hasData) {
-                                                    return Center(
-                                                      child: SizedBox(
-                                                        width: 50.0,
-                                                        height: 50.0,
-                                                        child:
-                                                            CircularProgressIndicator(
-                                                          valueColor:
-                                                              AlwaysStoppedAnimation<
-                                                                  Color>(
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .primary,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    );
-                                                  }
-                                                  List<AlbumImagesRow>
-                                                      imageAlbumImagesRowList =
-                                                      snapshot.data!;
-
-                                                  return Container(
-                                                    decoration: BoxDecoration(
-                                                      color: FlutterFlowTheme
-                                                              .of(context)
-                                                          .secondaryBackground,
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              10.0),
-                                                    ),
-                                                    child: Padding(
-                                                      padding:
-                                                          EdgeInsets.all(4.0),
-                                                      child: Builder(
-                                                        builder: (context) {
-                                                          final containerVar =
-                                                              imageAlbumImagesRowList
-                                                                  .toList();
-
-                                                          return GridView
-                                                              .builder(
-                                                            padding:
-                                                                EdgeInsets.zero,
-                                                            gridDelegate:
-                                                                SliverGridDelegateWithFixedCrossAxisCount(
-                                                              crossAxisCount: 2,
-                                                              crossAxisSpacing:
-                                                                  5.0,
-                                                              mainAxisSpacing:
-                                                                  5.0,
-                                                              childAspectRatio:
-                                                                  1.0,
-                                                            ),
-                                                            primary: false,
-                                                            scrollDirection:
-                                                                Axis.vertical,
-                                                            itemCount:
-                                                                containerVar
-                                                                    .length,
-                                                            itemBuilder: (context,
-                                                                containerVarIndex) {
-                                                              final containerVarItem =
-                                                                  containerVar[
-                                                                      containerVarIndex];
-                                                              return ClipRRect(
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            8.0),
-                                                                child: Image
-                                                                    .network(
-                                                                  containerVarItem
-                                                                      .imageUrl!,
-                                                                  fit: BoxFit
-                                                                      .cover,
-                                                                ),
-                                                              );
-                                                            },
-                                                          );
-                                                        },
-                                                      ),
-                                                    ),
-                                                  );
-                                                },
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    ),
-                                    Text(
-                                      valueOrDefault<String>(
-                                        gridViewAlbumRow.name,
-                                        'Underfined',
-                                      ),
-                                      style: FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .override(
-                                            fontFamily:
-                                                FlutterFlowTheme.of(context)
-                                                    .bodyMediumFamily,
-                                            color: FlutterFlowTheme.of(context)
-                                                .primaryText,
-                                            letterSpacing: 0.0,
-                                            useGoogleFonts:
-                                                !FlutterFlowTheme.of(context)
-                                                    .bodyMediumIsCustom,
-                                          ),
-                                    ),
-                                  ].divide(SizedBox(height: 10.0)),
-                                );
+                                return _AlbumCard(album: gridViewAlbumRow);
                               },
                             );
                           },
@@ -409,6 +240,152 @@ class _BoardsWidgetState extends State<BoardsWidget> {
           ),
         );
       },
+    );
+  }
+}
+
+class _AlbumCard extends StatefulWidget {
+  const _AlbumCard({required this.album});
+  final AlbumRow album;
+
+  @override
+  State<_AlbumCard> createState() => _AlbumCardState();
+}
+
+class _AlbumCardState extends State<_AlbumCard> {
+  late Future<List<AlbumImagesRow>> _imagesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _imagesFuture = AlbumImagesTable().queryRows(
+      queryFn: (q) => q
+          .eqOrNull('album_id', widget.album.id)
+          .eqOrNull('owner_id', currentUserUid),
+      limit: 4,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.max,
+      children: [
+        Expanded(
+          child: InkWell(
+            splashColor: Colors.transparent,
+            focusColor: Colors.transparent,
+            hoverColor: Colors.transparent,
+            highlightColor: Colors.transparent,
+            borderRadius: BorderRadius.circular(12.0),
+            onTap: () => context.pushNamed(
+              ImagesbyAlbumWidget.routeName,
+              queryParameters: {
+                'albumid': serializeParam(widget.album.id, ParamType.String),
+              }.withoutNulls,
+            ),
+            child: FutureBuilder<List<AlbumImagesRow>>(
+              future: _imagesFuture,
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return Container(
+                    decoration: BoxDecoration(
+                      color: FlutterFlowTheme.of(context).secondaryBackground,
+                      borderRadius: BorderRadius.circular(12.0),
+                    ),
+                  );
+                }
+                return _AlbumPreview(images: snapshot.data!);
+              },
+            ),
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          valueOrDefault<String>(widget.album.name, 'Untitled'),
+          style: FlutterFlowTheme.of(context).bodyMedium.override(
+                fontFamily: FlutterFlowTheme.of(context).bodyMediumFamily,
+                color: FlutterFlowTheme.of(context).primaryText,
+                letterSpacing: 0.0,
+                useGoogleFonts:
+                    !FlutterFlowTheme.of(context).bodyMediumIsCustom,
+              ),
+        ),
+      ],
+    );
+  }
+}
+
+class _AlbumPreview extends StatelessWidget {
+  const _AlbumPreview({required this.images});
+  final List<AlbumImagesRow> images;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: FlutterFlowTheme.of(context).secondaryBackground,
+        borderRadius: BorderRadius.circular(12.0),
+      ),
+      padding: const EdgeInsets.all(4.0),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final cellSize = (constraints.maxWidth - 9) / 2;
+          final slots = List.generate(4, (i) => i);
+          return Column(
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    for (final i in [0, 1])
+                      Expanded(
+                        child: Padding(
+                          padding: EdgeInsets.only(
+                            right: i == 0 ? 2.5 : 0,
+                            bottom: 2.5,
+                          ),
+                          child: _cell(i),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: Row(
+                  children: [
+                    for (final i in [2, 3])
+                      Expanded(
+                        child: Padding(
+                          padding: EdgeInsets.only(
+                            right: i == 2 ? 2.5 : 0,
+                            top: 2.5,
+                          ),
+                          child: _cell(i),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _cell(int index) {
+    if (index >= images.length || images[index].imageUrl == null) {
+      return const SizedBox.expand();
+    }
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8.0),
+      child: Image.network(
+        images[index].imageUrl!,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: double.infinity,
+      ),
     );
   }
 }

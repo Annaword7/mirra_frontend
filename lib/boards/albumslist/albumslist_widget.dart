@@ -181,7 +181,7 @@ class _AlbumslistWidgetState extends State<AlbumslistWidget> {
                                               child: Text(
                                                 valueOrDefault<String>(
                                                   columnAlbumRow.name,
-                                                  'Underfined',
+                                                  'Untitled',
                                                 ),
                                                 textAlign: TextAlign.center,
                                                 style:
@@ -246,13 +246,10 @@ class _AlbumslistWidgetState extends State<AlbumslistWidget> {
                           },
                         ),
                       ),
-                      Expanded(
-                        child: Align(
-                          alignment: AlignmentDirectional(0.0, 0.0),
-                          child: Padding(
-                            padding: EdgeInsetsDirectional.fromSTEB(
-                                16.0, 0.0, 16.0, 16.0),
-                            child: FFButtonWidget(
+                      Padding(
+                        padding: EdgeInsetsDirectional.fromSTEB(
+                            16.0, 0.0, 16.0, 16.0),
+                        child: FFButtonWidget(
                               onPressed: () async {
                                 await LinkitemtoalbumsCall.call(
                                   token: currentJwtToken,
@@ -303,8 +300,6 @@ class _AlbumslistWidgetState extends State<AlbumslistWidget> {
                               ),
                             ),
                           ),
-                        ),
-                      ),
                     ]
                         .divide(SizedBox(height: 16.0))
                         .addToStart(SizedBox(height: 16.0))

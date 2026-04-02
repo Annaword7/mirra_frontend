@@ -636,7 +636,7 @@ class _HomeWidgetState extends State<HomeWidget> {
                                             0,
                                           ),
                                           tags: staggeredViewImagesRow
-                                              .skinTypeTags,
+                                              .saBestForTags,
                                           imageID: staggeredViewImagesRow.id,
                                         ),
                                       );

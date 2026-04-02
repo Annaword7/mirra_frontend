@@ -419,19 +419,19 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
   // Boards
   {
     'g9plkvs3': {
-      'en': 'Boards',
-      'es': 'Tableros',
-      'ru': 'Доски',
+      'en': 'Collections',
+      'es': 'Colecciones',
+      'ru': 'Подборки',
     },
     'lkfbdixo': {
-      'en': 'New board',
-      'es': 'Nuevo tablero',
-      'ru': 'Новая доска',
+      'en': 'New collection',
+      'es': 'Nueva colección',
+      'ru': 'Новая подборка',
     },
     'ftrzd6sh': {
-      'en': 'Boards',
-      'es': 'Tableros',
-      'ru': 'Доски',
+      'en': 'Collections',
+      'es': 'Colecciones',
+      'ru': 'Подборки',
     },
   },
   // Home
@@ -553,9 +553,9 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
   // imagesbyAlbum
   {
     '9irpcdv0': {
-      'en': 'Boards',
-      'es': 'Tableros',
-      'ru': 'Доски',
+      'en': 'Collections',
+      'es': 'Colecciones',
+      'ru': 'Подборки',
     },
   },
   // ForgotPassword
@@ -1079,6 +1079,11 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'es': 'Hacer público',
       'ru': 'Сделать продукт общедоступным',
     },
+    'xkz8m3p1': {
+      'en': 'Share link',
+      'es': 'Compartir enlace',
+      'ru': 'Поделиться ссылкой',
+    },
     'q2xjnp4k': {
       'en': 'Add to board',
       'es': 'Añadir al tablero',
@@ -1179,9 +1184,9 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ru': 'Обзор',
     },
     '5lvcbe4s': {
-      'en': 'Boards',
-      'es': 'Tableros',
-      'ru': 'Доски',
+      'en': 'Collections',
+      'es': 'Colecciones',
+      'ru': 'Подборки',
     },
     'i0bb253q': {
       'en': 'Profile',
@@ -1632,19 +1637,19 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
   // newboardempty
   {
     '95giorwg': {
-      'en': 'No boards yet',
-      'es': 'Aún no hay tableros',
-      'ru': 'Еще нет досок',
+      'en': 'Your collections',
+      'es': 'Tus colecciones',
+      'ru': 'Ваши подборки',
     },
     'd37etdgk': {
-      'en': 'Create boards to organize your products',
-      'es': 'Crea tableros para organizar tus productos.',
-      'ru': 'Создайте свою подборку для организации ваших продуктов',
+      'en': 'Save favourites, build routines, share your picks',
+      'es': 'Guarda favoritos, crea rutinas, comparte tus hallazgos',
+      'ru': 'Сохраняйте любимое, собирайте рутины, делитесь находками',
     },
     'o1bipgy8': {
-      'en': 'Create your first board',
-      'es': 'Crea tu primer tablero',
-      'ru': 'Создайте вашу первую доску',
+      'en': 'Create collection',
+      'es': 'Crear colección',
+      'ru': 'Создать подборку',
     },
   },
   // topratedproductspage

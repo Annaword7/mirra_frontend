@@ -3,7 +3,7 @@ import '/backend/supabase/supabase.dart';
 import '/components/navbar/navbar_widget.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/item_card/imagedetailed/imagedetailed_widget.dart';
+import '/item_card/imagedetailed_main/imagedetailed_main_widget.dart';
 import '/limits/favourites/emptyfavourite_new/emptyfavourite_new_widget.dart';
 import 'dart:async';
 import '/index.dart';
@@ -305,13 +305,28 @@ class _FavoritesWidgetState extends State<FavoritesWidget> {
                                                 }.withoutNulls,
                                               );
                                             },
-                                            child: ImagedetailedWidget(
+                                            child: ImagedetailedMainWidget(
                                               key: Key(
                                                   'Keygpu_${topchildIndex}_of_${topchild.length}'),
                                               imageUrl: topchildItem.imageUrl,
                                               brand: topchildItem.brand,
                                               name: topchildItem.productName,
-                                              score: topchildItem.score,
+                                              score: valueOrDefault<double>(
+                                                ((valueOrDefault<double>(
+                                                              topchildItem.saCompositeScore,
+                                                              0.0,
+                                                            ) ??
+                                                            0)
+                                                        .round())
+                                                    .toDouble(),
+                                                0.0,
+                                              ),
+                                              imageID: topchildItem.id,
+                                              tags: topchildItem.saBestForTags,
+                                              stars: valueOrDefault<int>(
+                                                topchildItem.starsFromUser,
+                                                0,
+                                              ),
                                             ),
                                           );
                                         },

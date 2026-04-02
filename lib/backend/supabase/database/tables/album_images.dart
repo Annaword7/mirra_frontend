@@ -47,6 +47,18 @@ class AlbumImagesRow extends SupabaseDataRow {
   double? get score => getField<double>('score');
   set score(double? value) => setField<double>('score', value);
 
+  double? get saCompositeScore => getField<double>('sa_composite_score');
+  set saCompositeScore(double? value) =>
+      setField<double>('sa_composite_score', value);
+
+  List<String> get saBestForTags =>
+      getListField<String>('sa_best_for_tags');
+  set saBestForTags(List<String>? value) =>
+      setListField<String>('sa_best_for_tags', value);
+
+  int? get starsFromUser => getField<int>('stars_from_user');
+  set starsFromUser(int? value) => setField<int>('stars_from_user', value);
+
   String? get pros => getField<String>('pros');
   set pros(String? value) => setField<String>('pros', value);
 

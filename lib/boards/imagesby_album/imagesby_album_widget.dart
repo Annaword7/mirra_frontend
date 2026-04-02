@@ -3,7 +3,7 @@ import '/boards/edit_album/edit_album_widget.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/item_card/imagedetailed/imagedetailed_widget.dart';
+import '/item_card/imagedetailed_main/imagedetailed_main_widget.dart';
 import '/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
@@ -242,13 +242,16 @@ class _ImagesbyAlbumWidgetState extends State<ImagesbyAlbumWidget> {
                                 }.withoutNulls,
                               );
                             },
-                            child: ImagedetailedWidget(
+                            child: ImagedetailedMainWidget(
                               key: Key(
                                   'Keyk9r_${staggeredViewIndex}_of_${staggeredViewAlbumImagesRowList.length}'),
                               imageUrl: staggeredViewAlbumImagesRow.imageUrl,
                               brand: staggeredViewAlbumImagesRow.brand,
                               name: staggeredViewAlbumImagesRow.productName,
-                              score: staggeredViewAlbumImagesRow.score,
+                              score: (staggeredViewAlbumImagesRow.saCompositeScore ?? staggeredViewAlbumImagesRow.score ?? 0.0).roundToDouble(),
+                              imageID: staggeredViewAlbumImagesRow.imageId,
+                              tags: staggeredViewAlbumImagesRow.saBestForTags,
+                              stars: staggeredViewAlbumImagesRow.starsFromUser,
                             ),
                           );
                         },
