@@ -1,4 +1,6 @@
+import 'dart:async';
 import '/auth/supabase_auth/auth_util.dart';
+import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/index.dart';
@@ -47,6 +49,7 @@ class _NewblankWidgetState extends State<NewblankWidget> {
     final user = await authManager.signInAnonymously(context);
     if (mounted) setState(() => _loading = false);
     if (user != null && mounted) {
+      unawaited(AnalyticsService.instance.trackAnonSessionStarted());
       context.goNamed(
         HomeWidget.routeName,
         extra: <String, dynamic>{

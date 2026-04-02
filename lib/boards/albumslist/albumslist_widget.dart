@@ -1,7 +1,9 @@
+import 'dart:async';
 import '/auth/supabase_auth/auth_util.dart';
 import '/backend/api_requests/api_calls.dart';
 import '/backend/supabase/supabase.dart';
 import '/components/loading_styles/loading_styles_widget.dart';
+import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_toggle_icon.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -256,6 +258,7 @@ class _AlbumslistWidgetState extends State<AlbumslistWidget> {
                                   imageId: widget.imageID,
                                   albumIdsList: _model.albumsselected2,
                                 );
+                                unawaited(AnalyticsService.instance.trackProductAddedToBoard(imageId: widget.imageID ?? 0));
 
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(

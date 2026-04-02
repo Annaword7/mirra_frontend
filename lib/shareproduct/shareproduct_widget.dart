@@ -286,6 +286,7 @@ class _ShareproductWidgetState extends State<ShareproductWidget> {
                             '',
                           ),
                           lang: FFLocalizations.of(context).languageCode,
+                          imageId: widget.imageid ?? 0,
                         ),
                       ),
                     ],

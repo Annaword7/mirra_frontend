@@ -1,4 +1,6 @@
+import 'dart:async';
 import '/auth/supabase_auth/auth_util.dart';
+import '/flutter_flow/analytics_service.dart';
 import '/backend/api_requests/api_calls.dart';
 import '/backend/supabase/supabase.dart';
 import '/boards/albumslist/albumslist_widget.dart';
@@ -56,6 +58,10 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
 
     // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
+      unawaited(AnalyticsService.instance.trackCardOpened(
+        imageId: widget.imageid ?? 0,
+        source: 'direct',
+      ));
       _model.imageraw = await ImagesTable().queryRows(
         queryFn: (q) => q.eqOrNull(
           'id',
@@ -2075,6 +2081,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                             widget.imageid,
                                           ),
                                         );
+                                        unawaited(AnalyticsService.instance.trackFavouriteAdded(imageId: widget.imageid ?? 0));
                                         safeSetState(() {});
                                         _model.optiondropdownopen = false;
                                         safeSetState(() {});
@@ -2133,6 +2140,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                             widget.imageid,
                                           ),
                                         );
+                                        unawaited(AnalyticsService.instance.trackFavouriteRemoved(imageId: widget.imageid ?? 0));
                                         safeSetState(() {});
                                         _model.optiondropdownopen = false;
                                         safeSetState(() {});
@@ -2352,6 +2360,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                     onTap: () async {
                                       _model.optiondropdownopen = false;
                                       safeSetState(() {});
+                                      unawaited(AnalyticsService.instance.trackShareLinkTapped(imageId: widget.imageid ?? 0));
                                       await Share.share(
                                         'https://mirra.app/product/${widget.imageid}',
                                       );

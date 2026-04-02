@@ -34,7 +34,11 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
     super.initState();
     _model = createModel(context, () => PaywallpageModel());
 
-    WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Default to annual plan (better value)
+      FFAppState().subscriptionmonth = false;
+      safeSetState(() {});
+    });
   }
 
   @override
@@ -549,6 +553,31 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                                   mainAxisSize: MainAxisSize.min,
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
+                                    Container(
+                                      width: double.infinity,
+                                      decoration: BoxDecoration(
+                                        color: FlutterFlowTheme.of(context).primary,
+                                        borderRadius: BorderRadius.only(
+                                          topLeft: Radius.circular(10.0),
+                                          topRight: Radius.circular(10.0),
+                                        ),
+                                      ),
+                                      child: Padding(
+                                        padding: EdgeInsetsDirectional.fromSTEB(12.0, 6.0, 12.0, 6.0),
+                                        child: Text(
+                                          'BEST VALUE',
+                                          textAlign: TextAlign.center,
+                                          style: FlutterFlowTheme.of(context).labelSmall.override(
+                                                fontFamily: FlutterFlowTheme.of(context).labelSmallFamily,
+                                                color: FlutterFlowTheme.of(context).alternate,
+                                                fontSize: 11.0,
+                                                letterSpacing: 1.0,
+                                                fontWeight: FontWeight.bold,
+                                                useGoogleFonts: !FlutterFlowTheme.of(context).labelSmallIsCustom,
+                                              ),
+                                        ),
+                                      ),
+                                    ),
                                     Padding(
                                       padding: EdgeInsetsDirectional.fromSTEB(
                                           8.0, 16.0, 8.0, 16.0),
@@ -953,8 +982,22 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                         ),
                       ),
                       Padding(
+                        padding: EdgeInsetsDirectional.fromSTEB(0.0, 16.0, 0.0, 0.0),
+                        child: Text(
+                          'Cancel anytime · Secure payment via App Store',
+                          textAlign: TextAlign.center,
+                          style: FlutterFlowTheme.of(context).bodySmall.override(
+                                fontFamily: FlutterFlowTheme.of(context).bodySmallFamily,
+                                color: FlutterFlowTheme.of(context).secondaryText,
+                                fontSize: 12.0,
+                                letterSpacing: 0.0,
+                                useGoogleFonts: !FlutterFlowTheme.of(context).bodySmallIsCustom,
+                              ),
+                        ),
+                      ),
+                      Padding(
                         padding:
-                            EdgeInsetsDirectional.fromSTEB(0.0, 16.0, 0.0, 0.0),
+                            EdgeInsetsDirectional.fromSTEB(0.0, 12.0, 0.0, 0.0),
                         child: InkWell(
                           splashColor: Colors.transparent,
                           focusColor: Colors.transparent,

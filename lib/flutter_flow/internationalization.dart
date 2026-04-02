@@ -698,9 +698,9 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ru': 'Перейти на PRO',
     },
     '2rjs2u6d': {
-      'en': 'Increased Limit, Private Products, and more with Pro!',
-      'es': 'Límites aumentados, productos privados y más con PRO',
-      'ru': 'Больше лимитов, приватность продуктов и другие возможности PRO',
+      'en': 'See what your skincare really does',
+      'es': 'Descubre qué hace realmente tu skincare',
+      'ru': 'Узнай, что на самом деле делает твоя косметика',
     },
     '8u51n3um': {
       'en': ' ≈ ',
@@ -1309,19 +1309,24 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
   // premiumFeaturesList
   {
     '8xm0tarf': {
-      'en': '200 AI analyses per month',
-      'es': '200 análisis de IA al mes',
-      'ru': '200 AI-анализов в месяц',
+      'en': 'Full scientific analysis — safety, efficacy & skin compatibility',
+      'es': 'Análisis científico completo — seguridad, eficacia y compatibilidad',
+      'ru': 'Полный научный анализ — безопасность, эффективность и совместимость',
     },
     'y0rimd99': {
-      'en': 'Make products private',
-      'es': 'Hacer productos privados',
-      'ru': 'Скрывать продукты от других пользователей',
+      'en': 'Personalized verdict based on your skin type',
+      'es': 'Veredicto personalizado según tu tipo de piel',
+      'ru': 'Персональный вердикт на основе твоего типа кожи',
     },
     'o1zj0116': {
-      'en': 'Access top-rated products',
-      'es': 'Acceso a productos mejor valorados',
-      'ru': 'Доступ к топ-продуктам сообщества',
+      'en': 'Top-rated products ranking',
+      'es': 'Ranking de productos mejor valorados',
+      'ru': 'Рейтинг лучших продуктов сообщества',
+    },
+    'pm4r9x2w': {
+      'en': 'Keep your scans private',
+      'es': 'Mantén tus análisis en privado',
+      'ru': 'Скрывай свои сканы от других',
     },
   },
   // OutOfGenerations

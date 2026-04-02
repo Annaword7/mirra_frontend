@@ -12,10 +12,12 @@ import 'package:flutter/material.dart';
 // Begin custom widget code
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
 
+import 'dart:async';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/rendering.dart';
 import 'package:share_plus/share_plus.dart';
+import '/flutter_flow/analytics_service.dart';
 
 // ── Localization maps ──────────────────────────────────────────────────────────
 
@@ -72,6 +74,7 @@ class ShareCardWidget extends StatefulWidget {
     this.isStory = false,
     this.verdict = '',
     this.lang = 'en',
+    this.imageId = 0,
   });
 
   final double width;
@@ -86,6 +89,7 @@ class ShareCardWidget extends StatefulWidget {
   final bool isStory;
   final String verdict;
   final String lang;
+  final int imageId;
 
   @override
   State<ShareCardWidget> createState() => _ShareCardWidgetState();
@@ -120,6 +124,10 @@ class _ShareCardWidgetState extends State<ShareCardWidget> {
         text:
             '${widget.brandName} ${widget.productName} — ${_t('shareText', widget.lang)}',
       );
+      unawaited(AnalyticsService.instance.trackShareCardCreated(
+        imageId: widget.imageId,
+        format: widget.isStory ? 'story' : 'square',
+      ));
     } finally {
       if (mounted) setState(() => _isCapturing = false);
     }

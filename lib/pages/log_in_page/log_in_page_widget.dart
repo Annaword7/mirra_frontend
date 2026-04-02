@@ -1,4 +1,5 @@
 import '/auth/supabase_auth/auth_util.dart';
+import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_animations.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -404,6 +405,7 @@ class _LogInPageWidgetState extends State<LogInPageWidget>
                                   if (user == null) {
                                     return;
                                   }
+                                  unawaited(AnalyticsService.instance.trackLogin());
 
                                   context.goNamedAuth(
                                       HomeWidget.routeName, context.mounted);
@@ -453,6 +455,7 @@ class _LogInPageWidgetState extends State<LogInPageWidget>
                                         if (user == null) {
                                           return;
                                         }
+                                        unawaited(AnalyticsService.instance.trackLogin(method: 'apple'));
 
                                         context.goNamedAuth(
                                             HomeWidget.routeName,

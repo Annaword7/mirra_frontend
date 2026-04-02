@@ -61,7 +61,7 @@ class _PremiumFeaturesListWidgetState extends State<PremiumFeaturesListWidget> {
                 child: Align(
                   alignment: AlignmentDirectional(0.0, 0.0),
                   child: Icon(
-                    Icons.auto_awesome_outlined,
+                    Icons.biotech_outlined,
                     color: FlutterFlowTheme.of(context).alternate,
                     size: 20.0,
                   ),
@@ -70,17 +70,17 @@ class _PremiumFeaturesListWidgetState extends State<PremiumFeaturesListWidget> {
               Expanded(
                 child: Text(
                   FFLocalizations.of(context).getText(
-                    '8xm0tarf' /* 200 AI analyses per month */,
+                    '8xm0tarf' /* Full scientific analysis */,
                   ),
                   textAlign: TextAlign.start,
                   style: FlutterFlowTheme.of(context).bodyMedium.override(
                         fontFamily:
                             FlutterFlowTheme.of(context).bodyMediumFamily,
                         color: FlutterFlowTheme.of(context).primaryText,
-                        fontSize: 16.0,
+                        fontSize: 15.0,
                         letterSpacing: 0.0,
                         fontWeight: FontWeight.w500,
-                        lineHeight: 1.1,
+                        lineHeight: 1.3,
                         useGoogleFonts:
                             !FlutterFlowTheme.of(context).bodyMediumIsCustom,
                       ),
@@ -103,8 +103,8 @@ class _PremiumFeaturesListWidgetState extends State<PremiumFeaturesListWidget> {
                 ),
                 child: Align(
                   alignment: AlignmentDirectional(0.0, 0.0),
-                  child: FaIcon(
-                    FontAwesomeIcons.eyeSlash,
+                  child: Icon(
+                    Icons.verified_outlined,
                     color: FlutterFlowTheme.of(context).alternate,
                     size: 20.0,
                   ),
@@ -113,17 +113,17 @@ class _PremiumFeaturesListWidgetState extends State<PremiumFeaturesListWidget> {
               Expanded(
                 child: Text(
                   FFLocalizations.of(context).getText(
-                    'y0rimd99' /* Make products private */,
+                    'y0rimd99' /* Personalized verdict */,
                   ),
                   textAlign: TextAlign.start,
                   style: FlutterFlowTheme.of(context).bodyMedium.override(
                         fontFamily:
                             FlutterFlowTheme.of(context).bodyMediumFamily,
                         color: FlutterFlowTheme.of(context).primaryText,
-                        fontSize: 16.0,
+                        fontSize: 15.0,
                         letterSpacing: 0.0,
                         fontWeight: FontWeight.w500,
-                        lineHeight: 1.1,
+                        lineHeight: 1.3,
                         useGoogleFonts:
                             !FlutterFlowTheme.of(context).bodyMediumIsCustom,
                       ),
@@ -156,17 +156,60 @@ class _PremiumFeaturesListWidgetState extends State<PremiumFeaturesListWidget> {
               Expanded(
                 child: Text(
                   FFLocalizations.of(context).getText(
-                    'o1zj0116' /* Access top-rated products */,
+                    'o1zj0116' /* Top-rated products ranking */,
                   ),
                   textAlign: TextAlign.start,
                   style: FlutterFlowTheme.of(context).bodyMedium.override(
                         fontFamily:
                             FlutterFlowTheme.of(context).bodyMediumFamily,
                         color: FlutterFlowTheme.of(context).primaryText,
-                        fontSize: 16.0,
+                        fontSize: 15.0,
                         letterSpacing: 0.0,
                         fontWeight: FontWeight.w500,
-                        lineHeight: 1.1,
+                        lineHeight: 1.3,
+                        useGoogleFonts:
+                            !FlutterFlowTheme.of(context).bodyMediumIsCustom,
+                      ),
+                ),
+              ),
+            ].divide(SizedBox(width: 12.0)),
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              Container(
+                width: 40.0,
+                height: 40.0,
+                decoration: BoxDecoration(
+                  color: FlutterFlowTheme.of(context).primary,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: FlutterFlowTheme.of(context).primary,
+                  ),
+                ),
+                child: Align(
+                  alignment: AlignmentDirectional(0.0, 0.0),
+                  child: FaIcon(
+                    FontAwesomeIcons.eyeSlash,
+                    color: FlutterFlowTheme.of(context).alternate,
+                    size: 18.0,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  FFLocalizations.of(context).getText(
+                    'pm4r9x2w' /* Keep your scans private */,
+                  ),
+                  textAlign: TextAlign.start,
+                  style: FlutterFlowTheme.of(context).bodyMedium.override(
+                        fontFamily:
+                            FlutterFlowTheme.of(context).bodyMediumFamily,
+                        color: FlutterFlowTheme.of(context).primaryText,
+                        fontSize: 15.0,
+                        letterSpacing: 0.0,
+                        fontWeight: FontWeight.w500,
+                        lineHeight: 1.3,
                         useGoogleFonts:
                             !FlutterFlowTheme.of(context).bodyMediumIsCustom,
                       ),

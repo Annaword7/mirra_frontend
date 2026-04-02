@@ -1,4 +1,6 @@
+import 'dart:async';
 import '/auth/supabase_auth/auth_util.dart';
+import '/flutter_flow/analytics_service.dart';
 import '/backend/api_requests/api_calls.dart';
 import '/backend/supabase/supabase.dart';
 import '/components/analysis_loading/analysis_loading_widget.dart';
@@ -156,6 +158,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
             }
           }
 
+          unawaited(AnalyticsService.instance.trackAnalysisStarted(source: 'camera'));
           FFAppState().analysisloading = true;
           FFAppState().extractedProductName = '';
           FFAppState().extractedBrand = '';
@@ -616,6 +619,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
             }
           }
 
+          unawaited(AnalyticsService.instance.trackAnalysisStarted(source: 'gallery'));
           FFAppState().analysisloading = true;
           FFAppState().extractedProductName = '';
           FFAppState().extractedBrand = '';

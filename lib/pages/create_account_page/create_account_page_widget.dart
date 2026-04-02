@@ -1,4 +1,5 @@
 import '/auth/supabase_auth/auth_util.dart';
+import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_animations.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -565,6 +566,7 @@ class _CreateAccountPageWidgetState extends State<CreateAccountPageWidget>
                                       if (user == null) {
                                         return;
                                       }
+                                      unawaited(AnalyticsService.instance.trackSignUp());
 
                                       context.goNamedAuth(
                                         OnboardingProfileWidget.routeName,
@@ -627,6 +629,7 @@ class _CreateAccountPageWidgetState extends State<CreateAccountPageWidget>
                                             if (user == null) {
                                               return;
                                             }
+                                            unawaited(AnalyticsService.instance.trackSignUp(method: 'apple'));
 
                                             context.goNamedAuth(
                                               OnboardingProfileWidget.routeName,

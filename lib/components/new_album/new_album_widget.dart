@@ -1,5 +1,7 @@
+import 'dart:async';
 import '/auth/supabase_auth/auth_util.dart';
 import '/backend/supabase/supabase.dart';
+import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
@@ -202,6 +204,7 @@ class _NewAlbumWidgetState extends State<NewAlbumWidget> {
                     'cover':
                         'https://st2.depositphotos.com/2197626/7780/v/950/depositphotos_77803968-stock-illustration-blank-hardcover-album-template.jpg',
                   });
+                  unawaited(AnalyticsService.instance.trackBoardCreated());
                   Navigator.pop(context);
 
                   safeSetState(() {});

@@ -9,6 +9,7 @@ import '/backend/schema/structs/index.dart';
 import '/auth/base_auth_user_provider.dart';
 
 import '/flutter_flow/flutter_flow_util.dart';
+import '/flutter_flow/analytics_service.dart';
 
 import '/index.dart';
 
@@ -78,6 +79,7 @@ GoRouter createRouter(AppStateNotifier appStateNotifier, [Widget? entryPage]) =>
       debugLogDiagnostics: true,
       refreshListenable: appStateNotifier,
       navigatorKey: appNavigatorKey,
+      observers: [AnalyticsService.instance.observer],
       errorBuilder: (context, state) => appStateNotifier.loggedIn
           ? entryPage ?? HomeWidget()
           : NewblankWidget(),
@@ -402,7 +404,7 @@ class FFRoute {
               ? Container(
                   color: Colors.transparent,
                   child: Image.asset(
-                    'assets/images/image1.png',
+                    'assets/images/splash.png',
                     fit: BoxFit.cover,
                   ),
                 )
