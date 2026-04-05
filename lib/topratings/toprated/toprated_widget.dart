@@ -255,6 +255,7 @@ class _TopratedWidgetState extends State<TopratedWidget> {
                                                 fontFamily:
                                                     FlutterFlowTheme.of(context)
                                                         .bodySmallFamily,
+                                                fontSize: 13.0,
                                                 color: isSelected
                                                     ? FlutterFlowTheme.of(
                                                             context)
