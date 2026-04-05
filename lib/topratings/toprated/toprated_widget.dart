@@ -227,6 +227,7 @@ class _TopratedWidgetState extends State<TopratedWidget> {
                                 },
                                 child: AnimatedContainer(
                                   duration: Duration(milliseconds: 150),
+                                  alignment: Alignment.center,
                                   padding: EdgeInsets.symmetric(
                                       horizontal: 14.0, vertical: 6.0),
                                   decoration: BoxDecoration(
