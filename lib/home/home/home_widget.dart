@@ -18,6 +18,36 @@ import 'package:provider/provider.dart';
 import 'home_model.dart';
 export 'home_model.dart';
 
+const Map<String, List<String>> _kHomeCategoryTypes = {
+  'serum':       ['serum'],
+  'toner':       ['toner'],
+  // 'treatment' is the legacy GPT value for serums/treatments
+  'moisturizer': ['moisturizer', 'treatment'],
+  'mask':        ['mask'],
+  // 'exfoliant' is the legacy GPT value
+  'cleanser':    ['cleanser', 'exfoliant'],
+  'sunscreen':   ['sunscreen'],
+  // 'eye_care' is the legacy GPT value; 'eye_cream' is from scoring.py
+  'eye_cream':   ['eye_cream', 'eye_care'],
+  'makeup': [
+    'foundation', 'bb_cream', 'cc_cream', 'concealer', 'powder',
+    'blush', 'mascara', 'eyeliner', 'lipstick', 'lip_gloss',
+    'primer', 'highlighter', 'bronzer', 'eyeshadow',
+  ],
+};
+
+const List<(String, String)> _kHomeFilterChips = [
+  ('all',         't5l3cspz'),
+  ('serum',       '4eemae24'),
+  ('toner',       'ty7a9smo'),
+  ('moisturizer', 'mubk0pfy'),
+  ('mask',        'b652wlj0'),
+  ('cleanser',    'pvpxd2wv'),
+  ('sunscreen',   'oocbcr3w'),
+  ('eye_cream',   '3dfv6cmb'),
+  ('makeup',      'pt749ga9'),
+];
+
 class HomeWidget extends StatefulWidget {
   const HomeWidget({super.key});
 
@@ -95,7 +125,7 @@ class _HomeWidgetState extends State<HomeWidget> {
   }
 
   Future<List<ImagesRow>> _fetchImages() => ImagesTable().queryRows(
-        columns: 'id,image_url,product_name,brand,sa_composite_score,sa_best_for_tags,stars_from_user,created_at',
+        columns: 'id,image_url,product_name,brand,sa_composite_score,sa_best_for_tags,stars_from_user,created_at,product_type',
         queryFn: (q) => q
             .eqOrNull('user', currentUserUid)
             .order('created_at', ascending: false),
@@ -548,15 +578,102 @@ class _HomeWidgetState extends State<HomeWidget> {
                                 ),
                               ),
                             ),
+                          // ── Filter chips ───────────────────────────────
+                          if (containerImagesRowList.length != 0)
+                            Padding(
+                              padding: EdgeInsetsDirectional.fromSTEB(
+                                  0.0, 12.0, 0.0, 5.0),
+                              child: SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                padding: EdgeInsetsDirectional.fromSTEB(
+                                    20.0, 0, 20.0, 0),
+                                child: Row(
+                                  children: _kHomeFilterChips
+                                      .map((chip) {
+                                        final (catKey, locKey) = chip;
+                                        final isSelected =
+                                            _model.selectedCategory == catKey;
+                                        return Padding(
+                                          padding:
+                                              EdgeInsetsDirectional.fromSTEB(
+                                                  0, 0, 8.0, 10),
+                                          child: GestureDetector(
+                                            onTap: () {
+                                              _model.selectedCategory = catKey;
+                                              safeSetState(() {});
+                                            },
+                                            child: AnimatedContainer(
+                                              duration:
+                                                  Duration(milliseconds: 150),
+                                              padding: EdgeInsets.symmetric(
+                                                  horizontal: 18.0,
+                                                  vertical: 8.0),
+                                              decoration: BoxDecoration(
+                                                color: isSelected
+                                                    ? FlutterFlowTheme.of(
+                                                            context)
+                                                        .primary
+                                                    : FlutterFlowTheme.of(
+                                                            context)
+                                                        .secondaryBackground,
+                                                borderRadius:
+                                                    BorderRadius.circular(20.0),
+                                                border: Border.all(
+                                                  color: isSelected
+                                                      ? FlutterFlowTheme.of(
+                                                              context)
+                                                          .primary
+                                                      : FlutterFlowTheme.of(
+                                                              context)
+                                                          .alternate,
+                                                  width: 1.0,
+                                                ),
+                                              ),
+                                              child: Text(
+                                                FFLocalizations.of(context)
+                                                    .getText(locKey),
+                                                style: FlutterFlowTheme.of(
+                                                        context)
+                                                    .bodySmall
+                                                    .override(
+                                                      fontFamily:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .bodySmallFamily,
+                                                      fontSize: 13.0,
+                                                      color: isSelected
+                                                          ? FlutterFlowTheme.of(
+                                                                  context)
+                                                              .alternate
+                                                          : FlutterFlowTheme.of(
+                                                                  context)
+                                                              .secondaryText,
+                                                      letterSpacing: 0.0,
+                                                      fontWeight: isSelected
+                                                          ? FontWeight.w600
+                                                          : FontWeight.normal,
+                                                      useGoogleFonts:
+                                                          !FlutterFlowTheme.of(
+                                                                  context)
+                                                              .bodySmallIsCustom,
+                                                    ),
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      })
+                                      .toList(),
+                                ),
+                              ),
+                            ),
                           Padding(
                             padding: EdgeInsetsDirectional.fromSTEB(
-                                16.0, 10.0, 16.0, 0.0),
+                                16.0, 0.0, 16.0, 0.0),
                             child: Container(
                               decoration: BoxDecoration(),
                               child: FutureBuilder<List<ImagesRow>>(
                                 future: _model.imagesFuture,
                                 builder: (context, snapshot) {
-                                  // Customize what your widget looks like when it's loading.
                                   if (!snapshot.hasData) {
                                     return Center(
                                       child: SizedBox(
@@ -572,8 +689,47 @@ class _HomeWidgetState extends State<HomeWidget> {
                                       ),
                                     );
                                   }
-                                  List<ImagesRow> staggeredViewImagesRowList =
-                                      snapshot.data!;
+                                  final allRows = snapshot.data!;
+                                  final List<ImagesRow>
+                                      staggeredViewImagesRowList =
+                                      _model.selectedCategory == 'all'
+                                          ? allRows
+                                          : allRows
+                                              .where((r) => (_kHomeCategoryTypes[
+                                                          _model
+                                                              .selectedCategory] ??
+                                                      [])
+                                                  .contains(
+                                                      r.productType ?? ''))
+                                              .toList();
+
+                                  if (staggeredViewImagesRowList.isEmpty &&
+                                      _model.selectedCategory != 'all') {
+                                    return Center(
+                                      child: Padding(
+                                        padding: EdgeInsets.only(top: 40.0),
+                                        child: Text(
+                                          FFLocalizations.of(context)
+                                              .getText('xtop_empty'),
+                                          style: FlutterFlowTheme.of(context)
+                                              .bodyMedium
+                                              .override(
+                                                fontFamily:
+                                                    FlutterFlowTheme.of(context)
+                                                        .bodyMediumFamily,
+                                                color:
+                                                    FlutterFlowTheme.of(context)
+                                                        .secondaryText,
+                                                letterSpacing: 0.0,
+                                                useGoogleFonts:
+                                                    !FlutterFlowTheme.of(
+                                                            context)
+                                                        .bodyMediumIsCustom,
+                                              ),
+                                        ),
+                                      ),
+                                    );
+                                  }
 
                                   return MasonryGridView.builder(
                                     physics:

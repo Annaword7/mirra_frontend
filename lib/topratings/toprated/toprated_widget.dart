@@ -14,13 +14,13 @@ export 'toprated_model.dart';
 
 // Maps filter category key → list of product_type values it covers.
 const Map<String, List<String>> _kCategoryTypes = {
-  'serum': ['serum'],
-  'toner': ['toner'],
-  'moisturizer': ['moisturizer'],
-  'mask': ['mask'],
-  'cleanser': ['cleanser'],
-  'sunscreen': ['sunscreen'],
-  'eye_cream': ['eye_cream'],
+  'serum':       ['serum'],
+  'toner':       ['toner'],
+  'moisturizer': ['moisturizer', 'treatment'],
+  'mask':        ['mask'],
+  'cleanser':    ['cleanser', 'exfoliant'],
+  'sunscreen':   ['sunscreen'],
+  'eye_cream':   ['eye_cream', 'eye_care'],
   'makeup': [
     'foundation', 'bb_cream', 'cc_cream', 'concealer', 'powder',
     'blush', 'mascara', 'eyeliner', 'lipstick', 'lip_gloss',
@@ -219,7 +219,7 @@ class _TopratedWidgetState extends State<TopratedWidget> {
                                       _model.selectedCategory == catKey;
                                   return Padding(
                                     padding: EdgeInsetsDirectional.fromSTEB(
-                                        0, 0, 8.0, 0),
+                                        0, 0, 8.0, 10),
                                     child: GestureDetector(
                                       onTap: () {
                                         _model.selectedCategory = catKey;
@@ -228,7 +228,7 @@ class _TopratedWidgetState extends State<TopratedWidget> {
                                       child: AnimatedContainer(
                                         duration: Duration(milliseconds: 150),
                                         padding: EdgeInsets.symmetric(
-                                            horizontal: 18.0, vertical: 6.0),
+                                            horizontal: 18.0, vertical: 8.0),
                                         decoration: BoxDecoration(
                                           color: isSelected
                                               ? FlutterFlowTheme.of(context)
