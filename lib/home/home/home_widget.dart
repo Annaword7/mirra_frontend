@@ -196,9 +196,13 @@ class _HomeWidgetState extends State<HomeWidget> {
                     },
                     child: SingleChildScrollView(
                       physics: const AlwaysScrollableScrollPhysics(),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.start,
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: MediaQuery.of(context).size.height,
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           Padding(
                             padding: EdgeInsetsDirectional.fromSTEB(
@@ -816,8 +820,9 @@ class _HomeWidgetState extends State<HomeWidget> {
                           ),
                         ],
                       ),
-                    ),
+                    ),  // ConstrainedBox
                   ),
+                ),
                 );
               },
             ),

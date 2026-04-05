@@ -430,54 +430,51 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                                   .toList() ??
                                               [];
 
-                                          return Row(
-                                            mainAxisSize: MainAxisSize.max,
-                                            children: List.generate(
-                                                bestfor.length, (bestforIndex) {
-                                              final bestforItem =
-                                                  bestfor[bestforIndex];
-                                              return Container(
-                                                decoration: BoxDecoration(
-                                                  color: Color(0x62FFFFFF),
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          24.0),
-                                                ),
-                                                child: Padding(
-                                                  padding: EdgeInsetsDirectional
-                                                      .fromSTEB(
-                                                          12.0, 8.0, 12.0, 8.0),
-                                                  child: Row(
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    children: [
-                                                      Text(
-                                                        bestforItem,
-                                                        style:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .bodyMedium
-                                                                .override(
-                                                                  fontFamily: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .bodyMediumFamily,
-                                                                  color: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .alternate,
-                                                                  letterSpacing:
-                                                                      0.0,
-                                                                  useGoogleFonts:
-                                                                      !FlutterFlowTheme.of(
-                                                                              context)
-                                                                          .bodyMediumIsCustom,
-                                                                ),
-                                                      ),
-                                                    ].divide(
-                                                        SizedBox(width: 10.0)),
+                                          return SingleChildScrollView(
+                                            scrollDirection: Axis.horizontal,
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: List.generate(
+                                                  bestfor.length,
+                                                  (bestforIndex) {
+                                                final bestforItem =
+                                                    bestfor[bestforIndex];
+                                                return Container(
+                                                  decoration: BoxDecoration(
+                                                    color: Color(0x62FFFFFF),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            24.0),
                                                   ),
-                                                ),
-                                              );
-                                            }).divide(SizedBox(width: 10.0)),
+                                                  child: Padding(
+                                                    padding:
+                                                        EdgeInsetsDirectional
+                                                            .fromSTEB(12.0, 8.0,
+                                                                12.0, 8.0),
+                                                    child: Text(
+                                                      bestforItem,
+                                                      style: FlutterFlowTheme
+                                                              .of(context)
+                                                          .bodyMedium
+                                                          .override(
+                                                            fontFamily:
+                                                                FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyMediumFamily,
+                                                            color: FlutterFlowTheme
+                                                                    .of(context)
+                                                                .alternate,
+                                                            letterSpacing: 0.0,
+                                                            useGoogleFonts:
+                                                                !FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyMediumIsCustom,
+                                                          ),
+                                                    ),
+                                                  ),
+                                                );
+                                              }).divide(SizedBox(width: 10.0)),
+                                            ),
                                           );
                                         },
                                       ),
