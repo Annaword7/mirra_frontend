@@ -1933,14 +1933,14 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ru': '',
     },
     'nnsq0kj5': {
-      'en': '',
-      'es': '',
-      'ru': '',
+      'en': 'Not supported yet',
+      'es': 'Aún no disponible',
+      'ru': 'Пока не поддерживается',
     },
     '48je50c9': {
-      'en': '',
-      'es': '',
-      'ru': '',
+      'en': 'We currently analyze face skincare, sunscreens, and makeup. Hair care, body wash, fragrances, and similar products are coming soon.',
+      'es': 'Actualmente analizamos skincare facial, protectores solares y maquillaje. El cuidado del cabello, geles de ducha, fragancias y similares estarán disponibles pronto.',
+      'ru': 'Мы анализируем уход за лицом, солнцезащитные средства и макияж. Шампуни, гели для душа, ароматы и похожие продукты — скоро.',
     },
     't5l3cspz': {
       'en': '',

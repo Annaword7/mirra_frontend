@@ -678,6 +678,11 @@ class ScientificanalysisNEWBCNDCall {
           .map((x) => castToType<String>(x))
           .withoutNulls
           .toList();
+  static String? errorcode(dynamic response) =>
+      castToType<String>(getJsonField(
+        response,
+        r'''$.code''',
+      ));
 }
 
 class FeedbackNEWBCNDCall {

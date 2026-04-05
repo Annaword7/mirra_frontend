@@ -291,29 +291,52 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                 FFAppState().Producanalysstate = 0;
                 safeSetState(() {});
               } else {
-                await TelegrammessegeCall.call(
-                  messega:
-                      '${_model.uploadedFileUrl_uploadImageSupabaseCamera} на этапе scientific research, camera',
-                  email: 'from mobile app',
-                  form: 'tech message',
-                );
+                final _cameraScientificStatusCode =
+                    _model.scientificanalysresultgalary?.statusCode ?? 0;
+                if (_cameraScientificStatusCode == 422) {
+                  await showDialog(
+                    context: context,
+                    builder: (alertDialogContext) {
+                      return AlertDialog(
+                        title: Text(FFLocalizations.of(context)
+                            .getText('nnsq0kj5')),
+                        content: Text(FFLocalizations.of(context)
+                            .getText('48je50c9')),
+                        actions: [
+                          TextButton(
+                            onPressed: () =>
+                                Navigator.pop(alertDialogContext),
+                            child: Text('Ok'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                } else {
+                  await TelegrammessegeCall.call(
+                    messega:
+                        '${_model.uploadedFileUrl_uploadImageSupabaseCamera} на этапе scientific research, camera',
+                    email: 'from mobile app',
+                    form: 'tech message',
+                  );
 
-                await showDialog(
-                  context: context,
-                  builder: (alertDialogContext) {
-                    return AlertDialog(
-                      title: Text('Error!'),
-                      content: Text('Product not found, data error'),
-                      actions: [
-                        TextButton(
-                          onPressed: () =>
-                              Navigator.pop(alertDialogContext),
-                          child: Text('Ok'),
-                        ),
-                      ],
-                    );
-                  },
-                );
+                  await showDialog(
+                    context: context,
+                    builder: (alertDialogContext) {
+                      return AlertDialog(
+                        title: Text('Error!'),
+                        content: Text('Product not found, data error'),
+                        actions: [
+                          TextButton(
+                            onPressed: () =>
+                                Navigator.pop(alertDialogContext),
+                            child: Text('Ok'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                }
                 FFAppState().uploadedimageurl = '';
                 FFAppState().analysisloading = false;
                 FFAppState().Producanalysstate = 0;
@@ -751,29 +774,52 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                 FFAppState().analysisloading = false;
                 safeSetState(() {});
               } else {
-                await TelegrammessegeCall.call(
-                  messega:
-                      '${_model.uploadedFileUrl_uploadImageSupabaseCamera} на этапе scientific research, gallary',
-                  email: 'from mobile app',
-                  form: 'tech message',
-                );
+                final _galleryScientificStatusCode =
+                    _model.scientificanalysresultcamara?.statusCode ?? 0;
+                if (_galleryScientificStatusCode == 422) {
+                  await showDialog(
+                    context: context,
+                    builder: (alertDialogContext) {
+                      return AlertDialog(
+                        title: Text(FFLocalizations.of(context)
+                            .getText('nnsq0kj5')),
+                        content: Text(FFLocalizations.of(context)
+                            .getText('48je50c9')),
+                        actions: [
+                          TextButton(
+                            onPressed: () =>
+                                Navigator.pop(alertDialogContext),
+                            child: Text('Ok'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                } else {
+                  await TelegrammessegeCall.call(
+                    messega:
+                        '${_model.uploadedFileUrl_uploadImageSupabaseCamera} на этапе scientific research, gallary',
+                    email: 'from mobile app',
+                    form: 'tech message',
+                  );
 
-                await showDialog(
-                  context: context,
-                  builder: (alertDialogContext) {
-                    return AlertDialog(
-                      title: Text('Error!'),
-                      content: Text('Product not found, data error'),
-                      actions: [
-                        TextButton(
-                          onPressed: () =>
-                              Navigator.pop(alertDialogContext),
-                          child: Text('Ok'),
-                        ),
-                      ],
-                    );
-                  },
-                );
+                  await showDialog(
+                    context: context,
+                    builder: (alertDialogContext) {
+                      return AlertDialog(
+                        title: Text('Error!'),
+                        content: Text('Product not found, data error'),
+                        actions: [
+                          TextButton(
+                            onPressed: () =>
+                                Navigator.pop(alertDialogContext),
+                            child: Text('Ok'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                }
                 FFAppState().uploadedimageurl = '';
                 FFAppState().analysisloading = false;
                 FFAppState().Producanalysstate = 0;
