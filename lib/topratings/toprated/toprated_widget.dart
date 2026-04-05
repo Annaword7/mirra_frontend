@@ -292,9 +292,21 @@ class _TopratedWidgetState extends State<TopratedWidget> {
                                     child: Padding(
                                       padding: EdgeInsets.only(top: 60.0),
                                       child: Text(
-                                        '—',
+                                        FFLocalizations.of(context)
+                                            .getText('xtop_empty'),
                                         style: FlutterFlowTheme.of(context)
-                                            .bodyMedium,
+                                            .bodyMedium
+                                            .override(
+                                              fontFamily:
+                                                  FlutterFlowTheme.of(context)
+                                                      .bodyMediumFamily,
+                                              color: FlutterFlowTheme.of(context)
+                                                  .secondaryText,
+                                              letterSpacing: 0.0,
+                                              useGoogleFonts:
+                                                  !FlutterFlowTheme.of(context)
+                                                      .bodyMediumIsCustom,
+                                            ),
                                       ),
                                     ),
                                   )

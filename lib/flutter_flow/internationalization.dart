@@ -1987,5 +1987,10 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'es': 'Maquillaje',
       'ru': 'Макияж',
     },
+    'xtop_empty': {
+      'en': 'No products in this category yet',
+      'es': 'Aún no hay productos en esta categoría',
+      'ru': 'В этой категории пока нет продуктов',
+    },
   },
 ].reduce((a, b) => a..addAll(b));
