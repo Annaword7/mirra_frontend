@@ -156,6 +156,10 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
               safeSetState(() {});
               return;
             }
+          } else {
+            // User cancelled picker or invalid format — don't proceed
+            if (_shouldSetState) safeSetState(() {});
+            return;
           }
 
           unawaited(AnalyticsService.instance.trackAnalysisStarted(source: 'camera'));
@@ -640,6 +644,10 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
               safeSetState(() {});
               return;
             }
+          } else {
+            // User cancelled picker or invalid format — don't proceed
+            if (_shouldSetState) safeSetState(() {});
+            return;
           }
 
           unawaited(AnalyticsService.instance.trackAnalysisStarted(source: 'gallery'));
