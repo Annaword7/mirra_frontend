@@ -456,7 +456,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'es':
           'Analice instantáneamente los ingredientes y obtenga calificaciones de seguridad',
       'ru':
-          'Мгновенно анализируйте ингредиенты и получайте оценки безопасности.',
+          'Мгновенно анализируйте компоненты и получайте оценки безопасности.',
     },
     'ie8y2531': {
       'en': '/',
@@ -837,7 +837,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'es':
           'Elige cómo subir la foto de tu producto cosmético para analizar sus ingredientes',
       'ru':
-          'Выберите, как загрузить фото косметического продукта для анализа ингредиентов',
+          'Выберите, как загрузить фото косметического продукта для анализа компонентов',
     },
     'qp1hi0rq': {
       'en': 'Analysis started\nUsually takes up to 1 minute',
@@ -852,7 +852,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     'f0iwc245': {
       'en': 'Analyzing ingredients...',
       'es': 'Analizando ingredientes...',
-      'ru': 'Анализ ингредиентов...',
+      'ru': 'Анализ компонентов...',
     },
     'jfb7hpl8': {
       'en': 'Preparing your report...',
@@ -951,7 +951,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'es':
           'Obtén información completa sobre la efectividad de la fórmula y la seguridad de los ingredientes: solo toma una foto.',
       'ru':
-          'Получите полную информацию об эффективности формулы и безопасности ингредиентов — просто сделайте фото.',
+          'Получите полную информацию об эффективности формулы и безопасности компонентов — просто сделайте фото.',
     },
     '7ujfcyzd': {
       'en': 'Get Started',
@@ -1011,10 +1011,20 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'es': '',
       'ru': '',
     },
+    'top_negative_ingredients': {
+      'en': 'Top Negative Ingredients',
+      'es': 'Principales ingredientes negativos',
+      'ru': 'Основные негативные компоненты',
+    },
+    'more_in_pro': {
+      'en': 'more in PRO',
+      'es': 'más en PRO',
+      'ru': 'ещё в PRO',
+    },
     'gs46omyo': {
       'en': 'Top Active Ingredients',
       'es': 'Principales ingredientes activos',
-      'ru': 'Основные активные ингредиенты',
+      'ru': 'Основные активные компоненты',
     },
     'sgfwkpt4': {
       'en': 'Position',
@@ -1085,9 +1095,9 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ru': 'Поделиться ссылкой',
     },
     'q2xjnp4k': {
-      'en': 'Add to board',
-      'es': 'Añadir al tablero',
-      'ru': 'Добавить на доску',
+      'en': 'Add to collection',
+      'es': 'Añadir a colección',
+      'ru': 'Добавить в подборку',
     },
     'bpwivw1d': {
       'en': 'Mark as spam',
@@ -1098,6 +1108,26 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Copy product',
       'es': 'Copiar producto',
       'ru': 'Копировать продукт',
+    },
+    'copy_login_title': {
+      'en': 'Sign in to copy',
+      'es': 'Inicia sesión para copiar',
+      'ru': 'Войдите, чтобы скопировать',
+    },
+    'copy_login_body': {
+      'en': 'Create a free account to save products to your collection.',
+      'es': 'Crea una cuenta gratuita para guardar productos en tu colección.',
+      'ru': 'Создайте бесплатный аккаунт, чтобы сохранять продукты в подборки.',
+    },
+    'copy_login_btn': {
+      'en': 'Sign in',
+      'es': 'Iniciar sesión',
+      'ru': 'Войти',
+    },
+    'copy_login_cancel': {
+      'en': 'Cancel',
+      'es': 'Cancelar',
+      'ru': 'Отмена',
     },
     'alhd09eg': {
       'en': 'Delete',
@@ -1220,19 +1250,19 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
   // newAlbum
   {
     '3k3xtikh': {
-      'en': 'Create new board',
-      'es': 'Crear nuevo tablero',
-      'ru': 'Создать новую доску',
+      'en': 'Create new collection',
+      'es': 'Crear nueva colección',
+      'ru': 'Создать новую подборку',
     },
     'l4d5m49x': {
-      'en': 'Add board details below',
-      'es': 'Agrega detalles del tablero a continuación',
+      'en': 'Add collection details below',
+      'es': 'Agrega los detalles de la colección',
       'ru': 'Добавьте информацию ниже',
     },
     'azcd4b5c': {
-      'en': 'New board name',
-      'es': 'Nombre del nuevo tablero',
-      'ru': 'Название новой доски',
+      'en': 'Collection name',
+      'es': 'Nombre de la colección',
+      'ru': 'Название подборки',
     },
     '5t47wlr7': {
       'en': 'Title is required.',
@@ -1258,9 +1288,19 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
   // editAlbum
   {
     'fr6pjcbf': {
-      'en': 'Edit board details',
-      'es': 'Editar tablero',
-      'ru': 'Редактировать доску',
+      'en': 'Edit collection',
+      'es': 'Editar colección',
+      'ru': 'Редактировать подборку',
+    },
+    'fr6pjcbf_del_title': {
+      'en': 'Delete collection?',
+      'es': '¿Eliminar colección?',
+      'ru': 'Удалить подборку?',
+    },
+    'fr6pjcbf_del_body': {
+      'en': 'All products in this collection will also be deleted.',
+      'es': 'Todos los productos de esta colección también serán eliminados.',
+      'ru': 'Все продукты внутри подборки тоже будут удалены.',
     },
     'cfmx4p6n': {
       'en': 'Title',
@@ -1327,6 +1367,11 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Keep your scans private',
       'es': 'Mantén tus análisis en privado',
       'ru': 'Скрывай свои сканы от других',
+    },
+    'inci_full_list': {
+      'en': 'Full INCI ingredient list',
+      'es': 'Lista completa de ingredientes INCI',
+      'ru': 'Полный состав INCI',
     },
   },
   // OutOfGenerations
@@ -1426,17 +1471,14 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
   // deleteitem
   {
     'ww2bynjy': {
-      'en': 'Delete Item',
-      'es': 'Eliminar elemento',
-      'ru': 'Удалить элемент',
+      'en': 'Remove this scan?',
+      'es': '¿Eliminar este escaneo?',
+      'ru': 'Удалить этот скан?',
     },
     'ejy0zcsp': {
-      'en':
-          'Are you sure you want to delete this item? \nThis action cannot be undone.',
-      'es':
-          '¿Estás seguro de que deseas eliminar este elemento?\nEsta acción no se puede deshacer.',
-      'ru':
-          'Вы уверены, что хотите удалить этот элемент?\nЭто действие необратимо.',
+      'en': 'The scan and its analysis will be permanently deleted.',
+      'es': 'El escaneo y su análisis se eliminarán de forma permanente.',
+      'ru': 'Скан и его анализ будут удалены без возможности восстановления.',
     },
     'ood20cri': {
       'en': 'Cancel',
@@ -1444,9 +1486,9 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ru': 'Отмена',
     },
     'y814btsy': {
-      'en': 'Delete',
-      'es': 'Borrar',
-      'ru': 'Удалить',
+      'en': 'Yes, delete',
+      'es': 'Sí, eliminar',
+      'ru': 'Да, удалить',
     },
   },
   // Emptyfavourite
@@ -1527,7 +1569,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'es':
           'Analice instantáneamente los ingredientes y obtenga calificaciones de seguridad',
       'ru':
-          'Мгновенно анализируйте ингредиенты и получайте оценки безопасности.',
+          'Мгновенно анализируйте компоненты и получайте оценки безопасности.',
     },
     'zyx01ncu': {
       'en': 'Start',
@@ -1667,7 +1709,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     'a09tawz3': {
       'en': 'Products with the best ingredient scores',
       'es': 'Productos con las mejores puntuaciones de ingredientes',
-      'ru': 'Продукты с лучшими показателями качества ингредиентов',
+      'ru': 'Продукты с лучшими показателями качества компонентов',
     },
   },
   // emptyfavourite_new
@@ -1686,9 +1728,9 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
   // albumslist
   {
     '2swgqgrb': {
-      'en': 'Add to board',
-      'es': 'Añadir al tablero',
-      'ru': 'Добавить на доску',
+      'en': 'Add to collection',
+      'es': 'Añadir a colección',
+      'ru': 'Добавить в подборку',
     },
     'n2ylozbe': {
       'en': 'Apply',

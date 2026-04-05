@@ -152,18 +152,23 @@ class _ImagesbyAlbumWidgetState extends State<ImagesbyAlbumWidget> {
                         await showModalBottomSheet(
                           isScrollControlled: true,
                           backgroundColor: Colors.transparent,
-                          enableDrag: false,
+                          enableDrag: true,
+                          isDismissible: true,
                           context: context,
                           builder: (context) {
                             return GestureDetector(
-                              onTap: () {
-                                FocusScope.of(context).unfocus();
-                                FocusManager.instance.primaryFocus?.unfocus();
-                              },
-                              child: Padding(
-                                padding: MediaQuery.viewInsetsOf(context),
-                                child: EditAlbumWidget(
-                                  albumRef: widget.albumid!,
+                              onTap: () => Navigator.pop(context),
+                              behavior: HitTestBehavior.opaque,
+                              child: GestureDetector(
+                                onTap: () {
+                                  FocusScope.of(context).unfocus();
+                                },
+                                behavior: HitTestBehavior.deferToChild,
+                                child: Padding(
+                                  padding: MediaQuery.viewInsetsOf(context),
+                                  child: EditAlbumWidget(
+                                    albumRef: widget.albumid!,
+                                  ),
                                 ),
                               ),
                             );

@@ -45,11 +45,13 @@ class _TopratedWidgetState extends State<TopratedWidget> {
         FFAppState().userProfilePicture = profileImg;
       }
       safeSetState(() {});
-      await _model.listViewController?.animateTo(
-        0,
-        duration: Duration(milliseconds: 100),
-        curve: Curves.ease,
-      );
+      if (_model.listViewController?.hasClients == true) {
+        await _model.listViewController?.animateTo(
+          0,
+          duration: Duration(milliseconds: 100),
+          curve: Curves.ease,
+        );
+      }
       _model.usersanswer2 = await UsersTable().queryRows(
         queryFn: (q) => q.eqOrNull(
           'id',
@@ -77,6 +79,7 @@ class _TopratedWidgetState extends State<TopratedWidget> {
 
     return FutureBuilder<List<ImagesRow>>(
       future: ImagesTable().queryRows(
+        columns: 'id,image_url,product_name,brand,sa_composite_score,user,language_code',
         queryFn: (q) => q
             .neqOrNull(
               'user',
@@ -90,7 +93,7 @@ class _TopratedWidgetState extends State<TopratedWidget> {
               'language_code',
               FFLocalizations.of(context).languageCode,
             )
-            .order('score'),
+            .order('sa_composite_score', ascending: false),
         limit: 50,
       ),
       builder: (context, snapshot) {
@@ -111,7 +114,12 @@ class _TopratedWidgetState extends State<TopratedWidget> {
             ),
           );
         }
-        List<ImagesRow> topratedImagesRowList = snapshot.data!;
+        // Deduplicate by brand + product name — keep first occurrence (highest score).
+        final _seen = <String>{};
+        final List<ImagesRow> topratedImagesRowList = snapshot.data!
+            .where((row) => _seen.add(
+                '${(row.brand ?? '').toLowerCase()}|${(row.productName ?? '').toLowerCase()}'))
+            .toList();
 
         return GestureDetector(
           onTap: () {

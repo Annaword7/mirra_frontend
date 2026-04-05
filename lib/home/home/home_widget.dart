@@ -39,9 +39,12 @@ class _HomeWidgetState extends State<HomeWidget> {
   void initState() {
     super.initState();
     _model = createModel(context, () => HomeModel());
+    _model.imagesFuture = _fetchImages();
 
     // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
+      // Always refresh images when returning to Home (e.g. after copy).
+      _refreshImages();
       _model.usersanswer = await UsersTable().queryRows(
         queryFn: (q) => q.eqOrNull(
           'id',
@@ -91,6 +94,19 @@ class _HomeWidgetState extends State<HomeWidget> {
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
   }
 
+  Future<List<ImagesRow>> _fetchImages() => ImagesTable().queryRows(
+        columns: 'id,image_url,product_name,brand,sa_composite_score,sa_best_for_tags,stars_from_user,created_at',
+        queryFn: (q) => q
+            .eqOrNull('user', currentUserUid)
+            .order('created_at', ascending: false),
+      );
+
+  void _refreshImages() {
+    safeSetState(() {
+      _model.imagesFuture = _fetchImages();
+    });
+  }
+
   @override
   void dispose() {
     _model.dispose();
@@ -116,14 +132,7 @@ class _HomeWidgetState extends State<HomeWidget> {
         body: Stack(
           children: [
             FutureBuilder<List<ImagesRow>>(
-              future: ImagesTable().queryRows(
-                queryFn: (q) => q
-                    .eqOrNull(
-                      'user',
-                      currentUserUid,
-                    )
-                    .order('created_at'),
-              ),
+              future: _model.imagesFuture,
               builder: (context, snapshot) {
                 // Customize what your widget looks like when it's loading.
                 if (!snapshot.hasData) {
@@ -153,7 +162,7 @@ class _HomeWidgetState extends State<HomeWidget> {
                   ),
                   child: RefreshIndicator(
                     onRefresh: () async {
-                      safeSetState(() {});
+                      _refreshImages();
                     },
                     child: SingleChildScrollView(
                       physics: const AlwaysScrollableScrollPhysics(),
@@ -545,14 +554,7 @@ class _HomeWidgetState extends State<HomeWidget> {
                             child: Container(
                               decoration: BoxDecoration(),
                               child: FutureBuilder<List<ImagesRow>>(
-                                future: ImagesTable().queryRows(
-                                  queryFn: (q) => q
-                                      .eqOrNull(
-                                        'user',
-                                        currentUserUid,
-                                      )
-                                      .order('created_at'),
-                                ),
+                                future: _model.imagesFuture,
                                 builder: (context, snapshot) {
                                   // Customize what your widget looks like when it's loading.
                                   if (!snapshot.hasData) {

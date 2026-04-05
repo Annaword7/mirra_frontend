@@ -996,7 +996,7 @@ class CopyproductNEWBCNDCall {
 
     final ffApiRequestBody = '''
 {
-  "source_image_id": "${sourceImageId}",
+  "source_image_id": ${sourceImageId},
   "target_user_id": "${escapeStringForJson(targetUserId)}"
 }''';
     return ApiManager.instance.makeApiCall(

@@ -1,3 +1,5 @@
+import '/auth/supabase_auth/auth_util.dart';
+import '/backend/supabase/supabase.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -117,6 +119,12 @@ class _LangsWidgetState extends State<LangsWidget> {
                             _model.langcode = 'en';
                             safeSetState(() {});
                             setAppLanguage(context, 'en');
+                            if (currentUserUid.isNotEmpty) {
+                              await UsersTable().update(
+                                data: {'language_code': 'en'},
+                                matchingRows: (q) => q.eq('id', currentUserUid),
+                              );
+                            }
                             context.safePop();
                           },
                           child: Container(
@@ -193,6 +201,12 @@ class _LangsWidgetState extends State<LangsWidget> {
                             _model.langcode = 'ru';
                             safeSetState(() {});
                             setAppLanguage(context, 'ru');
+                            if (currentUserUid.isNotEmpty) {
+                              await UsersTable().update(
+                                data: {'language_code': 'ru'},
+                                matchingRows: (q) => q.eq('id', currentUserUid),
+                              );
+                            }
                             context.safePop();
                           },
                           child: Container(
@@ -269,6 +283,12 @@ class _LangsWidgetState extends State<LangsWidget> {
                             _model.langcode = 'es';
                             safeSetState(() {});
                             setAppLanguage(context, 'es');
+                            if (currentUserUid.isNotEmpty) {
+                              await UsersTable().update(
+                                data: {'language_code': 'es'},
+                                matchingRows: (q) => q.eq('id', currentUserUid),
+                              );
+                            }
                             context.safePop();
                           },
                           child: Container(

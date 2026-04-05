@@ -1,9 +1,11 @@
 import 'dart:ui';
+import 'dart:async';
 import '/custom_code/actions/index.dart' as actions;
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:app_links/app_links.dart';
 
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
@@ -87,6 +89,7 @@ class _MyAppState extends State<MyApp> {
 
   late AppStateNotifier _appStateNotifier;
   late GoRouter _router;
+  StreamSubscription? _linkSubscription;
   String getRoute([RouteMatch? routeMatch]) {
     final RouteMatch lastMatch =
         routeMatch ?? _router.routerDelegate.currentConfiguration.last;
@@ -117,6 +120,40 @@ class _MyAppState extends State<MyApp> {
       Duration(milliseconds: 1000),
       () => _appStateNotifier.stopShowingSplashImage(),
     );
+
+    // Handle Universal Links (mirraapp.com/product/{id})
+    _initDeepLinks();
+  }
+
+  void _initDeepLinks() {
+    final appLinks = AppLinks();
+
+    // App opened from a link while terminated
+    appLinks.getInitialLink().then((uri) {
+      if (uri != null) _handleDeepLink(uri);
+    });
+
+    // App opened from a link while running/in background
+    _linkSubscription = appLinks.uriLinkStream.listen((uri) {
+      _handleDeepLink(uri);
+    });
+  }
+
+  void _handleDeepLink(Uri uri) {
+    // Handle mirraapp.com/product/{id}
+    final segments = uri.pathSegments;
+    if (segments.length == 2 && segments[0] == 'product') {
+      final id = int.tryParse(segments[1]);
+      if (id != null) {
+        _router.go('/itemcard2?imageid=$id');
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _linkSubscription?.cancel();
+    super.dispose();
   }
 
   void setLocale(String language) {

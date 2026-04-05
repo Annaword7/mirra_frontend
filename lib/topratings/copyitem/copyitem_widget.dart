@@ -156,19 +156,25 @@ class _CopyitemWidgetState extends State<CopyitemWidget> {
                             targetUserId: currentUserUid,
                           );
 
+                          final newId = CopyproductNEWBCNDCall.newimageid(
+                            _model.copiedimage?.jsonBody ?? '',
+                          );
+
+                          debugPrint('[CopyProduct] response: ${_model.copiedimage?.jsonBody}');
+                          debugPrint('[CopyProduct] new_image_id: $newId');
+
                           Navigator.pop(context);
 
-                          context.pushNamed(
-                            Itemcard2Widget.routeName,
-                            queryParameters: {
-                              'imageid': serializeParam(
-                                CopyproductNEWBCNDCall.newimageid(
-                                  (_model.copiedimage?.jsonBody ?? ''),
-                                ),
-                                ParamType.int,
-                              ),
-                            }.withoutNulls,
-                          );
+                          if (newId != null) {
+                            context.pushNamed(
+                              Itemcard2Widget.routeName,
+                              queryParameters: {
+                                'imageid': serializeParam(newId, ParamType.int),
+                              },
+                            );
+                          } else {
+                            debugPrint('[CopyProduct] ERROR: new_image_id is null, cannot navigate');
+                          }
 
                           safeSetState(() {});
                         },

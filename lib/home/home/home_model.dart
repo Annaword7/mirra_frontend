@@ -19,6 +19,10 @@ class HomeModel extends FlutterFlowModel<HomeWidget> {
   // Model for navbar component.
   late NavbarModel navbarModel;
 
+  // Cached future for images — store so FutureBuilder doesn't re-fetch on every rebuild,
+  // but can be explicitly refreshed by reassigning.
+  Future<List<ImagesRow>>? imagesFuture;
+
   @override
   void initState(BuildContext context) {
     navbarModel = createModel(context, () => NavbarModel());

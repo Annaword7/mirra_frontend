@@ -1016,94 +1016,130 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                             );
                           },
                         ),
-                        // ── Key Facts (free users only) ──
-                        if (!FFAppState().isprouser)
-                          Builder(builder: (context) {
-                            final lang =
-                                FFLocalizations.of(context).languageCode;
-                            final issues =
-                                (_model.ingredientIssuesRaw ?? []).take(2).toList();
-                            final topIngr = (_model.topIngredientsRaw ?? [])
-                                .take((3 - issues.length).clamp(0, 3))
-                                .toList();
-                            final header = lang == 'ru'
-                                ? 'Ключевые факты'
-                                : lang == 'es'
-                                    ? 'Datos clave'
-                                    : 'Key Facts';
+                        // ── Top Negative Ingredients ──
+                        Builder(builder: (context) {
+                          final isPro = FFAppState().isprouser;
+                          final allNegative = _model.ingredientIssuesRaw?.toList() ?? [];
+                          if (allNegative.isEmpty) return const SizedBox.shrink();
+                          final shown = isPro ? allNegative : allNegative.take(1).toList();
+                          final hiddenCount = allNegative.length - shown.length;
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Padding(
+                                padding: EdgeInsetsDirectional.fromSTEB(16.0, 24.0, 16.0, 0.0),
+                                child: Text(
+                                  FFLocalizations.of(context).getText('top_negative_ingredients'),
+                                  style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                        fontFamily: FlutterFlowTheme.of(context).bodyMediumFamily,
+                                        fontSize: 18.0,
+                                        letterSpacing: 0.0,
+                                        fontWeight: FontWeight.bold,
+                                        useGoogleFonts: !FlutterFlowTheme.of(context).bodyMediumIsCustom,
+                                      ),
+                                ),
+                              ),
+                              ...shown.map((issue) => Padding(
+                                padding: EdgeInsetsDirectional.fromSTEB(16.0, 12.0, 16.0, 0.0),
+                                child: Container(
+                                  width: double.infinity,
+                                  decoration: BoxDecoration(
+                                    color: FlutterFlowTheme.of(context).alternate,
+                                    borderRadius: BorderRadius.circular(24.0),
+                                    border: Border.all(
+                                      color: const Color(0xFFFF7043).withOpacity(0.35),
+                                    ),
+                                  ),
+                                  child: Padding(
+                                    padding: EdgeInsets.all(16.0),
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text('⚠️', style: const TextStyle(fontSize: 20)),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(
+                                                issue.ingredientName,
+                                                style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                      fontFamily: FlutterFlowTheme.of(context).bodyMediumFamily,
+                                                      fontSize: 16.0,
+                                                      letterSpacing: 0.0,
+                                                      fontWeight: FontWeight.bold,
+                                                      useGoogleFonts: !FlutterFlowTheme.of(context).bodyMediumIsCustom,
+                                                    ),
+                                              ),
+                                              if ((issue.description ?? issue.issueType).isNotEmpty) ...[
+                                                const SizedBox(height: 4),
+                                                Text(
+                                                  issue.description ?? issue.issueType,
+                                                  style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                        fontFamily: FlutterFlowTheme.of(context).bodyMediumFamily,
+                                                        color: FlutterFlowTheme.of(context).secondaryText,
+                                                        letterSpacing: 0.0,
+                                                        useGoogleFonts: !FlutterFlowTheme.of(context).bodyMediumIsCustom,
+                                                      ),
+                                                ),
+                                              ],
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              )),
+                              if (!isPro && hiddenCount > 0)
+                                Padding(
+                                  padding: EdgeInsetsDirectional.fromSTEB(16.0, 8.0, 16.0, 0.0),
+                                  child: InkWell(
+                                    onTap: () => context.pushNamed(PaywallpageWidget.routeName),
+                                    child: Text(
+                                      '+$hiddenCount ${FFLocalizations.of(context).getText('more_in_pro')}',
+                                      style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                            fontFamily: FlutterFlowTheme.of(context).bodyMediumFamily,
+                                            color: FlutterFlowTheme.of(context).primary,
+                                            letterSpacing: 0.0,
+                                            fontWeight: FontWeight.w600,
+                                            useGoogleFonts: !FlutterFlowTheme.of(context).bodyMediumIsCustom,
+                                          ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          );
+                        }),
+                        // ── Top Active Ingredients ──
+                        Builder(
+                          builder: (context) {
+                            final isPro = FFAppState().isprouser;
+                            final allIngredients = _model.topIngredientsRaw?.toList() ?? [];
+                            if (allIngredients.isEmpty) return const SizedBox.shrink();
+                            final topIngredients = isPro ? allIngredients : allIngredients.take(3).toList();
+                            final hiddenCount = allIngredients.length - topIngredients.length;
+
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Padding(
-                                  padding: EdgeInsetsDirectional.fromSTEB(
-                                      16.0, 24.0, 16.0, 0.0),
-                                  child: Text(
-                                    header,
-                                    style: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .override(
-                                          fontFamily:
-                                              FlutterFlowTheme.of(context)
-                                                  .bodyMediumFamily,
-                                          fontSize: 18.0,
-                                          letterSpacing: 0.0,
-                                          fontWeight: FontWeight.bold,
-                                          useGoogleFonts:
-                                              !FlutterFlowTheme.of(context)
-                                                  .bodyMediumIsCustom,
-                                        ),
-                                  ),
+                              Padding(
+                                padding: EdgeInsetsDirectional.fromSTEB(16.0, 24.0, 16.0, 0.0),
+                                child: Text(
+                                  FFLocalizations.of(context).getText('gs46omyo'),
+                                  style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                        fontFamily: FlutterFlowTheme.of(context).bodyMediumFamily,
+                                        fontSize: 18.0,
+                                        letterSpacing: 0.0,
+                                        fontWeight: FontWeight.bold,
+                                        useGoogleFonts: !FlutterFlowTheme.of(context).bodyMediumIsCustom,
+                                      ),
                                 ),
-                                ...issues.map((issue) => _KeyFactRow(
-                                      isWarning: true,
-                                      name: issue.ingredientName,
-                                      detail: issue.description ??
-                                          issue.issueType,
-                                    )),
-                                ...topIngr.map((ingr) => _KeyFactRow(
-                                      isWarning: false,
-                                      name: ingr.ingredientName,
-                                      detail: ingr.description ??
-                                          ingr.category ??
-                                          '',
-                                    )),
-                              ],
-                            );
-                          }),
-                        // ── Top Active Ingredients (paid users only) ──
-                        if (FFAppState().isprouser)
-                        Padding(
-                          padding: EdgeInsetsDirectional.fromSTEB(
-                              16.0, 24.0, 16.0, 0.0),
-                          child: Text(
-                            FFLocalizations.of(context).getText(
-                              'gs46omyo' /* Top Active Ingredients */,
-                            ),
-                            textAlign: TextAlign.start,
-                            style: FlutterFlowTheme.of(context)
-                                .bodyMedium
-                                .override(
-                                  fontFamily: FlutterFlowTheme.of(context)
-                                      .bodyMediumFamily,
-                                  fontSize: 18.0,
-                                  letterSpacing: 0.0,
-                                  fontWeight: FontWeight.bold,
-                                  useGoogleFonts: !FlutterFlowTheme.of(context)
-                                      .bodyMediumIsCustom,
-                                ),
-                          ),
-                        ),
-                        if (FFAppState().isprouser)
-                        Builder(
-                          builder: (context) {
-                            final topIngredients =
-                                _model.topIngredientsRaw?.toList() ?? [];
-
-                            return Column(
-                              mainAxisSize: MainAxisSize.max,
-                              children: List.generate(topIngredients.length,
-                                  (topIngredientsIndex) {
+                              ),
+                              ...List.generate(topIngredients.length, (topIngredientsIndex) {
                                 final topIngredientsItem =
                                     topIngredients[topIngredientsIndex];
                                 return Padding(
@@ -1341,9 +1377,27 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                   ),
                                 );
                               }),
-                            );
-                          },
-                        ),
+                              if (!isPro && hiddenCount > 0)
+                                Padding(
+                                  padding: EdgeInsetsDirectional.fromSTEB(16.0, 8.0, 16.0, 0.0),
+                                  child: InkWell(
+                                    onTap: () => context.pushNamed(PaywallpageWidget.routeName),
+                                    child: Text(
+                                      '+$hiddenCount ${FFLocalizations.of(context).getText('more_in_pro')}',
+                                      style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                            fontFamily: FlutterFlowTheme.of(context).bodyMediumFamily,
+                                            color: FlutterFlowTheme.of(context).primary,
+                                            letterSpacing: 0.0,
+                                            fontWeight: FontWeight.w600,
+                                            useGoogleFonts: !FlutterFlowTheme.of(context).bodyMediumIsCustom,
+                                          ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          );
+                        },
+                      ),
                         // ── Paywall upsell (free users only) ──
                         if (!FFAppState().isprouser)
                           Padding(
@@ -1394,6 +1448,14 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                           : FFLocalizations.of(context).languageCode == 'es'
                                               ? 'Análisis experto de ingredientes'
                                               : 'Expert ingredient breakdown',
+                                    ),
+                                    _PaywallBullet(
+                                      icon: Icons.list_alt_rounded,
+                                      label: FFLocalizations.of(context).languageCode == 'ru'
+                                          ? 'Полный состав INCI'
+                                          : FFLocalizations.of(context).languageCode == 'es'
+                                              ? 'Lista completa de ingredientes INCI'
+                                              : 'Full INCI ingredient list',
                                     ),
                                     _PaywallBullet(
                                       icon: Icons.lightbulb_outline_rounded,
@@ -2366,7 +2428,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                       await Future.delayed(const Duration(milliseconds: 300));
                                       final size = MediaQuery.of(context).size;
                                       await Share.share(
-                                        'https://mirra.app/product/${widget.imageid}',
+                                        'https://mirraapp.com/product/${widget.imageid}',
                                         sharePositionOrigin: Rect.fromLTWH(size.width / 2, size.height / 2, 1, 1),
                                       );
                                     },
@@ -2548,6 +2610,18 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                       hoverColor: Colors.transparent,
                                       highlightColor: Colors.transparent,
                                       onTap: () async {
+                                        if (currentUserUid.isEmpty) {
+                                          await showModalBottomSheet(
+                                            isScrollControlled: true,
+                                            backgroundColor: Colors.transparent,
+                                            enableDrag: true,
+                                            context: context,
+                                            builder: (context) {
+                                              return _LoginRequiredSheet();
+                                            },
+                                          );
+                                          return;
+                                        }
                                         await showModalBottomSheet(
                                           isScrollControlled: true,
                                           backgroundColor: Colors.transparent,
@@ -3012,8 +3086,6 @@ class _KeyFactRow extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         detail,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
                         style: FlutterFlowTheme.of(context).bodySmall.override(
                               fontFamily:
                                   FlutterFlowTheme.of(context).bodySmallFamily,
@@ -3054,6 +3126,108 @@ class _PaywallBullet extends StatelessWidget {
               label,
               style: FlutterFlowTheme.of(context).bodyMedium.override(
                     fontFamily: FlutterFlowTheme.of(context).bodyMediumFamily,
+                    letterSpacing: 0.0,
+                    useGoogleFonts:
+                        !FlutterFlowTheme.of(context).bodyMediumIsCustom,
+                  ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LoginRequiredSheet extends StatelessWidget {
+  const _LoginRequiredSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: FlutterFlowTheme.of(context).secondaryBackground,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
+      ),
+      padding: EdgeInsets.fromLTRB(24.0, 24.0, 24.0, 40.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: FlutterFlowTheme.of(context).alternate,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          SizedBox(height: 20),
+          Icon(
+            Icons.lock_outline_rounded,
+            size: 48,
+            color: FlutterFlowTheme.of(context).primary,
+          ),
+          SizedBox(height: 16),
+          Text(
+            FFLocalizations.of(context).getText('copy_login_title' /* Sign in to copy */),
+            style: FlutterFlowTheme.of(context).titleMedium.override(
+                  fontFamily: FlutterFlowTheme.of(context).titleMediumFamily,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.0,
+                  useGoogleFonts:
+                      !FlutterFlowTheme.of(context).titleMediumIsCustom,
+                ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            FFLocalizations.of(context).getText(
+                'copy_login_body' /* Create a free account to save products to your collection. */),
+            textAlign: TextAlign.center,
+            style: FlutterFlowTheme.of(context).bodyMedium.override(
+                  fontFamily: FlutterFlowTheme.of(context).bodyMediumFamily,
+                  color: FlutterFlowTheme.of(context).secondaryText,
+                  letterSpacing: 0.0,
+                  useGoogleFonts:
+                      !FlutterFlowTheme.of(context).bodyMediumIsCustom,
+                ),
+          ),
+          SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                context.pushNamed(LogInPageWidget.routeName);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: FlutterFlowTheme.of(context).primary,
+                foregroundColor: FlutterFlowTheme.of(context).info,
+                padding: EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                elevation: 0,
+              ),
+              child: Text(
+                FFLocalizations.of(context).getText('copy_login_btn' /* Sign in */),
+                style: FlutterFlowTheme.of(context).titleSmall.override(
+                      fontFamily:
+                          FlutterFlowTheme.of(context).titleSmallFamily,
+                      color: FlutterFlowTheme.of(context).info,
+                      letterSpacing: 0.0,
+                      useGoogleFonts:
+                          !FlutterFlowTheme.of(context).titleSmallIsCustom,
+                    ),
+              ),
+            ),
+          ),
+          SizedBox(height: 8),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              FFLocalizations.of(context).getText('copy_login_cancel' /* Cancel */),
+              style: FlutterFlowTheme.of(context).bodyMedium.override(
+                    fontFamily: FlutterFlowTheme.of(context).bodyMediumFamily,
+                    color: FlutterFlowTheme.of(context).secondaryText,
                     letterSpacing: 0.0,
                     useGoogleFonts:
                         !FlutterFlowTheme.of(context).bodyMediumIsCustom,

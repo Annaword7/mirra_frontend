@@ -4,16 +4,18 @@ abstract class SupabaseTable<T extends SupabaseDataRow> {
   String get tableName;
   T createRow(Map<String, dynamic> data);
 
-  PostgrestFilterBuilder _select() => SupaFlow.client.from(tableName).select();
+  PostgrestFilterBuilder _select([String columns = '*']) =>
+      SupaFlow.client.from(tableName).select(columns);
 
   Future<List<T>> queryRows({
     required PostgrestTransformBuilder Function(PostgrestFilterBuilder) queryFn,
     int? limit,
+    String columns = '*',
   }) {
-    final select = _select();
+    final select = _select(columns);
     var query = queryFn(select);
     query = limit != null ? query.limit(limit) : query;
-    return query.select().then((rows) => rows.map(createRow).toList());
+    return query.select(columns).then((rows) => rows.map(createRow).toList());
   }
 
   Future<List<T>> querySingleRow({

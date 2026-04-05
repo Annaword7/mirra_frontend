@@ -92,15 +92,14 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Container(
-                        decoration: BoxDecoration(),
-                        child: Align(
-                          alignment: AlignmentDirectional(-1.0, 0.0),
-                          child: FlutterFlowIconButton(
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          FlutterFlowIconButton(
                             borderColor: Colors.transparent,
                             borderRadius: 30.0,
                             borderWidth: 1.0,
-                            buttonSize: 60.0,
+                            buttonSize: 44.0,
                             icon: Icon(
                               Icons.close,
                               color: Colors.white.withOpacity(0.8),
@@ -110,52 +109,31 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                               context.pop();
                             },
                           ),
-                        ),
-                      ),
-                      Padding(
-                        padding:
-                            EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 6.0),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: FlutterFlowTheme.of(context).primary,
-                            borderRadius: BorderRadius.circular(40.0),
-                            border: Border.all(
+                          Container(
+                            decoration: BoxDecoration(
                               color: FlutterFlowTheme.of(context).primary,
+                              borderRadius: BorderRadius.circular(40.0),
                             ),
-                          ),
-                          child: Padding(
-                            padding: EdgeInsetsDirectional.fromSTEB(
-                                12.0, 8.0, 12.0, 8.0),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  FFLocalizations.of(context).getText(
-                                    '7n2kv1iq' /* UPGRADE TO PRO */,
-                                  ),
-                                  style: FlutterFlowTheme.of(context)
-                                      .labelSmall
-                                      .override(
-                                        font: GoogleFonts.plusJakartaSans(
-                                          fontWeight: FontWeight.bold,
-                                          fontStyle:
-                                              FlutterFlowTheme.of(context)
-                                                  .labelSmall
-                                                  .fontStyle,
-                                        ),
-                                        color: FlutterFlowTheme.of(context)
-                                            .alternate,
-                                        letterSpacing: 1.0,
+                            child: Padding(
+                              padding: EdgeInsetsDirectional.fromSTEB(12.0, 8.0, 12.0, 8.0),
+                              child: Text(
+                                FFLocalizations.of(context).getText('7n2kv1iq' /* UPGRADE TO PRO */),
+                                style: FlutterFlowTheme.of(context).labelSmall.override(
+                                      font: GoogleFonts.plusJakartaSans(
                                         fontWeight: FontWeight.bold,
-                                        fontStyle: FlutterFlowTheme.of(context)
-                                            .labelSmall
-                                            .fontStyle,
+                                        fontStyle: FlutterFlowTheme.of(context).labelSmall.fontStyle,
                                       ),
-                                ),
-                              ],
+                                      color: FlutterFlowTheme.of(context).alternate,
+                                      letterSpacing: 1.0,
+                                      fontWeight: FontWeight.bold,
+                                      fontStyle: FlutterFlowTheme.of(context).labelSmall.fontStyle,
+                                    ),
+                              ),
                             ),
                           ),
-                        ),
+                          // Spacer to balance the close button
+                          SizedBox(width: 44.0),
+                        ],
                       ).animate().fadeIn(duration: 500.ms).slideY(begin: 0.12, end: 0.0, duration: 500.ms, curve: Curves.easeOut),
                       Padding(
                         padding:

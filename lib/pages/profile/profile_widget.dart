@@ -793,6 +793,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                             child: FFButtonWidget(
                               onPressed: () async {
                                 HapticFeedback.lightImpact();
+                                FFAppState().isprouser = false;
                                 GoRouter.of(context).prepareAuthEvent();
                                 await authManager.signOut();
                                 GoRouter.of(context).clearRedirectLocation();
@@ -838,6 +839,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                             child: FFButtonWidget(
                               onPressed: () async {
                                 HapticFeedback.lightImpact();
+                                FFAppState().isprouser = false;
                                 GoRouter.of(context).prepareAuthEvent();
                                 await authManager.signOut();
                                 GoRouter.of(context).clearRedirectLocation();
