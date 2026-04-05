@@ -275,7 +275,7 @@ class _TopratedWidgetState extends State<TopratedWidget> {
                       // ── Grid ──────────────────────────────────────────
                       Padding(
                         padding: EdgeInsetsDirectional.fromSTEB(
-                            0.0, 6.0, 0.0, 0.0),
+                            0.0, 2.0, 0.0, 0.0),
                         child: isLoading
                             ? Center(
                                 child: Padding(
