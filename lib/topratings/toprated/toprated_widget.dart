@@ -206,76 +206,84 @@ class _TopratedWidgetState extends State<TopratedWidget> {
                       // ── Filter chips ───────────────────────────────────
                       Padding(
                         padding: EdgeInsetsDirectional.fromSTEB(
-                            0.0, 16.0, 0.0, 0.0),
-                        child: SizedBox(
-                          height: 36.0,
-                          child: ListView.separated(
-                            scrollDirection: Axis.horizontal,
-                            padding:
-                                EdgeInsetsDirectional.fromSTEB(16.0, 0, 16.0, 0),
-                            itemCount: _kFilterChips.length,
-                            separatorBuilder: (_, __) =>
-                                SizedBox(width: 8.0),
-                            itemBuilder: (context, index) {
-                              final (catKey, locKey) = _kFilterChips[index];
-                              final isSelected =
-                                  _model.selectedCategory == catKey;
-                              return GestureDetector(
-                                onTap: () {
-                                  _model.selectedCategory = catKey;
-                                  safeSetState(() {});
-                                },
-                                child: AnimatedContainer(
-                                  duration: Duration(milliseconds: 150),
-                                  alignment: Alignment.center,
-                                  padding: EdgeInsets.symmetric(
-                                      horizontal: 14.0, vertical: 6.0),
-                                  decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? FlutterFlowTheme.of(context).primary
-                                        : FlutterFlowTheme.of(context)
-                                            .secondaryBackground,
-                                    borderRadius: BorderRadius.circular(20.0),
-                                    border: Border.all(
-                                      color: isSelected
-                                          ? FlutterFlowTheme.of(context).primary
-                                          : FlutterFlowTheme.of(context)
-                                              .alternate,
-                                      width: 1.0,
-                                    ),
-                                  ),
-                                  child: Text(
-                                    FFLocalizations.of(context).getText(locKey),
-                                    style: FlutterFlowTheme.of(context)
-                                        .bodySmall
-                                        .override(
-                                          fontFamily:
-                                              FlutterFlowTheme.of(context)
-                                                  .bodySmallFamily,
+                            0.0, 16.0, 0.0, 5.0),
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          padding:
+                              EdgeInsetsDirectional.fromSTEB(16.0, 0, 16.0, 0),
+                          child: Row(
+                            children: _kFilterChips
+                                .map((chip) {
+                                  final (catKey, locKey) = chip;
+                                  final isSelected =
+                                      _model.selectedCategory == catKey;
+                                  return Padding(
+                                    padding: EdgeInsetsDirectional.fromSTEB(
+                                        0, 0, 8.0, 0),
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        _model.selectedCategory = catKey;
+                                        safeSetState(() {});
+                                      },
+                                      child: AnimatedContainer(
+                                        duration: Duration(milliseconds: 150),
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: 18.0, vertical: 6.0),
+                                        decoration: BoxDecoration(
                                           color: isSelected
                                               ? FlutterFlowTheme.of(context)
-                                                  .alternate
+                                                  .primary
                                               : FlutterFlowTheme.of(context)
-                                                  .secondaryText,
-                                          letterSpacing: 0.0,
-                                          fontWeight: isSelected
-                                              ? FontWeight.w600
-                                              : FontWeight.normal,
-                                          useGoogleFonts:
-                                              !FlutterFlowTheme.of(context)
-                                                  .bodySmallIsCustom,
+                                                  .secondaryBackground,
+                                          borderRadius:
+                                              BorderRadius.circular(20.0),
+                                          border: Border.all(
+                                            color: isSelected
+                                                ? FlutterFlowTheme.of(context)
+                                                    .primary
+                                                : FlutterFlowTheme.of(context)
+                                                    .alternate,
+                                            width: 1.0,
+                                          ),
                                         ),
-                                  ),
-                                ),
-                              );
-                            },
+                                        child: Text(
+                                          FFLocalizations.of(context)
+                                              .getText(locKey),
+                                          style: FlutterFlowTheme.of(context)
+                                              .bodySmall
+                                              .override(
+                                                fontFamily:
+                                                    FlutterFlowTheme.of(context)
+                                                        .bodySmallFamily,
+                                                color: isSelected
+                                                    ? FlutterFlowTheme.of(
+                                                            context)
+                                                        .alternate
+                                                    : FlutterFlowTheme.of(
+                                                            context)
+                                                        .secondaryText,
+                                                letterSpacing: 0.0,
+                                                fontWeight: isSelected
+                                                    ? FontWeight.w600
+                                                    : FontWeight.normal,
+                                                useGoogleFonts:
+                                                    !FlutterFlowTheme.of(
+                                                            context)
+                                                        .bodySmallIsCustom,
+                                              ),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                })
+                                .toList(),
                           ),
                         ),
                       ),
                       // ── Grid ──────────────────────────────────────────
                       Padding(
                         padding: EdgeInsetsDirectional.fromSTEB(
-                            0.0, 2.0, 0.0, 0.0),
+                            0.0, 0.0, 0.0, 0.0),
                         child: isLoading
                             ? Center(
                                 child: Padding(
@@ -313,6 +321,7 @@ class _TopratedWidgetState extends State<TopratedWidget> {
                                 : MasonryGridView.builder(
                                     physics:
                                         const NeverScrollableScrollPhysics(),
+                                    padding: EdgeInsets.zero,
                                     gridDelegate:
                                         SliverSimpleGridDelegateWithFixedCrossAxisCount(
                                       crossAxisCount: 2,
