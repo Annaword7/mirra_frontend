@@ -12,6 +12,10 @@ class TopratedModel extends FlutterFlowModel<TopratedWidget> {
   List<UsersRow>? userrow;
   // Stores action output result for [Backend Call - Query Rows] action in Toprated widget.
   List<UsersRow>? usersanswer2;
+  // Loaded top-rated images — loaded once in initState, filtered client-side.
+  List<ImagesRow>? allImages;
+  // Currently selected filter category key ('all', 'serum', 'toner', etc.)
+  String selectedCategory = 'all';
   // State field(s) for ListView widget.
   ScrollController? listViewController;
   // State field(s) for StaggeredView widget.

@@ -12,6 +12,35 @@ import 'package:provider/provider.dart';
 import 'toprated_model.dart';
 export 'toprated_model.dart';
 
+// Maps filter category key → list of product_type values it covers.
+const Map<String, List<String>> _kCategoryTypes = {
+  'serum': ['serum'],
+  'toner': ['toner'],
+  'moisturizer': ['moisturizer'],
+  'mask': ['mask'],
+  'cleanser': ['cleanser'],
+  'sunscreen': ['sunscreen'],
+  'eye_cream': ['eye_cream'],
+  'makeup': [
+    'foundation', 'bb_cream', 'cc_cream', 'concealer', 'powder',
+    'blush', 'mascara', 'eyeliner', 'lipstick', 'lip_gloss',
+    'primer', 'highlighter', 'bronzer', 'eyeshadow',
+  ],
+};
+
+// Ordered list of (categoryKey, localizationKey) for the chip bar.
+const List<(String, String)> _kFilterChips = [
+  ('all',          't5l3cspz'),
+  ('serum',        '4eemae24'),
+  ('toner',        'ty7a9smo'),
+  ('moisturizer',  'mubk0pfy'),
+  ('mask',         'b652wlj0'),
+  ('cleanser',     'pvpxd2wv'),
+  ('sunscreen',    'oocbcr3w'),
+  ('eye_cream',    '3dfv6cmb'),
+  ('makeup',       'pt749ga9'),
+];
+
 class TopratedWidget extends StatefulWidget {
   const TopratedWidget({super.key});
 
@@ -32,34 +61,43 @@ class _TopratedWidgetState extends State<TopratedWidget> {
     super.initState();
     _model = createModel(context, () => TopratedModel());
 
-    // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
       _model.userrow = await UsersTable().queryRows(
-        queryFn: (q) => q.eqOrNull(
-          'id',
-          currentUserUid,
-        ),
+        queryFn: (q) => q.eqOrNull('id', currentUserUid),
       );
       final profileImg = _model.userrow?.firstOrNull?.profileImage;
       if (profileImg != null && profileImg.isNotEmpty) {
         FFAppState().userProfilePicture = profileImg;
       }
+
+      _model.usersanswer2 = await UsersTable().queryRows(
+        queryFn: (q) => q.eqOrNull('id', currentUserUid),
+      );
+      if (_model.usersanswer2!.length <= 0) {
+        context.pushNamed(LogInPageWidget.routeName);
+        return;
+      }
+
+      // Load top-rated images once — filtered client-side afterwards.
+      _model.allImages = await ImagesTable().queryRows(
+        columns:
+            'id,image_url,product_name,brand,sa_composite_score,user,language_code,product_type,sa_best_for_tags',
+        queryFn: (q) => q
+            .neqOrNull('user', currentUserUid)
+            .gteOrNull('sa_composite_score', 70.0)
+            .eqOrNull('language_code', FFLocalizations.of(context).languageCode)
+            .order('sa_composite_score', ascending: false),
+        limit: 50,
+      );
+
       safeSetState(() {});
+
       if (_model.listViewController?.hasClients == true) {
         await _model.listViewController?.animateTo(
           0,
           duration: Duration(milliseconds: 100),
           curve: Curves.ease,
         );
-      }
-      _model.usersanswer2 = await UsersTable().queryRows(
-        queryFn: (q) => q.eqOrNull(
-          'id',
-          currentUserUid,
-        ),
-      );
-      if (_model.usersanswer2!.length <= 0) {
-        context.pushNamed(LogInPageWidget.routeName);
       }
     });
 
@@ -69,214 +107,257 @@ class _TopratedWidgetState extends State<TopratedWidget> {
   @override
   void dispose() {
     _model.dispose();
-
     super.dispose();
+  }
+
+  List<ImagesRow> _filteredImages() {
+    if (_model.allImages == null) return [];
+
+    // Deduplicate by brand + product name — keep first occurrence (highest score).
+    final seen = <String>{};
+    final deduped = _model.allImages!
+        .where((row) => seen.add(
+            '${(row.brand ?? '').toLowerCase()}|${(row.productName ?? '').toLowerCase()}'))
+        .toList();
+
+    if (_model.selectedCategory == 'all') return deduped;
+
+    final types = _kCategoryTypes[_model.selectedCategory] ?? [];
+    return deduped
+        .where((row) => types.contains(row.productType ?? ''))
+        .toList();
   }
 
   @override
   Widget build(BuildContext context) {
     context.watch<FFAppState>();
 
-    return FutureBuilder<List<ImagesRow>>(
-      future: ImagesTable().queryRows(
-        columns: 'id,image_url,product_name,brand,sa_composite_score,user,language_code',
-        queryFn: (q) => q
-            .neqOrNull(
-              'user',
-              currentUserUid,
-            )
-            .gteOrNull(
-              'sa_composite_score',
-              70.0,
-            )
-            .eqOrNull(
-              'language_code',
-              FFLocalizations.of(context).languageCode,
-            )
-            .order('sa_composite_score', ascending: false),
-        limit: 50,
-      ),
-      builder: (context, snapshot) {
-        // Customize what your widget looks like when it's loading.
-        if (!snapshot.hasData) {
-          return Scaffold(
-            backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
-            body: Center(
-              child: SizedBox(
-                width: 50.0,
-                height: 50.0,
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    FlutterFlowTheme.of(context).primary,
+    final images = _filteredImages();
+    final isLoading = _model.allImages == null;
+
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus();
+        FocusManager.instance.primaryFocus?.unfocus();
+      },
+      child: PopScope(
+        canPop: false,
+        child: Scaffold(
+          key: scaffoldKey,
+          backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+          body: Stack(
+            alignment: AlignmentDirectional(0.0, -1.0),
+            children: [
+              Padding(
+                padding:
+                    EdgeInsetsDirectional.fromSTEB(16.0, 64.0, 16.0, 0.0),
+                child: Container(
+                  decoration: BoxDecoration(),
+                  child: ListView(
+                    padding: EdgeInsets.zero,
+                    shrinkWrap: true,
+                    scrollDirection: Axis.vertical,
+                    controller: _model.listViewController,
+                    children: [
+                      // ── Title ──────────────────────────────────────────
+                      Align(
+                        alignment: AlignmentDirectional(-1.0, 0.0),
+                        child: Padding(
+                          padding: EdgeInsetsDirectional.fromSTEB(
+                              16.0, 0.0, 16.0, 0.0),
+                          child: Text(
+                            FFLocalizations.of(context).getText('s0iman0p'),
+                            style: FlutterFlowTheme.of(context)
+                                .titleLarge
+                                .override(
+                                  fontFamily: FlutterFlowTheme.of(context)
+                                      .titleLargeFamily,
+                                  letterSpacing: 0.0,
+                                  fontWeight: FontWeight.bold,
+                                  useGoogleFonts:
+                                      !FlutterFlowTheme.of(context)
+                                          .titleLargeIsCustom,
+                                ),
+                          ),
+                        ),
+                      ),
+                      Align(
+                        alignment: AlignmentDirectional(-1.0, 0.0),
+                        child: Padding(
+                          padding: EdgeInsetsDirectional.fromSTEB(
+                              16.0, 12.0, 16.0, 0.0),
+                          child: Text(
+                            FFLocalizations.of(context).getText('lhz5s19w'),
+                            style: FlutterFlowTheme.of(context)
+                                .titleLarge
+                                .override(
+                                  fontFamily: FlutterFlowTheme.of(context)
+                                      .titleLargeFamily,
+                                  fontSize: 16.0,
+                                  letterSpacing: 0.0,
+                                  fontWeight: FontWeight.normal,
+                                  useGoogleFonts:
+                                      !FlutterFlowTheme.of(context)
+                                          .titleLargeIsCustom,
+                                ),
+                          ),
+                        ),
+                      ),
+                      // ── Filter chips ───────────────────────────────────
+                      Padding(
+                        padding: EdgeInsetsDirectional.fromSTEB(
+                            0.0, 16.0, 0.0, 0.0),
+                        child: SizedBox(
+                          height: 36.0,
+                          child: ListView.separated(
+                            scrollDirection: Axis.horizontal,
+                            padding:
+                                EdgeInsetsDirectional.fromSTEB(16.0, 0, 16.0, 0),
+                            itemCount: _kFilterChips.length,
+                            separatorBuilder: (_, __) =>
+                                SizedBox(width: 8.0),
+                            itemBuilder: (context, index) {
+                              final (catKey, locKey) = _kFilterChips[index];
+                              final isSelected =
+                                  _model.selectedCategory == catKey;
+                              return GestureDetector(
+                                onTap: () {
+                                  _model.selectedCategory = catKey;
+                                  safeSetState(() {});
+                                },
+                                child: AnimatedContainer(
+                                  duration: Duration(milliseconds: 150),
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 14.0, vertical: 6.0),
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? FlutterFlowTheme.of(context).primary
+                                        : FlutterFlowTheme.of(context)
+                                            .secondaryBackground,
+                                    borderRadius: BorderRadius.circular(20.0),
+                                    border: Border.all(
+                                      color: isSelected
+                                          ? FlutterFlowTheme.of(context).primary
+                                          : FlutterFlowTheme.of(context)
+                                              .alternate,
+                                      width: 1.0,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    FFLocalizations.of(context).getText(locKey),
+                                    style: FlutterFlowTheme.of(context)
+                                        .bodySmall
+                                        .override(
+                                          fontFamily:
+                                              FlutterFlowTheme.of(context)
+                                                  .bodySmallFamily,
+                                          color: isSelected
+                                              ? FlutterFlowTheme.of(context)
+                                                  .alternate
+                                              : FlutterFlowTheme.of(context)
+                                                  .secondaryText,
+                                          letterSpacing: 0.0,
+                                          fontWeight: isSelected
+                                              ? FontWeight.w600
+                                              : FontWeight.normal,
+                                          useGoogleFonts:
+                                              !FlutterFlowTheme.of(context)
+                                                  .bodySmallIsCustom,
+                                        ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                      // ── Grid ──────────────────────────────────────────
+                      Padding(
+                        padding: EdgeInsetsDirectional.fromSTEB(
+                            0.0, 12.0, 0.0, 0.0),
+                        child: isLoading
+                            ? Center(
+                                child: Padding(
+                                  padding: EdgeInsets.only(top: 60.0),
+                                  child: CircularProgressIndicator(
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      FlutterFlowTheme.of(context).primary,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : images.isEmpty
+                                ? Center(
+                                    child: Padding(
+                                      padding: EdgeInsets.only(top: 60.0),
+                                      child: Text(
+                                        '—',
+                                        style: FlutterFlowTheme.of(context)
+                                            .bodyMedium,
+                                      ),
+                                    ),
+                                  )
+                                : MasonryGridView.builder(
+                                    physics:
+                                        const NeverScrollableScrollPhysics(),
+                                    gridDelegate:
+                                        SliverSimpleGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: 2,
+                                    ),
+                                    crossAxisSpacing: 10.0,
+                                    mainAxisSpacing: 10.0,
+                                    itemCount: images.length,
+                                    shrinkWrap: true,
+                                    controller:
+                                        _model.staggeredViewController,
+                                    itemBuilder: (context, index) {
+                                      final item = images[index];
+                                      return InkWell(
+                                        splashColor: Colors.transparent,
+                                        focusColor: Colors.transparent,
+                                        hoverColor: Colors.transparent,
+                                        highlightColor: Colors.transparent,
+                                        onTap: () async {
+                                          context.pushNamed(
+                                            Itemcard2Widget.routeName,
+                                            queryParameters: {
+                                              'imageid': serializeParam(
+                                                item.id,
+                                                ParamType.int,
+                                              ),
+                                            }.withoutNulls,
+                                          );
+                                        },
+                                        child: ImagedetailedTopRaitedWidget(
+                                          key: Key(
+                                              'Keyytw_${index}_of_${images.length}'),
+                                          imageUrl: item.imageUrl,
+                                          brand: item.brand,
+                                          name: item.productName,
+                                          score: item.saCompositeScore,
+                                          imageID: item.id,
+                                          tags: item.saBestForTags,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ),
-          );
-        }
-        // Deduplicate by brand + product name — keep first occurrence (highest score).
-        final _seen = <String>{};
-        final List<ImagesRow> topratedImagesRowList = snapshot.data!
-            .where((row) => _seen.add(
-                '${(row.brand ?? '').toLowerCase()}|${(row.productName ?? '').toLowerCase()}'))
-            .toList();
-
-        return GestureDetector(
-          onTap: () {
-            FocusScope.of(context).unfocus();
-            FocusManager.instance.primaryFocus?.unfocus();
-          },
-          child: PopScope(
-            canPop: false,
-            child: Scaffold(
-              key: scaffoldKey,
-              backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
-              body: Stack(
-                alignment: AlignmentDirectional(0.0, -1.0),
-                children: [
-                  Padding(
-                    padding:
-                        EdgeInsetsDirectional.fromSTEB(16.0, 64.0, 16.0, 0.0),
-                    child: Container(
-                      decoration: BoxDecoration(),
-                      child: ListView(
-                        padding: EdgeInsets.fromLTRB(
-                          0,
-                          0.0,
-                          0,
-                          0,
-                        ),
-                        shrinkWrap: true,
-                        scrollDirection: Axis.vertical,
-                        children: [
-                          Align(
-                            alignment: AlignmentDirectional(-1.0, 0.0),
-                            child: Padding(
-                              padding: EdgeInsetsDirectional.fromSTEB(
-                                  16.0, 0.0, 16.0, 0.0),
-                              child: Text(
-                                FFLocalizations.of(context).getText(
-                                  's0iman0p' /* Explore */,
-                                ),
-                                style: FlutterFlowTheme.of(context)
-                                    .titleLarge
-                                    .override(
-                                      fontFamily: FlutterFlowTheme.of(context)
-                                          .titleLargeFamily,
-                                      letterSpacing: 0.0,
-                                      fontWeight: FontWeight.bold,
-                                      useGoogleFonts:
-                                          !FlutterFlowTheme.of(context)
-                                              .titleLargeIsCustom,
-                                    ),
-                              ),
-                            ),
-                          ),
-                          Align(
-                            alignment: AlignmentDirectional(-1.0, 0.0),
-                            child: Padding(
-                              padding: EdgeInsetsDirectional.fromSTEB(
-                                  16.0, 12.0, 16.0, 0.0),
-                              child: Text(
-                                FFLocalizations.of(context).getText(
-                                  'lhz5s19w' /* Top-rated by the community */,
-                                ),
-                                style: FlutterFlowTheme.of(context)
-                                    .titleLarge
-                                    .override(
-                                      fontFamily: FlutterFlowTheme.of(context)
-                                          .titleLargeFamily,
-                                      fontSize: 16.0,
-                                      letterSpacing: 0.0,
-                                      fontWeight: FontWeight.normal,
-                                      useGoogleFonts:
-                                          !FlutterFlowTheme.of(context)
-                                              .titleLargeIsCustom,
-                                    ),
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: EdgeInsetsDirectional.fromSTEB(
-                                0.0, 12.0, 0.0, 0.0),
-                            child: Builder(
-                              builder: (context) {
-                                final images = topratedImagesRowList
-                                    .map((e) => e)
-                                    .toList();
-
-                                return MasonryGridView.builder(
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  gridDelegate:
-                                      SliverSimpleGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: 2,
-                                  ),
-                                  crossAxisSpacing: 10.0,
-                                  mainAxisSpacing: 10.0,
-                                  itemCount: images.length,
-                                  padding: EdgeInsets.fromLTRB(
-                                    0,
-                                    0,
-                                    0,
-                                    0,
-                                  ),
-                                  shrinkWrap: true,
-                                  itemBuilder: (context, imagesIndex) {
-                                    final imagesItem = images[imagesIndex];
-                                    return InkWell(
-                                      splashColor: Colors.transparent,
-                                      focusColor: Colors.transparent,
-                                      hoverColor: Colors.transparent,
-                                      highlightColor: Colors.transparent,
-                                      onTap: () async {
-                                        context.pushNamed(
-                                          Itemcard2Widget.routeName,
-                                          queryParameters: {
-                                            'imageid': serializeParam(
-                                              imagesItem.id,
-                                              ParamType.int,
-                                            ),
-                                          }.withoutNulls,
-                                        );
-                                      },
-                                      child: ImagedetailedTopRaitedWidget(
-                                        key: Key(
-                                            'Keyytw_${imagesIndex}_of_${images.length}'),
-                                        imageUrl: imagesItem.imageUrl,
-                                        brand: imagesItem.brand,
-                                        name: imagesItem.productName,
-                                        score: imagesItem.saCompositeScore,
-                                        imageID: imagesItem.id,
-                                        tags: imagesItem.saBestForTags,
-                                      ),
-                                    );
-                                  },
-                                  controller: _model.staggeredViewController,
-                                );
-                              },
-                            ),
-                          ),
-                        ],
-                        controller: _model.listViewController,
-                      ),
-                    ),
-                  ),
-                  Align(
-                    alignment: AlignmentDirectional(0.0, 1.0),
-                    child: wrapWithModel(
-                      model: _model.navbarModel,
-                      updateCallback: () => safeSetState(() {}),
-                      child: NavbarWidget(
-                        activePage: 1,
-                      ),
-                    ),
-                  ),
-                ],
+              Align(
+                alignment: AlignmentDirectional(0.0, 1.0),
+                child: wrapWithModel(
+                  model: _model.navbarModel,
+                  updateCallback: () => safeSetState(() {}),
+                  child: NavbarWidget(activePage: 1),
+                ),
               ),
-            ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }
