@@ -113,9 +113,12 @@ class _TopratedWidgetState extends State<TopratedWidget> {
   List<ImagesRow> _filteredImages() {
     if (_model.allImages == null) return [];
 
+    final spamIds = FFAppState().spamlist.toSet();
+
     // Deduplicate by brand + product name — keep first occurrence (highest score).
     final seen = <String>{};
     final deduped = _model.allImages!
+        .where((row) => !spamIds.contains(row.id))
         .where((row) => seen.add(
             '${(row.brand ?? '').toLowerCase()}|${(row.productName ?? '').toLowerCase()}'))
         .toList();
@@ -242,7 +245,7 @@ class _TopratedWidgetState extends State<TopratedWidget> {
                                                 ? FlutterFlowTheme.of(context)
                                                     .primary
                                                 : FlutterFlowTheme.of(context)
-                                                    .alternate,
+                                                    .secondaryBackground,
                                             width: 1.0,
                                           ),
                                         ),

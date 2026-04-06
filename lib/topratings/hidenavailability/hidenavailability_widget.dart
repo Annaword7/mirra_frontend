@@ -46,13 +46,18 @@ class _HidenavailabilityWidgetState extends State<HidenavailabilityWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.transparent,
-      ),
-      child: Align(
-        alignment: AlignmentDirectional(0.0, 0.0),
-        child: Padding(
+    return GestureDetector(
+      onTap: () => Navigator.pop(context),
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.transparent,
+        ),
+        child: GestureDetector(
+          onTap: () {},
+          child: Align(
+            alignment: AlignmentDirectional(0.0, 0.0),
+            child: Padding(
           padding: EdgeInsets.all(20.0),
           child: Container(
             decoration: BoxDecoration(
@@ -152,6 +157,8 @@ class _HidenavailabilityWidgetState extends State<HidenavailabilityWidget> {
                 ].divide(SizedBox(height: 20.0)),
               ),
             ),
+          ),
+        ),
           ),
         ),
       ),

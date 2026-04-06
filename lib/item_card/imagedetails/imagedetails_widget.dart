@@ -498,7 +498,8 @@ class _ImagedetailsWidgetState extends State<ImagedetailsWidget> {
                             size: 30.0,
                           ),
                           onPressed: () async {
-                            await showModalBottomSheet(
+                            final confirmed =
+                                await showModalBottomSheet<bool>(
                               isScrollControlled: true,
                               backgroundColor: Colors.transparent,
                               enableDrag: false,
@@ -518,21 +519,27 @@ class _ImagedetailsWidgetState extends State<ImagedetailsWidget> {
                                   ),
                                 );
                               },
-                            ).then((value) => safeSetState(() {}));
-
-                            unawaited(
-                              () async {
-                                await UsersTable().update(
-                                  data: {
-                                    'spam_images': FFAppState().spamlist,
-                                  },
-                                  matchingRows: (rows) => rows.eqOrNull(
-                                    'id',
-                                    currentUserUid,
-                                  ),
-                                );
-                              }(),
                             );
+                            if (confirmed == true && context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    FFLocalizations.of(context).getText(
+                                      'spam_hidden_toast',
+                                    ),
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                  backgroundColor:
+                                      FlutterFlowTheme.of(context).primaryText,
+                                  duration: Duration(seconds: 3),
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12.0),
+                                  ),
+                                ),
+                              );
+                              context.safePop();
+                            }
                           },
                         ),
                       ),

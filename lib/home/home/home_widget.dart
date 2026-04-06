@@ -14,6 +14,7 @@ import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'home_model.dart';
 export 'home_model.dart';
@@ -65,6 +66,20 @@ class _HomeWidgetState extends State<HomeWidget> {
   late StreamSubscription<bool> _keyboardVisibilitySubscription;
   bool _isKeyboardVisible = false;
 
+  GoRouter? _goRouter;
+  String _lastLocation = '';
+
+  void _onRouteChanged() {
+    if (!mounted) return;
+    final location =
+        _goRouter?.routeInformationProvider.value.uri.path ?? '';
+    if (_lastLocation != HomeWidget.routePath &&
+        location == HomeWidget.routePath) {
+      _refreshImages();
+    }
+    _lastLocation = location;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -73,7 +88,11 @@ class _HomeWidgetState extends State<HomeWidget> {
 
     // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
-      // Always refresh images when returning to Home (e.g. after copy).
+      // Refresh images on first load and subscribe to route changes
+      // so deleted/updated items disappear when returning to Home.
+      _goRouter = GoRouter.of(context);
+      _lastLocation = _goRouter!.routeInformationProvider.value.uri.path;
+      _goRouter!.routerDelegate.addListener(_onRouteChanged);
       _refreshImages();
       _model.usersanswer = await UsersTable().queryRows(
         queryFn: (q) => q.eqOrNull(
@@ -139,6 +158,7 @@ class _HomeWidgetState extends State<HomeWidget> {
 
   @override
   void dispose() {
+    _goRouter?.routerDelegate.removeListener(_onRouteChanged);
     _model.dispose();
 
     if (!isWeb) {
@@ -629,7 +649,7 @@ class _HomeWidgetState extends State<HomeWidget> {
                                                           .primary
                                                       : FlutterFlowTheme.of(
                                                               context)
-                                                          .alternate,
+                                                          .secondaryBackground,
                                                   width: 1.0,
                                                 ),
                                               ),

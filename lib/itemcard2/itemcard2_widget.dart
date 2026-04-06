@@ -10,6 +10,7 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/item_card/deleteitem/deleteitem_widget.dart';
 import '/item_card/ingridients/ingridients_widget.dart';
+import '/item_card/markasspam/markasspam_widget.dart';
 import '/topratings/copyitem/copyitem_widget.dart';
 import '/topratings/hidenavailability/hidenavailability_widget.dart';
 import '/topratings/makeprivate/makeprivate_widget.dart';
@@ -211,6 +212,13 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
         final itemcard2ImagesRow = itemcard2ImagesRowList.isNotEmpty
             ? itemcard2ImagesRowList.first
             : null;
+
+        if (itemcard2ImagesRow == null) {
+          return Scaffold(
+            backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+            body: const SizedBox.shrink(),
+          );
+        }
 
         return GestureDetector(
           onTap: () {
@@ -2119,7 +2127,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                if (!itemcard2ImagesRow!.favourite! &&
+                                if (!(itemcard2ImagesRow.favourite ?? false) &&
                                     (itemcard2ImagesRow.user ==
                                         currentUserUid))
                                   Padding(
@@ -2178,7 +2186,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                       ),
                                     ),
                                   ),
-                                if (itemcard2ImagesRow.favourite! &&
+                                if ((itemcard2ImagesRow.favourite ?? false) &&
                                     (itemcard2ImagesRow.user ==
                                         currentUserUid))
                                   Padding(
@@ -2236,7 +2244,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                       ),
                                     ),
                                   ),
-                                if (!itemcard2ImagesRow.hided! &&
+                                if (!(itemcard2ImagesRow.hided ?? false) &&
                                     (itemcard2ImagesRow.user ==
                                         currentUserUid))
                                   Padding(
@@ -2352,7 +2360,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                       ),
                                     ),
                                   ),
-                                if (itemcard2ImagesRow.hided! &&
+                                if ((itemcard2ImagesRow.hided ?? false) &&
                                     (itemcard2ImagesRow.user ==
                                         currentUserUid))
                                   Padding(
@@ -2567,34 +2575,96 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                   Padding(
                                     padding: EdgeInsetsDirectional.fromSTEB(
                                         12.0, 8.0, 12.0, 0.0),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.max,
-                                      children: [
-                                        Icon(
-                                          Icons.block,
-                                          color: FlutterFlowTheme.of(context)
-                                              .primaryText,
-                                          size: 24.0,
-                                        ),
-                                        Expanded(child: Text(
-                                          FFLocalizations.of(context).getText(
-                                            'bpwivw1d' /* Mark as spam */,
-                                          ),
-                                          style: FlutterFlowTheme.of(context)
-                                              .bodyMedium
-                                              .override(
-                                                fontFamily:
-                                                    FlutterFlowTheme.of(context)
-                                                        .bodyMediumFamily,
-                                                fontSize: 16.0,
-                                                letterSpacing: 0.0,
-                                                useGoogleFonts:
-                                                    !FlutterFlowTheme.of(
-                                                            context)
-                                                        .bodyMediumIsCustom,
+                                    child: InkWell(
+                                      splashColor: Colors.transparent,
+                                      focusColor: Colors.transparent,
+                                      hoverColor: Colors.transparent,
+                                      highlightColor: Colors.transparent,
+                                      onTap: () async {
+                                        final confirmed =
+                                            await showModalBottomSheet<bool>(
+                                          isScrollControlled: true,
+                                          backgroundColor: Colors.transparent,
+                                          enableDrag: false,
+                                          context: context,
+                                          builder: (context) {
+                                            return GestureDetector(
+                                              onTap: () {
+                                                FocusScope.of(context)
+                                                    .unfocus();
+                                                FocusManager
+                                                    .instance.primaryFocus
+                                                    ?.unfocus();
+                                              },
+                                              child: Padding(
+                                                padding:
+                                                    MediaQuery.viewInsetsOf(
+                                                        context),
+                                                child: MarkasspamWidget(
+                                                  imageid: widget.imageid!,
+                                                ),
                                               ),
-                                        )),
-                                      ].divide(SizedBox(width: 12.0)),
+                                            );
+                                          },
+                                        );
+                                        if (confirmed == true &&
+                                            context.mounted) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                FFLocalizations.of(context)
+                                                    .getText(
+                                                  'spam_hidden_toast',
+                                                ),
+                                                style: TextStyle(
+                                                    color: Colors.white),
+                                              ),
+                                              backgroundColor:
+                                                  FlutterFlowTheme.of(context)
+                                                      .primaryText,
+                                              duration: Duration(seconds: 3),
+                                              behavior:
+                                                  SnackBarBehavior.floating,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12.0),
+                                              ),
+                                            ),
+                                          );
+                                          context.safePop();
+                                        }
+                                      },
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.max,
+                                        children: [
+                                          Icon(
+                                            Icons.block,
+                                            color: FlutterFlowTheme.of(context)
+                                                .primaryText,
+                                            size: 24.0,
+                                          ),
+                                          Expanded(child: Text(
+                                            FFLocalizations.of(context).getText(
+                                              'bpwivw1d' /* Mark as spam */,
+                                            ),
+                                            style: FlutterFlowTheme.of(context)
+                                                .bodyMedium
+                                                .override(
+                                                  fontFamily:
+                                                      FlutterFlowTheme.of(
+                                                              context)
+                                                          .bodyMediumFamily,
+                                                  fontSize: 16.0,
+                                                  letterSpacing: 0.0,
+                                                  useGoogleFonts:
+                                                      !FlutterFlowTheme.of(
+                                                              context)
+                                                          .bodyMediumIsCustom,
+                                                ),
+                                          )),
+                                        ].divide(SizedBox(width: 12.0)),
+                                      ),
                                     ),
                                   ),
                                 if (itemcard2ImagesRow.user != currentUserUid)

@@ -125,8 +125,9 @@ class _DeleteitemWidgetState extends State<DeleteitemWidget> {
                             widget.imageid,
                           ),
                         );
-                        Navigator.pop(context);
-                        context.pushNamed(HomeWidget.routeName);
+                        if (context.mounted) {
+                          context.go(HomeWidget.routePath);
+                        }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFD32F2F),

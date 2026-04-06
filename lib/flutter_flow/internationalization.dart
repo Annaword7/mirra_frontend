@@ -1102,7 +1102,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     'bpwivw1d': {
       'en': 'Mark as spam',
       'es': 'Marcar como spam',
-      'ru': 'Пометить как спам',
+      'ru': 'Отметить как спам',
     },
     '8v1j4q7h': {
       'en': 'Copy product',
@@ -1449,7 +1449,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     'gzohwfxg': {
       'en': 'There are no products yet',
       'es': 'No hay productos todavía',
-      'ru': 'Товаров пока нет',
+      'ru': 'Продуктов пока нет',
     },
   },
   // upgrade
@@ -1562,7 +1562,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     'bk3jxz77': {
       'en': 'Scan a Product',
       'es': 'Escanear un producto',
-      'ru': 'Отсканируйте товар',
+      'ru': 'Отсканируйте продукт',
     },
     'a8lx03m5': {
       'en': 'Instantly analyze ingredients and get safety ratings',
@@ -1807,6 +1807,11 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'This product will be hidden from top ratings',
       'es': 'Este producto se ocultará de las clasificaciones principales',
       'ru': 'Этот продукт будет скрыт из топ-рейтинга',
+    },
+    'spam_hidden_toast': {
+      'en': 'Product hidden — it won\'t appear in Top Rated anymore',
+      'es': 'Producto oculto — ya no aparecerá en Top Rated',
+      'ru': 'Продукт скрыт — он больше не будет отображаться в топ-рейтинге',
     },
     'h4qorptg': {
       'en': 'Cancel',

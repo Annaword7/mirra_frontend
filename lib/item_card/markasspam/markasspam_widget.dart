@@ -1,8 +1,11 @@
+import '/auth/supabase_auth/auth_util.dart';
+import '/backend/supabase/supabase.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/index.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'markasspam_model.dart';
 export 'markasspam_model.dart';
 
@@ -45,6 +48,7 @@ class _MarkasspamWidgetState extends State<MarkasspamWidget> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<FFAppState>();
     return Container(
       decoration: BoxDecoration(
         color: Colors.transparent,
@@ -148,10 +152,16 @@ class _MarkasspamWidgetState extends State<MarkasspamWidget> {
                       FFButtonWidget(
                         onPressed: () async {
                           FFAppState().addToSpamlist(widget.imageid!);
-                          safeSetState(() {});
-                          Navigator.pop(context);
-
-                          context.pushNamed(TopratedWidget.routeName);
+                          await UsersTable().update(
+                            data: {
+                              'spam_images': FFAppState().spamlist,
+                            },
+                            matchingRows: (rows) =>
+                                rows.eqOrNull('id', currentUserUid),
+                          );
+                          if (context.mounted) {
+                            Navigator.pop(context, true);
+                          }
                         },
                         text: FFLocalizations.of(context).getText(
                           '899uf23u' /* Hide */,
