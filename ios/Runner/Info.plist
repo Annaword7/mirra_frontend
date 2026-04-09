@@ -54,7 +54,7 @@
 		<key>LSRequiresIPhoneOS</key>
 		<true/>
 		<key>NSCameraUsageDescription</key>
-		<string>In order to take a picture or video, this app requires permission to access the camera.</string>
+		<string>MiRRA uses the camera to photograph cosmetic product labels and packaging so the app can analyze the ingredients for safety and compatibility with your skin type. For example, you can point the camera at a moisturizer label to instantly identify potentially harmful chemicals.</string>
 		<key>NSPhotoLibraryAddUsageDescription</key>
 		<string>MiRRA сохраняет карточки продуктов в фотогалерею</string>
 		<key>NSPhotoLibraryUsageDescription</key>

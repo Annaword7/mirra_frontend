@@ -1070,7 +1070,8 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                             24.0, 24.0, 24.0, 0.0),
                         child: Text(
                           FFLocalizations.of(context).getText(
-                            'whubf4jp' /* Subscription price:It is a sy... */,
+                            'whubf4jp' /* Subscription price:
+It is a sy... */,
                           ),
                           textAlign: TextAlign.center,
                           style: FlutterFlowTheme.of(context)
@@ -1100,7 +1101,7 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                               highlightColor: Colors.transparent,
                               onTap: () async {
                                 await launchURL(
-                                    'https://kindly-atmosphere-eaa.notion.site/Privacy-Policy-2600b2d7c68180b98976e58d5955e50b?pvs=73');
+                                    'https://mirra.up.railway.app/privacy.html');
                               },
                               child: Text(
                                 FFLocalizations.of(context).getText(

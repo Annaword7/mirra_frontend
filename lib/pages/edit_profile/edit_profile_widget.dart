@@ -72,10 +72,29 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
         ),
       ),
       builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Scaffold(
+            backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+            body: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.error_outline,
+                      color: FlutterFlowTheme.of(context).error, size: 48),
+                  const SizedBox(height: 16),
+                  TextButton(
+                    onPressed: () => safeSetState(() {}),
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
         // Customize what your widget looks like when it's loading.
         if (!snapshot.hasData) {
           return Scaffold(
-            backgroundColor: FlutterFlowTheme.of(context).alternate,
+            backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
             body: Center(
               child: SizedBox(
                 width: 50.0,
@@ -338,16 +357,18 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
                                           ),
                                           shape: BoxShape.circle,
                                         ),
-                                        child: ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(280.0),
-                                          child: Image.network(
-                                            editProfileUsersRow!.profileImage!,
-                                            width: 120.0,
-                                            height: 120.0,
-                                            fit: BoxFit.cover,
-                                          ),
-                                        ),
+                                        child: editProfileUsersRow?.profileImage != null
+                                            ? ClipRRect(
+                                                borderRadius:
+                                                    BorderRadius.circular(280.0),
+                                                child: Image.network(
+                                                  editProfileUsersRow!.profileImage!,
+                                                  width: 120.0,
+                                                  height: 120.0,
+                                                  fit: BoxFit.cover,
+                                                ),
+                                              )
+                                            : const SizedBox.shrink(),
                                       ),
                                     ),
                                     Expanded(
@@ -741,7 +762,7 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
                                                     .firstNameTextController ??=
                                                 TextEditingController(
                                               text: editProfileUsersRow
-                                                  .firstName,
+                                                  ?.firstName,
                                             ),
                                             focusNode:
                                                 _model.firstNameFocusNode,
@@ -865,7 +886,7 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
                                                     .lastNameTextController ??=
                                                 TextEditingController(
                                               text:
-                                                  editProfileUsersRow.lastName,
+                                                  editProfileUsersRow?.lastName,
                                             ),
                                             focusNode: _model.lastNameFocusNode,
                                             onFieldSubmitted: (_) async {

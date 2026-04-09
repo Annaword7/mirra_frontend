@@ -209,26 +209,32 @@ class _LogInPageWidgetState extends State<LogInPageWidget>
                 ),
               ),
             ),
-            Align(
-              alignment: AlignmentDirectional(0.0, 0.0),
-              child: RichText(
-                textScaler: MediaQuery.of(context).textScaler,
-                textAlign: TextAlign.center,
-                text: TextSpan(
-                  children: [
-                    TextSpan(
-                      text: FFLocalizations.of(context)
-                          .getText('oksxunlm' /* Terms and Privacy Policy */),
-                      style: FlutterFlowTheme.of(context).bodySmall.override(
-                            fontFamily:
-                                FlutterFlowTheme.of(context).bodySmallFamily,
-                            color: FlutterFlowTheme.of(context).primary,
-                            letterSpacing: 0.0,
-                            useGoogleFonts: !FlutterFlowTheme.of(context)
-                                .bodySmallIsCustom,
-                          ),
-                    ),
-                  ],
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                InkWell(
+                  splashColor: Colors.transparent,
+                  focusColor: Colors.transparent,
+                  hoverColor: Colors.transparent,
+                  highlightColor: Colors.transparent,
+                  onTap: () async {
+                    await launchURL(
+                        'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/');
+                  },
+                  child: Text(
+                    FFLocalizations.of(context).getText('r6swa5sg' /* Terms of use */),
+                    style: FlutterFlowTheme.of(context).bodySmall.override(
+                          fontFamily:
+                              FlutterFlowTheme.of(context).bodySmallFamily,
+                          color: FlutterFlowTheme.of(context).primary,
+                          letterSpacing: 0.0,
+                          useGoogleFonts:
+                              !FlutterFlowTheme.of(context).bodySmallIsCustom,
+                        ),
+                  ),
+                ),
+                Text(
+                  ' · ',
                   style: FlutterFlowTheme.of(context).bodySmall.override(
                         fontFamily:
                             FlutterFlowTheme.of(context).bodySmallFamily,
@@ -237,7 +243,28 @@ class _LogInPageWidgetState extends State<LogInPageWidget>
                             !FlutterFlowTheme.of(context).bodySmallIsCustom,
                       ),
                 ),
-              ),
+                InkWell(
+                  splashColor: Colors.transparent,
+                  focusColor: Colors.transparent,
+                  hoverColor: Colors.transparent,
+                  highlightColor: Colors.transparent,
+                  onTap: () async {
+                    await launchURL(
+                        'https://mirra.up.railway.app/privacy.html');
+                  },
+                  child: Text(
+                    FFLocalizations.of(context).getText('j321mb3y' /* Privacy Policy */),
+                    style: FlutterFlowTheme.of(context).bodySmall.override(
+                          fontFamily:
+                              FlutterFlowTheme.of(context).bodySmallFamily,
+                          color: FlutterFlowTheme.of(context).primary,
+                          letterSpacing: 0.0,
+                          useGoogleFonts:
+                              !FlutterFlowTheme.of(context).bodySmallIsCustom,
+                        ),
+                  ),
+                ),
+              ],
             ),
           ].divide(const SizedBox(height: 5.0)),
         ),

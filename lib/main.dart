@@ -121,7 +121,7 @@ class _MyAppState extends State<MyApp> {
       () => _appStateNotifier.stopShowingSplashImage(),
     );
 
-    // Handle Universal Links (mirraapp.com/product/{id})
+    // Handle Universal Links (mirra.up.railway.app/product/{id})
     _initDeepLinks();
   }
 
@@ -140,7 +140,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _handleDeepLink(Uri uri) {
-    // Handle mirraapp.com/product/{id}
+    // Handle mirra.up.railway.app/product/{id}
     final segments = uri.pathSegments;
     if (segments.length == 2 && segments[0] == 'product') {
       final id = int.tryParse(segments[1]);

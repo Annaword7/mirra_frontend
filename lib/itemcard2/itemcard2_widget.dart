@@ -2433,7 +2433,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                       await Future.delayed(const Duration(milliseconds: 300));
                                       final size = MediaQuery.of(context).size;
                                       await Share.share(
-                                        'https://mirraapp.com/product/${widget.imageid}',
+                                        'https://mirra.up.railway.app/product/${widget.imageid}',
                                         sharePositionOrigin: Rect.fromLTWH(size.width / 2, size.height / 2, 1, 1),
                                       );
                                     },
