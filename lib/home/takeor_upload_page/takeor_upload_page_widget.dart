@@ -479,6 +479,47 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                     FFAppState().analysisloading = false;
                     FFAppState().Producanalysstate = 0;
                     safeSetState(() {});
+                  } else if ((_model.analyseImageProductNameCamera
+                              ?.statusCode ??
+                          200) ==
+                      422) {
+                    await showDialog(
+                      context: context,
+                      builder: (alertDialogContext) {
+                        return AlertDialog(
+                          title: Text('Unsupported product'),
+                          content: Text(
+                            SearchingredientsNEWBCNDCall.error(
+                              (_model.analyseImageProductNameCamera
+                                      ?.jsonBody ??
+                                  ''),
+                            ) ??
+                                'This product type is not supported yet.',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () =>
+                                  Navigator.pop(alertDialogContext),
+                              child: Text('Ok'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                    FFAppState().uploadedimageurl = '';
+                    FFAppState().analysisloading = false;
+                    FFAppState().Producanalysstate = 0;
+                    safeSetState(() {});
+                    await ImagesTable().delete(
+                      matchingRows: (rows) => rows.eqOrNull(
+                        'id',
+                        ExtractproductinfoNEWBCNDCopyCall.iamgeID(
+                          (_model.extractedproductcamera?.jsonBody ?? ''),
+                        ),
+                      ),
+                    );
+                    if (_shouldSetState) safeSetState(() {});
+                    return;
                   } else {
                     await TelegrammessegeCall.call(
                       messega:
@@ -710,7 +751,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
             } else {
               await TelegrammessegeCall.call(
                 messega:
-                    '${_model.uploadedFileUrl_uploadImageSupabaseGallary}на этапе extract product info галерея',
+                    '${_model.uploadedFileUrl_uploadImageSupabaseGallary} на этапе extract product info галерея',
                 email: 'from mobile app Extract Product Name Step',
                 form: 'tech message',
               );
@@ -960,6 +1001,45 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                     FFAppState().Producanalysstate = 0;
                     safeSetState(() {});
                     safeSetState(() {});
+                  } else if ((_model.analyseImageProductName?.statusCode ??
+                          200) ==
+                      422) {
+                    await showDialog(
+                      context: context,
+                      builder: (alertDialogContext) {
+                        return AlertDialog(
+                          title: Text('Unsupported product'),
+                          content: Text(
+                            SearchingredientsNEWBCNDCall.error(
+                              (_model.analyseImageProductName?.jsonBody ??
+                                  ''),
+                            ) ??
+                                'This product type is not supported yet.',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () =>
+                                  Navigator.pop(alertDialogContext),
+                              child: Text('Ok'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                    FFAppState().uploadedimageurl = '';
+                    FFAppState().analysisloading = false;
+                    FFAppState().Producanalysstate = 0;
+                    safeSetState(() {});
+                    await ImagesTable().delete(
+                      matchingRows: (rows) => rows.eqOrNull(
+                        'id',
+                        ExtractproductinfoNEWBCNDCopyCall.iamgeID(
+                          (_model.extractedproductGalary?.jsonBody ?? ''),
+                        ),
+                      ),
+                    );
+                    if (_shouldSetState) safeSetState(() {});
+                    return;
                   } else {
                     await TelegrammessegeCall.call(
                       messega:

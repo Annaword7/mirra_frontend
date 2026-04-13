@@ -598,6 +598,10 @@ class SearchingredientsNEWBCNDCall {
         response,
         r'''$.details''',
       ));
+  static String? code(dynamic response) => castToType<String>(getJsonField(
+        response,
+        r'''$.code''',
+      ));
 }
 
 class ScientificanalysisNEWBCNDCall {
