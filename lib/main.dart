@@ -1,6 +1,9 @@
 import 'dart:ui';
 import 'dart:async';
+import 'dart:typed_data';
+import 'package:flutter/services.dart';
 import '/custom_code/actions/index.dart' as actions;
+import 'shared_image_state.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/gestures.dart';
@@ -123,6 +126,37 @@ class _MyAppState extends State<MyApp> {
 
     // Handle Universal Links (mirra.up.railway.app/product/{id})
     _initDeepLinks();
+
+    // Handle images shared from external apps ("Open in MiRRA")
+    _initShareChannel();
+  }
+
+  static const _shareChannel = MethodChannel('mirra/share');
+
+  void _initShareChannel() {
+    _shareChannel.setMethodCallHandler((call) async {
+      if (call.method == 'sharedImage') {
+        await _loadAndRoutePendingSharedImage();
+      }
+    });
+    // Check for an image that arrived before Flutter was ready
+    // (e.g. cold launch via "Open In")
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadAndRoutePendingSharedImage();
+    });
+  }
+
+  Future<void> _loadAndRoutePendingSharedImage() async {
+    try {
+      final result =
+          await _shareChannel.invokeMethod<Uint8List>('getPendingSharedImage');
+      if (result != null && result.isNotEmpty) {
+        SharedImageState.instance.pendingImage = result;
+        _router.go('/takeorUploadPage');
+      }
+    } catch (_) {
+      // Channel not available (Android / web) — ignore silently
+    }
   }
 
   void _initDeepLinks() {
@@ -205,6 +239,40 @@ class _MyAppState extends State<MyApp> {
       ),
       themeMode: _themeMode,
       routerConfig: _router,
+      builder: (context, child) {
+        if (FFDevEnvironmentValues.currentEnvironment != 'Development') {
+          return child!;
+        }
+        // Dev-only banner: shows which backend is active
+        return Stack(
+          children: [
+            child!,
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 4,
+              right: 8,
+              child: IgnorePointer(
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xCCFF6B00),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    'DEV',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
