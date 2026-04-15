@@ -1,5 +1,8 @@
 import 'dart:async';
 import '/auth/supabase_auth/auth_util.dart';
+import '/components/feedback_collector/feedback_collector_widget.dart';
+import '/components/feedback_collector/feedback_service.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import '/flutter_flow/analytics_service.dart';
 import '/backend/api_requests/api_calls.dart';
 import '/backend/supabase/supabase.dart';
@@ -99,6 +102,23 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
         0,
       );
       safeSetState(() {});
+      // Show feedback prompt after the card has rendered and user has had
+      // time to see the results.
+      if (FFAppState().feedbackPendingScan &&
+          await FeedbackService.shouldShowPrompt()) {
+        FFAppState().feedbackPendingScan = false;
+        await FeedbackService.recordShown();
+        await FirebaseAnalytics.instance.logEvent(name: 'feedback_prompt_shown');
+        await Future.delayed(const Duration(seconds: 3));
+        if (context.mounted) {
+          await showDialog(
+            context: context,
+            barrierDismissible: true,
+            barrierColor: Colors.black.withAlpha(100),
+            builder: (context) => const FeedbackCollectorWidget(),
+          );
+        }
+      }
     });
 
     _model.textFieldFocusNode ??= FocusNode();

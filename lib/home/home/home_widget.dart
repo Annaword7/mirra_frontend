@@ -2,11 +2,13 @@ import '/auth/supabase_auth/auth_util.dart';
 import '/backend/supabase/supabase.dart';
 import '/flutter_flow/revenue_cat_util.dart' as revenue_cat;
 import '/components/navbar/navbar_widget.dart';
+import '/components/feedback_collector/feedback_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/item_card/imagedetailed_main/imagedetailed_main_widget.dart';
 import 'dart:async';
+import '/environment_values.dart';
 import '/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -59,7 +61,7 @@ class HomeWidget extends StatefulWidget {
   State<HomeWidget> createState() => _HomeWidgetState();
 }
 
-class _HomeWidgetState extends State<HomeWidget> {
+class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
   late HomeModel _model;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
@@ -68,6 +70,43 @@ class _HomeWidgetState extends State<HomeWidget> {
 
   GoRouter? _goRouter;
   String _lastLocation = '';
+
+  Ticker? _autoScrollTicker;
+  double _tickerLastElapsed = 0;
+
+  void _startAutoScroll() {
+    _autoScrollTicker?.dispose();
+    _tickerLastElapsed = 0;
+    _autoScrollTicker = createTicker((elapsed) {
+      final dt = (elapsed.inMicroseconds - _tickerLastElapsed) / 1e6;
+      _tickerLastElapsed = elapsed.inMicroseconds.toDouble();
+      if (!_model.scrollController.hasClients) return;
+      final pos = _model.scrollController.position;
+      final next = pos.pixels + 114.0 * dt; // ~114 px/sec
+      if (next >= pos.maxScrollExtent) {
+        _model.scrollController.jumpTo(0);
+      } else {
+        _model.scrollController.jumpTo(next);
+      }
+    });
+    _autoScrollTicker!.start();
+  }
+
+  void _stopAutoScroll() {
+    _autoScrollTicker?.dispose();
+    _autoScrollTicker = null;
+  }
+
+  void _toggleAutoScroll() {
+    safeSetState(() {
+      _model.autoScrollActive = !_model.autoScrollActive;
+    });
+    if (_model.autoScrollActive) {
+      _startAutoScroll();
+    } else {
+      _stopAutoScroll();
+    }
+  }
 
   void _onRouteChanged() {
     if (!mounted) return;
@@ -131,6 +170,9 @@ class _HomeWidgetState extends State<HomeWidget> {
       }
     });
 
+    // Record first launch date for the 14-day gate.
+    FeedbackService.recordFirstLaunchIfNeeded();
+
     if (!isWeb) {
       _keyboardVisibilitySubscription =
           KeyboardVisibilityController().onChange.listen((bool visible) {
@@ -158,6 +200,7 @@ class _HomeWidgetState extends State<HomeWidget> {
 
   @override
   void dispose() {
+    _stopAutoScroll();
     _goRouter?.routerDelegate.removeListener(_onRouteChanged);
     _model.dispose();
 
@@ -214,7 +257,15 @@ class _HomeWidgetState extends State<HomeWidget> {
                     onRefresh: () async {
                       _refreshImages();
                     },
-                    child: SingleChildScrollView(
+                    child: RawScrollbar(
+                      controller: _model.scrollController,
+                      interactive: true,
+                      thumbVisibility: false,
+                      radius: const Radius.circular(6),
+                      thickness: 4,
+                      thumbColor: FlutterFlowTheme.of(context).primary.withOpacity(0.55),
+                      child: SingleChildScrollView(
+                      controller: _model.scrollController,
                       physics: const AlwaysScrollableScrollPhysics(),
                       child: ConstrainedBox(
                         constraints: BoxConstraints(
@@ -343,6 +394,33 @@ class _HomeWidgetState extends State<HomeWidget> {
                                           ),
                                       ].divide(SizedBox(width: 16.0)),
                                     ),
+                                    if (FFDevEnvironmentValues.currentEnvironment == 'Development')
+                                      GestureDetector(
+                                        onTap: _toggleAutoScroll,
+                                        child: Container(
+                                          width: 45.0,
+                                          height: 45.0,
+                                          decoration: BoxDecoration(
+                                            color: _model.autoScrollActive
+                                                ? const Color(0xFFFF9800)
+                                                : FlutterFlowTheme.of(context).secondaryBackground,
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                              color: const Color(0xFFFF9800),
+                                              width: 1.5,
+                                            ),
+                                          ),
+                                          child: Icon(
+                                            _model.autoScrollActive
+                                                ? Icons.pause_rounded
+                                                : Icons.play_arrow_rounded,
+                                            color: _model.autoScrollActive
+                                                ? Colors.white
+                                                : const Color(0xFFFF9800),
+                                            size: 24.0,
+                                          ),
+                                        ),
+                                      ),
                                     Container(
                                       width: 45.0,
                                       height: 45.0,
@@ -841,8 +919,9 @@ class _HomeWidgetState extends State<HomeWidget> {
                         ],
                       ),
                     ),  // ConstrainedBox
-                  ),
-                ),
+                  ),  // SingleChildScrollView
+                ),  // RawScrollbar
+              ),  // RefreshIndicator
                 );
               },
             ),

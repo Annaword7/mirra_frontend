@@ -1998,4 +1998,57 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ru': 'В этой категории пока нет продуктов',
     },
   },
+  // feedbackCollector
+  {
+    'fc_title': {
+      'en': 'Do you like Mirra?',
+      'es': '¿Te gusta Mirra?',
+      'ru': 'Вам нравится Mirra?',
+    },
+    'fc_subtitle': {
+      'en': 'Your rating helps us\nget better every day',
+      'es': 'Tu valoración nos ayuda\na mejorar cada día',
+      'ru': 'Ваша оценка помогает нам\nстановиться лучше',
+    },
+    'fc_btn_positive': {
+      'en': 'Yes, love it!',
+      'es': '¡Sí, me encanta!',
+      'ru': 'Да, нравится!',
+    },
+    'fc_btn_negative': {
+      'en': 'Not really',
+      'es': 'No mucho',
+      'ru': 'Нет, не очень',
+    },
+    'fc_neg_title': {
+      'en': 'What could be better?',
+      'es': '¿Qué podría mejorar?',
+      'ru': 'Расскажите, что вас расстроило?',
+    },
+    'fc_neg_subtitle': {
+      'en': 'Your feedback helps us improve the app',
+      'es': 'Tu opinión nos ayuda a mejorar la app',
+      'ru': 'Ваш отзыв поможет нам улучшить приложение',
+    },
+    'fc_neg_hint': {
+      'en': 'Write your comment...',
+      'es': 'Escribe tu comentario...',
+      'ru': 'Напишите ваш комментарий...',
+    },
+    'fc_neg_email': {
+      'en': 'Email (optional)',
+      'es': 'Email (opcional)',
+      'ru': 'Email (необязательно)',
+    },
+    'fc_neg_validator': {
+      'en': 'Please write a comment',
+      'es': 'Por favor, escribe un comentario',
+      'ru': 'Пожалуйста, напишите комментарий',
+    },
+    'fc_neg_submit': {
+      'en': 'Send',
+      'es': 'Enviar',
+      'ru': 'Отправить',
+    },
+  },
 ].reduce((a, b) => a..addAll(b));

@@ -112,6 +112,11 @@ GoRouter createRouter(AppStateNotifier appStateNotifier, [Widget? entryPage]) =>
           builder: (context, params) => OnboardingInstructionsWidget(),
         ),
         FFRoute(
+          name: OnboardingCarouselWidget.routeName,
+          path: OnboardingCarouselWidget.routePath,
+          builder: (context, params) => OnboardingCarouselWidget(),
+        ),
+        FFRoute(
           name: BoardsWidget.routeName,
           path: BoardsWidget.routePath,
           requireAuth: true,

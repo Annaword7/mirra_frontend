@@ -262,6 +262,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
         );
 
         if ((_model.scientificanalysresultgalary?.succeeded ?? true)) {
+          FFAppState().feedbackPendingScan = true;
           context.pushNamed(
             Itemcard2Widget.routeName,
             queryParameters: {
@@ -707,6 +708,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
               _shouldSetState = true;
               if ((_model.scientificanalysresultgalary?.succeeded ??
                   true)) {
+                FFAppState().feedbackPendingScan = true;
                 context.pushNamed(
                   Itemcard2Widget.routeName,
                   queryParameters: {

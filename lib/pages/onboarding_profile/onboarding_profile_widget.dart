@@ -1387,7 +1387,7 @@ class _OnboardingProfileWidgetState extends State<OnboardingProfileWidget>
                                 ),
                               );
 
-                              context.goNamed(HomeWidget.routeName);
+                              context.goNamed(OnboardingCarouselWidget.routeName);
                             },
                             text: FFLocalizations.of(context).getText(
                               'spc42q3x' /* Continue */,
