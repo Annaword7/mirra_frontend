@@ -2,6 +2,7 @@ import 'dart:async';
 import '/auth/supabase_auth/auth_util.dart';
 import '/components/feedback_collector/feedback_collector_widget.dart';
 import '/components/feedback_collector/feedback_service.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import '/flutter_flow/analytics_service.dart';
 import '/backend/api_requests/api_calls.dart';
@@ -17,6 +18,7 @@ import '/item_card/markasspam/markasspam_widget.dart';
 import '/topratings/copyitem/copyitem_widget.dart';
 import '/topratings/hidenavailability/hidenavailability_widget.dart';
 import '/topratings/makeprivate/makeprivate_widget.dart';
+import '/topratings/makepublic/makepublic_widget.dart';
 import '/index.dart';
 import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter/material.dart';
@@ -248,6 +250,304 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
           child: Scaffold(
             key: scaffoldKey,
             backgroundColor: FlutterFlowTheme.of(context).alternate,
+            extendBodyBehindAppBar: true,
+            floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+            floatingActionButton: SpeedDial(
+              icon: Icons.tune,
+              activeIcon: Icons.close,
+              backgroundColor: FlutterFlowTheme.of(context).primary,
+              foregroundColor: Colors.white,
+              activeBackgroundColor: FlutterFlowTheme.of(context).primary,
+              overlayOpacity: 0.3,
+              overlayColor: Colors.black,
+              spacing: 8,
+              spaceBetweenChildren: 4,
+              elevation: 4,
+              children: [
+                // Print label
+                SpeedDialChild(
+                  child: const Icon(Icons.local_print_shop_outlined),
+                  backgroundColor: FlutterFlowTheme.of(context).primary,
+                  foregroundColor: Colors.white,
+                  label: FFLocalizations.of(context).getText('fab_print'),
+                  labelStyle: FlutterFlowTheme.of(context).bodyMedium,
+                  onTap: () => context.pushNamed(
+                    ShareproductWidget.routeName,
+                    queryParameters: {
+                      'imageid': serializeParam(widget.imageid, ParamType.int),
+                    }.withoutNulls,
+                  ),
+                ),
+                // Share link
+                SpeedDialChild(
+                  child: const Icon(Icons.ios_share_rounded),
+                  backgroundColor: FlutterFlowTheme.of(context).primary,
+                  foregroundColor: Colors.white,
+                  label: FFLocalizations.of(context).getText('fab_share'),
+                  labelStyle: FlutterFlowTheme.of(context).bodyMedium,
+                  onTap: () async {
+                    unawaited(AnalyticsService.instance.trackShareLinkTapped(imageId: widget.imageid ?? 0));
+                    await Future.delayed(const Duration(milliseconds: 300));
+                    final size = MediaQuery.of(context).size;
+                    await Share.share(
+                      'https://mirra.up.railway.app/product/${widget.imageid}',
+                      sharePositionOrigin: Rect.fromLTWH(size.width / 2, size.height / 2, 1, 1),
+                    );
+                  },
+                ),
+                // Add to album
+                SpeedDialChild(
+                  child: const Icon(Icons.add_box),
+                  backgroundColor: FlutterFlowTheme.of(context).primary,
+                  foregroundColor: Colors.white,
+                  label: FFLocalizations.of(context).getText('fab_add_to_album'),
+                  labelStyle: FlutterFlowTheme.of(context).bodyMedium,
+                  onTap: () async {
+                    _model.albums = await AlbumTable().queryRows(
+                      queryFn: (q) => q.eqOrNull('user', currentUserUid),
+                    );
+                    if (!context.mounted) return;
+                    if (_model.albums?.length == 0) {
+                      await showModalBottomSheet(
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        enableDrag: false,
+                        context: context,
+                        builder: (context) => Padding(
+                          padding: MediaQuery.viewInsetsOf(context),
+                          child: NewAlbumWidget(),
+                        ),
+                      ).then((value) => safeSetState(() {}));
+                    } else {
+                      await showModalBottomSheet(
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        enableDrag: false,
+                        context: context,
+                        builder: (context) => Padding(
+                          padding: MediaQuery.viewInsetsOf(context),
+                          child: AlbumslistWidget(
+                            imageID: widget.imageid!,
+                            albums: _model.albums ?? [],
+                          ),
+                        ),
+                      ).then((value) => safeSetState(() {}));
+                    }
+                  },
+                ),
+                // Add to favourite (owner, not yet favourited)
+                SpeedDialChild(
+                  visible: !(itemcard2ImagesRow.favourite ?? false) &&
+                      itemcard2ImagesRow.user == currentUserUid,
+                  child: const Icon(Icons.favorite_border),
+                  backgroundColor: FlutterFlowTheme.of(context).primary,
+                  foregroundColor: Colors.white,
+                  label: FFLocalizations.of(context).getText('fab_add_favourite'),
+                  labelStyle: FlutterFlowTheme.of(context).bodyMedium,
+                  onTap: () async {
+                    await ImagesTable().update(
+                      data: {'favourite': true},
+                      matchingRows: (rows) => rows.eqOrNull('id', widget.imageid),
+                    );
+                    unawaited(AnalyticsService.instance.trackFavouriteAdded(imageId: widget.imageid ?? 0));
+                    safeSetState(() {});
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text(
+                        FFLocalizations.of(context).getText('fab_favourite_added'),
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                      backgroundColor: FlutterFlowTheme.of(context).primary,
+                      duration: const Duration(seconds: 2),
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+                    ));
+                  },
+                ),
+                // Remove from favourite (owner, already favourited)
+                SpeedDialChild(
+                  visible: (itemcard2ImagesRow.favourite ?? false) &&
+                      itemcard2ImagesRow.user == currentUserUid,
+                  child: const Icon(Icons.favorite),
+                  backgroundColor: FlutterFlowTheme.of(context).primary,
+                  foregroundColor: Colors.white,
+                  label: FFLocalizations.of(context).getText('fab_remove_favourite'),
+                  labelStyle: FlutterFlowTheme.of(context).bodyMedium,
+                  onTap: () async {
+                    await ImagesTable().update(
+                      data: {'favourite': false},
+                      matchingRows: (rows) => rows.eqOrNull('id', widget.imageid),
+                    );
+                    unawaited(AnalyticsService.instance.trackFavouriteRemoved(imageId: widget.imageid ?? 0));
+                    safeSetState(() {});
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text(
+                        FFLocalizations.of(context).getText('fab_favourite_removed'),
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                      backgroundColor: FlutterFlowTheme.of(context).primary,
+                      duration: const Duration(seconds: 2),
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+                    ));
+                  },
+                ),
+                // Hide from public (owner, not yet hidden)
+                SpeedDialChild(
+                  visible: !(itemcard2ImagesRow.hided ?? false) &&
+                      itemcard2ImagesRow.user == currentUserUid,
+                  child: FaIcon(FontAwesomeIcons.eyeSlash),
+                  backgroundColor: FlutterFlowTheme.of(context).primary,
+                  foregroundColor: Colors.white,
+                  label: FFLocalizations.of(context).getText('fab_hide'),
+                  labelStyle: FlutterFlowTheme.of(context).bodyMedium,
+                  onTap: () async {
+                    if (FFAppState().isprouser) {
+                      await ImagesTable().update(
+                        data: {'hided': true},
+                        matchingRows: (rows) => rows.eqOrNull('id', widget.imageid),
+                      );
+                      if (!context.mounted) return;
+                      await showModalBottomSheet(
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        enableDrag: false,
+                        context: context,
+                        builder: (context) => Padding(
+                          padding: MediaQuery.viewInsetsOf(context),
+                          child: MakeprivateWidget(imageid: widget.imageid!),
+                        ),
+                      ).then((value) => safeSetState(() {}));
+                    } else {
+                      if (!context.mounted) return;
+                      await showModalBottomSheet(
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        enableDrag: false,
+                        context: context,
+                        builder: (context) => Padding(
+                          padding: MediaQuery.viewInsetsOf(context),
+                          child: HidenavailabilityWidget(imageid: 0),
+                        ),
+                      ).then((value) => safeSetState(() {}));
+                    }
+                  },
+                ),
+                // Make public (owner, currently hidden)
+                SpeedDialChild(
+                  visible: (itemcard2ImagesRow.hided ?? false) &&
+                      itemcard2ImagesRow.user == currentUserUid,
+                  child: FaIcon(FontAwesomeIcons.eye),
+                  backgroundColor: FlutterFlowTheme.of(context).primary,
+                  foregroundColor: Colors.white,
+                  label: FFLocalizations.of(context).getText('fab_show'),
+                  labelStyle: FlutterFlowTheme.of(context).bodyMedium,
+                  onTap: () async {
+                    await ImagesTable().update(
+                      data: {'hided': false},
+                      matchingRows: (rows) => rows.eqOrNull('id', widget.imageid),
+                    );
+                    safeSetState(() {});
+                    if (!context.mounted) return;
+                    await showModalBottomSheet(
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      enableDrag: false,
+                      context: context,
+                      builder: (context) => const MakepublicWidget(),
+                    ).then((value) => safeSetState(() {}));
+                  },
+                ),
+                // Mark as spam (not owner)
+                SpeedDialChild(
+                  visible: itemcard2ImagesRow.user != currentUserUid,
+                  child: const Icon(Icons.block),
+                  backgroundColor: FlutterFlowTheme.of(context).primary,
+                  foregroundColor: Colors.white,
+                  label: FFLocalizations.of(context).getText('fab_spam'),
+                  labelStyle: FlutterFlowTheme.of(context).bodyMedium,
+                  onTap: () async {
+                    final confirmed = await showModalBottomSheet<bool>(
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      enableDrag: false,
+                      context: context,
+                      builder: (context) => Padding(
+                        padding: MediaQuery.viewInsetsOf(context),
+                        child: MarkasspamWidget(imageid: widget.imageid!),
+                      ),
+                    );
+                    if (confirmed == true && context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text(
+                          FFLocalizations.of(context).getText('spam_hidden_toast'),
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        backgroundColor: FlutterFlowTheme.of(context).primaryText,
+                        duration: const Duration(seconds: 3),
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+                      ));
+                      context.safePop();
+                    }
+                  },
+                ),
+                // Copy product (not owner)
+                SpeedDialChild(
+                  visible: itemcard2ImagesRow.user != currentUserUid,
+                  child: const Icon(Icons.copy_all),
+                  backgroundColor: FlutterFlowTheme.of(context).primary,
+                  foregroundColor: Colors.white,
+                  label: FFLocalizations.of(context).getText('fab_copy'),
+                  labelStyle: FlutterFlowTheme.of(context).bodyMedium,
+                  onTap: () async {
+                    if (currentUserUid.isEmpty) {
+                      await showModalBottomSheet(
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        enableDrag: true,
+                        context: context,
+                        builder: (context) => _LoginRequiredSheet(),
+                      );
+                      return;
+                    }
+                    if (!context.mounted) return;
+                    await showModalBottomSheet(
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      enableDrag: false,
+                      context: context,
+                      builder: (context) => Padding(
+                        padding: MediaQuery.viewInsetsOf(context),
+                        child: CopyitemWidget(imageid: widget.imageid!),
+                      ),
+                    ).then((value) => safeSetState(() {}));
+                  },
+                ),
+                // Delete (owner)
+                SpeedDialChild(
+                  visible: itemcard2ImagesRow.user == currentUserUid,
+                  child: const Icon(Icons.delete_outline),
+                  backgroundColor: FlutterFlowTheme.of(context).primary,
+                  foregroundColor: Colors.white,
+                  label: FFLocalizations.of(context).getText('fab_delete'),
+                  labelStyle: FlutterFlowTheme.of(context).bodyMedium,
+                  onTap: () async {
+                    await showModalBottomSheet(
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      enableDrag: false,
+                      context: context,
+                      builder: (context) => Padding(
+                        padding: MediaQuery.viewInsetsOf(context),
+                        child: DeleteitemWidget(imageid: widget.imageid!),
+                      ),
+                    ).then((value) => safeSetState(() {}));
+                  },
+                ),
+              ],
+            ),
             body: Stack(
               children: [
                 if (!_model.loading)
@@ -259,7 +559,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                         Stack(
                           children: [
                             Container(
-                              width: MediaQuery.sizeOf(context).width * 1.0,
+                              width: MediaQuery.sizeOf(context).width,
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
                                   colors: [
@@ -276,35 +576,50 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                     0.0, 0.0, 0.0, 16.0),
                                 child: Column(
                                   mainAxisSize: MainAxisSize.max,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Container(
-                                      width: MediaQuery.sizeOf(context).width *
-                                          1.0,
-                                      decoration: BoxDecoration(
-                                        color: FlutterFlowTheme.of(context)
-                                            .secondaryBackground,
-                                      ),
-                                      child: ClipRRect(
-                                        borderRadius:
-                                            BorderRadius.circular(0.0),
-                                        child: OctoImage(
-                                          placeholderBuilder: (_) =>
-                                              SizedBox.expand(
-                                            child: Image(
-                                              image: BlurHashImage(
-                                                  'L6PZfSi_.AyE_3t7t7R**0o#DgR4'),
-                                              fit: BoxFit.cover,
+                                    // Full-bleed image — overlaps status bar
+                                    Stack(
+                                      children: [
+                                        SizedBox(
+                                          width: MediaQuery.sizeOf(context).width,
+                                          height: MediaQuery.sizeOf(context).height * 0.5,
+                                          child: OctoImage(
+                                            placeholderBuilder: (_) =>
+                                                SizedBox.expand(
+                                              child: Image(
+                                                image: BlurHashImage(
+                                                    'L6PZfSi_.AyE_3t7t7R**0o#DgR4'),
+                                                fit: BoxFit.cover,
+                                              ),
+                                            ),
+                                            image: NetworkImage(
+                                              _model.imageraw!.firstOrNull!
+                                                  .imageUrl,
+                                            ),
+                                            fit: BoxFit.cover,
+                                          ),
+                                        ),
+                                        // Top gradient for status bar readability
+                                        Positioned(
+                                          top: 0,
+                                          left: 0,
+                                          right: 0,
+                                          child: Container(
+                                            height: 100,
+                                            decoration: BoxDecoration(
+                                              gradient: LinearGradient(
+                                                begin: Alignment.topCenter,
+                                                end: Alignment.bottomCenter,
+                                                colors: [
+                                                  Colors.black.withAlpha(80),
+                                                  Colors.transparent,
+                                                ],
+                                              ),
                                             ),
                                           ),
-                                          image: NetworkImage(
-                                            _model.imageraw!.firstOrNull!
-                                                .imageUrl,
-                                          ),
-                                          width: 200.0,
-                                          height: 360.0,
-                                          fit: BoxFit.cover,
                                         ),
-                                      ),
+                                      ],
                                     ),
                                     Padding(
                                       padding: EdgeInsets.all(16.0),
@@ -2010,838 +2325,6 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                           animationsMap['iconOnPageLoadAnimation']!),
                     ),
                   ),
-                Padding(
-                  padding: EdgeInsetsDirectional.fromSTEB(0.0, 45.0, 0.0, 0.0),
-                  child: Container(
-                    decoration: BoxDecoration(),
-                    child: Padding(
-                      padding: EdgeInsetsDirectional.fromSTEB(
-                          16.0, 16.0, 16.0, 16.0),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.max,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Container(
-                            width: 50.0,
-                            height: 50.0,
-                            decoration: BoxDecoration(
-                              color: Color(0x2B5C85D9),
-                              shape: BoxShape.circle,
-                            ),
-                            child: InkWell(
-                              splashColor: Colors.transparent,
-                              focusColor: Colors.transparent,
-                              hoverColor: Colors.transparent,
-                              highlightColor: Colors.transparent,
-                              onTap: () async {
-                                context.safePop();
-                              },
-                              child: Icon(
-                                Icons.arrow_back,
-                                color: FlutterFlowTheme.of(context).primaryText,
-                                size: 24.0,
-                              ),
-                            ),
-                          ),
-                          Row(
-                            mainAxisSize: MainAxisSize.max,
-                            children: [
-                              Container(
-                                width: 50.0,
-                                height: 50.0,
-                                decoration: BoxDecoration(
-                                  color: Color(0x2C5C85D9),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: InkWell(
-                                  splashColor: Colors.transparent,
-                                  focusColor: Colors.transparent,
-                                  hoverColor: Colors.transparent,
-                                  highlightColor: Colors.transparent,
-                                  onTap: () async {
-                                    context.pushNamed(
-                                      ShareproductWidget.routeName,
-                                      queryParameters: {
-                                        'imageid': serializeParam(
-                                          widget.imageid,
-                                          ParamType.int,
-                                        ),
-                                      }.withoutNulls,
-                                    );
-                                  },
-                                  child: Icon(
-                                    Icons.local_print_shop_outlined,
-                                    color: FlutterFlowTheme.of(context)
-                                        .primaryText,
-                                    size: 24.0,
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                width: 50.0,
-                                height: 50.0,
-                                decoration: BoxDecoration(
-                                  color: Color(0x2C5C85D9),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: InkWell(
-                                  splashColor: Colors.transparent,
-                                  focusColor: Colors.transparent,
-                                  hoverColor: Colors.transparent,
-                                  highlightColor: Colors.transparent,
-                                  onTap: () async {
-                                    _model.optiondropdownopen = true;
-                                    safeSetState(() {});
-                                  },
-                                  child: Icon(
-                                    Icons.more_vert,
-                                    color: FlutterFlowTheme.of(context)
-                                        .primaryText,
-                                    size: 24.0,
-                                  ),
-                                ),
-                              ),
-                            ].divide(SizedBox(width: 10.0)),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                if (_model.optiondropdownopen)
-                  Align(
-                    alignment: AlignmentDirectional(1.0, -1.0),
-                    child: InkWell(
-                      splashColor: Colors.transparent,
-                      focusColor: Colors.transparent,
-                      hoverColor: Colors.transparent,
-                      highlightColor: Colors.transparent,
-                      onTap: () async {
-                        _model.optiondropdownopen = false;
-                        safeSetState(() {});
-                      },
-                      child: Container(
-                        width: MediaQuery.sizeOf(context).width * 1.0,
-                        height: MediaQuery.sizeOf(context).height * 1.0,
-                        decoration: BoxDecoration(),
-                        alignment: AlignmentDirectional(1.0, -1.0),
-                        child: Padding(
-                          padding: EdgeInsetsDirectional.fromSTEB(
-                              0.0, 50.0, 16.0, 0.0),
-                          child: Container(
-                            width: MediaQuery.sizeOf(context).width * 0.6,
-                            decoration: BoxDecoration(
-                              color: FlutterFlowTheme.of(context).alternate,
-                              boxShadow: [
-                                BoxShadow(
-                                  blurRadius: 4.0,
-                                  color: Color(0x33000000),
-                                  offset: Offset(
-                                    0.0,
-                                    2.0,
-                                  ),
-                                )
-                              ],
-                              borderRadius: BorderRadius.circular(24.0),
-                            ),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                if (!(itemcard2ImagesRow.favourite ?? false) &&
-                                    (itemcard2ImagesRow.user ==
-                                        currentUserUid))
-                                  Padding(
-                                    padding: EdgeInsetsDirectional.fromSTEB(
-                                        12.0, 16.0, 12.0, 0.0),
-                                    child: InkWell(
-                                      splashColor: Colors.transparent,
-                                      focusColor: Colors.transparent,
-                                      hoverColor: Colors.transparent,
-                                      highlightColor: Colors.transparent,
-                                      onTap: () async {
-                                        await ImagesTable().update(
-                                          data: {
-                                            'favourite': true,
-                                          },
-                                          matchingRows: (rows) => rows.eqOrNull(
-                                            'id',
-                                            widget.imageid,
-                                          ),
-                                        );
-                                        unawaited(AnalyticsService.instance.trackFavouriteAdded(imageId: widget.imageid ?? 0));
-                                        safeSetState(() {});
-                                        _model.optiondropdownopen = false;
-                                        safeSetState(() {});
-                                      },
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.max,
-                                        children: [
-                                          Icon(
-                                            Icons.favorite_border,
-                                            color: FlutterFlowTheme.of(context)
-                                                .primaryText,
-                                            size: 24.0,
-                                          ),
-                                          Expanded(
-                                           child: Text(
-                                            FFLocalizations.of(context).getText(
-                                              'd7zoo4qj' /* Add to favourite */,
-                                            ),
-                                            style: FlutterFlowTheme.of(context)
-                                                .bodyMedium
-                                                .override(
-                                                  fontFamily:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMediumFamily,
-                                                  fontSize: 16.0,
-                                                  letterSpacing: 0.0,
-                                                  useGoogleFonts:
-                                                      !FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMediumIsCustom,
-                                                ),
-                                          )),
-                                        ].divide(SizedBox(width: 12.0)),
-                                      ),
-                                    ),
-                                  ),
-                                if ((itemcard2ImagesRow.favourite ?? false) &&
-                                    (itemcard2ImagesRow.user ==
-                                        currentUserUid))
-                                  Padding(
-                                    padding: EdgeInsetsDirectional.fromSTEB(
-                                        12.0, 8.0, 12.0, 0.0),
-                                    child: InkWell(
-                                      splashColor: Colors.transparent,
-                                      focusColor: Colors.transparent,
-                                      hoverColor: Colors.transparent,
-                                      highlightColor: Colors.transparent,
-                                      onTap: () async {
-                                        await ImagesTable().update(
-                                          data: {
-                                            'favourite': false,
-                                          },
-                                          matchingRows: (rows) => rows.eqOrNull(
-                                            'id',
-                                            widget.imageid,
-                                          ),
-                                        );
-                                        unawaited(AnalyticsService.instance.trackFavouriteRemoved(imageId: widget.imageid ?? 0));
-                                        safeSetState(() {});
-                                        _model.optiondropdownopen = false;
-                                        safeSetState(() {});
-                                      },
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.max,
-                                        children: [
-                                          Icon(
-                                            Icons.favorite,
-                                            color: FlutterFlowTheme.of(context)
-                                                .primaryText,
-                                            size: 24.0,
-                                          ),
-                                          Expanded(child: Text(
-                                            FFLocalizations.of(context).getText(
-                                              '8fxs3m5r' /* Remove from favorite */,
-                                            ),
-                                            style: FlutterFlowTheme.of(context)
-                                                .bodyMedium
-                                                .override(
-                                                  fontFamily:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMediumFamily,
-                                                  fontSize: 16.0,
-                                                  letterSpacing: 0.0,
-                                                  useGoogleFonts:
-                                                      !FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMediumIsCustom,
-                                                ),
-                                          )),
-                                        ].divide(SizedBox(width: 12.0)),
-                                      ),
-                                    ),
-                                  ),
-                                if (!(itemcard2ImagesRow.hided ?? false) &&
-                                    (itemcard2ImagesRow.user ==
-                                        currentUserUid))
-                                  Padding(
-                                    padding: EdgeInsetsDirectional.fromSTEB(
-                                        12.0, 8.0, 12.0, 0.0),
-                                    child: InkWell(
-                                      splashColor: Colors.transparent,
-                                      focusColor: Colors.transparent,
-                                      hoverColor: Colors.transparent,
-                                      highlightColor: Colors.transparent,
-                                      onTap: () async {
-                                        if (FFAppState().isprouser) {
-                                          await ImagesTable().update(
-                                            data: {
-                                              'hided': true,
-                                            },
-                                            matchingRows: (rows) =>
-                                                rows.eqOrNull(
-                                              'id',
-                                              widget.imageid,
-                                            ),
-                                          );
-                                          await showModalBottomSheet(
-                                            isScrollControlled: true,
-                                            backgroundColor: Colors.transparent,
-                                            enableDrag: false,
-                                            context: context,
-                                            builder: (context) {
-                                              return GestureDetector(
-                                                onTap: () {
-                                                  FocusScope.of(context)
-                                                      .unfocus();
-                                                  FocusManager
-                                                      .instance.primaryFocus
-                                                      ?.unfocus();
-                                                },
-                                                child: Padding(
-                                                  padding:
-                                                      MediaQuery.viewInsetsOf(
-                                                          context),
-                                                  child: MakeprivateWidget(
-                                                    imageid: widget.imageid!,
-                                                  ),
-                                                ),
-                                              );
-                                            },
-                                          ).then(
-                                              (value) => safeSetState(() {}));
-
-                                          safeSetState(() {});
-                                        } else {
-                                          await showModalBottomSheet(
-                                            isScrollControlled: true,
-                                            backgroundColor: Colors.transparent,
-                                            enableDrag: false,
-                                            context: context,
-                                            builder: (context) {
-                                              return GestureDetector(
-                                                onTap: () {
-                                                  FocusScope.of(context)
-                                                      .unfocus();
-                                                  FocusManager
-                                                      .instance.primaryFocus
-                                                      ?.unfocus();
-                                                },
-                                                child: Padding(
-                                                  padding:
-                                                      MediaQuery.viewInsetsOf(
-                                                          context),
-                                                  child:
-                                                      HidenavailabilityWidget(
-                                                    imageid: 0,
-                                                  ),
-                                                ),
-                                              );
-                                            },
-                                          ).then(
-                                              (value) => safeSetState(() {}));
-                                        }
-
-                                        _model.optiondropdownopen = false;
-                                        safeSetState(() {});
-                                      },
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.max,
-                                        children: [
-                                          FaIcon(
-                                            FontAwesomeIcons.eyeSlash,
-                                            color: FlutterFlowTheme.of(context)
-                                                .primaryText,
-                                            size: 24.0,
-                                          ),
-                                          Expanded(child: Text(
-                                            FFLocalizations.of(context).getText(
-                                              '7um3crv1' /* Hide form public */,
-                                            ),
-                                            style: FlutterFlowTheme.of(context)
-                                                .bodyMedium
-                                                .override(
-                                                  fontFamily:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMediumFamily,
-                                                  fontSize: 16.0,
-                                                  letterSpacing: 0.0,
-                                                  useGoogleFonts:
-                                                      !FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMediumIsCustom,
-                                                ),
-                                          )),
-                                        ].divide(SizedBox(width: 12.0)),
-                                      ),
-                                    ),
-                                  ),
-                                if ((itemcard2ImagesRow.hided ?? false) &&
-                                    (itemcard2ImagesRow.user ==
-                                        currentUserUid))
-                                  Padding(
-                                    padding: EdgeInsetsDirectional.fromSTEB(
-                                        12.0, 8.0, 12.0, 0.0),
-                                    child: InkWell(
-                                      splashColor: Colors.transparent,
-                                      focusColor: Colors.transparent,
-                                      hoverColor: Colors.transparent,
-                                      highlightColor: Colors.transparent,
-                                      onTap: () async {
-                                        await ImagesTable().update(
-                                          data: {
-                                            'hided': false,
-                                          },
-                                          matchingRows: (rows) => rows.eqOrNull(
-                                            'id',
-                                            widget.imageid,
-                                          ),
-                                        );
-                                        _model.optiondropdownopen = false;
-                                        safeSetState(() {});
-                                      },
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.max,
-                                        children: [
-                                          FaIcon(
-                                            FontAwesomeIcons.eye,
-                                            color: FlutterFlowTheme.of(context)
-                                                .primaryText,
-                                            size: 24.0,
-                                          ),
-                                          Expanded(child: Text(
-                                            FFLocalizations.of(context).getText(
-                                              'ves7p6f3' /* Make product public */,
-                                            ),
-                                            style: FlutterFlowTheme.of(context)
-                                                .bodyMedium
-                                                .override(
-                                                  fontFamily:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMediumFamily,
-                                                  fontSize: 16.0,
-                                                  letterSpacing: 0.0,
-                                                  useGoogleFonts:
-                                                      !FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMediumIsCustom,
-                                                ),
-                                          )),
-                                        ].divide(SizedBox(width: 12.0)),
-                                      ),
-                                    ),
-                                  ),
-                                Padding(
-                                  padding: EdgeInsetsDirectional.fromSTEB(
-                                      12.0, 8.0, 12.0, 0.0),
-                                  child: InkWell(
-                                    splashColor: Colors.transparent,
-                                    focusColor: Colors.transparent,
-                                    hoverColor: Colors.transparent,
-                                    highlightColor: Colors.transparent,
-                                    onTap: () async {
-                                      _model.optiondropdownopen = false;
-                                      safeSetState(() {});
-                                      unawaited(AnalyticsService.instance.trackShareLinkTapped(imageId: widget.imageid ?? 0));
-                                      // Delay so the dropdown animation finishes before
-                                      // presenting UIActivityViewController (needed on iOS release)
-                                      await Future.delayed(const Duration(milliseconds: 300));
-                                      final size = MediaQuery.of(context).size;
-                                      await Share.share(
-                                        'https://mirra.up.railway.app/product/${widget.imageid}',
-                                        sharePositionOrigin: Rect.fromLTWH(size.width / 2, size.height / 2, 1, 1),
-                                      );
-                                    },
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.max,
-                                      children: [
-                                        Icon(
-                                          Icons.ios_share_rounded,
-                                          color: FlutterFlowTheme.of(context)
-                                              .primaryText,
-                                          size: 24.0,
-                                        ),
-                                        Expanded(
-                                          child: Text(
-                                            FFLocalizations.of(context).getText(
-                                              'xkz8m3p1' /* Share link */,
-                                            ),
-                                            style: FlutterFlowTheme.of(context)
-                                                .bodyMedium
-                                                .override(
-                                                  fontFamily:
-                                                      FlutterFlowTheme.of(context)
-                                                          .bodyMediumFamily,
-                                                  fontSize: 16.0,
-                                                  letterSpacing: 0.0,
-                                                  useGoogleFonts:
-                                                      !FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMediumIsCustom,
-                                                ),
-                                          ),
-                                        ),
-                                      ].divide(SizedBox(width: 12.0)),
-                                    ),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: EdgeInsetsDirectional.fromSTEB(
-                                      12.0, 8.0, 12.0, 0.0),
-                                  child: InkWell(
-                                    splashColor: Colors.transparent,
-                                    focusColor: Colors.transparent,
-                                    hoverColor: Colors.transparent,
-                                    highlightColor: Colors.transparent,
-                                    onTap: () async {
-                                      _model.albums =
-                                          await AlbumTable().queryRows(
-                                        queryFn: (q) => q.eqOrNull(
-                                          'user',
-                                          currentUserUid,
-                                        ),
-                                      );
-                                      if (_model.albums?.length == 0) {
-                                        await showModalBottomSheet(
-                                          isScrollControlled: true,
-                                          backgroundColor: Colors.transparent,
-                                          enableDrag: false,
-                                          context: context,
-                                          builder: (context) {
-                                            return GestureDetector(
-                                              onTap: () {
-                                                FocusScope.of(context)
-                                                    .unfocus();
-                                                FocusManager
-                                                    .instance.primaryFocus
-                                                    ?.unfocus();
-                                              },
-                                              child: Padding(
-                                                padding:
-                                                    MediaQuery.viewInsetsOf(
-                                                        context),
-                                                child: NewAlbumWidget(),
-                                              ),
-                                            );
-                                          },
-                                        ).then((value) => safeSetState(() {}));
-                                      } else {
-                                        await showModalBottomSheet(
-                                          isScrollControlled: true,
-                                          backgroundColor: Colors.transparent,
-                                          enableDrag: false,
-                                          context: context,
-                                          builder: (context) {
-                                            return GestureDetector(
-                                              onTap: () {
-                                                FocusScope.of(context)
-                                                    .unfocus();
-                                                FocusManager
-                                                    .instance.primaryFocus
-                                                    ?.unfocus();
-                                              },
-                                              child: Padding(
-                                                padding:
-                                                    MediaQuery.viewInsetsOf(
-                                                        context),
-                                                child: AlbumslistWidget(
-                                                  imageID: widget.imageid!,
-                                                ),
-                                              ),
-                                            );
-                                          },
-                                        ).then((value) => safeSetState(() {}));
-                                      }
-
-                                      safeSetState(() {});
-                                    },
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.max,
-                                      children: [
-                                        Icon(
-                                          Icons.add_box,
-                                          color: FlutterFlowTheme.of(context)
-                                              .primaryText,
-                                          size: 24.0,
-                                        ),
-                                        Expanded(child: Text(
-                                          FFLocalizations.of(context).getText(
-                                            'q2xjnp4k' /* Add to board */,
-                                          ),
-                                          style: FlutterFlowTheme.of(context)
-                                              .bodyMedium
-                                              .override(
-                                                fontFamily:
-                                                    FlutterFlowTheme.of(context)
-                                                        .bodyMediumFamily,
-                                                fontSize: 16.0,
-                                                letterSpacing: 0.0,
-                                                useGoogleFonts:
-                                                    !FlutterFlowTheme.of(
-                                                            context)
-                                                        .bodyMediumIsCustom,
-                                              ),
-                                        )),
-                                      ].divide(SizedBox(width: 12.0)),
-                                    ),
-                                  ),
-                                ),
-                                if (itemcard2ImagesRow.user != currentUserUid)
-                                  Padding(
-                                    padding: EdgeInsetsDirectional.fromSTEB(
-                                        12.0, 8.0, 12.0, 0.0),
-                                    child: InkWell(
-                                      splashColor: Colors.transparent,
-                                      focusColor: Colors.transparent,
-                                      hoverColor: Colors.transparent,
-                                      highlightColor: Colors.transparent,
-                                      onTap: () async {
-                                        final confirmed =
-                                            await showModalBottomSheet<bool>(
-                                          isScrollControlled: true,
-                                          backgroundColor: Colors.transparent,
-                                          enableDrag: false,
-                                          context: context,
-                                          builder: (context) {
-                                            return GestureDetector(
-                                              onTap: () {
-                                                FocusScope.of(context)
-                                                    .unfocus();
-                                                FocusManager
-                                                    .instance.primaryFocus
-                                                    ?.unfocus();
-                                              },
-                                              child: Padding(
-                                                padding:
-                                                    MediaQuery.viewInsetsOf(
-                                                        context),
-                                                child: MarkasspamWidget(
-                                                  imageid: widget.imageid!,
-                                                ),
-                                              ),
-                                            );
-                                          },
-                                        );
-                                        if (confirmed == true &&
-                                            context.mounted) {
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                FFLocalizations.of(context)
-                                                    .getText(
-                                                  'spam_hidden_toast',
-                                                ),
-                                                style: TextStyle(
-                                                    color: Colors.white),
-                                              ),
-                                              backgroundColor:
-                                                  FlutterFlowTheme.of(context)
-                                                      .primaryText,
-                                              duration: Duration(seconds: 3),
-                                              behavior:
-                                                  SnackBarBehavior.floating,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(12.0),
-                                              ),
-                                            ),
-                                          );
-                                          context.safePop();
-                                        }
-                                      },
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.max,
-                                        children: [
-                                          Icon(
-                                            Icons.block,
-                                            color: FlutterFlowTheme.of(context)
-                                                .primaryText,
-                                            size: 24.0,
-                                          ),
-                                          Expanded(child: Text(
-                                            FFLocalizations.of(context).getText(
-                                              'bpwivw1d' /* Mark as spam */,
-                                            ),
-                                            style: FlutterFlowTheme.of(context)
-                                                .bodyMedium
-                                                .override(
-                                                  fontFamily:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMediumFamily,
-                                                  fontSize: 16.0,
-                                                  letterSpacing: 0.0,
-                                                  useGoogleFonts:
-                                                      !FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMediumIsCustom,
-                                                ),
-                                          )),
-                                        ].divide(SizedBox(width: 12.0)),
-                                      ),
-                                    ),
-                                  ),
-                                if (itemcard2ImagesRow.user != currentUserUid)
-                                  Padding(
-                                    padding: EdgeInsetsDirectional.fromSTEB(
-                                        12.0, 8.0, 12.0, 16.0),
-                                    child: InkWell(
-                                      splashColor: Colors.transparent,
-                                      focusColor: Colors.transparent,
-                                      hoverColor: Colors.transparent,
-                                      highlightColor: Colors.transparent,
-                                      onTap: () async {
-                                        if (currentUserUid.isEmpty) {
-                                          await showModalBottomSheet(
-                                            isScrollControlled: true,
-                                            backgroundColor: Colors.transparent,
-                                            enableDrag: true,
-                                            context: context,
-                                            builder: (context) {
-                                              return _LoginRequiredSheet();
-                                            },
-                                          );
-                                          return;
-                                        }
-                                        await showModalBottomSheet(
-                                          isScrollControlled: true,
-                                          backgroundColor: Colors.transparent,
-                                          enableDrag: false,
-                                          context: context,
-                                          builder: (context) {
-                                            return GestureDetector(
-                                              onTap: () {
-                                                FocusScope.of(context)
-                                                    .unfocus();
-                                                FocusManager
-                                                    .instance.primaryFocus
-                                                    ?.unfocus();
-                                              },
-                                              child: Padding(
-                                                padding:
-                                                    MediaQuery.viewInsetsOf(
-                                                        context),
-                                                child: CopyitemWidget(
-                                                  imageid: widget.imageid!,
-                                                ),
-                                              ),
-                                            );
-                                          },
-                                        ).then((value) => safeSetState(() {}));
-                                      },
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.max,
-                                        children: [
-                                          Icon(
-                                            Icons.copy_all,
-                                            color: FlutterFlowTheme.of(context)
-                                                .primaryText,
-                                            size: 24.0,
-                                          ),
-                                          Expanded(child: Text(
-                                            FFLocalizations.of(context).getText(
-                                              '8v1j4q7h' /* Copy product */,
-                                            ),
-                                            style: FlutterFlowTheme.of(context)
-                                                .bodyMedium
-                                                .override(
-                                                  fontFamily:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMediumFamily,
-                                                  fontSize: 16.0,
-                                                  letterSpacing: 0.0,
-                                                  useGoogleFonts:
-                                                      !FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMediumIsCustom,
-                                                ),
-                                          )),
-                                        ].divide(SizedBox(width: 12.0)),
-                                      ),
-                                    ),
-                                  ),
-                                if (itemcard2ImagesRow.user == currentUserUid)
-                                  Padding(
-                                    padding: EdgeInsetsDirectional.fromSTEB(
-                                        12.0, 8.0, 12.0, 16.0),
-                                    child: InkWell(
-                                      splashColor: Colors.transparent,
-                                      focusColor: Colors.transparent,
-                                      hoverColor: Colors.transparent,
-                                      highlightColor: Colors.transparent,
-                                      onTap: () async {
-                                        await showModalBottomSheet(
-                                          isScrollControlled: true,
-                                          backgroundColor: Colors.transparent,
-                                          enableDrag: false,
-                                          context: context,
-                                          builder: (context) {
-                                            return GestureDetector(
-                                              onTap: () {
-                                                FocusScope.of(context)
-                                                    .unfocus();
-                                                FocusManager
-                                                    .instance.primaryFocus
-                                                    ?.unfocus();
-                                              },
-                                              child: Padding(
-                                                padding:
-                                                    MediaQuery.viewInsetsOf(
-                                                        context),
-                                                child: DeleteitemWidget(
-                                                  imageid: widget.imageid!,
-                                                ),
-                                              ),
-                                            );
-                                          },
-                                        ).then((value) => safeSetState(() {}));
-                                      },
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.max,
-                                        children: [
-                                          Icon(
-                                            Icons.delete_outline,
-                                            color: FlutterFlowTheme.of(context)
-                                                .primaryText,
-                                            size: 24.0,
-                                          ),
-                                          Expanded(child: Text(
-                                            FFLocalizations.of(context).getText(
-                                              'alhd09eg' /* Delete */,
-                                            ),
-                                            style: FlutterFlowTheme.of(context)
-                                                .bodyMedium
-                                                .override(
-                                                  fontFamily:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMediumFamily,
-                                                  fontSize: 16.0,
-                                                  letterSpacing: 0.0,
-                                                  useGoogleFonts:
-                                                      !FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMediumIsCustom,
-                                                ),
-                                          )),
-                                        ].divide(SizedBox(width: 12.0)),
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
                 if (currentUserIsAnonymous)
                   Positioned(
                     bottom: 0,
@@ -2849,6 +2332,32 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                     right: 0,
                     child: _AnonSaveBanner(),
                   ),
+                // Fixed back button — top-left corner
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  child: SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: GestureDetector(
+                        onTap: () => context.safePop(),
+                        child: Container(
+                          width: 44,
+                          height: 44,
+                          decoration: const BoxDecoration(
+                            color: Color(0x2B5C85D9),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.arrow_back_ios_new,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),

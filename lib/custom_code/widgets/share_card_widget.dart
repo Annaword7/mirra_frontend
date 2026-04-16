@@ -32,6 +32,12 @@ const _l10n = {
     'es': 'Analizado con MiRRA',
   },
   'score': {'en': 'Score', 'ru': 'Оценка', 'es': 'Puntuación'},
+  'bestFor': {'en': 'Best for', 'ru': 'Подходит для', 'es': 'Ideal para'},
+  'expertSays': {
+    'en': 'Expert analysis',
+    'ru': 'Мнение эксперта',
+    'es': 'Análisis experto',
+  },
 };
 
 String _t(String key, String lang) =>
@@ -75,6 +81,9 @@ class ShareCardWidget extends StatefulWidget {
     this.verdict = '',
     this.lang = 'en',
     this.imageId = 0,
+    this.quickSummary = '',
+    this.bestForTags = const [],
+    this.expertAnalysis = '',
   });
 
   final double width;
@@ -90,6 +99,9 @@ class ShareCardWidget extends StatefulWidget {
   final String verdict;
   final String lang;
   final int imageId;
+  final String quickSummary;
+  final List<String> bestForTags;
+  final String expertAnalysis;
 
   @override
   State<ShareCardWidget> createState() => _ShareCardWidgetState();
@@ -104,7 +116,6 @@ class _ShareCardWidgetState extends State<ShareCardWidget> {
 
   Future<void> _captureAndShare() async {
     setState(() => _isCapturing = true);
-    // Wait for the repaint boundary to be fully rendered (needed in release/AOT builds)
     await Future.delayed(const Duration(milliseconds: 300));
     try {
       final boundary = _repaintKey.currentContext?.findRenderObject()
@@ -114,18 +125,11 @@ class _ShareCardWidgetState extends State<ShareCardWidget> {
         return;
       }
 
-      debugPrint('[ShareCard] Capturing image...');
       final image = await boundary.toImage(pixelRatio: 3.0);
       final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-      if (byteData == null) {
-        debugPrint('[ShareCard] ERROR: byteData is null');
-        return;
-      }
+      if (byteData == null) return;
       final bytes = byteData.buffer.asUint8List();
-      debugPrint('[ShareCard] Image captured, size: ${bytes.length} bytes. Calling Share...');
 
-      // Get share button position for iOS sharePositionOrigin (required on iPad,
-      // and by some iPhone configurations of UIActivityViewController)
       Rect? shareOrigin;
       final box = _shareButtonKey.currentContext?.findRenderObject() as RenderBox?;
       if (box != null) {
@@ -134,17 +138,11 @@ class _ShareCardWidgetState extends State<ShareCardWidget> {
       }
 
       await Share.shareXFiles(
-        [
-          XFile.fromData(
-            bytes,
-            name: 'mirra_card.png',
-            mimeType: 'image/png',
-          )
-        ],
-        text: '${widget.brandName} ${widget.productName} — ${_t('shareText', widget.lang)}',
+        [XFile.fromData(bytes, name: 'mirra_card.png', mimeType: 'image/png')],
+        text:
+            '${widget.brandName} ${widget.productName} — ${_t('shareText', widget.lang)}',
         sharePositionOrigin: shareOrigin,
       );
-      debugPrint('[ShareCard] Share completed');
       unawaited(AnalyticsService.instance.trackShareCardCreated(
         imageId: widget.imageId,
         format: widget.isStory ? 'story' : 'square',
@@ -173,9 +171,10 @@ class _ShareCardWidgetState extends State<ShareCardWidget> {
                     score: widget.score,
                     safetyScore: widget.safetyScore,
                     efficacyScore: widget.efficacyScore,
-                    tags: widget.tags,
                     verdict: widget.verdict,
                     lang: widget.lang,
+                    quickSummary: widget.quickSummary,
+                    bestForTags: widget.bestForTags,
                   )
                 : _SquareCard(
                     productName: widget.productName,
@@ -184,9 +183,10 @@ class _ShareCardWidgetState extends State<ShareCardWidget> {
                     score: widget.score,
                     safetyScore: widget.safetyScore,
                     efficacyScore: widget.efficacyScore,
-                    tags: widget.tags,
                     verdict: widget.verdict,
                     lang: widget.lang,
+                    quickSummary: widget.quickSummary,
+                    bestForTags: widget.bestForTags,
                   ),
           ),
         ),
@@ -217,7 +217,8 @@ class _ShareCardWidgetState extends State<ShareCardWidget> {
               _isCapturing
                   ? _t('creating', widget.lang)
                   : _t('share', widget.lang),
-              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+              style:
+                  const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
             ),
           ),
         ),
@@ -236,9 +237,10 @@ class _StoryCard extends StatelessWidget {
     required this.score,
     required this.safetyScore,
     required this.efficacyScore,
-    required this.tags,
     required this.verdict,
     required this.lang,
+    required this.quickSummary,
+    required this.bestForTags,
   });
 
   final String productName;
@@ -247,9 +249,10 @@ class _StoryCard extends StatelessWidget {
   final double score;
   final double safetyScore;
   final double efficacyScore;
-  final List<String> tags;
   final String verdict;
   final String lang;
+  final String quickSummary;
+  final List<String> bestForTags;
 
   static const _primary = Color(0xFF5C85D9);
   static const _bg = Color(0xFFF5F7FF);
@@ -264,7 +267,7 @@ class _StoryCard extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          // Background tinted photo (blurred, decorative)
+          // Background photo
           Positioned(
             top: 0, left: 0, right: 0,
             height: 420,
@@ -279,7 +282,7 @@ class _StoryCard extends StatelessWidget {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  stops: const [0.0, 0.55, 1.0],
+                  stops: const [0.0, 0.35, 0.65],
                   colors: [
                     Colors.black.withOpacity(0.35),
                     Colors.black.withOpacity(0.0),
@@ -295,46 +298,42 @@ class _StoryCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Top: MiRRA branding
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Text(
-                        'MiRRA',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 3,
-                        ),
-                      ),
+                // MiRRA badge
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Text(
+                    'MiRRA',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 3,
                     ),
-                  ],
+                  ),
                 ),
 
                 const Spacer(),
 
-                // Product info
+                // Brand + product name
                 Text(brandName,
-                    style: const TextStyle(
-                        color: Colors.white70,
+                    style: TextStyle(
+                        color: Colors.black.withOpacity(0.5),
                         fontSize: 14,
                         fontWeight: FontWeight.w500)),
                 const SizedBox(height: 4),
                 Text(productName,
                     style: const TextStyle(
-                        color: Colors.white,
+                        color: Colors.black,
                         fontSize: 26,
                         fontWeight: FontWeight.bold,
                         height: 1.2)),
 
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
 
                 // Score + grade badge
                 Row(
@@ -371,22 +370,18 @@ class _StoryCard extends StatelessWidget {
                             ),
                           ),
                           if (verdict.isNotEmpty)
-                            Text(
-                              verdict,
-                              style: const TextStyle(
-                                color: Colors.white70,
-                                fontSize: 13,
-                              ),
-                            ),
+                            Text(verdict,
+                                style: const TextStyle(
+                                    color: Colors.white70, fontSize: 13)),
                         ],
                       ),
                     ),
                   ],
                 ),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 14),
 
-                // White card with bars
+                // White card: bars + quick summary
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -394,33 +389,44 @@ class _StoryCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _ScoreBar(
-                        label: _t('safety', lang),
-                        value: safetyScore,
-                      ),
+                      _ScoreBar(label: _t('safety', lang), value: safetyScore),
                       const SizedBox(height: 10),
                       _ScoreBar(
-                        label: _t('efficacy', lang),
-                        value: efficacyScore,
-                      ),
+                          label: _t('efficacy', lang), value: efficacyScore),
+                      if (quickSummary.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        Text(
+                          quickSummary,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Colors.black.withOpacity(0.6),
+                            fontSize: 12,
+                            fontStyle: FontStyle.italic,
+                            height: 1.4,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
 
-                if (tags.isNotEmpty) ...[
+                // Best for tags
+                if (bestForTags.isNotEmpty) ...[
                   const SizedBox(height: 12),
                   Wrap(
                     spacing: 8,
                     runSpacing: 6,
-                    children: tags
+                    children: bestForTags
                         .take(3)
                         .map((t) => _Tag(label: t, primary: _primary))
                         .toList(),
                   ),
                 ],
 
-                const Spacer(),
+                const SizedBox(height: 16),
 
                 Center(
                   child: Text(
@@ -452,9 +458,10 @@ class _SquareCard extends StatelessWidget {
     required this.score,
     required this.safetyScore,
     required this.efficacyScore,
-    required this.tags,
     required this.verdict,
     required this.lang,
+    required this.quickSummary,
+    required this.bestForTags,
   });
 
   final String productName;
@@ -463,9 +470,10 @@ class _SquareCard extends StatelessWidget {
   final double score;
   final double safetyScore;
   final double efficacyScore;
-  final List<String> tags;
   final String verdict;
   final String lang;
+  final String quickSummary;
+  final List<String> bestForTags;
 
   static const _primary = Color(0xFF5C85D9);
   static const _bg = Color(0xFFF5F7FF);
@@ -486,7 +494,6 @@ class _SquareCard extends StatelessWidget {
               children: [
                 Image.network(imageUrl,
                     fit: BoxFit.cover, height: double.infinity),
-                // gradient to right
                 Positioned.fill(
                   child: DecoratedBox(
                     decoration: BoxDecoration(
@@ -501,7 +508,6 @@ class _SquareCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                // MiRRA label bottom-left
                 Positioned(
                   left: 10,
                   bottom: 10,
@@ -530,10 +536,9 @@ class _SquareCard extends StatelessWidget {
           // Right: info panel
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.all(18),
+              padding: const EdgeInsets.fromLTRB(14, 16, 14, 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   // Brand + product name
                   Text(brandName,
@@ -548,18 +553,35 @@ class _SquareCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                         color: Colors.black,
-                        fontSize: 15,
+                        fontSize: 14,
                         fontWeight: FontWeight.bold,
                         height: 1.2),
                   ),
-                  const SizedBox(height: 12),
+
+                  // Quick summary
+                  if (quickSummary.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      quickSummary,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Colors.black.withOpacity(0.5),
+                        fontSize: 10,
+                        fontStyle: FontStyle.italic,
+                        height: 1.3,
+                      ),
+                    ),
+                  ],
+
+                  const SizedBox(height: 10),
 
                   // Grade + score
                   Row(
                     children: [
                       Container(
-                        width: 44,
-                        height: 44,
+                        width: 40,
+                        height: 40,
                         decoration: BoxDecoration(
                           color: sColor.withOpacity(0.12),
                           shape: BoxShape.circle,
@@ -570,12 +592,12 @@ class _SquareCard extends StatelessWidget {
                           grade,
                           style: TextStyle(
                             color: sColor,
-                            fontSize: 20,
+                            fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: 8),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -584,7 +606,7 @@ class _SquareCard extends StatelessWidget {
                               '${score.toStringAsFixed(0)}/100',
                               style: TextStyle(
                                 color: sColor,
-                                fontSize: 16,
+                                fontSize: 15,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -595,7 +617,7 @@ class _SquareCard extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
                                   color: Colors.black.withOpacity(0.45),
-                                  fontSize: 10,
+                                  fontSize: 9,
                                 ),
                               ),
                           ],
@@ -604,18 +626,19 @@ class _SquareCard extends StatelessWidget {
                     ],
                   ),
 
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 10),
 
                   _ScoreBar(label: _t('safety', lang), value: safetyScore),
                   const SizedBox(height: 6),
                   _ScoreBar(label: _t('efficacy', lang), value: efficacyScore),
 
-                  if (tags.isNotEmpty) ...[
-                    const SizedBox(height: 10),
+                  // Best for tags
+                  if (bestForTags.isNotEmpty) ...[
+                    const SizedBox(height: 8),
                     Wrap(
                       spacing: 4,
                       runSpacing: 4,
-                      children: tags
+                      children: bestForTags
                           .take(2)
                           .map((t) => _Tag(label: t, primary: _primary))
                           .toList(),
@@ -704,9 +727,7 @@ class _Tag extends StatelessWidget {
       ),
       child: Text(label,
           style: TextStyle(
-              color: primary,
-              fontSize: 10,
-              fontWeight: FontWeight.w500)),
+              color: primary, fontSize: 10, fontWeight: FontWeight.w500)),
     );
   }
 }

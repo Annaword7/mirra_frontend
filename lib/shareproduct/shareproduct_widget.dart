@@ -158,16 +158,16 @@ class _ShareproductWidgetState extends State<ShareproductWidget> {
                                   color: valueOrDefault<Color>(
                                     _model.isStory
                                         ? Color(0xFFAFAFB0)
-                                        : Color(0xFF1A1A1D),
-                                    Color(0xFF1A1A1D),
+                                        : FlutterFlowTheme.of(context).primary,
+                                    FlutterFlowTheme.of(context).primary,
                                   ),
                                   borderRadius: BorderRadius.circular(16.0),
                                   border: Border.all(
                                     color: valueOrDefault<Color>(
                                       _model.isStory
                                           ? Color(0xFFAFAFB0)
-                                          : Color(0xFF1A1A1D),
-                                      Color(0xFF1A1A1D),
+                                          : FlutterFlowTheme.of(context).primary,
+                                      FlutterFlowTheme.of(context).primary,
                                     ),
                                   ),
                                 ),
@@ -208,7 +208,7 @@ class _ShareproductWidgetState extends State<ShareproductWidget> {
                                 decoration: BoxDecoration(
                                   color: valueOrDefault<Color>(
                                     _model.isStory
-                                        ? Color(0xFF1A1A1D)
+                                        ? FlutterFlowTheme.of(context).primary
                                         : Color(0xFFAFAFB0),
                                     Color(0xFFAFAFB0),
                                   ),
@@ -216,7 +216,7 @@ class _ShareproductWidgetState extends State<ShareproductWidget> {
                                   border: Border.all(
                                     color: valueOrDefault<Color>(
                                       _model.isStory
-                                          ? Color(0xFF1A1A1D)
+                                          ? FlutterFlowTheme.of(context).primary
                                           : Color(0xFFAFAFB0),
                                       Color(0xFFAFAFB0),
                                     ),
@@ -287,6 +287,9 @@ class _ShareproductWidgetState extends State<ShareproductWidget> {
                           ),
                           lang: FFLocalizations.of(context).languageCode,
                           imageId: widget.imageid ?? 0,
+                          quickSummary: containerImagesRow.saQuickSummary ?? '',
+                          bestForTags: containerImagesRow.saBestForTags ?? const [],
+                          expertAnalysis: containerImagesRow.saExpertAnalysis ?? '',
                         ),
                       ),
                     ],

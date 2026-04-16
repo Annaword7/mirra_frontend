@@ -381,6 +381,7 @@ class _ImagedetailsWidgetState extends State<ImagedetailsWidget> {
                                     padding: MediaQuery.viewInsetsOf(context),
                                     child: AlbumslistWidget(
                                       imageID: widget.imageid!,
+                                      albums: _model.albums ?? [],
                                     ),
                                   ),
                                 );

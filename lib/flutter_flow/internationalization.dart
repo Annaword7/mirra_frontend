@@ -1824,6 +1824,69 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ru': 'Скрыть',
     },
   },
+  // FAB actions
+  {
+    'fab_print': {
+      'en': 'Print',
+      'es': 'Imprimir',
+      'ru': 'Напечатать',
+    },
+    'fab_share': {
+      'en': 'Share',
+      'es': 'Compartir',
+      'ru': 'Поделиться',
+    },
+    'fab_add_to_album': {
+      'en': 'Add to board',
+      'es': 'Añadir al tablero',
+      'ru': 'В коллекцию',
+    },
+    'fab_add_favourite': {
+      'en': 'Add to favourites',
+      'es': 'Añadir a favoritos',
+      'ru': 'В избранное',
+    },
+    'fab_remove_favourite': {
+      'en': 'Remove from favourites',
+      'es': 'Quitar de favoritos',
+      'ru': 'Из избранного',
+    },
+    'fab_hide': {
+      'en': 'Hide',
+      'es': 'Ocultar',
+      'ru': 'Скрыть',
+    },
+    'fab_show': {
+      'en': 'Make public',
+      'es': 'Hacer público',
+      'ru': 'Открыть',
+    },
+    'fab_spam': {
+      'en': 'Report spam',
+      'es': 'Reportar spam',
+      'ru': 'Спам',
+    },
+    'fab_copy': {
+      'en': 'Copy',
+      'es': 'Copiar',
+      'ru': 'Скопировать',
+    },
+    'fab_delete': {
+      'en': 'Delete',
+      'es': 'Eliminar',
+      'ru': 'Удалить',
+    },
+    'fab_favourite_added': {
+      'en': 'Added to favourites',
+      'es': 'Añadido a favoritos',
+      'ru': 'Добавлено в избранное',
+    },
+    'fab_favourite_removed': {
+      'en': 'Removed from favourites',
+      'es': 'Eliminado de favoritos',
+      'ru': 'Удалено из избранного',
+    },
+  },
   // ShareCardSheet
   {
     'a1bpjvs8': {
