@@ -404,8 +404,7 @@ class _StoryCard extends StatelessWidget {
                           style: TextStyle(
                             color: Colors.black.withOpacity(0.6),
                             fontSize: 12,
-                            fontStyle: FontStyle.italic,
-                            height: 1.4,
+                                height: 1.4,
                           ),
                         ),
                       ],
@@ -430,7 +429,7 @@ class _StoryCard extends StatelessWidget {
 
                 Center(
                   child: Text(
-                    'mirra.app',
+                    'M!RRA Cosmetic Checker',
                     style: TextStyle(
                       color: _primary.withOpacity(0.6),
                       fontSize: 12,
@@ -568,7 +567,6 @@ class _SquareCard extends StatelessWidget {
                       style: TextStyle(
                         color: Colors.black.withOpacity(0.5),
                         fontSize: 10,
-                        fontStyle: FontStyle.italic,
                         height: 1.3,
                       ),
                     ),
@@ -648,7 +646,7 @@ class _SquareCard extends StatelessWidget {
                   const Spacer(),
 
                   Text(
-                    'mirra.app',
+                    'M!RRA Cosmetic Checker',
                     style: TextStyle(
                       color: _primary.withOpacity(0.5),
                       fontSize: 9,
