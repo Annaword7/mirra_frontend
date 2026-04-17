@@ -18,6 +18,7 @@ class NotificationService {
   final _localNotifications = FlutterLocalNotificationsPlugin();
 
   void Function(Map<String, dynamic>)? _onTap;
+  String? _cachedToken;
 
   static const _androidChannel = AndroidNotificationChannel(
     'mirra_default',
@@ -38,11 +39,18 @@ class NotificationService {
 
     final token = await _fcm.getToken();
     if (token != null) {
-      debugPrint('[Push] FCM token: $token');
-      await _saveToken(token);
+      _cachedToken = token;
+      debugPrint('[Push] FCM token obtained: ${token.substring(0, 20)}...');
+      // Try saving immediately; if userId is null, retry until auth is ready
+      _trySaveTokenWithRetry(token);
+    } else {
+      debugPrint('[Push] WARNING: getToken() returned null');
     }
 
-    _fcm.onTokenRefresh.listen(_saveToken);
+    _fcm.onTokenRefresh.listen((newToken) {
+      _cachedToken = newToken;
+      _saveToken(newToken);
+    });
 
     // Foreground: show as local notification
     FirebaseMessaging.onMessage.listen((message) {
@@ -80,15 +88,21 @@ class NotificationService {
     }
   }
 
-  /// Call after user signs in to associate the token with the new session.
+  /// Call on any auth state change (anonymous → authenticated, or fresh login).
   Future<void> onUserLogin() async {
-    final token = await _fcm.getToken();
-    if (token != null) await _saveToken(token);
+    final token = await _fcm.getToken() ?? _cachedToken;
+    if (token != null) {
+      _cachedToken = token;
+      debugPrint('[Push] onUserLogin: saving token');
+      await _saveToken(token);
+    } else {
+      debugPrint('[Push] WARNING: no FCM token on login');
+    }
   }
 
   /// Call on logout to deactivate token.
   Future<void> onUserLogout() async {
-    final token = await _fcm.getToken();
+    final token = _cachedToken ?? await _fcm.getToken();
     if (token == null) return;
     final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) return;
@@ -103,9 +117,27 @@ class NotificationService {
     }
   }
 
+  /// Retries saving the token every 2s until userId is available (max 5 attempts).
+  Future<void> _trySaveTokenWithRetry(String token, {int retries = 5}) async {
+    for (int i = 0; i < retries; i++) {
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+      if (userId != null) {
+        debugPrint('[Push] Saving token (attempt ${i + 1})');
+        await _saveToken(token);
+        return;
+      }
+      debugPrint('[Push] userId null, retry ${i + 1}/$retries in 2s...');
+      await Future.delayed(const Duration(seconds: 2));
+    }
+    debugPrint('[Push] WARNING: could not save token after $retries retries');
+  }
+
   Future<void> _saveToken(String token) async {
     final userId = Supabase.instance.client.auth.currentUser?.id;
-    if (userId == null) return;
+    if (userId == null) {
+      debugPrint('[Push] _saveToken: userId is null, skipping');
+      return;
+    }
     try {
       await Supabase.instance.client.from('device_tokens').upsert(
         {
@@ -116,6 +148,7 @@ class NotificationService {
         },
         onConflict: 'user_id,token',
       );
+      debugPrint('[Push] Token saved for user $userId');
     } catch (e) {
       debugPrint('[Push] Failed to save token: $e');
     }
