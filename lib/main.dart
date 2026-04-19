@@ -22,6 +22,7 @@ import 'flutter_flow/flutter_flow_util.dart';
 import 'flutter_flow/internationalization.dart';
 import 'flutter_flow/revenue_cat_util.dart' as revenue_cat;
 import 'flutter_flow/notification_service.dart';
+import 'components/feedback_collector/feedback_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -118,6 +119,10 @@ class _MyAppState extends State<MyApp> {
     userStream = miRRADevSupabaseUserStream()
       ..listen((user) {
         _appStateNotifier.update(user);
+        if (user.loggedIn) {
+          NotificationService.instance.onUserLogin();
+          FeedbackService.recordFirstLaunchIfNeeded();
+        }
       });
     jwtTokenStream.listen((_) {});
     Future.delayed(

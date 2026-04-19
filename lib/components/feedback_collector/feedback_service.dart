@@ -54,7 +54,10 @@ class FeedbackService {
   static void recordFirstLaunchIfNeeded() {
     final state = FFAppState();
     if (state.feedbackFirstLaunchMs == 0) {
-      state.feedbackFirstLaunchMs = DateTime.now().millisecondsSinceEpoch;
+      // Set 14 days in the past so the gate is already passed on first analysis
+      const fourteenDaysMs = 14 * 24 * 60 * 60 * 1000;
+      state.feedbackFirstLaunchMs =
+          DateTime.now().millisecondsSinceEpoch - fourteenDaysMs;
     }
   }
 }

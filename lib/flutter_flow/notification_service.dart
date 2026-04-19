@@ -27,6 +27,21 @@ class NotificationService {
     importance: Importance.high,
   );
 
+  // Waits up to 5s for the APNs token iOS must register before FCM getToken() works.
+  Future<bool> _waitForApnsToken() async {
+    if (!Platform.isIOS) return true;
+    for (int i = 0; i < 10; i++) {
+      final t = await _fcm.getAPNSToken();
+      if (t != null) {
+        debugPrint('[Push] APNs token ready');
+        return true;
+      }
+      await Future.delayed(const Duration(milliseconds: 500));
+    }
+    debugPrint('[Push] WARNING: APNs token not available after 5s');
+    return false;
+  }
+
   /// Call once from _MyAppState.initState() after the router is ready.
   Future<void> init({required void Function(Map<String, dynamic>) onTap}) async {
     _onTap = onTap;
@@ -37,15 +52,25 @@ class NotificationService {
 
     await _setupLocalNotifications();
 
+    if (!await _waitForApnsToken()) return;
+
     final token = await _fcm.getToken();
     if (token != null) {
       _cachedToken = token;
       debugPrint('[Push] FCM token obtained: ${token.substring(0, 20)}...');
-      // Try saving immediately; if userId is null, retry until auth is ready
-      _trySaveTokenWithRetry(token);
+      _saveToken(token);
     } else {
       debugPrint('[Push] WARNING: getToken() returned null');
     }
+
+    // Save token whenever auth state changes (login, anonymous sign-in, etc.)
+    Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+      final userId = data.session?.user.id;
+      if (userId != null && _cachedToken != null) {
+        debugPrint('[Push] Auth state changed, saving token for $userId');
+        _saveToken(_cachedToken!);
+      }
+    });
 
     _fcm.onTokenRefresh.listen((newToken) {
       _cachedToken = newToken;
@@ -90,6 +115,7 @@ class NotificationService {
 
   /// Call on any auth state change (anonymous → authenticated, or fresh login).
   Future<void> onUserLogin() async {
+    if (!await _waitForApnsToken()) return;
     final token = await _fcm.getToken() ?? _cachedToken;
     if (token != null) {
       _cachedToken = token;
@@ -115,21 +141,6 @@ class NotificationService {
     } catch (e) {
       debugPrint('[Push] Failed to deactivate token: $e');
     }
-  }
-
-  /// Retries saving the token every 2s until userId is available (max 5 attempts).
-  Future<void> _trySaveTokenWithRetry(String token, {int retries = 5}) async {
-    for (int i = 0; i < retries; i++) {
-      final userId = Supabase.instance.client.auth.currentUser?.id;
-      if (userId != null) {
-        debugPrint('[Push] Saving token (attempt ${i + 1})');
-        await _saveToken(token);
-        return;
-      }
-      debugPrint('[Push] userId null, retry ${i + 1}/$retries in 2s...');
-      await Future.delayed(const Duration(seconds: 2));
-    }
-    debugPrint('[Push] WARNING: could not save token after $retries retries');
   }
 
   Future<void> _saveToken(String token) async {
