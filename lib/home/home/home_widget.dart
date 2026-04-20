@@ -2,7 +2,6 @@ import '/auth/supabase_auth/auth_util.dart';
 import '/backend/supabase/supabase.dart';
 import '/flutter_flow/revenue_cat_util.dart' as revenue_cat;
 import '/components/navbar/navbar_widget.dart';
-import '/components/feedback_collector/feedback_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
@@ -169,9 +168,6 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
         context.pushNamed(LogInPageWidget.routeName);
       }
     });
-
-    // Record first launch date for the 14-day gate.
-    FeedbackService.recordFirstLaunchIfNeeded();
 
     if (!isWeb) {
       _keyboardVisibilitySubscription =

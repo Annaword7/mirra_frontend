@@ -35,9 +35,6 @@ class FFAppState extends ChangeNotifier {
       _feedbackLastShownVersion = prefs.getString('ff_feedbackLastShownVersion') ?? _feedbackLastShownVersion;
     });
     _safeInit(() {
-      _feedbackFirstLaunchMs = prefs.getInt('ff_feedbackFirstLaunchMs') ?? _feedbackFirstLaunchMs;
-    });
-    _safeInit(() {
       _feedbackLastShownMs = prefs.getInt('ff_feedbackLastShownMs') ?? _feedbackLastShownMs;
     });
   }
@@ -193,13 +190,6 @@ class FFAppState extends ChangeNotifier {
   set feedbackLastShownVersion(String value) {
     _feedbackLastShownVersion = value;
     prefs.setString('ff_feedbackLastShownVersion', value);
-  }
-
-  int _feedbackFirstLaunchMs = 0;
-  int get feedbackFirstLaunchMs => _feedbackFirstLaunchMs;
-  set feedbackFirstLaunchMs(int value) {
-    _feedbackFirstLaunchMs = value;
-    prefs.setInt('ff_feedbackFirstLaunchMs', value);
   }
 
   int _feedbackLastShownMs = 0;

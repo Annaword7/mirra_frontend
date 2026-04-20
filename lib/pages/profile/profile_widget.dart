@@ -703,7 +703,11 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                               highlightColor: Colors.transparent,
                               onTap: () {
                                 HapticFeedback.lightImpact();
+                                FFAppState().isprouser = false;
                                 FFAppState().onboardingDone = false;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Onboarding reset. Restarting flow.')),
+                                );
                                 context.goNamed(OnboardingCarouselWidget.routeName);
                               },
                               child: Container(
@@ -746,8 +750,6 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                               highlightColor: Colors.transparent,
                               onTap: () {
                                 HapticFeedback.lightImpact();
-                                FFAppState().feedbackFirstLaunchMs =
-                                    DateTime.now().subtract(const Duration(days: 15)).millisecondsSinceEpoch;
                                 FFAppState().feedbackLastShownMs = 0;
                                 FFAppState().feedbackLastShownVersion = '';
                                 FFAppState().feedbackBannerDismissed = false;
@@ -890,11 +892,11 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                               onPressed: () async {
                                 HapticFeedback.lightImpact();
                                 FFAppState().isprouser = false;
+                                FFAppState().onboardingDone = false;
                                 GoRouter.of(context).prepareAuthEvent();
                                 await authManager.signOut();
                                 GoRouter.of(context).clearRedirectLocation();
-                                context.pushNamedAuth(
-                                    NewblankWidget.routeName, context.mounted);
+                                context.goNamed(OnboardingCarouselWidget.routeName);
                               },
                               text: _localizedText(context, {
                                 'ru': 'Завершить сессию',
@@ -936,12 +938,11 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                               onPressed: () async {
                                 HapticFeedback.lightImpact();
                                 FFAppState().isprouser = false;
+                                FFAppState().onboardingDone = false;
                                 GoRouter.of(context).prepareAuthEvent();
                                 await authManager.signOut();
                                 GoRouter.of(context).clearRedirectLocation();
-
-                                context.pushNamedAuth(
-                                    NewblankWidget.routeName, context.mounted);
+                                context.goNamed(OnboardingCarouselWidget.routeName);
                               },
                               text: FFLocalizations.of(context).getText(
                                 '01vkpjw3' /* Log out */,

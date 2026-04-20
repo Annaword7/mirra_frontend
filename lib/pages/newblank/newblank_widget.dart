@@ -51,7 +51,7 @@ class _NewblankWidgetState extends State<NewblankWidget> {
     if (user != null && mounted) {
       unawaited(AnalyticsService.instance.trackAnonSessionStarted());
       context.goNamed(
-        HomeWidget.routeName,
+        TakeorUploadPageWidget.routeName,
         extra: <String, dynamic>{
           '__transition_info__': TransitionInfo(
             hasTransition: true,

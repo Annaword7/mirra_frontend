@@ -89,7 +89,7 @@ GoRouter createRouter(AppStateNotifier appStateNotifier, [Widget? entryPage]) =>
           path: '/',
           builder: (context, _) => appStateNotifier.loggedIn
               ? entryPage ?? HomeWidget()
-              : NewblankWidget(),
+              : (FFAppState().onboardingDone ? NewblankWidget() : OnboardingCarouselWidget()),
         ),
         FFRoute(
           name: CreateAccountPageWidget.routeName,

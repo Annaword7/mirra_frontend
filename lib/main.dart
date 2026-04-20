@@ -22,7 +22,7 @@ import 'flutter_flow/flutter_flow_util.dart';
 import 'flutter_flow/internationalization.dart';
 import 'flutter_flow/revenue_cat_util.dart' as revenue_cat;
 import 'flutter_flow/notification_service.dart';
-import 'components/feedback_collector/feedback_service.dart';
+import 'backend/remote_config.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -52,6 +52,8 @@ void main() async {
 
   final appState = FFAppState(); // Initialize FFAppState
   await appState.initializePersistedState();
+
+  await fetchRemoteConfig();
 
   await revenue_cat.initialize(
     "appl_nlqWcEvNVGNUCbMcdEcsbKbwNrV",
@@ -121,7 +123,6 @@ class _MyAppState extends State<MyApp> {
         _appStateNotifier.update(user);
         if (user.loggedIn) {
           NotificationService.instance.onUserLogin();
-          FeedbackService.recordFirstLaunchIfNeeded();
         }
       });
     jwtTokenStream.listen((_) {});
