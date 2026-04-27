@@ -162,6 +162,9 @@ class FeedbackCollectorWidget extends StatelessWidget {
                         final inAppReview = InAppReview.instance;
                         if (await inAppReview.isAvailable()) {
                           await inAppReview.requestReview();
+                        } else {
+                          await inAppReview.openStoreListing(
+                              appStoreId: '6745415201');
                         }
                         if (context.mounted) Navigator.pop(context);
                       },

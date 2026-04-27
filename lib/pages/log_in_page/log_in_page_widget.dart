@@ -15,6 +15,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'log_in_page_model.dart';
 export 'log_in_page_model.dart';
+import 'login_feature_cards.dart';
 
 class LogInPageWidget extends StatefulWidget {
   const LogInPageWidget({super.key});
@@ -167,6 +168,7 @@ class _LogInPageWidgetState extends State<LogInPageWidget>
       FlutterFlowTheme.of(context).bodyMedium.override(
             fontFamily: FlutterFlowTheme.of(context).bodyMediumFamily,
             color: FlutterFlowTheme.of(context).primaryText,
+            fontSize: 16.0,
             letterSpacing: 0.0,
             useGoogleFonts: !FlutterFlowTheme.of(context).bodyMediumIsCustom,
           );
@@ -184,7 +186,7 @@ class _LogInPageWidgetState extends State<LogInPageWidget>
   // ── Terms footer ──────────────────────────────────────────────────────────
 
   Widget _termsFooter() => Padding(
-        padding: EdgeInsetsDirectional.fromSTEB(0.0, 20.0, 0.0, 0.0),
+        padding: EdgeInsetsDirectional.fromSTEB(0.0, 4.0, 0.0, 0.0),
         child: Column(
           children: [
             Align(
@@ -326,9 +328,12 @@ class _LogInPageWidgetState extends State<LogInPageWidget>
   // ── Login tab content ─────────────────────────────────────────────────────
 
   Widget _loginForm() => SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(24.0, 24.0, 24.0, 40.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        padding: const EdgeInsets.fromLTRB(24.0, 24.0, 24.0, 100.0),
+        child: Form(
+          key: _model.formKeyLogin,
+          autovalidateMode: AutovalidateMode.disabled,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               FFLocalizations.of(context).getText('s2sex1cq' /* Welcome back */),
@@ -341,21 +346,8 @@ class _LogInPageWidgetState extends State<LogInPageWidget>
                         !FlutterFlowTheme.of(context).headlineMediumIsCustom,
                   ),
             ),
-            Padding(
-              padding: EdgeInsetsDirectional.fromSTEB(0.0, 8.0, 0.0, 24.0),
-              child: Text(
-                FFLocalizations.of(context)
-                    .getText('i7sno6fc' /* Enter your details to continue */),
-                style: FlutterFlowTheme.of(context).bodyMedium.override(
-                      fontFamily:
-                          FlutterFlowTheme.of(context).bodyMediumFamily,
-                      color: FlutterFlowTheme.of(context).secondaryText,
-                      letterSpacing: 0.0,
-                      useGoogleFonts:
-                          !FlutterFlowTheme.of(context).bodyMediumIsCustom,
-                    ),
-              ),
-            ),
+            const SizedBox(height: 24.0),
+
             // Email
             Padding(
               padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 16.0),
@@ -499,17 +491,18 @@ class _LogInPageWidgetState extends State<LogInPageWidget>
                 ),
               ]
                   .divide(const SizedBox(height: 16.0))
-                  .around(const SizedBox(height: 16.0)),
+                  .around(const SizedBox(height: 8.0)),
             ),
             _termsFooter(),
           ],
+          ),
         ),
       );
 
   // ── Register tab content ──────────────────────────────────────────────────
 
   Widget _registerForm() => SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(24.0, 24.0, 24.0, 40.0),
+        padding: const EdgeInsets.fromLTRB(24.0, 24.0, 24.0, 100.0),
         child: Form(
           key: _model.formKeyRegister,
           autovalidateMode: AutovalidateMode.disabled,
@@ -741,41 +734,14 @@ class _LogInPageWidgetState extends State<LogInPageWidget>
                     child: Transform.scale(
                       scaleX: 1.2,
                       scaleY: 1.2,
-                      child: Transform.rotate(
-                        angle: 8.0 * (math.pi / 180),
-                        child: SizedBox(
+                      child: SizedBox(
                           width: double.infinity,
-                          height: 225.0,
+                          height: 190.0,
                           child: CarouselSlider(
-                            items: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(8.0),
-                                child: Image.asset('assets/images/image12.png',
-                                    width: 300.0,
-                                    height: 200.0,
-                                    fit: BoxFit.cover),
-                              ),
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(8.0),
-                                child: Image.asset('assets/images/image11.png',
-                                    width: 300.0,
-                                    height: 200.0,
-                                    fit: BoxFit.cover),
-                              ),
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(8.0),
-                                child: Image.asset('assets/images/image13.png',
-                                    width: 300.0,
-                                    height: 200.0,
-                                    fit: BoxFit.cover),
-                              ),
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(8.0),
-                                child: Image.asset('assets/images/image14.png',
-                                    width: 300.0,
-                                    height: 200.0,
-                                    fit: BoxFit.cover),
-                              ),
+                            items: const [
+                              FeatureScoreCard(),
+                              FeatureScanCard(),
+                              FeatureIngredientsCard(),
                             ],
                             carouselController:
                                 _model.carouselController ??=
@@ -803,7 +769,6 @@ class _LogInPageWidgetState extends State<LogInPageWidget>
                       ),
                     ).animateOnPageLoad(
                         animationsMap['transformOnPageLoadAnimation']!),
-                  ),
                 // Tab content
                 TabBarView(
                   controller: _tabController,
@@ -813,6 +778,9 @@ class _LogInPageWidgetState extends State<LogInPageWidget>
                   ],
                 ).animateOnPageLoad(
                     animationsMap['columnOnPageLoadAnimation']!),
+
+
+
               ],
             ),
           ),

@@ -113,6 +113,7 @@ class _DeleteConfirmationWidgetState extends State<DeleteConfirmationWidget> {
                     _model.deleteuseranswer = await DeleteUserNEWBCNDCall.call(
                       host: FFDevEnvironmentValues().backendhost,
                       userId: currentUserUid,
+                      token: currentJwtToken,
                     );
 
                     if ((_model.deleteuseranswer?.succeeded ?? true)) {

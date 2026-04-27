@@ -213,6 +213,29 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ru': 'Главная',
     },
   },
+  // LoginFeatureCards
+  {
+    'lfc_score_label': {
+      'en': 'Science-based',
+      'es': 'Basado en ciencia',
+      'ru': 'Научный подход',
+    },
+    'lfc_scan_title': {
+      'en': 'AI Analysis',
+      'es': 'Análisis con IA',
+      'ru': 'ИИ-анализ',
+    },
+    'lfc_scan_subtitle': {
+      'en': 'in 30 seconds',
+      'es': 'en 30 segundos',
+      'ru': 'за 30 секунд',
+    },
+    'lfc_ingredients_title': {
+      'en': 'Ingredient Analysis',
+      'es': 'Análisis de ingredientes',
+      'ru': 'Анализ ингредиентов',
+    },
+  },
   // LogInPage
   {
     's2sex1cq': {

@@ -28,6 +28,7 @@ import 'package:flutter_blurhash/flutter_blurhash.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:octo_image/octo_image.dart';
 import 'package:percent_indicator/percent_indicator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'itemcard2_model.dart';
@@ -55,12 +56,14 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
   final scaffoldKey = GlobalKey<ScaffoldState>();
   var hasContainerTriggered1 = false;
   var hasContainerTriggered2 = false;
+  bool? _feedbackVote; // true = helpful, false = not helpful, null = no vote
   final animationsMap = <String, AnimationInfo>{};
 
   @override
   void initState() {
     super.initState();
     _model = createModel(context, () => Itemcard2Model());
+    _loadFeedbackVote();
 
     // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
@@ -104,6 +107,47 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
         0,
       );
       safeSetState(() {});
+
+      // If analysis is pending (score not yet computed), retry scientific
+      // analysis now — ingredients have likely been researched since the
+      // 202 was returned during the original scan.
+      if (_model.imageraw?.firstOrNull?.saCompositeScore == null &&
+          widget.imageid != null) {
+        final retry = await ScientificanalysisNEWBCNDCall.call(
+          imageId: widget.imageid?.toString(),
+          userId: currentUserUid,
+          languageCode: FFLocalizations.of(context).languageCode,
+          token: currentJwtToken,
+        );
+        if ((retry?.succeeded ?? false) && (retry?.statusCode ?? 0) == 200) {
+          _model.imageraw = await ImagesTable().queryRows(
+            queryFn: (q) => q.eqOrNull('id', widget.imageid),
+          );
+          _model.skinCompabilityRaw =
+              await ImageSkinCompatibilityTable().queryRows(
+            queryFn: (q) => q.eqOrNull('image_id', widget.imageid),
+          );
+          _model.topIngredientsRaw =
+              await ImageTopIngredientsTable().queryRows(
+            queryFn: (q) => q.eqOrNull('image_id', widget.imageid),
+          );
+          _model.ingredientIssuesRaw =
+              await ImageIngredientIssuesTable().queryRows(
+            queryFn: (q) => q.eqOrNull('image_id', widget.imageid),
+          );
+          _model.overallscore = valueOrDefault<int>(
+            (valueOrDefault<double>(
+                          _model.imageraw?.firstOrNull?.saCompositeScore,
+                          0.0,
+                        ) ??
+                        0)
+                    .round(),
+            0,
+          );
+          safeSetState(() {});
+        }
+      }
+
       // Show feedback prompt after the card has rendered and user has had
       // time to see the results.
       if (FFAppState().feedbackPendingScan &&
@@ -181,6 +225,19 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
     _model.dispose();
 
     super.dispose();
+  }
+
+  Future<void> _loadFeedbackVote() async {
+    final prefs = await SharedPreferences.getInstance();
+    final key = 'feedback_vote_${widget.imageid}';
+    if (prefs.containsKey(key)) {
+      safeSetState(() => _feedbackVote = prefs.getBool(key));
+    }
+  }
+
+  Future<void> _saveFeedbackVote(bool vote) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('feedback_vote_${widget.imageid}', vote);
   }
 
   Color _scoreColor(int s) {
@@ -840,13 +897,18 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                 16.0, 16.0, 16.0, 0.0),
                             child: Container(
                               decoration: BoxDecoration(
-                                color: FlutterFlowTheme.of(context).alternate,
-                                boxShadow: const [
+                                color: const Color(0xFFF5F8FF),
+                                boxShadow: [
                                   BoxShadow(
-                                    blurRadius: 4.0,
-                                    color: Color(0x22000000),
+                                    blurRadius: 24.0,
+                                    color: sColor.withOpacity(0.28),
+                                    offset: const Offset(0.0, 6.0),
+                                  ),
+                                  const BoxShadow(
+                                    blurRadius: 8.0,
+                                    color: Color(0x1A000000),
                                     offset: Offset(0.0, 2.0),
-                                  )
+                                  ),
                                 ],
                                 borderRadius: BorderRadius.circular(20.0),
                               ),
@@ -855,22 +917,35 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
-                                    // Score ring
-                                    CircularPercentIndicator(
-                                      radius: 46.0,
-                                      lineWidth: 8.0,
-                                      percent: (score / 100.0).clamp(0.0, 1.0),
-                                      backgroundColor: FlutterFlowTheme.of(context)
-                                          .primaryBackground,
-                                      progressColor: sColor,
-                                      circularStrokeCap: CircularStrokeCap.round,
-                                      animation: true,
-                                      center: Text(
-                                        grade,
-                                        style: TextStyle(
-                                          fontSize: 26,
-                                          fontWeight: FontWeight.bold,
-                                          color: sColor,
+                                    // Score ring with glow
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: sColor.withOpacity(0.35),
+                                            blurRadius: 20,
+                                            spreadRadius: 2,
+                                          ),
+                                        ],
+                                      ),
+                                      child: CircularPercentIndicator(
+                                        radius: 46.0,
+                                        lineWidth: 8.0,
+                                        percent: (score / 100.0).clamp(0.0, 1.0),
+                                        backgroundColor:
+                                            sColor.withOpacity(0.12),
+                                        progressColor: sColor,
+                                        circularStrokeCap:
+                                            CircularStrokeCap.round,
+                                        animation: true,
+                                        center: Text(
+                                          grade,
+                                          style: TextStyle(
+                                            fontSize: 28,
+                                            fontWeight: FontWeight.bold,
+                                            color: sColor,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -891,7 +966,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                                     fontFamily:
                                                         FlutterFlowTheme.of(context)
                                                             .bodyMediumFamily,
-                                                    color: sColor,
+                                                    color: FlutterFlowTheme.of(context).primaryText,
                                                     fontSize: 15.0,
                                                     fontWeight: FontWeight.bold,
                                                     letterSpacing: 0.0,
@@ -913,6 +988,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                                     fontFamily:
                                                         FlutterFlowTheme.of(context)
                                                             .bodyMediumFamily,
+                                                    color: FlutterFlowTheme.of(context).secondaryText,
                                                     letterSpacing: 0.0,
                                                     useGoogleFonts:
                                                         !FlutterFlowTheme.of(context)
@@ -949,13 +1025,21 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                               16.0, 24.0, 16.0, 0.0),
                           child: Container(
                             decoration: BoxDecoration(
-                              color: FlutterFlowTheme.of(context)
-                                  .primaryBackground,
+                              color: const Color(0xFFF5F8FF),
                               borderRadius: BorderRadius.circular(24.0),
-                              border: Border.all(
-                                color: FlutterFlowTheme.of(context)
-                                    .secondaryBackground,
+                              border: Border(
+                                left: BorderSide(
+                                  color: FlutterFlowTheme.of(context).primary,
+                                  width: 4.0,
+                                ),
                               ),
+                              boxShadow: const [
+                                BoxShadow(
+                                  blurRadius: 8.0,
+                                  color: Color(0x14000000),
+                                  offset: Offset(0.0, 2.0),
+                                ),
+                              ],
                             ),
                             child: Column(
                               mainAxisSize: MainAxisSize.max,
@@ -1026,12 +1110,21 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                               16.0, 16.0, 16.0, 0.0),
                           child: Container(
                             decoration: BoxDecoration(
-                              color: FlutterFlowTheme.of(context).alternate,
+                              color: const Color(0xFFF5F8FF),
                               borderRadius: BorderRadius.circular(24.0),
-                              border: Border.all(
-                                color: FlutterFlowTheme.of(context)
-                                    .secondaryBackground,
+                              border: Border(
+                                left: BorderSide(
+                                  color: FlutterFlowTheme.of(context).primary,
+                                  width: 4.0,
+                                ),
                               ),
+                              boxShadow: const [
+                                BoxShadow(
+                                  blurRadius: 8.0,
+                                  color: Color(0x14000000),
+                                  offset: Offset(0.0, 2.0),
+                                ),
+                              ],
                             ),
                             child: Column(
                               mainAxisSize: MainAxisSize.max,
@@ -1947,10 +2040,14 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                                 widget.imageid?.toString(),
                                             userId: currentUserUid,
                                             vote: true,
+                                            token: currentJwtToken,
                                           );
 
                                           if ((_model.apiResult6oo?.succeeded ??
                                               true)) {
+                                            safeSetState(
+                                                () => _feedbackVote = true);
+                                            unawaited(_saveFeedbackVote(true));
                                             ScaffoldMessenger.of(context)
                                                 .showSnackBar(
                                               SnackBar(
@@ -1994,12 +2091,19 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                         },
                                         child: Container(
                                           decoration: BoxDecoration(
+                                            color: _feedbackVote == true
+                                                ? const Color(0xFF43A047)
+                                                    .withOpacity(0.1)
+                                                : null,
                                             borderRadius:
                                                 BorderRadius.circular(12.0),
                                             border: Border.all(
-                                              color:
-                                                  FlutterFlowTheme.of(context)
+                                              color: _feedbackVote == true
+                                                  ? const Color(0xFF43A047)
+                                                  : FlutterFlowTheme.of(context)
                                                       .secondaryText,
+                                              width:
+                                                  _feedbackVote == true ? 2.0 : 1.0,
                                             ),
                                           ),
                                           child: Padding(
@@ -2011,7 +2115,9 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                               children: [
                                                 Icon(
                                                   Icons.thumb_up_rounded,
-                                                  color: Color(0xE61A1A1A),
+                                                  color: _feedbackVote == true
+                                                      ? const Color(0xFF43A047)
+                                                      : const Color(0xE61A1A1A),
                                                   size: 24.0,
                                                 ),
                                                 Text(
@@ -2027,8 +2133,12 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                                             FlutterFlowTheme.of(
                                                                     context)
                                                                 .bodyMediumFamily,
-                                                        color:
-                                                            Color(0xEA1A1A1A),
+                                                        color: _feedbackVote ==
+                                                                true
+                                                            ? const Color(
+                                                                0xFF43A047)
+                                                            : const Color(
+                                                                0xEA1A1A1A),
                                                         letterSpacing: 0.0,
                                                         fontWeight:
                                                             FontWeight.bold,
@@ -2073,11 +2183,15 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                                 widget.imageid?.toString(),
                                             userId: currentUserUid,
                                             vote: false,
+                                            token: currentJwtToken,
                                           );
 
                                           if ((_model
                                                   .apiResult6oo8?.succeeded ??
                                               true)) {
+                                            safeSetState(
+                                                () => _feedbackVote = false);
+                                            unawaited(_saveFeedbackVote(false));
                                             ScaffoldMessenger.of(context)
                                                 .showSnackBar(
                                               SnackBar(
@@ -2121,12 +2235,20 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                         },
                                         child: Container(
                                           decoration: BoxDecoration(
+                                            color: _feedbackVote == false
+                                                ? const Color(0xFFD32F2F)
+                                                    .withOpacity(0.1)
+                                                : null,
                                             borderRadius:
                                                 BorderRadius.circular(12.0),
                                             border: Border.all(
-                                              color:
-                                                  FlutterFlowTheme.of(context)
+                                              color: _feedbackVote == false
+                                                  ? const Color(0xFFD32F2F)
+                                                  : FlutterFlowTheme.of(context)
                                                       .secondaryText,
+                                              width: _feedbackVote == false
+                                                  ? 2.0
+                                                  : 1.0,
                                             ),
                                           ),
                                           child: Padding(
@@ -2138,7 +2260,9 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                               children: [
                                                 Icon(
                                                   Icons.thumb_down_rounded,
-                                                  color: Color(0xE61A1A1A),
+                                                  color: _feedbackVote == false
+                                                      ? const Color(0xFFD32F2F)
+                                                      : const Color(0xE61A1A1A),
                                                   size: 24.0,
                                                 ),
                                                 Text(
@@ -2154,8 +2278,12 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                                             FlutterFlowTheme.of(
                                                                     context)
                                                                 .bodyMediumFamily,
-                                                        color:
-                                                            Color(0xE61A1A1A),
+                                                        color: _feedbackVote ==
+                                                                false
+                                                            ? const Color(
+                                                                0xFFD32F2F)
+                                                            : const Color(
+                                                                0xE61A1A1A),
                                                         letterSpacing: 0.0,
                                                         fontWeight:
                                                             FontWeight.bold,

@@ -47,3 +47,9 @@ macos/Flutter/ephemeral/
 # OS
 .DS_Store
 Thumbs.db
+
+# Certificates & keys
+*.csr
+*.key
+*.p12
+*.pem

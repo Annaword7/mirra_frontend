@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:typed_data';
 import '/auth/supabase_auth/auth_util.dart';
 import '/shared_image_state.dart';
@@ -7,7 +8,6 @@ import '/backend/api_requests/api_calls.dart';
 import '/backend/supabase/supabase.dart';
 import '/components/analysis_loading/analysis_loading_widget.dart';
 import '/components/navbar/navbar_widget.dart';
-import '/components/out_of_generations/out_of_generations_widget.dart';
 import '/flutter_flow/flutter_flow_animations.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -20,7 +20,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:percent_indicator/percent_indicator.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'takeor_upload_page_model.dart';
@@ -97,34 +96,6 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
 
   /// Upload raw bytes (shared from an external app) and run the full analysis chain.
   Future<void> _handleSharedImage(BuildContext context, Uint8List bytes) async {
-    // Subscription gate — same as the gallery button
-    _model.checkifallowedGalarry = await SubscriptioncheckNEWBCNDCall.call(
-      host: FFDevEnvironmentValues().backendhost,
-      userId: currentUserUid,
-    );
-    if (!(_model.checkifallowedGalarry?.succeeded ?? false)) {
-      await showModalBottomSheet(
-        isScrollControlled: true,
-        backgroundColor: Colors.transparent,
-        enableDrag: false,
-        context: context,
-        builder: (ctx) => GestureDetector(
-          onTap: () {
-            FocusScope.of(ctx).unfocus();
-            FocusManager.instance.primaryFocus?.unfocus();
-          },
-          child: Padding(
-            padding: MediaQuery.viewInsetsOf(ctx),
-            child: OutOfGenerationsWidget(),
-          ),
-        ),
-      ).then((_) => safeSetState(() {}));
-      FFAppState().uploadedimageurl = '';
-      FFAppState().analysisloading = false;
-      safeSetState(() {});
-      return;
-    }
-
     // Upload bytes directly (bypasses image picker)
     final storagePath =
         'users_images/shared_${DateTime.now().millisecondsSinceEpoch}.jpg';
@@ -151,6 +122,32 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
     await _runGalleryAnalysisFromModel(context);
   }
 
+  static const Map<String, Map<String, String>> _kPendingResearchL10n = {
+    'title':   {'en': 'Analysis in progress',   'ru': 'Анализ в процессе',    'es': 'Análisis en curso'},
+    'body':    {'en': 'Some ingredients are still being researched. The full analysis will be ready in ~30 seconds — you\'ll see it on the home screen and get a notification.',
+                'ru': 'Некоторые компоненты ещё исследуются. Полный анализ будет готов примерно через 30 секунд — вы увидите его на главном экране и получите уведомление.',
+                'es': 'Algunos ingredientes están siendo investigados. El análisis completo estará listo en ~30 segundos — lo verás en la pantalla principal y recibirás una notificación.'},
+    'button':  {'en': 'OK',                     'ru': 'Хорошо',               'es': 'OK'},
+  };
+
+  Future<void> _showPendingResearchDialog(BuildContext context) async {
+    final lang = FFLocalizations.of(context).languageCode;
+    String t(String key) => _kPendingResearchL10n[key]?[lang] ?? _kPendingResearchL10n[key]!['en']!;
+    await showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(t('title')),
+        content: Text(t('body')),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(t('button')),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// Analysis chain shared between the gallery button and _handleSharedImage.
   /// Reads _model.uploadedFileUrl_uploadImageSupabaseGallary which must be set
   /// before calling this method.
@@ -175,6 +172,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
         userId: currentUserUid,
         languageCode: FFLocalizations.of(context).languageCode,
         country: FFAppState().countrycode,
+        token: currentJwtToken,
       );
 
       if ((_model.extractedproductGalary?.succeeded ?? true)) {
@@ -208,11 +206,12 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
               .toList()
               .firstOrNull
               ?.code,
+          token: currentJwtToken,
         );
       } else {
         await TelegrammessegeCall.call(
           messega:
-              '${_model.uploadedFileUrl_uploadImageSupabaseGallary} на этапе extract product info галерея',
+              '${_model.uploadedFileUrl_uploadImageSupabaseGallary} на этапе extract product info галерея. status=${_model.extractedproductGalary?.statusCode} body=${_model.extractedproductGalary?.jsonBody} tokenEmpty=${currentJwtToken.isEmpty}',
           email: 'from mobile app Extract Product Name Step',
           form: 'tech message',
         );
@@ -235,14 +234,14 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
         FFAppState().analysisloading = false;
         FFAppState().Producanalysstate = 0;
         safeSetState(() {});
-        await ImagesTable().delete(
-          matchingRows: (rows) => rows.eqOrNull(
-            'id',
-            ExtractproductinfoNEWBCNDCopyCall.iamgeID(
-              (_model.extractedproductGalary?.jsonBody ?? ''),
-            ),
-          ),
+        final _gallImgId = ExtractproductinfoNEWBCNDCopyCall.iamgeID(
+          (_model.extractedproductGalary?.jsonBody ?? ''),
         );
+        if (_gallImgId != null) {
+          await ImagesTable().delete(
+            matchingRows: (rows) => rows.eqOrNull('id', _gallImgId),
+          );
+        }
         return;
       }
 
@@ -259,10 +258,26 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
           languageCode: ExtractproductinfoNEWBCNDCopyCall.langcode(
             (_model.extractedproductGalary?.jsonBody ?? ''),
           ),
+          token: currentJwtToken,
         );
 
-        if ((_model.scientificanalysresultgalary?.succeeded ?? true)) {
+        if ((_model.scientificanalysresultcamara?.succeeded ?? true)) {
+          if ((_model.scientificanalysresultcamara?.statusCode ?? 200) == 202) {
+            await _showPendingResearchDialog(context);
+            unawaited(ResearchAndAnalyzeCall.call(
+              host: FFDevEnvironmentValues().backendhost,
+              imageId: ExtractproductinfoNEWBCNDCopyCall.iamgeID(
+                (_model.extractedproductGalary?.jsonBody ?? ''),
+              ),
+              languageCode: FFLocalizations.of(context).languageCode,
+              token: currentJwtToken,
+            ));
+          }
           FFAppState().feedbackPendingScan = true;
+          FFAppState().uploadedimageurl = '';
+          FFAppState().analysisloading = false;
+          FFAppState().Producanalysstate = 0;
+          safeSetState(() {});
           context.pushNamed(
             Itemcard2Widget.routeName,
             queryParameters: {
@@ -274,9 +289,6 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
               ),
             }.withoutNulls,
           );
-          FFAppState().uploadedimageurl = '';
-          FFAppState().analysisloading = false;
-          safeSetState(() {});
         } else {
           final statusCode =
               _model.scientificanalysresultcamara?.statusCode ?? 0;
@@ -533,16 +545,8 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
     return FFButtonWidget(
       onPressed: () async {
         var _shouldSetState = false;
-        _model.checkifallowedCamera =
-            await SubscriptioncheckNEWBCNDCall.call(
-          host: FFDevEnvironmentValues().backendhost,
-          userId: currentUserUid,
-        );
-
         _shouldSetState = true;
-        if (SubscriptioncheckNEWBCNDCall.allowed(
-          (_model.checkifallowedCamera?.jsonBody ?? ''),
-        )!) {
+        {
           final selectedMedia = await selectMedia(
             storageFolderPath: 'users_images',
             multiImage: false,
@@ -611,6 +615,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
               userId: currentUserUid,
               languageCode: FFLocalizations.of(context).languageCode,
               country: FFAppState().countrycode,
+              token: currentJwtToken,
             );
 
             _shouldSetState = true;
@@ -646,6 +651,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                     .toList()
                     .firstOrNull
                     ?.code,
+                token: currentJwtToken,
               );
 
               _shouldSetState = true;
@@ -676,14 +682,14 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
               FFAppState().uploadedimageurl = '';
               FFAppState().analysisloading = false;
               safeSetState(() {});
-              await ImagesTable().delete(
-                matchingRows: (rows) => rows.eqOrNull(
-                  'id',
-                  ExtractproductinfoNEWBCNDCopyCall.iamgeID(
-                    (_model.extractedproductcamera?.jsonBody ?? ''),
-                  ),
-                ),
+              final _camImgId = ExtractproductinfoNEWBCNDCopyCall.iamgeID(
+                (_model.extractedproductcamera?.jsonBody ?? ''),
               );
+              if (_camImgId != null) {
+                await ImagesTable().delete(
+                  matchingRows: (rows) => rows.eqOrNull('id', _camImgId),
+                );
+              }
               if (_shouldSetState) safeSetState(() {});
               return;
             }
@@ -703,12 +709,28 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                 languageCode: ExtractproductinfoNEWBCNDCopyCall.langcode(
                   (_model.extractedproductcamera?.jsonBody ?? ''),
                 ),
+                token: currentJwtToken,
               );
 
               _shouldSetState = true;
               if ((_model.scientificanalysresultgalary?.succeeded ??
                   true)) {
+                if ((_model.scientificanalysresultgalary?.statusCode ?? 200) == 202) {
+                  await _showPendingResearchDialog(context);
+                  unawaited(ResearchAndAnalyzeCall.call(
+                    host: FFDevEnvironmentValues().backendhost,
+                    imageId: ExtractproductinfoNEWBCNDCopyCall.iamgeID(
+                      (_model.extractedproductcamera?.jsonBody ?? ''),
+                    ),
+                    languageCode: FFLocalizations.of(context).languageCode,
+                    token: currentJwtToken,
+                  ));
+                }
                 FFAppState().feedbackPendingScan = true;
+                FFAppState().uploadedimageurl = '';
+                FFAppState().analysisloading = false;
+                FFAppState().Producanalysstate = 0;
+                safeSetState(() {});
                 context.pushNamed(
                   Itemcard2Widget.routeName,
                   queryParameters: {
@@ -720,11 +742,6 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                     ),
                   }.withoutNulls,
                 );
-
-                FFAppState().uploadedimageurl = '';
-                FFAppState().analysisloading = false;
-                FFAppState().Producanalysstate = 0;
-                safeSetState(() {});
               } else {
                 final _cameraScientificStatusCode =
                     _model.scientificanalysresultgalary?.statusCode ?? 0;
@@ -999,29 +1016,6 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
             if (_shouldSetState) safeSetState(() {});
             return;
           }
-        } else {
-          await showModalBottomSheet(
-            isScrollControlled: true,
-            backgroundColor: Colors.transparent,
-            enableDrag: false,
-            context: context,
-            builder: (context) {
-              return GestureDetector(
-                onTap: () {
-                  FocusScope.of(context).unfocus();
-                  FocusManager.instance.primaryFocus?.unfocus();
-                },
-                child: Padding(
-                  padding: MediaQuery.viewInsetsOf(context),
-                  child: OutOfGenerationsWidget(),
-                ),
-              );
-            },
-          ).then((value) => safeSetState(() {}));
-
-          FFAppState().uploadedimageurl = '';
-          FFAppState().analysisloading = false;
-          safeSetState(() {});
         }
 
         if (_shouldSetState) safeSetState(() {});
@@ -1063,94 +1057,60 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
     return FFButtonWidget(
       onPressed: () async {
         var _shouldSetState = false;
-        // Galary
-        _model.checkifallowedGalarry =
-            await SubscriptioncheckNEWBCNDCall.call(
-          host: FFDevEnvironmentValues().backendhost,
-          userId: currentUserUid,
-        );
-
         _shouldSetState = true;
-        if ((_model.checkifallowedGalarry?.succeeded ?? true)) {
-          final selectedMedia = await selectMedia(
-            storageFolderPath: 'users_images',
-            mediaSource: MediaSource.photoGallery,
-            multiImage: false,
-          );
-          if (selectedMedia != null &&
-              selectedMedia.every((m) =>
-                  validateFileFormat(m.storagePath, context))) {
-            safeSetState(() =>
-                _model.isDataUploading_uploadImageSupabaseGallary = true);
-            var selectedUploadedFiles = <FFUploadedFile>[];
+        final selectedMedia = await selectMedia(
+          storageFolderPath: 'users_images',
+          mediaSource: MediaSource.photoGallery,
+          multiImage: false,
+        );
+        if (selectedMedia != null &&
+            selectedMedia.every((m) =>
+                validateFileFormat(m.storagePath, context))) {
+          safeSetState(() =>
+              _model.isDataUploading_uploadImageSupabaseGallary = true);
+          var selectedUploadedFiles = <FFUploadedFile>[];
 
-            var downloadUrls = <String>[];
-            try {
-              selectedUploadedFiles = selectedMedia
-                  .map((m) => FFUploadedFile(
-                        name: m.storagePath.split('/').last,
-                        bytes: m.bytes,
-                        height: m.dimensions?.height,
-                        width: m.dimensions?.width,
-                        blurHash: m.blurHash,
-                        originalFilename: m.originalFilename,
-                      ))
-                  .toList();
+          var downloadUrls = <String>[];
+          try {
+            selectedUploadedFiles = selectedMedia
+                .map((m) => FFUploadedFile(
+                      name: m.storagePath.split('/').last,
+                      bytes: m.bytes,
+                      height: m.dimensions?.height,
+                      width: m.dimensions?.width,
+                      blurHash: m.blurHash,
+                      originalFilename: m.originalFilename,
+                    ))
+                .toList();
 
-              downloadUrls = await uploadSupabaseStorageFiles(
-                bucketName: 'images',
-                selectedFiles: selectedMedia,
-              );
-            } finally {
-              _model.isDataUploading_uploadImageSupabaseGallary = false;
-            }
-            if (selectedUploadedFiles.length == selectedMedia.length &&
-                downloadUrls.length == selectedMedia.length) {
-              safeSetState(() {
-                _model.uploadedLocalFile_uploadImageSupabaseGallary =
-                    selectedUploadedFiles.first;
-                _model.uploadedFileUrl_uploadImageSupabaseGallary =
-                    downloadUrls.first;
-              });
-            } else {
-              safeSetState(() {});
-              return;
-            }
+            downloadUrls = await uploadSupabaseStorageFiles(
+              bucketName: 'images',
+              selectedFiles: selectedMedia,
+            );
+          } finally {
+            _model.isDataUploading_uploadImageSupabaseGallary = false;
+          }
+          if (selectedUploadedFiles.length == selectedMedia.length &&
+              downloadUrls.length == selectedMedia.length) {
+            safeSetState(() {
+              _model.uploadedLocalFile_uploadImageSupabaseGallary =
+                  selectedUploadedFiles.first;
+              _model.uploadedFileUrl_uploadImageSupabaseGallary =
+                  downloadUrls.first;
+            });
           } else {
-            // User cancelled picker or invalid format — don't proceed
-            if (_shouldSetState) safeSetState(() {});
+            safeSetState(() {});
             return;
           }
-
-          await _runGalleryAnalysisFromModel(context);
+        } else {
+          // User cancelled picker or invalid format — don't proceed
           if (_shouldSetState) safeSetState(() {});
           return;
-        } else {
-          await showModalBottomSheet(
-            isScrollControlled: true,
-            backgroundColor: Colors.transparent,
-            enableDrag: false,
-            context: context,
-            builder: (context) {
-              return GestureDetector(
-                onTap: () {
-                  FocusScope.of(context).unfocus();
-                  FocusManager.instance.primaryFocus?.unfocus();
-                },
-                child: Padding(
-                  padding: MediaQuery.viewInsetsOf(context),
-                  child: OutOfGenerationsWidget(),
-                ),
-              );
-            },
-          ).then((value) => safeSetState(() {}));
-
-          FFAppState().uploadedimageurl = '';
-          FFAppState().analysisloading = false;
-          safeSetState(() {});
         }
 
+        await _runGalleryAnalysisFromModel(context);
         if (_shouldSetState) safeSetState(() {});
+        return;
       },
       text: FFLocalizations.of(context).getText(
         'pznd0mgm' /* Choose from gallery */,
@@ -1207,7 +1167,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                     top: MediaQuery.of(context).padding.top + 56,
                     bottom: 320,
                   ),
-                  child: const _UploadIllustration(),
+                  child: const _ScannerIllustration(),
                 ),
               ),
 
@@ -1257,40 +1217,142 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
 }
 
 // ─────────────────────────────────────────────
-// Illustration widget
+// Animated scanner illustration
 // ─────────────────────────────────────────────
 
-class _UploadIllustration extends StatelessWidget {
-  const _UploadIllustration();
+class _ScannerIllustration extends StatefulWidget {
+  const _ScannerIllustration();
+
+  @override
+  State<_ScannerIllustration> createState() => _ScannerIllustrationState();
+}
+
+class _ScannerIllustrationState extends State<_ScannerIllustration>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      duration: const Duration(milliseconds: 2400),
+      vsync: this,
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final primary = FlutterFlowTheme.of(context).primary;
+    const dark = Color(0xFF3A5CB8);
+    const size = 200.0;
+    const half = size / 2;
+
     return Center(
       child: SizedBox(
-        width: 160,
-        height: 160,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Container(
-              width: 160,
-              height: 160,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: primary.withOpacity(0.06),
-              ),
-            ),
-            Container(
-              width: 110,
-              height: 110,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: primary.withOpacity(0.11),
-              ),
-            ),
-            Icon(Icons.camera_alt_rounded, size: 58, color: primary),
-          ],
+        width: size,
+        height: size,
+        child: AnimatedBuilder(
+          animation: _ctrl,
+          builder: (context, _) {
+            final t = _ctrl.value;
+            final beamOffset = math.sin(t * 2 * math.pi) * 40;
+
+            Widget pulseRing(double phase) {
+              final tp = (t + phase) % 1.0;
+              final scale = 1.0 + tp * 0.6;
+              final opacity = (0.5 * (1.0 - tp)).clamp(0.0, 0.5);
+              return Positioned.fill(
+                child: Opacity(
+                  opacity: opacity,
+                  child: Transform.scale(
+                    scale: scale,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: primary, width: 1.5),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }
+
+            return Stack(
+              alignment: Alignment.center,
+              children: [
+                // Radial background glow
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: RadialGradient(
+                          colors: [primary.withOpacity(0.08), Colors.transparent],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                // 3 staggered pulse rings
+                pulseRing(0.0),
+                pulseRing(1 / 3),
+                pulseRing(2 / 3),
+
+                // Center gradient circle
+                Container(
+                  width: 72,
+                  height: 72,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFF5C85D9), dark],
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: primary.withOpacity(0.35),
+                        blurRadius: 20,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.camera_alt_rounded,
+                    color: Colors.white,
+                    size: 30,
+                  ),
+                ),
+
+                // Scan beam
+                Positioned(
+                  top: half + beamOffset,
+                  left: 30,
+                  right: 30,
+                  child: Container(
+                    height: 1.5,
+                    decoration: BoxDecoration(
+                      color: primary.withOpacity(0.7),
+                      boxShadow: [
+                        BoxShadow(
+                          color: primary.withOpacity(0.5),
+                          blurRadius: 6,
+                          spreadRadius: 1,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );

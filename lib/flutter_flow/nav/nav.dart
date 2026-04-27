@@ -212,6 +212,13 @@ GoRouter createRouter(AppStateNotifier appStateNotifier, [Widget? entryPage]) =>
           ),
         ),
         FFRoute(
+          name: 'productDeepLink',
+          path: '/product/:id',
+          builder: (context, params) => Itemcard2Widget(
+            imageid: int.tryParse(params.getParam('id', ParamType.String) ?? ''),
+          ),
+        ),
+        FFRoute(
           name: ShareproductWidget.routeName,
           path: ShareproductWidget.routePath,
           builder: (context, params) => ShareproductWidget(

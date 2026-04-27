@@ -154,6 +154,7 @@ class _CopyitemWidgetState extends State<CopyitemWidget> {
                             host: FFDevEnvironmentValues().backendhost,
                             sourceImageId: widget.imageid,
                             targetUserId: currentUserUid,
+                            token: currentJwtToken,
                           );
 
                           final newId = CopyproductNEWBCNDCall.newimageid(

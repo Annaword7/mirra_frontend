@@ -17,6 +17,9 @@ class LogInPageModel extends FlutterFlowModel<LogInPageWidget> {
   late bool passwordVisibility;
   String? Function(BuildContext, String?)? passwordTextControllerValidator;
 
+  // ── Login tab ────────────────────────────────────────────────────────────
+  final formKeyLogin = GlobalKey<FormState>();
+
   // ── Register tab ─────────────────────────────────────────────────────────
   final formKeyRegister = GlobalKey<FormState>();
 

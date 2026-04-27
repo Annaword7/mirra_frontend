@@ -36,6 +36,15 @@ class ImagedetailedMainWidget extends StatefulWidget {
       _ImagedetailedMainWidgetState();
 }
 
+Color _scoreColor(double score) {
+  if (score >= 75) return const Color(0xFF1B5E20);
+  if (score >= 65) return const Color(0xFF43A047);
+  if (score >= 55) return const Color(0xFFC0CA33);
+  if (score >= 45) return const Color(0xFFFFB300);
+  if (score >= 35) return const Color(0xFFFF7043);
+  return const Color(0xFFD32F2F);
+}
+
 class _ImagedetailedMainWidgetState extends State<ImagedetailedMainWidget> {
   late ImagedetailedMainModel _model;
 
@@ -69,11 +78,13 @@ class _ImagedetailedMainWidgetState extends State<ImagedetailedMainWidget> {
           BoxShadow(
             blurRadius: 8.0,
             color: Color(0x33000000),
-            offset: Offset(
-              0.0,
-              2.0,
-            ),
-          )
+            offset: Offset(0.0, 2.0),
+          ),
+          BoxShadow(
+            blurRadius: 16.0,
+            color: _scoreColor(widget.score).withOpacity(0.07),
+            offset: Offset(0.0, 4.0),
+          ),
         ],
         borderRadius: BorderRadius.circular(24.0),
       ),
@@ -112,6 +123,27 @@ class _ImagedetailedMainWidgetState extends State<ImagedetailedMainWidget> {
                         width: MediaQuery.sizeOf(context).width * 1.0,
                         height: 300.0,
                         fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                  // Bottom gradient overlay for depth
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.vertical(
+                        bottom: Radius.circular(16),
+                      ),
+                      child: Container(
+                        height: 90,
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.bottomCenter,
+                            end: Alignment.topCenter,
+                            colors: [Color(0x40000000), Colors.transparent],
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -269,15 +301,6 @@ class _ScoreBadge extends StatelessWidget {
   const _ScoreBadge({required this.score});
   final double score;
 
-  Color get _color {
-    if (score >= 75) return const Color(0xFF1B5E20);
-    if (score >= 65) return const Color(0xFF43A047);
-    if (score >= 55) return const Color(0xFFC0CA33);
-    if (score >= 45) return const Color(0xFFFFB300);
-    if (score >= 35) return const Color(0xFFFF7043);
-    return const Color(0xFFD32F2F);
-  }
-
   String get _grade {
     if (score >= 75) return 'A';
     if (score >= 65) return 'B';
@@ -289,16 +312,22 @@ class _ScoreBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final sColor = _scoreColor(score);
     return Container(
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.92),
         borderRadius: BorderRadius.circular(16),
-        boxShadow: const [
-          BoxShadow(
+        boxShadow: [
+          const BoxShadow(
             blurRadius: 8,
             color: Color(0x33000000),
             offset: Offset(0, 2),
-          )
+          ),
+          BoxShadow(
+            blurRadius: 10,
+            color: sColor.withOpacity(0.35),
+            offset: const Offset(0, 2),
+          ),
         ],
       ),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -309,8 +338,8 @@ class _ScoreBadge extends StatelessWidget {
             radius: 20.0,
             lineWidth: 3.5,
             percent: (score / 100.0).clamp(0.0, 1.0),
-            backgroundColor: _color.withOpacity(0.15),
-            progressColor: _color,
+            backgroundColor: sColor.withOpacity(0.15),
+            progressColor: sColor,
             circularStrokeCap: CircularStrokeCap.round,
             animation: true,
             center: Text(
@@ -318,7 +347,7 @@ class _ScoreBadge extends StatelessWidget {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
-                color: _color,
+                color: sColor,
               ),
             ),
           ),
@@ -328,7 +357,7 @@ class _ScoreBadge extends StatelessWidget {
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.bold,
-              color: _color,
+              color: sColor,
             ),
           ),
         ],
