@@ -9,6 +9,7 @@ class HomeModel extends FlutterFlowModel<HomeWidget> {
   ///  Local state fields for this page.
 
   bool searchActive = false;
+  bool autoScrollActive = false;
 
   ///  State fields for stateful widgets in this page.
 
@@ -25,6 +26,8 @@ class HomeModel extends FlutterFlowModel<HomeWidget> {
   // Currently selected filter category key ('all', 'serum', 'toner', etc.)
   String selectedCategory = 'all';
 
+  final scrollController = ScrollController();
+
   @override
   void initState(BuildContext context) {
     navbarModel = createModel(context, () => NavbarModel());
@@ -33,5 +36,6 @@ class HomeModel extends FlutterFlowModel<HomeWidget> {
   @override
   void dispose() {
     navbarModel.dispose();
+    scrollController.dispose();
   }
 }

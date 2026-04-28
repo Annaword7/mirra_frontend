@@ -21,6 +21,8 @@ import 'backend/firebase/firebase_config.dart';
 import 'flutter_flow/flutter_flow_util.dart';
 import 'flutter_flow/internationalization.dart';
 import 'flutter_flow/revenue_cat_util.dart' as revenue_cat;
+import 'flutter_flow/notification_service.dart';
+import 'backend/remote_config.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -50,6 +52,8 @@ void main() async {
 
   final appState = FFAppState(); // Initialize FFAppState
   await appState.initializePersistedState();
+
+  await fetchRemoteConfig();
 
   await revenue_cat.initialize(
     "appl_nlqWcEvNVGNUCbMcdEcsbKbwNrV",
@@ -117,6 +121,9 @@ class _MyAppState extends State<MyApp> {
     userStream = miRRADevSupabaseUserStream()
       ..listen((user) {
         _appStateNotifier.update(user);
+        if (user.loggedIn) {
+          NotificationService.instance.onUserLogin();
+        }
       });
     jwtTokenStream.listen((_) {});
     Future.delayed(
@@ -129,6 +136,14 @@ class _MyAppState extends State<MyApp> {
 
     // Handle images shared from external apps ("Open in MiRRA")
     _initShareChannel();
+
+    // Push notifications
+    NotificationService.instance.init(
+      onTap: (data) {
+        final imageId = data['image_id'];
+        if (imageId != null) _router.go('/itemcard2?imageid=$imageId');
+      },
+    );
   }
 
   static const _shareChannel = MethodChannel('mirra/share');

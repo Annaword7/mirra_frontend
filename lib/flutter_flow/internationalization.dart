@@ -213,6 +213,29 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ru': 'Главная',
     },
   },
+  // LoginFeatureCards
+  {
+    'lfc_score_label': {
+      'en': 'Science-based',
+      'es': 'Basado en ciencia',
+      'ru': 'Научный подход',
+    },
+    'lfc_scan_title': {
+      'en': 'AI Analysis',
+      'es': 'Análisis con IA',
+      'ru': 'ИИ-анализ',
+    },
+    'lfc_scan_subtitle': {
+      'en': 'in 30 seconds',
+      'es': 'en 30 segundos',
+      'ru': 'за 30 секунд',
+    },
+    'lfc_ingredients_title': {
+      'en': 'Ingredient Analysis',
+      'es': 'Análisis de ingredientes',
+      'ru': 'Анализ ингредиентов',
+    },
+  },
   // LogInPage
   {
     's2sex1cq': {
@@ -1824,6 +1847,69 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ru': 'Скрыть',
     },
   },
+  // FAB actions
+  {
+    'fab_print': {
+      'en': 'Print',
+      'es': 'Imprimir',
+      'ru': 'Напечатать',
+    },
+    'fab_share': {
+      'en': 'Share',
+      'es': 'Compartir',
+      'ru': 'Поделиться',
+    },
+    'fab_add_to_album': {
+      'en': 'Add to board',
+      'es': 'Añadir al tablero',
+      'ru': 'В коллекцию',
+    },
+    'fab_add_favourite': {
+      'en': 'Add to favourites',
+      'es': 'Añadir a favoritos',
+      'ru': 'В избранное',
+    },
+    'fab_remove_favourite': {
+      'en': 'Remove from favourites',
+      'es': 'Quitar de favoritos',
+      'ru': 'Из избранного',
+    },
+    'fab_hide': {
+      'en': 'Hide',
+      'es': 'Ocultar',
+      'ru': 'Скрыть',
+    },
+    'fab_show': {
+      'en': 'Make public',
+      'es': 'Hacer público',
+      'ru': 'Открыть',
+    },
+    'fab_spam': {
+      'en': 'Report spam',
+      'es': 'Reportar spam',
+      'ru': 'Спам',
+    },
+    'fab_copy': {
+      'en': 'Copy',
+      'es': 'Copiar',
+      'ru': 'Скопировать',
+    },
+    'fab_delete': {
+      'en': 'Delete',
+      'es': 'Eliminar',
+      'ru': 'Удалить',
+    },
+    'fab_favourite_added': {
+      'en': 'Added to favourites',
+      'es': 'Añadido a favoritos',
+      'ru': 'Добавлено в избранное',
+    },
+    'fab_favourite_removed': {
+      'en': 'Removed from favourites',
+      'es': 'Eliminado de favoritos',
+      'ru': 'Удалено из избранного',
+    },
+  },
   // ShareCardSheet
   {
     'a1bpjvs8': {
@@ -1996,6 +2082,59 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'No products in this category yet',
       'es': 'Aún no hay productos en esta categoría',
       'ru': 'В этой категории пока нет продуктов',
+    },
+  },
+  // feedbackCollector
+  {
+    'fc_title': {
+      'en': 'Do you like Mirra?',
+      'es': '¿Te gusta Mirra?',
+      'ru': 'Вам нравится Mirra?',
+    },
+    'fc_subtitle': {
+      'en': 'Your rating helps us\nget better every day',
+      'es': 'Tu valoración nos ayuda\na mejorar cada día',
+      'ru': 'Ваша оценка помогает нам\nстановиться лучше',
+    },
+    'fc_btn_positive': {
+      'en': 'Yes, love it!',
+      'es': '¡Sí, me encanta!',
+      'ru': 'Да, нравится!',
+    },
+    'fc_btn_negative': {
+      'en': 'Not really',
+      'es': 'No mucho',
+      'ru': 'Нет, не очень',
+    },
+    'fc_neg_title': {
+      'en': 'What could be better?',
+      'es': '¿Qué podría mejorar?',
+      'ru': 'Расскажите, что вас расстроило?',
+    },
+    'fc_neg_subtitle': {
+      'en': 'Your feedback helps us improve the app',
+      'es': 'Tu opinión nos ayuda a mejorar la app',
+      'ru': 'Ваш отзыв поможет нам улучшить приложение',
+    },
+    'fc_neg_hint': {
+      'en': 'Write your comment...',
+      'es': 'Escribe tu comentario...',
+      'ru': 'Напишите ваш комментарий...',
+    },
+    'fc_neg_email': {
+      'en': 'Email (optional)',
+      'es': 'Email (opcional)',
+      'ru': 'Email (необязательно)',
+    },
+    'fc_neg_validator': {
+      'en': 'Please write a comment',
+      'es': 'Por favor, escribe un comentario',
+      'ru': 'Пожалуйста, напишите комментарий',
+    },
+    'fc_neg_submit': {
+      'en': 'Send',
+      'es': 'Enviar',
+      'ru': 'Отправить',
     },
   },
 ].reduce((a, b) => a..addAll(b));

@@ -19,6 +19,24 @@ class FFAppState extends ChangeNotifier {
     _safeInit(() {
       _darkModeSet = prefs.getBool('ff_darkModeSet') ?? _darkModeSet;
     });
+    _safeInit(() {
+      _onboardingDone = prefs.getBool('ff_onboardingDone') ?? _onboardingDone;
+    });
+    _safeInit(() {
+      _feedbackCollectorEnabled = prefs.getBool('ff_feedbackCollectorEnabled') ?? _feedbackCollectorEnabled;
+    });
+    _safeInit(() {
+      _feedbackReviewSubmitted = prefs.getBool('ff_feedbackReviewSubmitted') ?? _feedbackReviewSubmitted;
+    });
+    _safeInit(() {
+      _feedbackBannerDismissed = prefs.getBool('ff_feedbackBannerDismissed') ?? _feedbackBannerDismissed;
+    });
+    _safeInit(() {
+      _feedbackLastShownVersion = prefs.getString('ff_feedbackLastShownVersion') ?? _feedbackLastShownVersion;
+    });
+    _safeInit(() {
+      _feedbackLastShownMs = prefs.getInt('ff_feedbackLastShownMs') ?? _feedbackLastShownMs;
+    });
   }
 
   void update(VoidCallback callback) {
@@ -27,6 +45,13 @@ class FFAppState extends ChangeNotifier {
   }
 
   late SharedPreferences prefs;
+
+  bool _onboardingDone = false;
+  bool get onboardingDone => _onboardingDone;
+  set onboardingDone(bool value) {
+    _onboardingDone = value;
+    prefs.setBool('ff_onboardingDone', value);
+  }
 
   bool _darkModeSet = false;
   bool get darkModeSet => _darkModeSet;
@@ -134,6 +159,44 @@ class FFAppState extends ChangeNotifier {
   String get extractedBrand => _extractedBrand;
   set extractedBrand(String value) {
     _extractedBrand = value;
+  }
+
+  // Feedback Collector
+  bool feedbackPendingScan = false; // session-only, not persisted
+
+  bool _feedbackCollectorEnabled = false;
+  bool get feedbackCollectorEnabled => _feedbackCollectorEnabled;
+  set feedbackCollectorEnabled(bool value) {
+    _feedbackCollectorEnabled = value;
+    prefs.setBool('ff_feedbackCollectorEnabled', value);
+  }
+
+  bool _feedbackReviewSubmitted = false;
+  bool get feedbackReviewSubmitted => _feedbackReviewSubmitted;
+  set feedbackReviewSubmitted(bool value) {
+    _feedbackReviewSubmitted = value;
+    prefs.setBool('ff_feedbackReviewSubmitted', value);
+  }
+
+  bool _feedbackBannerDismissed = false;
+  bool get feedbackBannerDismissed => _feedbackBannerDismissed;
+  set feedbackBannerDismissed(bool value) {
+    _feedbackBannerDismissed = value;
+    prefs.setBool('ff_feedbackBannerDismissed', value);
+  }
+
+  String _feedbackLastShownVersion = '';
+  String get feedbackLastShownVersion => _feedbackLastShownVersion;
+  set feedbackLastShownVersion(String value) {
+    _feedbackLastShownVersion = value;
+    prefs.setString('ff_feedbackLastShownVersion', value);
+  }
+
+  int _feedbackLastShownMs = 0;
+  int get feedbackLastShownMs => _feedbackLastShownMs;
+  set feedbackLastShownMs(int value) {
+    _feedbackLastShownMs = value;
+    prefs.setInt('ff_feedbackLastShownMs', value);
   }
 }
 

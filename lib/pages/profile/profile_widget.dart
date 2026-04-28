@@ -6,6 +6,7 @@ import '/components/navbar/navbar_widget.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
+import '/environment_values.dart';
 import '/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -692,6 +693,103 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                             ].divide(SizedBox(height: 12.0)),
                           ),
                         ),
+                        if (FFDevEnvironmentValues.currentEnvironment == 'Development')
+                          Padding(
+                            padding: EdgeInsetsDirectional.fromSTEB(16.0, 12.0, 16.0, 0.0),
+                            child: InkWell(
+                              splashColor: Colors.transparent,
+                              focusColor: Colors.transparent,
+                              hoverColor: Colors.transparent,
+                              highlightColor: Colors.transparent,
+                              onTap: () {
+                                HapticFeedback.lightImpact();
+                                FFAppState().isprouser = false;
+                                FFAppState().onboardingDone = false;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Onboarding reset. Restarting flow.')),
+                                );
+                                context.goNamed(OnboardingCarouselWidget.routeName);
+                              },
+                              child: Container(
+                                width: double.infinity,
+                                height: 55.0,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFFE0E0),
+                                  borderRadius: BorderRadius.circular(16.0),
+                                  border: Border.all(color: const Color(0xFFFF5963)),
+                                ),
+                                child: Padding(
+                                  padding: EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 8.0, 0.0),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.max,
+                                    children: [
+                                      const Icon(Icons.replay_rounded, color: Color(0xFFFF5963), size: 24.0),
+                                      const SizedBox(width: 12),
+                                      Text(
+                                        'Сбросить онбординг [DEV]',
+                                        style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                              fontFamily: FlutterFlowTheme.of(context).bodyMediumFamily,
+                                              color: const Color(0xFFFF5963),
+                                              letterSpacing: 0.0,
+                                              useGoogleFonts: !FlutterFlowTheme.of(context).bodyMediumIsCustom,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        if (FFDevEnvironmentValues.currentEnvironment == 'Development')
+                          Padding(
+                            padding: EdgeInsetsDirectional.fromSTEB(16.0, 12.0, 16.0, 0.0),
+                            child: InkWell(
+                              splashColor: Colors.transparent,
+                              focusColor: Colors.transparent,
+                              hoverColor: Colors.transparent,
+                              highlightColor: Colors.transparent,
+                              onTap: () {
+                                HapticFeedback.lightImpact();
+                                FFAppState().feedbackLastShownMs = 0;
+                                FFAppState().feedbackLastShownVersion = '';
+                                FFAppState().feedbackBannerDismissed = false;
+                                FFAppState().feedbackReviewSubmitted = false;
+                                FFAppState().feedbackCollectorEnabled = true;
+                                FFAppState().feedbackPendingScan = true;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Feedback state reset. Scan a product or go to Home.')),
+                                );
+                              },
+                              child: Container(
+                                width: double.infinity,
+                                height: 55.0,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFFE0E0),
+                                  borderRadius: BorderRadius.circular(16.0),
+                                  border: Border.all(color: const Color(0xFFFF5963)),
+                                ),
+                                child: Padding(
+                                  padding: EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 8.0, 0.0),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.max,
+                                    children: [
+                                      const Icon(Icons.rate_review_outlined, color: Color(0xFFFF5963), size: 24.0),
+                                      const SizedBox(width: 12),
+                                      Text(
+                                        'Показать feedback prompt [DEV]',
+                                        style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                              fontFamily: FlutterFlowTheme.of(context).bodyMediumFamily,
+                                              color: const Color(0xFFFF5963),
+                                              letterSpacing: 0.0,
+                                              useGoogleFonts: !FlutterFlowTheme.of(context).bodyMediumIsCustom,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
                         if (currentUserIsAnonymous) ...[
                           // ── Анонимный: войти или зарегистрироваться ──
                           Padding(
@@ -794,11 +892,11 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                               onPressed: () async {
                                 HapticFeedback.lightImpact();
                                 FFAppState().isprouser = false;
+                                FFAppState().onboardingDone = false;
                                 GoRouter.of(context).prepareAuthEvent();
                                 await authManager.signOut();
                                 GoRouter.of(context).clearRedirectLocation();
-                                context.pushNamedAuth(
-                                    NewblankWidget.routeName, context.mounted);
+                                context.goNamed(OnboardingCarouselWidget.routeName);
                               },
                               text: _localizedText(context, {
                                 'ru': 'Завершить сессию',
@@ -840,12 +938,11 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                               onPressed: () async {
                                 HapticFeedback.lightImpact();
                                 FFAppState().isprouser = false;
+                                FFAppState().onboardingDone = false;
                                 GoRouter.of(context).prepareAuthEvent();
                                 await authManager.signOut();
                                 GoRouter.of(context).clearRedirectLocation();
-
-                                context.pushNamedAuth(
-                                    NewblankWidget.routeName, context.mounted);
+                                context.goNamed(OnboardingCarouselWidget.routeName);
                               },
                               text: FFLocalizations.of(context).getText(
                                 '01vkpjw3' /* Log out */,

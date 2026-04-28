@@ -12,7 +12,6 @@ import 'package:provider/provider.dart';
 import 'toprated_model.dart';
 export 'toprated_model.dart';
 
-// Maps filter category key → list of product_type values it covers.
 const Map<String, List<String>> _kCategoryTypes = {
   'serum':       ['serum'],
   'toner':       ['toner'],
@@ -21,6 +20,7 @@ const Map<String, List<String>> _kCategoryTypes = {
   'cleanser':    ['cleanser', 'exfoliant'],
   'sunscreen':   ['sunscreen'],
   'eye_cream':   ['eye_cream', 'eye_care'],
+  'lip_balm':    ['balm', 'lip_balm'],
   'makeup': [
     'foundation', 'bb_cream', 'cc_cream', 'concealer', 'powder',
     'blush', 'mascara', 'eyeliner', 'lipstick', 'lip_gloss',
@@ -28,17 +28,22 @@ const Map<String, List<String>> _kCategoryTypes = {
   ],
 };
 
-// Ordered list of (categoryKey, localizationKey) for the chip bar.
-const List<(String, String)> _kFilterChips = [
-  ('all',          't5l3cspz'),
-  ('serum',        '4eemae24'),
-  ('toner',        'ty7a9smo'),
-  ('moisturizer',  'mubk0pfy'),
-  ('mask',         'b652wlj0'),
-  ('cleanser',     'pvpxd2wv'),
-  ('sunscreen',    'oocbcr3w'),
-  ('eye_cream',    '3dfv6cmb'),
-  ('makeup',       'pt749ga9'),
+const Map<String, Map<String, String>> _kCategoryLabels = {
+  'all':         {'en': 'All',        'ru': 'Все',              'es': 'Todo'},
+  'serum':       {'en': 'Serum',      'ru': 'Сыворотки',        'es': 'Sérum'},
+  'toner':       {'en': 'Toner',      'ru': 'Тоники',           'es': 'Tónico'},
+  'moisturizer': {'en': 'Moisturizer','ru': 'Кремы',            'es': 'Hidratante'},
+  'mask':        {'en': 'Mask',       'ru': 'Маски',            'es': 'Mascarilla'},
+  'cleanser':    {'en': 'Cleanser',   'ru': 'Очищение',         'es': 'Limpiador'},
+  'sunscreen':   {'en': 'Sunscreen',  'ru': 'Санскрин',         'es': 'Protector solar'},
+  'eye_cream':   {'en': 'Eye Care',   'ru': 'Уход за глазами',  'es': 'Contorno de ojos'},
+  'lip_balm':    {'en': 'Lip & Balm', 'ru': 'Губы и бальзамы', 'es': 'Labios y bálsamos'},
+  'makeup':      {'en': 'Makeup',     'ru': 'Макияж',           'es': 'Maquillaje'},
+};
+
+const List<String> _kFilterChips = [
+  'all', 'serum', 'toner', 'moisturizer', 'mask',
+  'cleanser', 'sunscreen', 'eye_cream', 'lip_balm', 'makeup',
 ];
 
 class TopratedWidget extends StatefulWidget {
@@ -115,7 +120,6 @@ class _TopratedWidgetState extends State<TopratedWidget> {
 
     final spamIds = FFAppState().spamlist.toSet();
 
-    // Deduplicate by brand + product name — keep first occurrence (highest score).
     final seen = <String>{};
     final deduped = _model.allImages!
         .where((row) => !spamIds.contains(row.id))
@@ -129,6 +133,21 @@ class _TopratedWidgetState extends State<TopratedWidget> {
     return deduped
         .where((row) => types.contains(row.productType ?? ''))
         .toList();
+  }
+
+  List<String> _availableChips() {
+    if (_model.allImages == null) return [_kFilterChips.first];
+    final presentTypes = _model.allImages!.map((r) => r.productType ?? '').toSet();
+    return _kFilterChips.where((catKey) {
+      if (catKey == 'all') return true;
+      final types = _kCategoryTypes[catKey] ?? [];
+      return types.any((t) => presentTypes.contains(t));
+    }).toList();
+  }
+
+  String _chipLabel(String catKey, String langCode) {
+    final labels = _kCategoryLabels[catKey] ?? {};
+    return labels[langCode] ?? labels['en'] ?? catKey;
   }
 
   @override
@@ -215,9 +234,9 @@ class _TopratedWidgetState extends State<TopratedWidget> {
                           padding:
                               EdgeInsetsDirectional.fromSTEB(16.0, 0, 16.0, 0),
                           child: Row(
-                            children: _kFilterChips
-                                .map((chip) {
-                                  final (catKey, locKey) = chip;
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: _availableChips()
+                                .map((catKey) {
                                   final isSelected =
                                       _model.selectedCategory == catKey;
                                   return Padding(
@@ -250,8 +269,7 @@ class _TopratedWidgetState extends State<TopratedWidget> {
                                           ),
                                         ),
                                         child: Text(
-                                          FFLocalizations.of(context)
-                                              .getText(locKey),
+                                          _chipLabel(catKey, FFLocalizations.of(context).languageCode),
                                           style: FlutterFlowTheme.of(context)
                                               .bodySmall
                                               .override(

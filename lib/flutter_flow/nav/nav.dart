@@ -89,7 +89,7 @@ GoRouter createRouter(AppStateNotifier appStateNotifier, [Widget? entryPage]) =>
           path: '/',
           builder: (context, _) => appStateNotifier.loggedIn
               ? entryPage ?? HomeWidget()
-              : NewblankWidget(),
+              : (FFAppState().onboardingDone ? NewblankWidget() : OnboardingCarouselWidget()),
         ),
         FFRoute(
           name: CreateAccountPageWidget.routeName,
@@ -110,6 +110,11 @@ GoRouter createRouter(AppStateNotifier appStateNotifier, [Widget? entryPage]) =>
           name: OnboardingInstructionsWidget.routeName,
           path: OnboardingInstructionsWidget.routePath,
           builder: (context, params) => OnboardingInstructionsWidget(),
+        ),
+        FFRoute(
+          name: OnboardingCarouselWidget.routeName,
+          path: OnboardingCarouselWidget.routePath,
+          builder: (context, params) => OnboardingCarouselWidget(),
         ),
         FFRoute(
           name: BoardsWidget.routeName,
@@ -204,6 +209,13 @@ GoRouter createRouter(AppStateNotifier appStateNotifier, [Widget? entryPage]) =>
               'imageid',
               ParamType.int,
             ),
+          ),
+        ),
+        FFRoute(
+          name: 'productDeepLink',
+          path: '/product/:id',
+          builder: (context, params) => Itemcard2Widget(
+            imageid: int.tryParse(params.getParam('id', ParamType.String) ?? ''),
           ),
         ),
         FFRoute(

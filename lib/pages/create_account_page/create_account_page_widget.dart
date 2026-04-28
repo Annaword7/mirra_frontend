@@ -16,6 +16,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'create_account_page_model.dart';
 export 'create_account_page_model.dart';
+import '/pages/log_in_page/login_feature_cards.dart';
 
 class CreateAccountPageWidget extends StatefulWidget {
   const CreateAccountPageWidget({super.key});
@@ -123,6 +124,89 @@ class _CreateAccountPageWidgetState extends State<CreateAccountPageWidget>
     super.dispose();
   }
 
+  Widget _termsFooter() => Column(
+        children: [
+          Align(
+            alignment: AlignmentDirectional(0.0, 0.0),
+            child: RichText(
+              textScaler: MediaQuery.of(context).textScaler,
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: FFLocalizations.of(context)
+                        .getText('gxuca5l4' /* By continuing, you agree to ou... */),
+                    style: const TextStyle(),
+                  ),
+                ],
+                style: FlutterFlowTheme.of(context).bodySmall.override(
+                      fontFamily:
+                          FlutterFlowTheme.of(context).bodySmallFamily,
+                      letterSpacing: 0.0,
+                      useGoogleFonts:
+                          !FlutterFlowTheme.of(context).bodySmallIsCustom,
+                    ),
+              ),
+            ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              InkWell(
+                splashColor: Colors.transparent,
+                focusColor: Colors.transparent,
+                hoverColor: Colors.transparent,
+                highlightColor: Colors.transparent,
+                onTap: () async {
+                  await launchURL(
+                      'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/');
+                },
+                child: Text(
+                  FFLocalizations.of(context).getText('r6swa5sg' /* Terms of use */),
+                  style: FlutterFlowTheme.of(context).bodySmall.override(
+                        fontFamily:
+                            FlutterFlowTheme.of(context).bodySmallFamily,
+                        color: FlutterFlowTheme.of(context).primary,
+                        letterSpacing: 0.0,
+                        useGoogleFonts:
+                            !FlutterFlowTheme.of(context).bodySmallIsCustom,
+                      ),
+                ),
+              ),
+              Text(
+                ' · ',
+                style: FlutterFlowTheme.of(context).bodySmall.override(
+                      fontFamily:
+                          FlutterFlowTheme.of(context).bodySmallFamily,
+                      letterSpacing: 0.0,
+                      useGoogleFonts:
+                          !FlutterFlowTheme.of(context).bodySmallIsCustom,
+                    ),
+              ),
+              InkWell(
+                splashColor: Colors.transparent,
+                focusColor: Colors.transparent,
+                hoverColor: Colors.transparent,
+                highlightColor: Colors.transparent,
+                onTap: () async {
+                  await launchURL('https://mirra.up.railway.app/privacy.html');
+                },
+                child: Text(
+                  FFLocalizations.of(context).getText('j321mb3y' /* Privacy Policy */),
+                  style: FlutterFlowTheme.of(context).bodySmall.override(
+                        fontFamily:
+                            FlutterFlowTheme.of(context).bodySmallFamily,
+                        color: FlutterFlowTheme.of(context).primary,
+                        letterSpacing: 0.0,
+                        useGoogleFonts:
+                            !FlutterFlowTheme.of(context).bodySmallIsCustom,
+                      ),
+                ),
+              ),
+            ],
+          ),
+        ].divide(const SizedBox(height: 5.0)),
+      );
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -183,49 +267,14 @@ class _CreateAccountPageWidgetState extends State<CreateAccountPageWidget>
                         child: Transform.scale(
                           scaleX: 1.2,
                           scaleY: 1.2,
-                          child: Transform.rotate(
-                            angle: 352.0 * (math.pi / 180),
-                            child: Container(
+                          child: Container(
                               width: double.infinity,
-                              height: 250.0,
+                              height: 160.0,
                               child: CarouselSlider(
-                                items: [
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                    child: Image.asset(
-                                      'assets/images/image14.png',
-                                      width: 300.0,
-                                      height: 200.0,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                    child: Image.asset(
-                                      'assets/images/image11.png',
-                                      width: 300.0,
-                                      height: 200.0,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                    child: Image.asset(
-                                      'assets/images/image2.png',
-                                      width: 300.0,
-                                      height: 200.0,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                    child: Image.asset(
-                                      'assets/images/image3.png',
-                                      width: 300.0,
-                                      height: 200.0,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
+                                items: const [
+                                  FeatureIngredientsCard(),
+                                  FeatureScanCard(),
+                                  FeatureScoreCard(),
                                 ],
                                 carouselController:
                                     _model.carouselController ??=
@@ -249,7 +298,6 @@ class _CreateAccountPageWidgetState extends State<CreateAccountPageWidget>
                                       _model.carouselCurrentIndex = index,
                                 ),
                               ),
-                            ),
                           ),
                         ).animateOnPageLoad(
                             animationsMap['transformOnPageLoadAnimation']!),
@@ -691,138 +739,38 @@ class _CreateAccountPageWidgetState extends State<CreateAccountPageWidget>
                                           ),
                                         ),
                                       ),
-                                Padding(
-                                  padding: EdgeInsetsDirectional.fromSTEB(
-                                      0.0, 20.0, 0.0, 0.0),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.max,
-                                    children: [
-                                      Align(
-                                        alignment:
-                                            AlignmentDirectional(0.0, 0.0),
-                                        child: RichText(
-                                          textScaler:
-                                              MediaQuery.of(context).textScaler,
-                                          text: TextSpan(
-                                            children: [
-                                              TextSpan(
-                                                text:
-                                                    FFLocalizations.of(context)
-                                                        .getText(
-                                                  'gxuca5l4' /* By continuing, you agree to ou... */,
-                                                ),
-                                                style: TextStyle(),
-                                              )
-                                            ],
-                                            style: FlutterFlowTheme.of(context)
-                                                .bodySmall
-                                                .override(
-                                                  fontFamily:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodySmallFamily,
-                                                  letterSpacing: 0.0,
-                                                  useGoogleFonts:
-                                                      !FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodySmallIsCustom,
-                                                ),
-                                          ),
-                                        ),
-                                      ),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          InkWell(
-                                            splashColor: Colors.transparent,
-                                            focusColor: Colors.transparent,
-                                            hoverColor: Colors.transparent,
-                                            highlightColor: Colors.transparent,
-                                            onTap: () async {
-                                              await launchURL(
-                                                  'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/');
-                                            },
-                                            child: Text(
-                                              FFLocalizations.of(context)
-                                                  .getText('r6swa5sg' /* Terms of use */),
-                                              style: FlutterFlowTheme.of(
-                                                      context)
-                                                  .bodySmall
-                                                  .override(
-                                                    fontFamily:
-                                                        FlutterFlowTheme.of(
-                                                                context)
-                                                            .bodySmallFamily,
-                                                    color: FlutterFlowTheme.of(
-                                                            context)
-                                                        .primary,
-                                                    letterSpacing: 0.0,
-                                                    useGoogleFonts:
-                                                        !FlutterFlowTheme.of(
-                                                                context)
-                                                            .bodySmallIsCustom,
-                                                  ),
-                                            ),
-                                          ),
-                                          Text(
-                                            ' · ',
-                                            style: FlutterFlowTheme.of(context)
-                                                .bodySmall
-                                                .override(
-                                                  fontFamily:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodySmallFamily,
-                                                  letterSpacing: 0.0,
-                                                  useGoogleFonts:
-                                                      !FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodySmallIsCustom,
-                                                ),
-                                          ),
-                                          InkWell(
-                                            splashColor: Colors.transparent,
-                                            focusColor: Colors.transparent,
-                                            hoverColor: Colors.transparent,
-                                            highlightColor: Colors.transparent,
-                                            onTap: () async {
-                                              await launchURL(
-                                                  'https://mirra.up.railway.app/privacy.html');
-                                            },
-                                            child: Text(
-                                              FFLocalizations.of(context)
-                                                  .getText('j321mb3y' /* Privacy Policy */),
-                                              style: FlutterFlowTheme.of(
-                                                      context)
-                                                  .bodySmall
-                                                  .override(
-                                                    fontFamily:
-                                                        FlutterFlowTheme.of(
-                                                                context)
-                                                            .bodySmallFamily,
-                                                    color: FlutterFlowTheme.of(
-                                                            context)
-                                                        .primary,
-                                                    letterSpacing: 0.0,
-                                                    useGoogleFonts:
-                                                        !FlutterFlowTheme.of(
-                                                                context)
-                                                            .bodySmallIsCustom,
-                                                  ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ]
-                                        .divide(SizedBox(height: 5.0))
-                                        .around(SizedBox(height: 5.0)),
-                                  ),
-                                ),
                               ],
                             ),
                           ).animateOnPageLoad(
                               animationsMap['columnOnPageLoadAnimation']!),
+                        ),
+                      ),
+                    ),
+
+
+                    // Pinned terms footer
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: SafeArea(
+                        top: false,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                FlutterFlowTheme.of(context)
+                                    .alternate
+                                    .withOpacity(0),
+                                FlutterFlowTheme.of(context).alternate,
+                              ],
+                            ),
+                          ),
+                          padding:
+                              const EdgeInsets.fromLTRB(24, 20, 24, 12),
+                          child: _termsFooter(),
                         ),
                       ),
                     ),

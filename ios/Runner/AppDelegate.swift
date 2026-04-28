@@ -1,5 +1,8 @@
 import Flutter
 import UIKit
+import Firebase
+import FirebaseMessaging
+import UserNotifications
 
 // MARK: - Share Plugin
 // Handles images shared to MiRRA via the iOS share sheet ("Open In MiRRA").
@@ -71,12 +74,30 @@ private class MirraSharePlugin: NSObject, FlutterPlugin {
 // MARK: - AppDelegate
 
 @main
-@objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
+@objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate, MessagingDelegate {
   override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
+    FirebaseApp.configure()
+    UNUserNotificationCenter.current().delegate = self
+    Messaging.messaging().delegate = self
+    application.registerForRemoteNotifications()
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
+
+  // Show notifications when app is in foreground
+  override func userNotificationCenter(
+    _ center: UNUserNotificationCenter,
+    willPresent notification: UNNotification,
+    withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+  ) {
+    completionHandler([[.banner, .sound, .badge]])
+  }
+
+  // FCM token received via delegate
+  func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
+    print("[FCM] Token: \(fcmToken ?? "nil")")
   }
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
@@ -84,5 +105,18 @@ private class MirraSharePlugin: NSObject, FlutterPlugin {
     if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "MirraSharePlugin") {
       MirraSharePlugin.register(with: registrar)
     }
+  }
+
+  override func application(_ application: UIApplication,
+      didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+    let token = deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
+    print("[APNs] ✅ Device token: \(token)")
+    super.application(application, didRegisterForRemoteNotificationsWithDeviceToken: deviceToken)
+  }
+
+  override func application(_ application: UIApplication,
+      didFailToRegisterForRemoteNotificationsWithError error: Error) {
+    print("[APNs] ❌ Failed to register: \(error)")
+    super.application(application, didFailToRegisterForRemoteNotificationsWithError: error)
   }
 }

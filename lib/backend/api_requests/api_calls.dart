@@ -549,6 +549,7 @@ class SearchingredientsNEWBCNDCall {
     String? productName = '',
     String? brand = '',
     String? country = '',
+    String? token = '',
   }) async {
     host ??= FFDevEnvironmentValues().backendhost;
 
@@ -564,6 +565,7 @@ class SearchingredientsNEWBCNDCall {
       apiUrl: '${host}api/mirra/search-ingredients',
       callType: ApiCallType.POST,
       headers: {
+        'Authorization': 'Bearer ${token}',
         'Content-Type': 'application/json',
       },
       params: {},
@@ -611,6 +613,7 @@ class ScientificanalysisNEWBCNDCall {
     String? userId = '',
     String? languageCode = 'en',
     String? country = '',
+    String? token = '',
   }) async {
     host ??= FFDevEnvironmentValues().backendhost;
 
@@ -625,6 +628,7 @@ class ScientificanalysisNEWBCNDCall {
       apiUrl: '${host}api/mirra/scientific-analysis',
       callType: ApiCallType.POST,
       headers: {
+        'Authorization': 'Bearer ${token}',
         'Content-Type': 'application/json',
       },
       params: {},
@@ -695,6 +699,7 @@ class FeedbackNEWBCNDCall {
     String? imageId = '',
     String? userId = '',
     bool? vote,
+    String? token = '',
   }) async {
     host ??= FFDevEnvironmentValues().backendhost;
 
@@ -709,6 +714,7 @@ class FeedbackNEWBCNDCall {
       apiUrl: '${host}/api/mirra/feedback',
       callType: ApiCallType.POST,
       headers: {
+        'Authorization': 'Bearer ${token}',
         'Content-Type': 'application/json',
       },
       params: {},
@@ -948,6 +954,7 @@ class ExtractproductinfoNEWBCNDCopyCall {
     String? userId = '',
     String? languageCode = 'en',
     String? country = '',
+    String? token = '',
   }) async {
     host ??= FFDevEnvironmentValues().backendhost;
 
@@ -963,6 +970,7 @@ class ExtractproductinfoNEWBCNDCopyCall {
       apiUrl: '${host}api/mirra/extract-product-info',
       callType: ApiCallType.POST,
       headers: {
+        'Authorization': 'Bearer ${token}',
         'Content-Type': 'application/json',
       },
       params: {},
@@ -1000,6 +1008,7 @@ class CopyproductNEWBCNDCall {
     String? host,
     int? sourceImageId,
     String? targetUserId = '',
+    String? token = '',
   }) async {
     host ??= FFDevEnvironmentValues().backendhost;
 
@@ -1013,6 +1022,7 @@ class CopyproductNEWBCNDCall {
       apiUrl: '${host}api/mirra/copy-product',
       callType: ApiCallType.POST,
       headers: {
+        'Authorization': 'Bearer ${token}',
         'Content-Type': 'application/json',
       },
       params: {},
@@ -1035,6 +1045,41 @@ class CopyproductNEWBCNDCall {
         response,
         r'''$.new_image_id''',
       ));
+}
+
+class ResearchAndAnalyzeCall {
+  static Future<ApiCallResponse> call({
+    String? host,
+    int? imageId,
+    String? languageCode = 'en',
+    String? token = '',
+  }) async {
+    host ??= FFDevEnvironmentValues().backendhost;
+
+    final ffApiRequestBody = '''
+{
+  "image_id": ${imageId},
+  "language_code": "${escapeStringForJson(languageCode)}"
+}''';
+    return ApiManager.instance.makeApiCall(
+      callName: 'research and analyze',
+      apiUrl: '${host}api/mirra/research-and-analyze',
+      callType: ApiCallType.POST,
+      headers: {
+        'Authorization': 'Bearer ${token}',
+        'Content-Type': 'application/json',
+      },
+      params: {},
+      body: ffApiRequestBody,
+      bodyType: BodyType.JSON,
+      returnBody: true,
+      encodeBodyUtf8: false,
+      decodeUtf8: false,
+      cache: false,
+      isStreamingApi: false,
+      alwaysAllowBody: false,
+    );
+  }
 }
 
 class SubscriptionupgradeNEWBCNDCall {
@@ -1119,6 +1164,7 @@ class DeleteUserNEWBCNDCall {
   static Future<ApiCallResponse> call({
     String? host,
     String? userId = '',
+    String? token = '',
   }) async {
     host ??= FFDevEnvironmentValues().backendhost;
 
@@ -1127,6 +1173,7 @@ class DeleteUserNEWBCNDCall {
       apiUrl: '${host}api/mirra/user/${userId}',
       callType: ApiCallType.DELETE,
       headers: {
+        'Authorization': 'Bearer ${token}',
         'Content-Type': 'application/json',
       },
       params: {},

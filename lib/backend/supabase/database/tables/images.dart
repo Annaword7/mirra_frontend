@@ -29,29 +29,6 @@ class ImagesRow extends SupabaseDataRow {
   String? get productName => getField<String>('product_name');
   set productName(String? value) => setField<String>('product_name', value);
 
-  String? get rating => getField<String>('rating');
-  set rating(String? value) => setField<String>('rating', value);
-
-  double? get score => getField<double>('score');
-  set score(double? value) => setField<double>('score', value);
-
-  String? get pros => getField<String>('pros');
-  set pros(String? value) => setField<String>('pros', value);
-
-  String? get cons => getField<String>('cons');
-  set cons(String? value) => setField<String>('cons', value);
-
-  String? get warnings => getField<String>('warnings');
-  set warnings(String? value) => setField<String>('warnings', value);
-
-  String? get summary => getField<String>('summary');
-  set summary(String? value) => setField<String>('summary', value);
-
-  String? get skinTypeRecommendation =>
-      getField<String>('skin_type_recommendation');
-  set skinTypeRecommendation(String? value) =>
-      setField<String>('skin_type_recommendation', value);
-
   bool? get favourite => getField<bool>('favourite');
   set favourite(bool? value) => setField<bool>('favourite', value);
 
@@ -61,32 +38,14 @@ class ImagesRow extends SupabaseDataRow {
   String? get brand => getField<String>('brand');
   set brand(String? value) => setField<String>('brand', value);
 
-  dynamic get detailedAnalysis => getField<dynamic>('detailed_analysis');
-  set detailedAnalysis(dynamic value) =>
-      setField<dynamic>('detailed_analysis', value);
-
-  int? get starsFromUser => getField<int>('stars_from_user');
-  set starsFromUser(int? value) => setField<int>('stars_from_user', value);
-
-  List<String> get skinTypeTags => getListField<String>('skin_type_tags');
-  set skinTypeTags(List<String>? value) =>
-      setListField<String>('skin_type_tags', value);
-
   String? get personalNotes => getField<String>('personal_notes');
   set personalNotes(String? value) => setField<String>('personal_notes', value);
-
-  String? get productType => getField<String>('product_type');
-  set productType(String? value) => setField<String>('product_type', value);
 
   String? get ingredients => getField<String>('ingredients');
   set ingredients(String? value) => setField<String>('ingredients', value);
 
   bool? get hided => getField<bool>('hided');
   set hided(bool? value) => setField<bool>('hided', value);
-
-  dynamic get scientificAnalysis => getField<dynamic>('scientific_analysis');
-  set scientificAnalysis(dynamic value) =>
-      setField<dynamic>('scientific_analysis', value);
 
   double? get saCompositeScore => getField<double>('sa_composite_score');
   set saCompositeScore(double? value) =>
@@ -168,4 +127,20 @@ class ImagesRow extends SupabaseDataRow {
   String? get productCategory => getField<String>('product_category');
   set productCategory(String? value) =>
       setField<String>('product_category', value);
+
+  String? get productType => getField<String>('product_type');
+  set productType(String? value) => setField<String>('product_type', value);
+
+  // Legacy aliases — columns removed from DB, mapped to nearest equivalents.
+  double? get score => saCompositeScore;
+  String? get summary => saQuickSummary;
+  List<String> get skinTypeTags => saBestForTags;
+  int? get starsFromUser => null;
+  String? get rating => null;
+  String? get pros => null;
+  String? get cons => null;
+  String? get warnings => null;
+  String? get skinTypeRecommendation => null;
+  dynamic get detailedAnalysis => null;
+  dynamic get scientificAnalysis => null;
 }

@@ -6,6 +6,8 @@ export '/pages/onboarding_profile/onboarding_profile_widget.dart'
     show OnboardingProfileWidget;
 export '/pages/onboarding_instructions/onboarding_instructions_widget.dart'
     show OnboardingInstructionsWidget;
+export '/pages/onboarding_carousel/onboarding_carousel_widget.dart'
+    show OnboardingCarouselWidget;
 export '/boards/boards/boards_widget.dart' show BoardsWidget;
 export '/home/home/home_widget.dart' show HomeWidget;
 export '/pages/profile/profile_widget.dart' show ProfileWidget;

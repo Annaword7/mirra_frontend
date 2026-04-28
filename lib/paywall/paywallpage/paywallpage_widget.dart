@@ -6,6 +6,7 @@ import '/custom_code/widgets/index.dart' as custom_widgets;
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
+import '/index.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/backend/schema/structs/index.dart';
 import '/custom_code/actions/index.dart' as actions;
@@ -106,7 +107,11 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                               size: 20.0,
                             ),
                             onPressed: () async {
-                              context.pop();
+                              if (context.canPop()) {
+                                context.pop();
+                              } else {
+                                context.goNamed(HomeWidget.routeName);
+                              }
                             },
                           ),
                           Container(

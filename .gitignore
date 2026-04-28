@@ -1,3 +1,5 @@
+assets/videos/
+
 # Flutter/Dart
 .dart_tool/
 .flutter-plugins
@@ -45,3 +47,9 @@ macos/Flutter/ephemeral/
 # OS
 .DS_Store
 Thumbs.db
+
+# Certificates & keys
+*.csr
+*.key
+*.p12
+*.pem
