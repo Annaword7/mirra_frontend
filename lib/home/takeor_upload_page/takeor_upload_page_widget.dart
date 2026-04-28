@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:typed_data';
 import '/auth/supabase_auth/auth_util.dart';
+import '/shared_image_state.dart';
 import '/flutter_flow/analytics_service.dart';
 import '/backend/api_requests/api_calls.dart';
 import '/backend/supabase/supabase.dart';
@@ -81,7 +83,434 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
+
+    // Consume image shared from "Open in MiRRA" (e.g. from Photos share sheet)
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final bytes = SharedImageState.instance.pendingImage;
+      if (bytes == null) return;
+      SharedImageState.instance.pendingImage = null;
+      await _handleSharedImage(context, bytes);
+    });
+
     _loadHintState();
+  }
+
+  /// Upload raw bytes (shared from an external app) and run the full analysis chain.
+  Future<void> _handleSharedImage(BuildContext context, Uint8List bytes) async {
+    // Subscription gate — same as the gallery button
+    _model.checkifallowedGalarry = await SubscriptioncheckNEWBCNDCall.call(
+      host: FFDevEnvironmentValues().backendhost,
+      userId: currentUserUid,
+    );
+    if (!(_model.checkifallowedGalarry?.succeeded ?? false)) {
+      await showModalBottomSheet(
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        enableDrag: false,
+        context: context,
+        builder: (ctx) => GestureDetector(
+          onTap: () {
+            FocusScope.of(ctx).unfocus();
+            FocusManager.instance.primaryFocus?.unfocus();
+          },
+          child: Padding(
+            padding: MediaQuery.viewInsetsOf(ctx),
+            child: OutOfGenerationsWidget(),
+          ),
+        ),
+      ).then((_) => safeSetState(() {}));
+      FFAppState().uploadedimageurl = '';
+      FFAppState().analysisloading = false;
+      safeSetState(() {});
+      return;
+    }
+
+    // Upload bytes directly (bypasses image picker)
+    final storagePath =
+        'users_images/shared_${DateTime.now().millisecondsSinceEpoch}.jpg';
+    final selectedFile = SelectedFile(storagePath: storagePath, bytes: bytes);
+    safeSetState(
+        () => _model.isDataUploading_uploadImageSupabaseGallary = true);
+    String downloadUrl = '';
+    try {
+      downloadUrl = await uploadSupabaseStorageFile(
+          bucketName: 'images', selectedFile: selectedFile);
+    } finally {
+      _model.isDataUploading_uploadImageSupabaseGallary = false;
+    }
+    if (downloadUrl.isEmpty) return;
+
+    safeSetState(() {
+      _model.uploadedLocalFile_uploadImageSupabaseGallary = FFUploadedFile(
+        name: storagePath.split('/').last,
+        bytes: bytes,
+      );
+      _model.uploadedFileUrl_uploadImageSupabaseGallary = downloadUrl;
+    });
+
+    await _runGalleryAnalysisFromModel(context);
+  }
+
+  /// Analysis chain shared between the gallery button and _handleSharedImage.
+  /// Reads _model.uploadedFileUrl_uploadImageSupabaseGallary which must be set
+  /// before calling this method.
+  Future<void> _runGalleryAnalysisFromModel(BuildContext context) async {
+    unawaited(
+        AnalyticsService.instance.trackAnalysisStarted(source: 'gallery'));
+    FFAppState().analysisloading = true;
+    FFAppState().extractedProductName = '';
+    FFAppState().extractedBrand = '';
+    safeSetState(() {});
+    if (_model.uploadedFileUrl_uploadImageSupabaseGallary != '') {
+      FFAppState().uploadedimageurl =
+          _model.uploadedFileUrl_uploadImageSupabaseGallary;
+      FFAppState().uploudedimagepath =
+          _model.uploadedFileUrl_uploadImageSupabaseGallary;
+      FFAppState().Producanalysstate = 1;
+      safeSetState(() {});
+      _model.extractedproductGalary =
+          await ExtractproductinfoNEWBCNDCopyCall.call(
+        host: FFDevEnvironmentValues().backendhost,
+        imageUrl: FFAppState().uploadedimageurl,
+        userId: currentUserUid,
+        languageCode: FFLocalizations.of(context).languageCode,
+        country: FFAppState().countrycode,
+      );
+
+      if ((_model.extractedproductGalary?.succeeded ?? true)) {
+        FFAppState().Producanalysstate = 2;
+        FFAppState().extractedProductName =
+            ExtractproductinfoNEWBCNDCopyCall.name(
+                  (_model.extractedproductGalary?.jsonBody ?? ''),
+                ) ??
+                '';
+        FFAppState().extractedBrand =
+            ExtractproductinfoNEWBCNDCopyCall.brand(
+                  (_model.extractedproductGalary?.jsonBody ?? ''),
+                ) ??
+                '';
+        safeSetState(() {});
+        _model.analyseImageProductName =
+            await SearchingredientsNEWBCNDCall.call(
+          host: FFDevEnvironmentValues().backendhost,
+          imageId: ExtractproductinfoNEWBCNDCopyCall.iamgeID(
+            (_model.extractedproductGalary?.jsonBody ?? ''),
+          )?.toString(),
+          productName: ExtractproductinfoNEWBCNDCopyCall.name(
+            (_model.extractedproductGalary?.jsonBody ?? ''),
+          ),
+          brand: ExtractproductinfoNEWBCNDCopyCall.brand(
+            (_model.extractedproductGalary?.jsonBody ?? ''),
+          ),
+          country: _model.countriesRaw
+              ?.where((e) =>
+                  e.id == _model.useranalyspage?.firstOrNull?.countryId)
+              .toList()
+              .firstOrNull
+              ?.code,
+        );
+      } else {
+        await TelegrammessegeCall.call(
+          messega:
+              '${_model.uploadedFileUrl_uploadImageSupabaseGallary} на этапе extract product info галерея',
+          email: 'from mobile app Extract Product Name Step',
+          form: 'tech message',
+        );
+        await showDialog(
+          context: context,
+          builder: (alertDialogContext) {
+            return AlertDialog(
+              title: Text('Error!'),
+              content: Text('Product not found, data error - 3'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(alertDialogContext),
+                  child: Text('Ok'),
+                ),
+              ],
+            );
+          },
+        );
+        FFAppState().uploadedimageurl = '';
+        FFAppState().analysisloading = false;
+        FFAppState().Producanalysstate = 0;
+        safeSetState(() {});
+        await ImagesTable().delete(
+          matchingRows: (rows) => rows.eqOrNull(
+            'id',
+            ExtractproductinfoNEWBCNDCopyCall.iamgeID(
+              (_model.extractedproductGalary?.jsonBody ?? ''),
+            ),
+          ),
+        );
+        return;
+      }
+
+      if ((_model.analyseImageProductName?.statusCode ?? 200) == 200) {
+        FFAppState().Producanalysstate = 3;
+        safeSetState(() {});
+        _model.scientificanalysresultcamara =
+            await ScientificanalysisNEWBCNDCall.call(
+          host: FFDevEnvironmentValues().backendhost,
+          imageId: ExtractproductinfoNEWBCNDCopyCall.iamgeID(
+            (_model.extractedproductGalary?.jsonBody ?? ''),
+          )?.toString(),
+          userId: currentUserUid,
+          languageCode: ExtractproductinfoNEWBCNDCopyCall.langcode(
+            (_model.extractedproductGalary?.jsonBody ?? ''),
+          ),
+        );
+
+        if ((_model.scientificanalysresultgalary?.succeeded ?? true)) {
+          context.pushNamed(
+            Itemcard2Widget.routeName,
+            queryParameters: {
+              'imageid': serializeParam(
+                ExtractproductinfoNEWBCNDCopyCall.iamgeID(
+                  (_model.extractedproductGalary?.jsonBody ?? ''),
+                ),
+                ParamType.int,
+              ),
+            }.withoutNulls,
+          );
+          FFAppState().uploadedimageurl = '';
+          FFAppState().analysisloading = false;
+          safeSetState(() {});
+        } else {
+          final statusCode =
+              _model.scientificanalysresultcamara?.statusCode ?? 0;
+          if (statusCode == 422) {
+            await showDialog(
+              context: context,
+              builder: (alertDialogContext) {
+                return AlertDialog(
+                  title: Text(
+                      FFLocalizations.of(context).getText('nnsq0kj5')),
+                  content: Text(
+                      FFLocalizations.of(context).getText('48je50c9')),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(alertDialogContext),
+                      child: Text('Ok'),
+                    ),
+                  ],
+                );
+              },
+            );
+          } else {
+            await TelegrammessegeCall.call(
+              messega:
+                  '${_model.uploadedFileUrl_uploadImageSupabaseCamera} на этапе scientific research, gallary',
+              email: 'from mobile app',
+              form: 'tech message',
+            );
+            await showDialog(
+              context: context,
+              builder: (alertDialogContext) {
+                return AlertDialog(
+                  title: Text('Error!'),
+                  content: Text('Product not found, data error'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(alertDialogContext),
+                      child: Text('Ok'),
+                    ),
+                  ],
+                );
+              },
+            );
+          }
+          FFAppState().uploadedimageurl = '';
+          FFAppState().analysisloading = false;
+          FFAppState().Producanalysstate = 0;
+          safeSetState(() {});
+          await ImagesTable().delete(
+            matchingRows: (rows) => rows.eqOrNull(
+              'id',
+              ExtractproductinfoNEWBCNDCopyCall.iamgeID(
+                (_model.extractedproductGalary?.jsonBody ?? ''),
+              ),
+            ),
+          );
+          return;
+        }
+      } else {
+        if ((_model.analyseImageProductName?.statusCode ?? 200) == 400) {
+          await showDialog(
+            context: context,
+            builder: (alertDialogContext) {
+              return AlertDialog(
+                title: Text('Error!'),
+                content: Text('Product not found, data error'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(alertDialogContext),
+                    child: Text('Ok'),
+                  ),
+                ],
+              );
+            },
+          );
+          FFAppState().uploadedimageurl = '';
+          FFAppState().analysisloading = false;
+          FFAppState().Producanalysstate = 0;
+          safeSetState(() {});
+          await ImagesTable().delete(
+            matchingRows: (rows) => rows.eqOrNull(
+              'id',
+              ExtractproductinfoNEWBCNDCopyCall.iamgeID(
+                (_model.extractedproductGalary?.jsonBody ?? ''),
+              ),
+            ),
+          );
+        } else if ((_model.analyseImageProductName?.statusCode ?? 200) ==
+            429) {
+          await showModalBottomSheet(
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            enableDrag: false,
+            context: context,
+            builder: (context) {
+              return GestureDetector(
+                onTap: () {
+                  FocusScope.of(context).unfocus();
+                  FocusManager.instance.primaryFocus?.unfocus();
+                },
+                child: Padding(
+                  padding: MediaQuery.viewInsetsOf(context),
+                  child: LimitOutWidget(
+                    limit: SearchingredientsNEWBCNDCall.limit(
+                      (_model.analyseImageProductName?.jsonBody ?? ''),
+                    )!,
+                    date: SearchingredientsNEWBCNDCall.resettime(
+                      (_model.analyseImageProductName?.jsonBody ?? ''),
+                    )!,
+                    isPro: FFAppState().isprouser,
+                  ),
+                ),
+              );
+            },
+          ).then((value) => safeSetState(() {}));
+          FFAppState().uploadedimageurl = '';
+          FFAppState().analysisloading = false;
+          FFAppState().Producanalysstate = 0;
+          safeSetState(() {});
+          await ImagesTable().delete(
+            matchingRows: (rows) => rows.eqOrNull(
+              'id',
+              ExtractproductinfoNEWBCNDCopyCall.iamgeID(
+                (_model.extractedproductGalary?.jsonBody ?? ''),
+              ),
+            ),
+          );
+        } else if ((_model.analyseImageProductName?.statusCode ?? 200) ==
+            500) {
+          context.pushNamed(HomeWidget.routeName);
+          await ImagesTable().delete(
+            matchingRows: (rows) => rows.eqOrNull(
+              'id',
+              ExtractproductinfoNEWBCNDCopyCall.iamgeID(
+                (_model.extractedproductGalary?.jsonBody ?? ''),
+              ),
+            ),
+          );
+          await showDialog(
+            context: context,
+            builder: (alertDialogContext) {
+              return AlertDialog(
+                title: Text(SearchingredientsNEWBCNDCall.error(
+                  (_model.analyseImageProductName?.jsonBody ?? ''),
+                )!),
+                content: Text(SearchingredientsNEWBCNDCall.details(
+                  (_model.analyseImageProductName?.jsonBody ?? ''),
+                )!),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(alertDialogContext),
+                    child: Text('Ok'),
+                  ),
+                ],
+              );
+            },
+          );
+          FFAppState().uploadedimageurl = '';
+          FFAppState().analysisloading = false;
+          FFAppState().Producanalysstate = 0;
+          safeSetState(() {});
+        } else if ((_model.analyseImageProductName?.statusCode ?? 200) ==
+            422) {
+          await showDialog(
+            context: context,
+            builder: (alertDialogContext) {
+              return AlertDialog(
+                title: Text('Unsupported product'),
+                content: Text(
+                  SearchingredientsNEWBCNDCall.error(
+                    (_model.analyseImageProductName?.jsonBody ?? ''),
+                  ) ??
+                      'This product type is not supported yet.',
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(alertDialogContext),
+                    child: Text('Ok'),
+                  ),
+                ],
+              );
+            },
+          );
+          FFAppState().uploadedimageurl = '';
+          FFAppState().analysisloading = false;
+          FFAppState().Producanalysstate = 0;
+          safeSetState(() {});
+          await ImagesTable().delete(
+            matchingRows: (rows) => rows.eqOrNull(
+              'id',
+              ExtractproductinfoNEWBCNDCopyCall.iamgeID(
+                (_model.extractedproductGalary?.jsonBody ?? ''),
+              ),
+            ),
+          );
+        } else {
+          await TelegrammessegeCall.call(
+            messega:
+                '${_model.uploadedFileUrl_uploadImageSupabaseGallary} на этапе анализа, из галереи',
+            email: 'from mobile app',
+            form: 'tech message',
+          );
+          await showDialog(
+            context: context,
+            builder: (alertDialogContext) {
+              return AlertDialog(
+                title: Text('Error!'),
+                content: Text('Product not found, data error'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(alertDialogContext),
+                    child: Text('Ok'),
+                  ),
+                ],
+              );
+            },
+          );
+          FFAppState().uploadedimageurl = '';
+          FFAppState().analysisloading = false;
+          FFAppState().Producanalysstate = 0;
+          safeSetState(() {});
+          await ImagesTable().delete(
+            matchingRows: (rows) => rows.eqOrNull(
+              'id',
+              ExtractproductinfoNEWBCNDCopyCall.iamgeID(
+                (_model.extractedproductGalary?.jsonBody ?? ''),
+              ),
+            ),
+          );
+        }
+      }
+    } else {
+      FFAppState().analysisloading = false;
+      safeSetState(() {});
+    }
   }
 
   Future<void> _loadHintState() async {
@@ -691,403 +1120,9 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
             return;
           }
 
-          unawaited(AnalyticsService.instance.trackAnalysisStarted(source: 'gallery'));
-          FFAppState().analysisloading = true;
-          FFAppState().extractedProductName = '';
-          FFAppState().extractedBrand = '';
-          safeSetState(() {});
-          if (_model.uploadedFileUrl_uploadImageSupabaseGallary != '') {
-            FFAppState().uploadedimageurl =
-                _model.uploadedFileUrl_uploadImageSupabaseGallary;
-            FFAppState().uploudedimagepath =
-                _model.uploadedFileUrl_uploadImageSupabaseGallary;
-            FFAppState().Producanalysstate = 1;
-            safeSetState(() {});
-            _model.extractedproductGalary =
-                await ExtractproductinfoNEWBCNDCopyCall.call(
-              host: FFDevEnvironmentValues().backendhost,
-              imageUrl: FFAppState().uploadedimageurl,
-              userId: currentUserUid,
-              languageCode: FFLocalizations.of(context).languageCode,
-              country: FFAppState().countrycode,
-            );
-
-            _shouldSetState = true;
-            if ((_model.extractedproductGalary?.succeeded ?? true)) {
-              FFAppState().Producanalysstate = 2;
-              FFAppState().extractedProductName =
-                  ExtractproductinfoNEWBCNDCopyCall.name(
-                        (_model.extractedproductGalary?.jsonBody ?? ''),
-                      ) ??
-                      '';
-              FFAppState().extractedBrand =
-                  ExtractproductinfoNEWBCNDCopyCall.brand(
-                        (_model.extractedproductGalary?.jsonBody ?? ''),
-                      ) ??
-                      '';
-              safeSetState(() {});
-              _model.analyseImageProductName =
-                  await SearchingredientsNEWBCNDCall.call(
-                host: FFDevEnvironmentValues().backendhost,
-                imageId: ExtractproductinfoNEWBCNDCopyCall.iamgeID(
-                  (_model.extractedproductGalary?.jsonBody ?? ''),
-                )?.toString(),
-                productName: ExtractproductinfoNEWBCNDCopyCall.name(
-                  (_model.extractedproductGalary?.jsonBody ?? ''),
-                ),
-                brand: ExtractproductinfoNEWBCNDCopyCall.brand(
-                  (_model.extractedproductGalary?.jsonBody ?? ''),
-                ),
-                country: _model.countriesRaw
-                    ?.where((e) =>
-                        e.id ==
-                        _model.useranalyspage?.firstOrNull?.countryId)
-                    .toList()
-                    .firstOrNull
-                    ?.code,
-              );
-
-              _shouldSetState = true;
-            } else {
-              await TelegrammessegeCall.call(
-                messega:
-                    '${_model.uploadedFileUrl_uploadImageSupabaseGallary} на этапе extract product info галерея',
-                email: 'from mobile app Extract Product Name Step',
-                form: 'tech message',
-              );
-
-              await showDialog(
-                context: context,
-                builder: (alertDialogContext) {
-                  return AlertDialog(
-                    title: Text('Error!'),
-                    content: Text('Product not found, data error - 3'),
-                    actions: [
-                      TextButton(
-                        onPressed: () =>
-                            Navigator.pop(alertDialogContext),
-                        child: Text('Ok'),
-                      ),
-                    ],
-                  );
-                },
-              );
-              FFAppState().uploadedimageurl = '';
-              FFAppState().analysisloading = false;
-              FFAppState().Producanalysstate = 0;
-              safeSetState(() {});
-              await ImagesTable().delete(
-                matchingRows: (rows) => rows.eqOrNull(
-                  'id',
-                  ExtractproductinfoNEWBCNDCopyCall.iamgeID(
-                    (_model.extractedproductGalary?.jsonBody ?? ''),
-                  ),
-                ),
-              );
-              if (_shouldSetState) safeSetState(() {});
-              return;
-            }
-
-            if ((_model.analyseImageProductName?.statusCode ?? 200) ==
-                200) {
-              FFAppState().Producanalysstate = 3;
-              safeSetState(() {});
-              _model.scientificanalysresultcamara =
-                  await ScientificanalysisNEWBCNDCall.call(
-                host: FFDevEnvironmentValues().backendhost,
-                imageId: ExtractproductinfoNEWBCNDCopyCall.iamgeID(
-                  (_model.extractedproductGalary?.jsonBody ?? ''),
-                )?.toString(),
-                userId: currentUserUid,
-                languageCode: ExtractproductinfoNEWBCNDCopyCall.langcode(
-                  (_model.extractedproductGalary?.jsonBody ?? ''),
-                ),
-              );
-
-              _shouldSetState = true;
-              if ((_model.scientificanalysresultgalary?.succeeded ??
-                  true)) {
-                context.pushNamed(
-                  Itemcard2Widget.routeName,
-                  queryParameters: {
-                    'imageid': serializeParam(
-                      ExtractproductinfoNEWBCNDCopyCall.iamgeID(
-                        (_model.extractedproductGalary?.jsonBody ?? ''),
-                      ),
-                      ParamType.int,
-                    ),
-                  }.withoutNulls,
-                );
-
-                FFAppState().uploadedimageurl = '';
-                FFAppState().analysisloading = false;
-                safeSetState(() {});
-              } else {
-                final _galleryScientificStatusCode =
-                    _model.scientificanalysresultcamara?.statusCode ?? 0;
-                if (_galleryScientificStatusCode == 422) {
-                  await showDialog(
-                    context: context,
-                    builder: (alertDialogContext) {
-                      return AlertDialog(
-                        title: Text(FFLocalizations.of(context)
-                            .getText('nnsq0kj5')),
-                        content: Text(FFLocalizations.of(context)
-                            .getText('48je50c9')),
-                        actions: [
-                          TextButton(
-                            onPressed: () =>
-                                Navigator.pop(alertDialogContext),
-                            child: Text('Ok'),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                } else {
-                  await TelegrammessegeCall.call(
-                    messega:
-                        '${_model.uploadedFileUrl_uploadImageSupabaseCamera} на этапе scientific research, gallary',
-                    email: 'from mobile app',
-                    form: 'tech message',
-                  );
-
-                  await showDialog(
-                    context: context,
-                    builder: (alertDialogContext) {
-                      return AlertDialog(
-                        title: Text('Error!'),
-                        content: Text('Product not found, data error'),
-                        actions: [
-                          TextButton(
-                            onPressed: () =>
-                                Navigator.pop(alertDialogContext),
-                            child: Text('Ok'),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                }
-                FFAppState().uploadedimageurl = '';
-                FFAppState().analysisloading = false;
-                FFAppState().Producanalysstate = 0;
-                safeSetState(() {});
-                await ImagesTable().delete(
-                  matchingRows: (rows) => rows.eqOrNull(
-                    'id',
-                    ExtractproductinfoNEWBCNDCopyCall.iamgeID(
-                      (_model.extractedproductGalary?.jsonBody ?? ''),
-                    ),
-                  ),
-                );
-                if (_shouldSetState) safeSetState(() {});
-                return;
-              }
-            } else {
-              if ((_model.analyseImageProductName?.statusCode ?? 200) ==
-                  400) {
-                await showDialog(
-                  context: context,
-                  builder: (alertDialogContext) {
-                    return AlertDialog(
-                      title: Text('Error!'),
-                      content: Text('Product not found, data error'),
-                      actions: [
-                        TextButton(
-                          onPressed: () =>
-                              Navigator.pop(alertDialogContext),
-                          child: Text('Ok'),
-                        ),
-                      ],
-                    );
-                  },
-                );
-                FFAppState().uploadedimageurl = '';
-                FFAppState().analysisloading = false;
-                FFAppState().Producanalysstate = 0;
-                safeSetState(() {});
-                await ImagesTable().delete(
-                  matchingRows: (rows) => rows.eqOrNull(
-                    'id',
-                    ExtractproductinfoNEWBCNDCopyCall.iamgeID(
-                      (_model.extractedproductGalary?.jsonBody ?? ''),
-                    ),
-                  ),
-                );
-              } else {
-                if ((_model.analyseImageProductName?.statusCode ?? 200) ==
-                    429) {
-                  await showModalBottomSheet(
-                    isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
-                    enableDrag: false,
-                    context: context,
-                    builder: (context) {
-                      return GestureDetector(
-                        onTap: () {
-                          FocusScope.of(context).unfocus();
-                          FocusManager.instance.primaryFocus?.unfocus();
-                        },
-                        child: Padding(
-                          padding: MediaQuery.viewInsetsOf(context),
-                          child: LimitOutWidget(
-                            limit: SearchingredientsNEWBCNDCall.limit(
-                              (_model.analyseImageProductName?.jsonBody ??
-                                  ''),
-                            )!,
-                            date: SearchingredientsNEWBCNDCall.resettime(
-                              (_model.analyseImageProductName?.jsonBody ??
-                                  ''),
-                            )!,
-                            isPro: FFAppState().isprouser,
-                          ),
-                        ),
-                      );
-                    },
-                  ).then((value) => safeSetState(() {}));
-
-                  FFAppState().uploadedimageurl = '';
-                  FFAppState().analysisloading = false;
-                  FFAppState().Producanalysstate = 0;
-                  safeSetState(() {});
-                  await ImagesTable().delete(
-                    matchingRows: (rows) => rows.eqOrNull(
-                      'id',
-                      ExtractproductinfoNEWBCNDCopyCall.iamgeID(
-                        (_model.extractedproductGalary?.jsonBody ?? ''),
-                      ),
-                    ),
-                  );
-                } else {
-                  if ((_model.analyseImageProductName?.statusCode ??
-                          200) ==
-                      500) {
-                    context.pushNamed(HomeWidget.routeName);
-
-                    await ImagesTable().delete(
-                      matchingRows: (rows) => rows.eqOrNull(
-                        'id',
-                        ExtractproductinfoNEWBCNDCopyCall.iamgeID(
-                          (_model.extractedproductGalary?.jsonBody ?? ''),
-                        ),
-                      ),
-                    );
-                    await showDialog(
-                      context: context,
-                      builder: (alertDialogContext) {
-                        return AlertDialog(
-                          title: Text(SearchingredientsNEWBCNDCall.error(
-                            (_model.analyseImageProductName?.jsonBody ??
-                                ''),
-                          )!),
-                          content:
-                              Text(SearchingredientsNEWBCNDCall.details(
-                            (_model.analyseImageProductName?.jsonBody ??
-                                ''),
-                          )!),
-                          actions: [
-                            TextButton(
-                              onPressed: () =>
-                                  Navigator.pop(alertDialogContext),
-                              child: Text('Ok'),
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                    FFAppState().uploadedimageurl = '';
-                    FFAppState().analysisloading = false;
-                    FFAppState().Producanalysstate = 0;
-                    safeSetState(() {});
-                    safeSetState(() {});
-                  } else if ((_model.analyseImageProductName?.statusCode ??
-                          200) ==
-                      422) {
-                    await showDialog(
-                      context: context,
-                      builder: (alertDialogContext) {
-                        return AlertDialog(
-                          title: Text('Unsupported product'),
-                          content: Text(
-                            SearchingredientsNEWBCNDCall.error(
-                              (_model.analyseImageProductName?.jsonBody ??
-                                  ''),
-                            ) ??
-                                'This product type is not supported yet.',
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () =>
-                                  Navigator.pop(alertDialogContext),
-                              child: Text('Ok'),
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                    FFAppState().uploadedimageurl = '';
-                    FFAppState().analysisloading = false;
-                    FFAppState().Producanalysstate = 0;
-                    safeSetState(() {});
-                    await ImagesTable().delete(
-                      matchingRows: (rows) => rows.eqOrNull(
-                        'id',
-                        ExtractproductinfoNEWBCNDCopyCall.iamgeID(
-                          (_model.extractedproductGalary?.jsonBody ?? ''),
-                        ),
-                      ),
-                    );
-                    if (_shouldSetState) safeSetState(() {});
-                    return;
-                  } else {
-                    await TelegrammessegeCall.call(
-                      messega:
-                          '${_model.uploadedFileUrl_uploadImageSupabaseGallary} на этапе анализа, из галереи',
-                      email: 'from mobile app',
-                      form: 'tech message',
-                    );
-
-                    await showDialog(
-                      context: context,
-                      builder: (alertDialogContext) {
-                        return AlertDialog(
-                          title: Text('Error!'),
-                          content: Text('Product not found, data error'),
-                          actions: [
-                            TextButton(
-                              onPressed: () =>
-                                  Navigator.pop(alertDialogContext),
-                              child: Text('Ok'),
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                    FFAppState().uploadedimageurl = '';
-                    FFAppState().analysisloading = false;
-                    FFAppState().Producanalysstate = 0;
-                    safeSetState(() {});
-                    await ImagesTable().delete(
-                      matchingRows: (rows) => rows.eqOrNull(
-                        'id',
-                        ExtractproductinfoNEWBCNDCopyCall.iamgeID(
-                          (_model.extractedproductGalary?.jsonBody ?? ''),
-                        ),
-                      ),
-                    );
-                    if (_shouldSetState) safeSetState(() {});
-                    return;
-                  }
-                }
-              }
-            }
-          } else {
-            FFAppState().analysisloading = false;
-            safeSetState(() {});
-            if (_shouldSetState) safeSetState(() {});
-            return;
-          }
+          await _runGalleryAnalysisFromModel(context);
+          if (_shouldSetState) safeSetState(() {});
+          return;
         } else {
           await showModalBottomSheet(
             isScrollControlled: true,
