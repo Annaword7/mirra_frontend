@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -14,8 +15,10 @@ class NotificationService {
   NotificationService._();
   static final instance = NotificationService._();
 
-  final _fcm = FirebaseMessaging.instance;
+  FirebaseMessaging get _fcm => FirebaseMessaging.instance;
   final _localNotifications = FlutterLocalNotificationsPlugin();
+  bool _initialized = false;
+  bool _retryScheduled = false;
 
   void Function(Map<String, dynamic>)? _onTap;
   String? _cachedToken;
@@ -44,7 +47,18 @@ class NotificationService {
 
   /// Call once from _MyAppState.initState() after the router is ready.
   Future<void> init({required void Function(Map<String, dynamic>) onTap}) async {
+    if (_initialized) return;
     _onTap = onTap;
+    if (Firebase.apps.isEmpty) {
+      if (!_retryScheduled) {
+        _retryScheduled = true;
+        Future.delayed(const Duration(seconds: 2), () {
+          _retryScheduled = false;
+          init(onTap: onTap);
+        });
+      }
+      return;
+    }
 
     FirebaseMessaging.onBackgroundMessage(_firebaseBackgroundHandler);
 
@@ -111,10 +125,12 @@ class NotificationService {
       await Future.delayed(const Duration(milliseconds: 1200));
       _onTap?.call(initial.data);
     }
+    _initialized = true;
   }
 
   /// Call on any auth state change (anonymous → authenticated, or fresh login).
   Future<void> onUserLogin() async {
+    if (Firebase.apps.isEmpty) return;
     if (!await _waitForApnsToken()) return;
     final token = await _fcm.getToken() ?? _cachedToken;
     if (token != null) {
@@ -128,6 +144,7 @@ class NotificationService {
 
   /// Call on logout to deactivate token.
   Future<void> onUserLogout() async {
+    if (Firebase.apps.isEmpty) return;
     final token = _cachedToken ?? await _fcm.getToken();
     if (token == null) return;
     final userId = Supabase.instance.client.auth.currentUser?.id;

@@ -4,7 +4,6 @@ import 'dart:typed_data';
 import 'package:flutter/services.dart';
 import '/custom_code/actions/index.dart' as actions;
 import 'shared_image_state.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -28,7 +27,6 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   GoRouter.optionURLReflectsImperativeAPIs = true;
   usePathUrlStrategy();
-  await FFLocalizations.initialize();
 
   // Render UI immediately
   final appState = FFAppState();
@@ -42,21 +40,14 @@ void main() async {
 
   // ---- Everything below runs async and MUST NOT block UI ----
 
+  unawaited(FFLocalizations.initialize());
+  unawaited(initFirebase());
+
   final environmentValues = FFDevEnvironmentValues();
   unawaited(environmentValues.initialize());
 
   // Start Supabase in background
   unawaited(SupaFlow.initialize());
-
-  // Firebase init in background
-  unawaited(initFirebase());
-
-  // Crashlytics setup (safe even if Firebase still initializing)
-  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
-  PlatformDispatcher.instance.onError = (error, stack) {
-    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-    return true;
-  };
 
   // Non-critical startup tasks
   unawaited(actions.lockOrientation());

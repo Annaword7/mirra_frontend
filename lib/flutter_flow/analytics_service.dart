@@ -1,4 +1,6 @@
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/widgets.dart';
 
 /// Singleton analytics service wrapping FirebaseAnalytics.
 /// Usage: AnalyticsService.instance.trackCardOpened(source: 'home');
@@ -6,18 +8,26 @@ class AnalyticsService {
   AnalyticsService._();
   static final AnalyticsService instance = AnalyticsService._();
 
-  final FirebaseAnalytics _analytics = FirebaseAnalytics.instance;
+  FirebaseAnalytics? _analytics;
+  bool get _firebaseReady => Firebase.apps.isNotEmpty;
+  FirebaseAnalytics get _safeAnalytics =>
+      _analytics ??= FirebaseAnalytics.instance;
 
-  FirebaseAnalyticsObserver get observer =>
-      FirebaseAnalyticsObserver(analytics: _analytics);
+  NavigatorObserver get observer => _firebaseReady
+      ? FirebaseAnalyticsObserver(analytics: _safeAnalytics)
+      : NavigatorObserver();
 
   // ── Authentication ────────────────────────────────────────────────────────
 
   Future<void> trackSignUp({String method = 'email'}) =>
-      _analytics.logSignUp(signUpMethod: method);
+      _firebaseReady
+          ? _safeAnalytics.logSignUp(signUpMethod: method)
+          : Future.value();
 
   Future<void> trackLogin({String method = 'email'}) =>
-      _analytics.logLogin(loginMethod: method);
+      _firebaseReady
+          ? _safeAnalytics.logLogin(loginMethod: method)
+          : Future.value();
 
   Future<void> trackAnonSessionStarted() =>
       _log('anon_session_started');
@@ -94,5 +104,7 @@ class AnalyticsService {
 
   Future<void> _log(String name,
       [Map<String, Object>? parameters]) =>
-      _analytics.logEvent(name: name, parameters: parameters);
+      _firebaseReady
+          ? _safeAnalytics.logEvent(name: name, parameters: parameters)
+          : Future.value();
 }
