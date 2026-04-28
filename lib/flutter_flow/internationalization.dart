@@ -21,8 +21,19 @@ class FFLocalizations {
   static Future storeLocale(String locale) =>
       _prefs.setString(_kLocaleStorageKey, locale);
   static Locale? getStoredLocale() {
+    if (!isInitialized) {
+      return null;
+    }
     final locale = _prefs.getString(_kLocaleStorageKey);
     return locale != null && locale.isNotEmpty ? createLocale(locale) : null;
+  }
+  static bool get isInitialized {
+    try {
+      _prefs;
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   String get languageCode => locale.toString();

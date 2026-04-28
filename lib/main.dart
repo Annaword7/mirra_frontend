@@ -28,43 +28,48 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   GoRouter.optionURLReflectsImperativeAPIs = true;
   usePathUrlStrategy();
+  await FFLocalizations.initialize();
+
+  // Render UI immediately
+  final appState = FFAppState();
+
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => appState,
+      child: MyApp(),
+    ),
+  );
+
+  // ---- Everything below runs async and MUST NOT block UI ----
 
   final environmentValues = FFDevEnvironmentValues();
-  await environmentValues.initialize();
+  unawaited(environmentValues.initialize());
 
-  await initFirebase();
+  // Start Supabase in background
+  unawaited(SupaFlow.initialize());
 
-  // Catch all Flutter framework errors
+  // Firebase init in background
+  unawaited(initFirebase());
+
+  // Crashlytics setup (safe even if Firebase still initializing)
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
-  // Catch errors outside Flutter (platform, isolates, async)
   PlatformDispatcher.instance.onError = (error, stack) {
     FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
     return true;
   };
 
-  // Start initial custom actions code
-  await actions.lockOrientation();
-  // End initial custom actions code
+  // Non-critical startup tasks
+  unawaited(actions.lockOrientation());
+  unawaited(appState.initializePersistedState());
 
-  await SupaFlow.initialize();
+  // Remote config & purchases
+  unawaited(fetchRemoteConfig());
 
-  await FFLocalizations.initialize();
-
-  final appState = FFAppState(); // Initialize FFAppState
-  await appState.initializePersistedState();
-
-  await fetchRemoteConfig();
-
-  await revenue_cat.initialize(
+  unawaited(revenue_cat.initialize(
     "appl_nlqWcEvNVGNUCbMcdEcsbKbwNrV",
     "",
     debugLogEnabled: true,
     loadDataAfterLaunch: true,
-  );
-
-  runApp(ChangeNotifierProvider(
-    create: (context) => appState,
-    child: MyApp(),
   ));
 }
 
