@@ -161,11 +161,11 @@ class FeedbackCollectorWidget extends StatelessWidget {
                         FFAppState().feedbackLastShownVersion = await _appVersion();
                         final inAppReview = InAppReview.instance;
                         if (await inAppReview.isAvailable()) {
+                          // requestReview may be silently ignored by iOS quotas.
                           await inAppReview.requestReview();
-                        } else {
-                          await inAppReview.openStoreListing(
-                              appStoreId: '6745415201');
                         }
+                        await inAppReview.openStoreListing(
+                            appStoreId: '6745415201');
                         if (context.mounted) Navigator.pop(context);
                       },
                       child: Ink(

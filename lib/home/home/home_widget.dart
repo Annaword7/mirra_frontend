@@ -890,8 +890,83 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                       r.productType ?? ''))
                                               .toList();
 
-                                  if (staggeredViewImagesRowList.isEmpty &&
-                                      _model.selectedCategory != 'all') {
+                                  if (staggeredViewImagesRowList.isEmpty) {
+                                    if (_model.selectedCategory == 'all') {
+                                      // No products at all — show onboarding empty state
+                                      final lang = FFLocalizations.of(context).languageCode;
+                                      final title = lang == 'ru'
+                                          ? 'Здесь появятся ваши продукты'
+                                          : lang == 'es'
+                                              ? 'Tus productos aparecerán aquí'
+                                              : 'Your products will appear here';
+                                      final subtitle = lang == 'ru'
+                                          ? 'Сфотографируйте косметику или добавьте скриншот из галереи'
+                                          : lang == 'es'
+                                              ? 'Fotografía un cosmético o añade una captura de pantalla'
+                                              : 'Photograph a product or add a screenshot from your gallery';
+                                      final btnLabel = lang == 'ru'
+                                          ? 'Добавить продукт'
+                                          : lang == 'es'
+                                              ? 'Añadir producto'
+                                              : 'Add a product';
+                                      return Center(
+                                        child: Padding(
+                                          padding: const EdgeInsets.fromLTRB(32, 48, 32, 32),
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                Icons.camera_alt_outlined,
+                                                size: 56,
+                                                color: FlutterFlowTheme.of(context).primary.withOpacity(0.35),
+                                              ),
+                                              const SizedBox(height: 20),
+                                              Text(
+                                                title,
+                                                textAlign: TextAlign.center,
+                                                style: FlutterFlowTheme.of(context).titleMedium.override(
+                                                      fontFamily: FlutterFlowTheme.of(context).titleMediumFamily,
+                                                      color: FlutterFlowTheme.of(context).primaryText,
+                                                      letterSpacing: 0.0,
+                                                      fontWeight: FontWeight.w600,
+                                                      useGoogleFonts: !FlutterFlowTheme.of(context).titleMediumIsCustom,
+                                                    ),
+                                              ),
+                                              const SizedBox(height: 10),
+                                              Text(
+                                                subtitle,
+                                                textAlign: TextAlign.center,
+                                                style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                      fontFamily: FlutterFlowTheme.of(context).bodyMediumFamily,
+                                                      color: FlutterFlowTheme.of(context).secondaryText,
+                                                      letterSpacing: 0.0,
+                                                      useGoogleFonts: !FlutterFlowTheme.of(context).bodyMediumIsCustom,
+                                                    ),
+                                              ),
+                                              const SizedBox(height: 28),
+                                              FFButtonWidget(
+                                                onPressed: () => context.pushNamed(TakeorUploadPageWidget.routeName),
+                                                text: btnLabel,
+                                                options: FFButtonOptions(
+                                                  height: 50,
+                                                  padding: const EdgeInsetsDirectional.fromSTEB(28, 0, 28, 0),
+                                                  iconPadding: const EdgeInsetsDirectional.fromSTEB(0, 0, 0, 0),
+                                                  color: FlutterFlowTheme.of(context).primary,
+                                                  textStyle: FlutterFlowTheme.of(context).titleSmall.override(
+                                                        fontFamily: FlutterFlowTheme.of(context).titleSmallFamily,
+                                                        color: Colors.white,
+                                                        letterSpacing: 0.0,
+                                                        useGoogleFonts: !FlutterFlowTheme.of(context).titleSmallIsCustom,
+                                                      ),
+                                                  elevation: 0.0,
+                                                  borderRadius: BorderRadius.circular(50.0),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    }
                                     return Center(
                                       child: Padding(
                                         padding: EdgeInsets.only(top: 40.0),
