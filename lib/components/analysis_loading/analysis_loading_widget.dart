@@ -142,19 +142,17 @@ class _AnalysisLoadingWidgetState extends State<AnalysisLoadingWidget> {
 
   @override
   Widget build(BuildContext context) {
-    context.watch<FFAppState>();
-
     final lang = FFLocalizations.of(context).languageCode;
     final facts = _facts[lang] ?? _facts['en']!;
     final steps = _stepLabels[lang] ?? _stepLabels['en']!;
-    final currentStep = FFAppState().Producanalysstate; // 1, 2 or 3
+    final appState = context.watch<FFAppState>();
 
-    final productName = FFAppState().extractedProductName;
-    final brand = FFAppState().extractedBrand;
+    final currentStep = appState.Producanalysstate;
+    final productName = appState.extractedProductName;
+    final brand = appState.extractedBrand;
     final hasProduct = productName.isNotEmpty;
 
     final screenH = MediaQuery.of(context).size.height;
-    final topPadding = MediaQuery.of(context).padding.top;
     final bottomPadding = MediaQuery.of(context).padding.bottom;
 
     return Material(
@@ -167,9 +165,9 @@ class _AnalysisLoadingWidgetState extends State<AnalysisLoadingWidget> {
             left: 0,
             right: 0,
             height: screenH * 0.55,
-            child: FFAppState().uploudedimagepath.isNotEmpty
+            child: appState.uploudedimagepath.isNotEmpty
                 ? Image.network(
-                    FFAppState().uploudedimagepath,
+                    appState.uploudedimagepath,
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => Container(
                       color: FlutterFlowTheme.of(context).alternate,
@@ -220,12 +218,12 @@ class _AnalysisLoadingWidgetState extends State<AnalysisLoadingWidget> {
                             style: FlutterFlowTheme.of(context)
                                 .bodySmall
                                 .override(
-                                  fontFamily: FlutterFlowTheme.of(context)
-                                      .bodySmallFamily,
+                                  fontFamily:
+                                      FlutterFlowTheme.of(context).bodySmallFamily,
                                   color: Colors.white70,
                                   letterSpacing: 0,
-                                  useGoogleFonts: !FlutterFlowTheme.of(context)
-                                      .bodySmallIsCustom,
+                                  useGoogleFonts:
+                                      !FlutterFlowTheme.of(context).bodySmallIsCustom,
                                 ),
                           ),
                         const SizedBox(height: 2),
@@ -234,8 +232,8 @@ class _AnalysisLoadingWidgetState extends State<AnalysisLoadingWidget> {
                           style: FlutterFlowTheme.of(context)
                               .titleMedium
                               .override(
-                                fontFamily: FlutterFlowTheme.of(context)
-                                    .titleMediumFamily,
+                                fontFamily:
+                                    FlutterFlowTheme.of(context).titleMediumFamily,
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
                                 letterSpacing: 0,
@@ -245,7 +243,10 @@ class _AnalysisLoadingWidgetState extends State<AnalysisLoadingWidget> {
                         ),
                       ],
                     )
-                  : const SizedBox.shrink(key: ValueKey('empty')),
+                  : const SizedBox(
+                      height: 20,
+                      key: ValueKey('placeholder'),
+                    ),
             ),
           ),
 
@@ -276,14 +277,13 @@ class _AnalysisLoadingWidgetState extends State<AnalysisLoadingWidget> {
                             style: FlutterFlowTheme.of(context)
                                 .bodyMedium
                                 .override(
-                                  fontFamily: FlutterFlowTheme.of(context)
-                                      .bodyMediumFamily,
+                                  fontFamily:
+                                      FlutterFlowTheme.of(context).bodyMediumFamily,
                                   color: isActive
                                       ? FlutterFlowTheme.of(context).primary
                                       : FlutterFlowTheme.of(context).primaryText,
-                                  fontWeight: isActive
-                                      ? FontWeight.w600
-                                      : FontWeight.normal,
+                                  fontWeight:
+                                      isActive ? FontWeight.w600 : FontWeight.normal,
                                   letterSpacing: 0,
                                   useGoogleFonts: !FlutterFlowTheme.of(context)
                                       .bodyMediumIsCustom,
@@ -319,8 +319,8 @@ class _AnalysisLoadingWidgetState extends State<AnalysisLoadingWidget> {
                               style: FlutterFlowTheme.of(context)
                                   .bodySmall
                                   .override(
-                                    fontFamily: FlutterFlowTheme.of(context)
-                                        .bodySmallFamily,
+                                    fontFamily:
+                                        FlutterFlowTheme.of(context).bodySmallFamily,
                                     color: FlutterFlowTheme.of(context).primary,
                                     fontWeight: FontWeight.w600,
                                     letterSpacing: 0,
@@ -343,8 +343,8 @@ class _AnalysisLoadingWidgetState extends State<AnalysisLoadingWidget> {
                                     .override(
                                       fontFamily: FlutterFlowTheme.of(context)
                                           .bodyMediumFamily,
-                                      color: FlutterFlowTheme.of(context)
-                                          .primaryText,
+                                      color:
+                                          FlutterFlowTheme.of(context).primaryText,
                                       letterSpacing: 0,
                                       useGoogleFonts:
                                           !FlutterFlowTheme.of(context)

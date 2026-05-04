@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'dart:typed_data';
+import '/app_state.dart';
 import '/auth/supabase_auth/auth_util.dart';
 import '/shared_image_state.dart';
 import '/flutter_flow/analytics_service.dart';
@@ -398,7 +399,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                     date: SearchingredientsNEWBCNDCall.resettime(
                       (_model.analyseImageProductName?.jsonBody ?? ''),
                     )!,
-                    isPro: FFAppState().isprouser,
+                    isPro: context.read<FFAppState>().isprouser,
                   ),
                 ),
               );
@@ -864,7 +865,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                                       ?.jsonBody ??
                                   ''),
                             )!,
-                            isPro: FFAppState().isprouser,
+                            isPro: context.read<FFAppState>().isprouser,
                           ),
                         ),
                       );
@@ -1147,7 +1148,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
 
   @override
   Widget build(BuildContext context) {
-    context.watch<FFAppState>();
+    final appState = context.watch<FFAppState>();
 
     return GestureDetector(
       onTap: () {
@@ -1160,7 +1161,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
         body: Stack(
           children: [
             // ── Illustration (top content area) ──
-            if (!FFAppState().analysisloading)
+            if (!appState.analysisloading)
               Positioned.fill(
                 child: Padding(
                   padding: EdgeInsets.only(
@@ -1172,7 +1173,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
               ),
 
             // ── Bottom action zone (thumb reach) ──
-            if (!FFAppState().analysisloading)
+            if (!appState.analysisloading)
               Positioned(
                 left: 16,
                 right: 16,
@@ -1194,7 +1195,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
               ),
 
             // ── Full-screen loading overlay ──
-            if (FFAppState().analysisloading)
+            if (appState.analysisloading)
               const Positioned.fill(child: AnalysisLoadingWidget()),
 
             // ── Navbar ──
@@ -1205,7 +1206,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                 updateCallback: () => safeSetState(() {}),
                 child: NavbarWidget(
                   activePage: 5,
-                  analysesused: FFAppState().analysesused,
+                  analysesused: appState.analysesused,
                 ),
               ),
             ),

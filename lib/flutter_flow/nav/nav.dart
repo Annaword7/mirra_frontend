@@ -38,7 +38,7 @@ class AppStateNotifier extends ChangeNotifier {
   /// Otherwise, this will trigger a refresh and interrupt the action(s).
   bool notifyOnAuthChange = true;
 
-  bool get loading => user == null || showSplashImage;
+  bool get loading => showSplashImage;
   bool get loggedIn => user?.loggedIn ?? false;
   bool get initiallyLoggedIn => initialUser?.loggedIn ?? false;
   bool get shouldRedirect => loggedIn && _redirectLocation != null;
@@ -80,16 +80,44 @@ GoRouter createRouter(AppStateNotifier appStateNotifier, [Widget? entryPage]) =>
       refreshListenable: appStateNotifier,
       navigatorKey: appNavigatorKey,
       observers: [AnalyticsService.instance.observer],
-      errorBuilder: (context, state) => appStateNotifier.loggedIn
-          ? entryPage ?? HomeWidget()
-          : NewblankWidget(),
+      errorBuilder: (context, state) {
+        final appState = context.watch<FFAppState>();
+
+        if (appStateNotifier.loading) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (appStateNotifier.loggedIn) {
+          return entryPage ?? HomeWidget();
+        }
+
+        return appState.onboardingDone
+            ? NewblankWidget()
+            : OnboardingCarouselWidget();
+      },
       routes: [
         FFRoute(
           name: '_initialize',
           path: '/',
-          builder: (context, _) => appStateNotifier.loggedIn
-              ? entryPage ?? HomeWidget()
-              : (FFAppState().onboardingDone ? NewblankWidget() : OnboardingCarouselWidget()),
+          builder: (context, _) {
+            final appState = context.watch<FFAppState>();
+
+            if (appStateNotifier.loading) {
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            }
+
+            if (appStateNotifier.loggedIn) {
+              return entryPage ?? HomeWidget();
+            }
+
+            return appState.onboardingDone
+                ? NewblankWidget()
+                : OnboardingCarouselWidget();
+          },
         ),
         FFRoute(
           name: CreateAccountPageWidget.routeName,
@@ -413,11 +441,13 @@ class FFRoute {
                 )
               : builder(context, ffParams);
           final child = appStateNotifier.loading
-              ? Container(
-                  color: Colors.transparent,
-                  child: Image.asset(
-                    'assets/images/splash.png',
-                    fit: BoxFit.cover,
+              ? ColoredBox(
+                  color: Colors.white,
+                  child: Center(
+                    child: Image.asset(
+                      'assets/images/splash.png',
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 )
               : page;

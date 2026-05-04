@@ -150,10 +150,11 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
 
       // Show feedback prompt after the card has rendered and user has had
       // time to see the results.
-      if (FFAppState().feedbackPendingScan &&
-          await FeedbackService.shouldShowPrompt()) {
-        FFAppState().feedbackPendingScan = false;
-        await FeedbackService.recordShown();
+      final feedbackState = context.read<FFAppState>();
+      if (feedbackState.feedbackPendingScan &&
+          await FeedbackService.shouldShowPrompt(feedbackState)) {
+        feedbackState.feedbackPendingScan = false;
+        await FeedbackService.recordShown(feedbackState);
         await FirebaseAnalytics.instance.logEvent(name: 'feedback_prompt_shown');
         await Future.delayed(const Duration(seconds: 3));
         if (context.mounted) {
@@ -259,7 +260,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
 
   @override
   Widget build(BuildContext context) {
-    context.watch<FFAppState>();
+    final appState = context.watch<FFAppState>();
 
     return FutureBuilder<List<ImagesRow>>(
       future: ImagesTable().querySingleRow(
@@ -295,7 +296,16 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
         if (itemcard2ImagesRow == null) {
           return Scaffold(
             backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
-            body: const SizedBox.shrink(),
+            body: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Text(
+                  FFLocalizations.of(context).getText('item_not_found'),
+                  textAlign: TextAlign.center,
+                  style: FlutterFlowTheme.of(context).bodyMedium,
+                ),
+              ),
+            ),
           );
         }
 
@@ -460,7 +470,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                   label: FFLocalizations.of(context).getText('fab_hide'),
                   labelStyle: FlutterFlowTheme.of(context).bodyMedium,
                   onTap: () async {
-                    if (FFAppState().isprouser) {
+                    if (appState.isprouser) {
                       await ImagesTable().update(
                         data: {'hided': true},
                         matchingRows: (rows) => rows.eqOrNull('id', widget.imageid),
@@ -1004,7 +1014,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                             ),
                           );
                         }),
-                        if (FFAppState().isprouser)
+                        if (appState.isprouser)
                           Padding(
                             padding: EdgeInsetsDirectional.fromSTEB(
                                 16.0, 16.0, 16.0, 0.0),
@@ -1019,7 +1029,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                               ),
                             ),
                           ),
-                        if (FFAppState().isprouser)
+                        if (appState.isprouser)
                         Padding(
                           padding: EdgeInsetsDirectional.fromSTEB(
                               16.0, 24.0, 16.0, 0.0),
@@ -1104,7 +1114,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                             ),
                           ),
                         ),
-                        if (FFAppState().isprouser)
+                        if (appState.isprouser)
                         Padding(
                           padding: EdgeInsetsDirectional.fromSTEB(
                               16.0, 16.0, 16.0, 0.0),
@@ -1188,7 +1198,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                             ),
                           ),
                         ),
-                        if (FFAppState().isprouser)
+                        if (appState.isprouser)
                         Padding(
                           padding: EdgeInsetsDirectional.fromSTEB(
                               16.0, 24.0, 0.0, 0.0),
@@ -1210,7 +1220,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                 ),
                           ),
                         ),
-                        if (FFAppState().isprouser)
+                        if (appState.isprouser)
                         Builder(
                           builder: (context) {
                             final skintypecompatibility = _model
@@ -1451,7 +1461,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                         ),
                         // ── Top Negative Ingredients ──
                         Builder(builder: (context) {
-                          final isPro = FFAppState().isprouser;
+                          final isPro = appState.isprouser;
                           final allNegative = _model.ingredientIssuesRaw?.toList() ?? [];
                           if (allNegative.isEmpty) return const SizedBox.shrink();
                           final shown = isPro ? allNegative : allNegative.take(1).toList();
@@ -1549,7 +1559,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                         // ── Top Active Ingredients ──
                         Builder(
                           builder: (context) {
-                            final isPro = FFAppState().isprouser;
+                            final isPro = appState.isprouser;
                             final allIngredients = _model.topIngredientsRaw?.toList() ?? [];
                             if (allIngredients.isEmpty) return const SizedBox.shrink();
                             final topIngredients = isPro ? allIngredients : allIngredients.take(3).toList();
@@ -1832,7 +1842,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                         },
                       ),
                         // ── Paywall upsell (free users only) ──
-                        if (!FFAppState().isprouser)
+                        if (!appState.isprouser)
                           Padding(
                             padding: EdgeInsetsDirectional.fromSTEB(
                                 16.0, 24.0, 16.0, 32.0),
@@ -1956,7 +1966,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                               ),
                             ),
                           ),
-                        if (FFAppState().isprouser)
+                        if (appState.isprouser)
                         Padding(
                           padding: EdgeInsetsDirectional.fromSTEB(
                               16.0, 24.0, 16.0, 24.0),

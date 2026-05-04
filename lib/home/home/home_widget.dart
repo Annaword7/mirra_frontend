@@ -1,3 +1,4 @@
+import '/app_state.dart';
 import '/auth/supabase_auth/auth_util.dart';
 import '/backend/supabase/supabase.dart';
 import '/flutter_flow/revenue_cat_util.dart' as revenue_cat;
@@ -147,13 +148,16 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
           currentUserUid,
         ),
       );
-      if (_model.usersanswer!.length > 0) {
+      if (!mounted) return;
+      if ((_model.usersanswer ?? []).isNotEmpty) {
         _model.countrieshome = await CountriesTable().queryRows(
           queryFn: (q) => q.eqOrNull(
             'id',
             _model.usersanswer?.firstOrNull?.countryId,
           ),
         );
+        if (!mounted) return;
+
         FFAppState().isprouser =
             _model.usersanswer?.firstOrNull?.subscriptionPlan == 'premium'
                 ? true
@@ -167,13 +171,22 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
             FFAppState().isprouser = true;
           }
         }
-        FFAppState().countrycode = _model.countrieshome!.firstOrNull!.nameEn;
+        final userRow = _model.usersanswer?.firstOrNull;
+        final countryRow = _model.countrieshome?.firstOrNull;
+
+        FFAppState().countrycode = valueOrDefault<String>(
+          countryRow?.nameEn,
+          FFAppState().countrycode,
+        );
         FFAppState().spamlist =
-            _model.usersanswer!.firstOrNull!.spamImages.toList().cast<int>();
-        FFAppState().analysesused =
-            _model.usersanswer!.firstOrNull!.monthlyAnalysesUsed!;
+            (userRow?.spamImages ?? []).toList().cast<int>();
+        FFAppState().analysesused = valueOrDefault<int>(
+          userRow?.monthlyAnalysesUsed,
+          FFAppState().analysesused,
+        );
         safeSetState(() {});
       } else {
+        if (!mounted) return;
         context.pushNamed(LogInPageWidget.routeName);
       }
     });
@@ -237,7 +250,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    context.watch<FFAppState>();
+    final appState = context.watch<FFAppState>();
 
     return GestureDetector(
       onTap: () {
@@ -373,7 +386,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                             ],
                                           ),
                                         ),
-                                        if (!FFAppState().isprouser)
+                                        if (!appState.isprouser)
                                           FFButtonWidget(
                                             onPressed: () async {
                                               context.pushNamed(

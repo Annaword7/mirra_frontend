@@ -13,9 +13,8 @@ class FeedbackService {
     }
   }
 
-  static Future<bool> shouldShowPrompt() async {
-    final state = FFAppState();
-
+  /// ✅ ВАЖНО: state передаётся извне (из Provider)
+  static Future<bool> shouldShowPrompt(FFAppState state) async {
     if (!state.feedbackCollectorEnabled) return false;
     if (state.feedbackReviewSubmitted) return false;
     if (!Platform.isIOS) return false;
@@ -30,13 +29,15 @@ class FeedbackService {
     if (state.feedbackLastShownMs == 0) return true;
 
     // Returning user → 14-day cooldown from last shown
-    final daysPassed = (DateTime.now().millisecondsSinceEpoch - state.feedbackLastShownMs)
-        / (1000 * 60 * 60 * 24);
+    final daysPassed =
+        (DateTime.now().millisecondsSinceEpoch - state.feedbackLastShownMs) /
+            (1000 * 60 * 60 * 24);
+
     return daysPassed >= 14;
   }
 
-  static Future<void> recordShown() async {
-    final state = FFAppState();
+  /// ✅ ВАЖНО: state тоже передаётся, не создаётся новый
+  static Future<void> recordShown(FFAppState state) async {
     state.feedbackLastShownMs = DateTime.now().millisecondsSinceEpoch;
     state.feedbackLastShownVersion = await _appVersion();
   }

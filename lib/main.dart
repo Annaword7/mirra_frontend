@@ -32,6 +32,9 @@ void main() async {
   final environmentValues = FFDevEnvironmentValues();
   await environmentValues.initialize();
 
+  // Start Supabase early — runs in parallel with Firebase init
+  final supaFuture = SupaFlow.initialize();
+
   await initFirebase();
 
   // Catch all Flutter framework errors
@@ -46,26 +49,29 @@ void main() async {
   await actions.lockOrientation();
   // End initial custom actions code
 
-  await SupaFlow.initialize();
-
   await FFLocalizations.initialize();
 
   final appState = FFAppState(); // Initialize FFAppState
   await appState.initializePersistedState();
 
-  await fetchRemoteConfig();
-
-  await revenue_cat.initialize(
-    "appl_nlqWcEvNVGNUCbMcdEcsbKbwNrV",
-    "",
-    debugLogEnabled: true,
-    loadDataAfterLaunch: true,
-  );
+  // Wait for Supabase to finish (likely already done by now)
+  await supaFuture;
 
   runApp(ChangeNotifierProvider(
     create: (context) => appState,
     child: MyApp(),
   ));
+
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    unawaited(fetchRemoteConfig());
+
+    unawaited(revenue_cat.initialize(
+      "appl_nlqWcEvNVGNUCbMcdEcsbKbwNrV",
+      "",
+      debugLogEnabled: true,
+      loadDataAfterLaunch: true,
+    ));
+  });
 }
 
 class MyApp extends StatefulWidget {
@@ -126,10 +132,9 @@ class _MyAppState extends State<MyApp> {
         }
       });
     jwtTokenStream.listen((_) {});
-    Future.delayed(
-      Duration(milliseconds: 1000),
-      () => _appStateNotifier.stopShowingSplashImage(),
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _appStateNotifier.stopShowingSplashImage();
+    });
 
     // Handle Universal Links (mirra.up.railway.app/product/{id})
     _initDeepLinks();
@@ -255,13 +260,19 @@ class _MyAppState extends State<MyApp> {
       themeMode: _themeMode,
       routerConfig: _router,
       builder: (context, child) {
+        if (child == null) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
         if (FFDevEnvironmentValues.currentEnvironment != 'Development') {
-          return child!;
+          return child;
         }
         // Dev-only banner: shows which backend is active
         return Stack(
           children: [
-            child!,
+            child,
             Positioned(
               top: MediaQuery.of(context).padding.top + 4,
               right: 8,
