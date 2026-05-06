@@ -86,13 +86,15 @@ private class MirraSharePlugin: NSObject, FlutterPlugin {
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
-  // Show notifications when app is in foreground
+  // Foreground notifications: suppress native banner so Flutter's local notification
+  // (created in notification_service.dart onMessage) is the only one shown.
+  // Its tap fires onDidReceiveNotificationResponse which handles deep-link navigation.
   override func userNotificationCenter(
     _ center: UNUserNotificationCenter,
     willPresent notification: UNNotification,
     withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
   ) {
-    completionHandler([[.banner, .sound, .badge]])
+    completionHandler([])
   }
 
   // FCM token received via delegate
