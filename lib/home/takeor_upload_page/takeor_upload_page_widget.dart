@@ -191,6 +191,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
         safeSetState(() {});
         _model.analyseImageProductName =
             await SearchingredientsNEWBCNDCall.call(
+
           host: FFDevEnvironmentValues().backendhost,
           imageId: ExtractproductinfoNEWBCNDCopyCall.iamgeID(
             (_model.extractedproductGalary?.jsonBody ?? ''),
@@ -210,39 +211,73 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
           token: currentJwtToken,
         );
       } else {
-        await TelegrammessegeCall.call(
-          messega:
-              '${_model.uploadedFileUrl_uploadImageSupabaseGallary} на этапе extract product info галерея. status=${_model.extractedproductGalary?.statusCode} body=${_model.extractedproductGalary?.jsonBody} tokenEmpty=${currentJwtToken.isEmpty}',
-          email: 'from mobile app Extract Product Name Step',
-          form: 'tech message',
-        );
-        await showDialog(
-          context: context,
-          builder: (alertDialogContext) {
-            return AlertDialog(
-              title: Text('Error!'),
-              content: Text('Product not found, data error - 3'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(alertDialogContext),
-                  child: Text('Ok'),
+        // Gallery: extract-product-info failed.
+        // Check for quota exhaustion before showing a generic error.
+        if ((_model.extractedproductGalary?.statusCode ?? 0) == 429) {
+          await showModalBottomSheet(
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            enableDrag: false,
+            context: context,
+            builder: (context) {
+              return GestureDetector(
+                onTap: () {
+                  FocusScope.of(context).unfocus();
+                  FocusManager.instance.primaryFocus?.unfocus();
+                },
+                child: Padding(
+                  padding: MediaQuery.viewInsetsOf(context),
+                  child: LimitOutWidget(
+                    limit: ExtractproductinfoNEWBCNDCopyCall.quotaUsed(
+                          (_model.extractedproductGalary?.jsonBody ?? ''),
+                        ) ??
+                        20,
+                    date: ExtractproductinfoNEWBCNDCopyCall.resetTime(
+                          (_model.extractedproductGalary?.jsonBody ?? ''),
+                        ) ??
+                        '',
+                    isPro: context.read<FFAppState>().isprouser,
+                  ),
                 ),
-              ],
+              );
+            },
+          ).then((value) => safeSetState(() {}));
+          // No image was created (quota check ran before image creation).
+        } else {
+          await TelegrammessegeCall.call(
+            messega:
+                '${_model.uploadedFileUrl_uploadImageSupabaseGallary} на этапе extract product info галерея. status=${_model.extractedproductGalary?.statusCode} body=${_model.extractedproductGalary?.jsonBody} tokenEmpty=${currentJwtToken.isEmpty}',
+            email: 'from mobile app Extract Product Name Step',
+            form: 'tech message',
+          );
+          await showDialog(
+            context: context,
+            builder: (alertDialogContext) {
+              return AlertDialog(
+                title: Text('Error!'),
+                content: Text('Product not found, data error - 3'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(alertDialogContext),
+                    child: Text('Ok'),
+                  ),
+                ],
+              );
+            },
+          );
+          final _gallImgId = ExtractproductinfoNEWBCNDCopyCall.iamgeID(
+            (_model.extractedproductGalary?.jsonBody ?? ''),
+          );
+          if (_gallImgId != null) {
+            await ImagesTable().delete(
+              matchingRows: (rows) => rows.eqOrNull('id', _gallImgId),
             );
-          },
-        );
+          }
+        }
         FFAppState().uploadedimageurl = '';
         FFAppState().analysisloading = false;
         FFAppState().Producanalysstate = 0;
         safeSetState(() {});
-        final _gallImgId = ExtractproductinfoNEWBCNDCopyCall.iamgeID(
-          (_model.extractedproductGalary?.jsonBody ?? ''),
-        );
-        if (_gallImgId != null) {
-          await ImagesTable().delete(
-            matchingRows: (rows) => rows.eqOrNull('id', _gallImgId),
-          );
-        }
         return;
       }
 
@@ -657,40 +692,73 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
 
               _shouldSetState = true;
             } else {
-              await TelegrammessegeCall.call(
-                messega:
-                    '${_model.uploadedFileUrl_uploadImageSupabaseCamera}на этапе extract product info, camera',
-                email: 'from mobile app',
-                form: 'tech message',
-              );
-
-              await showDialog(
-                context: context,
-                builder: (alertDialogContext) {
-                  return AlertDialog(
-                    title: Text('Error!'),
-                    content: Text('Product not found, data error'),
-                    actions: [
-                      TextButton(
-                        onPressed: () =>
-                            Navigator.pop(alertDialogContext),
-                        child: Text('Ok'),
+              // Camera: extract-product-info failed.
+              if ((_model.extractedproductcamera?.statusCode ?? 0) == 429) {
+                await showModalBottomSheet(
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  enableDrag: false,
+                  context: context,
+                  builder: (context) {
+                    return GestureDetector(
+                      onTap: () {
+                        FocusScope.of(context).unfocus();
+                        FocusManager.instance.primaryFocus?.unfocus();
+                      },
+                      child: Padding(
+                        padding: MediaQuery.viewInsetsOf(context),
+                        child: LimitOutWidget(
+                          limit: ExtractproductinfoNEWBCNDCopyCall.quotaUsed(
+                                (_model.extractedproductcamera?.jsonBody ?? ''),
+                              ) ??
+                              20,
+                          date: ExtractproductinfoNEWBCNDCopyCall.resetTime(
+                                (_model.extractedproductcamera?.jsonBody ?? ''),
+                              ) ??
+                              '',
+                          isPro: context.read<FFAppState>().isprouser,
+                        ),
                       ),
-                    ],
+                    );
+                  },
+                ).then((value) => safeSetState(() {}));
+                // No image was created (quota check ran before image creation).
+              } else {
+                await TelegrammessegeCall.call(
+                  messega:
+                      '${_model.uploadedFileUrl_uploadImageSupabaseCamera}на этапе extract product info, camera',
+                  email: 'from mobile app',
+                  form: 'tech message',
+                );
+
+                await showDialog(
+                  context: context,
+                  builder: (alertDialogContext) {
+                    return AlertDialog(
+                      title: Text('Error!'),
+                      content: Text('Product not found, data error'),
+                      actions: [
+                        TextButton(
+                          onPressed: () =>
+                              Navigator.pop(alertDialogContext),
+                          child: Text('Ok'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+                final _camImgId = ExtractproductinfoNEWBCNDCopyCall.iamgeID(
+                  (_model.extractedproductcamera?.jsonBody ?? ''),
+                );
+                if (_camImgId != null) {
+                  await ImagesTable().delete(
+                    matchingRows: (rows) => rows.eqOrNull('id', _camImgId),
                   );
-                },
-              );
+                }
+              }
               FFAppState().uploadedimageurl = '';
               FFAppState().analysisloading = false;
               safeSetState(() {});
-              final _camImgId = ExtractproductinfoNEWBCNDCopyCall.iamgeID(
-                (_model.extractedproductcamera?.jsonBody ?? ''),
-              );
-              if (_camImgId != null) {
-                await ImagesTable().delete(
-                  matchingRows: (rows) => rows.eqOrNull('id', _camImgId),
-                );
-              }
               if (_shouldSetState) safeSetState(() {});
               return;
             }

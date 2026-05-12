@@ -143,6 +143,10 @@ class FFAppState extends ChangeNotifier {
     _analysesused = value;
   }
 
+  // Session-only: start of the current 7-day scan window (from users.last_reset_date).
+  // Null means the user has not started a window yet (0 scans used).
+  DateTime? weekResetDate;
+
   int _Producanalysstate = 0;
   int get Producanalysstate => _Producanalysstate;
   set Producanalysstate(int value) {

@@ -184,6 +184,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
           userRow?.monthlyAnalysesUsed,
           FFAppState().analysesused,
         );
+        FFAppState().weekResetDate = userRow?.lastResetDate;
         safeSetState(() {});
       } else {
         if (!mounted) return;
@@ -327,8 +328,9 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Row(
-                                      mainAxisSize: MainAxisSize.max,
+                                    Flexible(
+                                     child: Row(
+                                      mainAxisSize: MainAxisSize.min,
                                       children: [
                                         InkWell(
                                           splashColor: Colors.transparent,
@@ -432,6 +434,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                             ),
                                           ),
                                       ].divide(SizedBox(width: 16.0)),
+                                    ),
                                     ),
                                     if (FFDevEnvironmentValues.currentEnvironment == 'Development')
                                       GestureDetector(
@@ -742,6 +745,16 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                   ),
                                 ],
                               ),
+                            ),
+                          ),
+                          // ── Scan quota bar ─────────────────────────────
+                          Padding(
+                            padding: EdgeInsetsDirectional.fromSTEB(
+                                20.0, 10.0, 20.0, 0.0),
+                            child: _HomeQuotaBar(
+                              isPro: appState.isprouser,
+                              scansUsed: appState.analysesused,
+                              weekResetDate: appState.weekResetDate,
                             ),
                           ),
                           if (containerImagesRowList.length != 0)
@@ -1112,6 +1125,112 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
           ],
         ),
       ),
+    );
+  }
+}
+
+// ── Scan quota bar shown below the scan card on the home screen ──────────────
+
+class _HomeQuotaBar extends StatelessWidget {
+  const _HomeQuotaBar({
+    required this.isPro,
+    required this.scansUsed,
+    required this.weekResetDate,
+  });
+
+  final bool isPro;
+  final int scansUsed;
+  final DateTime? weekResetDate;
+
+  static const int _weekLimit = 20;
+
+  String _resetLabel() {
+    if (weekResetDate == null) return '';
+    final resetAt = weekResetDate!.add(const Duration(days: 7));
+    final diff = resetAt.difference(DateTime.now());
+    if (diff.isNegative) return '';
+    final days = diff.inDays;
+    if (days == 0) return 'Resets today';
+    if (days == 1) return 'Resets tomorrow';
+    return 'Resets in $days days';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (isPro) {
+      return Row(
+        children: [
+          Icon(Icons.all_inclusive,
+              size: 14, color: FlutterFlowTheme.of(context).secondaryText),
+          const SizedBox(width: 6),
+          Text(
+            'Unlimited scans · Pro',
+            style: FlutterFlowTheme.of(context).bodySmall.override(
+                  fontFamily: FlutterFlowTheme.of(context).bodySmallFamily,
+                  color: FlutterFlowTheme.of(context).secondaryText,
+                  fontSize: 12.0,
+                  letterSpacing: 0.0,
+                  useGoogleFonts:
+                      !FlutterFlowTheme.of(context).bodySmallIsCustom,
+                ),
+          ),
+        ],
+      );
+    }
+
+    final remaining = (_weekLimit - scansUsed).clamp(0, _weekLimit);
+    final progress = _weekLimit > 0 ? scansUsed / _weekLimit : 0.0;
+    final isExhausted = remaining == 0;
+    final resetLabel = _resetLabel();
+    final barColor = isExhausted
+        ? Colors.red.shade400
+        : FlutterFlowTheme.of(context).primary;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              '$remaining of $_weekLimit scans left this week',
+              style: FlutterFlowTheme.of(context).bodySmall.override(
+                    fontFamily: FlutterFlowTheme.of(context).bodySmallFamily,
+                    color: isExhausted
+                        ? Colors.red.shade400
+                        : FlutterFlowTheme.of(context).secondaryText,
+                    fontSize: 12.0,
+                    letterSpacing: 0.0,
+                    useGoogleFonts:
+                        !FlutterFlowTheme.of(context).bodySmallIsCustom,
+                  ),
+            ),
+            if (resetLabel.isNotEmpty)
+              Text(
+                resetLabel,
+                style: FlutterFlowTheme.of(context).bodySmall.override(
+                      fontFamily: FlutterFlowTheme.of(context).bodySmallFamily,
+                      color: FlutterFlowTheme.of(context).secondaryText,
+                      fontSize: 11.0,
+                      letterSpacing: 0.0,
+                      useGoogleFonts:
+                          !FlutterFlowTheme.of(context).bodySmallIsCustom,
+                    ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 5),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4.0),
+          child: LinearProgressIndicator(
+            value: progress.clamp(0.0, 1.0),
+            minHeight: 4.0,
+            backgroundColor:
+                FlutterFlowTheme.of(context).secondaryBackground,
+            valueColor: AlwaysStoppedAnimation<Color>(barColor),
+          ),
+        ),
+      ],
     );
   }
 }

@@ -6,6 +6,7 @@ import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import '/flutter_flow/analytics_service.dart';
 import '/backend/api_requests/api_calls.dart';
+import '/backend/supabase/database/tables/ingredients_efficacy.dart';
 import '/backend/supabase/supabase.dart';
 import '/boards/albumslist/albumslist_widget.dart';
 import '/components/new_album/new_album_widget.dart';
@@ -96,6 +97,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
           widget.imageid,
         ),
       );
+      _loadEfficacyDescriptions();
       _model.loading = false;
       _model.overallscore = valueOrDefault<int>(
         (valueOrDefault<double>(
@@ -135,6 +137,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
               await ImageIngredientIssuesTable().queryRows(
             queryFn: (q) => q.eqOrNull('image_id', widget.imageid),
           );
+          _loadEfficacyDescriptions();
           _model.overallscore = valueOrDefault<int>(
             (valueOrDefault<double>(
                           _model.imageraw?.firstOrNull?.saCompositeScore,
@@ -250,12 +253,83 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
     return const Color(0xFFD32F2F);
   }
 
+  Future<void> _loadEfficacyDescriptions() async {
+    final names = [
+      ...?_model.topIngredientsRaw?.map((r) => r.ingredientName),
+      ...?_model.ingredientIssuesRaw?.map((r) => r.ingredientName),
+    ];
+    if (names.isEmpty) return;
+    final rows = await IngredientsEfficacyTable().queryRows(
+      queryFn: (q) => q.inFilterOrNull('inci_name', names),
+    );
+    _model.efficacyDescMap = {
+      for (final r in rows) r.inciName.toLowerCase(): r,
+    };
+    if (mounted) safeSetState(() {});
+  }
+
+  String _efficacyDesc(String ingredientName, String lang, String? fallback) {
+    final row = _model.efficacyDescMap[ingredientName.toLowerCase()];
+    if (row == null) return fallback ?? '';
+    if (lang == 'ru') return row.descriptionRu ?? row.descriptionEn ?? fallback ?? '';
+    if (lang == 'es') return row.descriptionEs ?? row.descriptionEn ?? fallback ?? '';
+    return row.descriptionEn ?? fallback ?? '';
+  }
+
   String _scoreGrade(int s) {
     if (s >= 75) return 'A';
     if (s >= 65) return 'B';
     if (s >= 55) return 'C';
     if (s >= 45) return 'D';
     return 'F';
+  }
+
+  Widget _axisBar(BuildContext context, String label, double? value) {
+    final v = (value ?? 0.0).clamp(0.0, 100.0);
+    final color = _scoreColor(v.round());
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: FlutterFlowTheme.of(context).secondaryText,
+                  letterSpacing: 0.2,
+                ),
+              ),
+              Text(
+                value == null ? '—' : '${v.round()}',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: value == null
+                      ? FlutterFlowTheme.of(context).secondaryText
+                      : color,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          LinearPercentIndicator(
+            percent: v / 100.0,
+            lineHeight: 6.0,
+            backgroundColor: color.withOpacity(0.12),
+            progressColor: value == null ? Colors.transparent : color,
+            barRadius: const Radius.circular(4),
+            padding: EdgeInsets.zero,
+            animation: true,
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -701,7 +775,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                               crossAxisAlignment:
                                                   CrossAxisAlignment.start,
                                               children: [
-                                                Text(
+                                                SelectableText(
                                                   valueOrDefault<String>(
                                                     _model.imageraw?.firstOrNull
                                                         ?.brand,
@@ -727,7 +801,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                                                 .bodyMediumIsCustom,
                                                       ),
                                                 ),
-                                                Text(
+                                                SelectableText(
                                                   valueOrDefault<String>(
                                                     _model.imageraw?.firstOrNull
                                                         ?.productName,
@@ -925,7 +999,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                               child: Padding(
                                 padding: const EdgeInsets.all(20.0),
                                 child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     // Score ring with glow
                                     Container(
@@ -990,8 +1064,6 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                           if (summary.isNotEmpty)
                                             Text(
                                               summary,
-                                              maxLines: 4,
-                                              overflow: TextOverflow.ellipsis,
                                               style: FlutterFlowTheme.of(context)
                                                   .bodyMedium
                                                   .override(
@@ -1014,6 +1086,67 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                             ),
                           );
                         }),
+                        // ── Axis scores (all users) ──
+                        Builder(builder: (context) {
+                          final raw = _model.imageraw?.firstOrNull;
+                          if (raw == null) return const SizedBox.shrink();
+                          final axes = [
+                            ('Efficacy', raw.saEfficacyScore),
+                            ('Safety', raw.saSafetyScore),
+                            ('Stability', raw.saStabilityScore),
+                            ('Experience', raw.saUxScore),
+                            ('Pore Safety', raw.saComedogenicityScore),
+                          ];
+                          if (axes.every((e) => e.$2 == null)) {
+                            return const SizedBox.shrink();
+                          }
+                          final left = [axes[0], axes[2], axes[4]];
+                          final right = [axes[1], axes[3]];
+                          return Padding(
+                            padding: const EdgeInsetsDirectional.fromSTEB(
+                                16.0, 16.0, 16.0, 0.0),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF5F8FF),
+                                borderRadius: BorderRadius.circular(20.0),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    blurRadius: 8.0,
+                                    color: Color(0x1A000000),
+                                    offset: Offset(0.0, 2.0),
+                                  ),
+                                ],
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(20.0),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: left
+                                            .map((e) => _axisBar(
+                                                context, e.$1, e.$2))
+                                            .toList(),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: right
+                                            .map((e) => _axisBar(
+                                                context, e.$1, e.$2))
+                                            .toList(),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
                         if (appState.isprouser)
                           Padding(
                             padding: EdgeInsetsDirectional.fromSTEB(
@@ -1026,6 +1159,18 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                   _model.imageraw?.firstOrNull?.ingredients,
                                   '-',
                                 ),
+                                topIngredients: _model.topIngredientsRaw
+                                        ?.map((r) => r.ingredientName
+                                            .toLowerCase()
+                                            .trim())
+                                        .toList() ??
+                                    const [],
+                                issueIngredients: _model.ingredientIssuesRaw
+                                        ?.map((r) => r.ingredientName
+                                            .toLowerCase()
+                                            .trim())
+                                        .toList() ??
+                                    const [],
                               ),
                             ),
                           ),
@@ -1462,6 +1607,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                         // ── Top Negative Ingredients ──
                         Builder(builder: (context) {
                           final isPro = appState.isprouser;
+                          final lang = FFLocalizations.of(context).languageCode;
                           final allNegative = _model.ingredientIssuesRaw?.toList() ?? [];
                           if (allNegative.isEmpty) return const SizedBox.shrink();
                           final shown = isPro ? allNegative : allNegative.take(1).toList();
@@ -1516,10 +1662,10 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                                       useGoogleFonts: !FlutterFlowTheme.of(context).bodyMediumIsCustom,
                                                     ),
                                               ),
-                                              if ((issue.description ?? issue.issueType).isNotEmpty) ...[
+                                              if (_efficacyDesc(issue.ingredientName, lang, issue.description ?? issue.issueType).isNotEmpty) ...[
                                                 const SizedBox(height: 4),
                                                 Text(
-                                                  issue.description ?? issue.issueType,
+                                                  _efficacyDesc(issue.ingredientName, lang, issue.description ?? issue.issueType),
                                                   style: FlutterFlowTheme.of(context).bodyMedium.override(
                                                         fontFamily: FlutterFlowTheme.of(context).bodyMediumFamily,
                                                         color: FlutterFlowTheme.of(context).secondaryText,
@@ -1560,6 +1706,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                         Builder(
                           builder: (context) {
                             final isPro = appState.isprouser;
+                            final lang = FFLocalizations.of(context).languageCode;
                             final allIngredients = _model.topIngredientsRaw?.toList() ?? [];
                             if (allIngredients.isEmpty) return const SizedBox.shrink();
                             final topIngredients = isPro ? allIngredients : allIngredients.take(3).toList();
@@ -1681,11 +1828,13 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                                       ),
                                                     ),
                                                     Text(
-                                                      valueOrDefault<String>(
-                                                        topIngredientsItem
-                                                            .description,
-                                                        '-',
-                                                      ),
+                                                      _efficacyDesc(
+                                                        topIngredientsItem.ingredientName,
+                                                        lang,
+                                                        topIngredientsItem.description,
+                                                      ).isNotEmpty
+                                                          ? _efficacyDesc(topIngredientsItem.ingredientName, lang, topIngredientsItem.description)
+                                                          : (topIngredientsItem.description ?? '-'),
                                                       style: FlutterFlowTheme
                                                               .of(context)
                                                           .bodyMedium
@@ -1884,6 +2033,14 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                       ],
                                     ),
                                     SizedBox(height: 14),
+                                    _PaywallBullet(
+                                      icon: Icons.all_inclusive_rounded,
+                                      label: FFLocalizations.of(context).languageCode == 'ru'
+                                          ? 'Безлимитное количество сканов'
+                                          : FFLocalizations.of(context).languageCode == 'es'
+                                              ? 'Escaneos ilimitados'
+                                              : 'Unlimited scans',
+                                    ),
                                     _PaywallBullet(
                                       icon: Icons.science_outlined,
                                       label: FFLocalizations.of(context).languageCode == 'ru'

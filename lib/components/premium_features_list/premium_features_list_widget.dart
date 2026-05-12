@@ -61,6 +61,52 @@ class _PremiumFeaturesListWidgetState extends State<PremiumFeaturesListWidget> {
                 child: Align(
                   alignment: AlignmentDirectional(0.0, 0.0),
                   child: Icon(
+                    Icons.all_inclusive_rounded,
+                    color: FlutterFlowTheme.of(context).alternate,
+                    size: 20.0,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  FFLocalizations.of(context).languageCode == 'ru'
+                      ? 'Безлимитное количество сканов'
+                      : FFLocalizations.of(context).languageCode == 'es'
+                          ? 'Escaneos ilimitados'
+                          : 'Unlimited scans',
+                  textAlign: TextAlign.start,
+                  style: FlutterFlowTheme.of(context).bodyMedium.override(
+                        fontFamily:
+                            FlutterFlowTheme.of(context).bodyMediumFamily,
+                        color: Colors.white,
+                        fontSize: 15.0,
+                        letterSpacing: 0.0,
+                        fontWeight: FontWeight.w500,
+                        lineHeight: 1.3,
+                        useGoogleFonts:
+                            !FlutterFlowTheme.of(context).bodyMediumIsCustom,
+                      ),
+                ),
+              ),
+            ].divide(SizedBox(width: 12.0)),
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Container(
+                width: 40.0,
+                height: 40.0,
+                decoration: BoxDecoration(
+                  color: FlutterFlowTheme.of(context).primary,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: FlutterFlowTheme.of(context).primary,
+                  ),
+                ),
+                child: Align(
+                  alignment: AlignmentDirectional(0.0, 0.0),
+                  child: Icon(
                     Icons.biotech_outlined,
                     color: FlutterFlowTheme.of(context).alternate,
                     size: 20.0,
@@ -146,17 +192,17 @@ class _PremiumFeaturesListWidgetState extends State<PremiumFeaturesListWidget> {
                 ),
                 child: Align(
                   alignment: AlignmentDirectional(0.0, 0.0),
-                  child: Icon(
-                    Icons.auto_graph_rounded,
+                  child: FaIcon(
+                    FontAwesomeIcons.eyeSlash,
                     color: FlutterFlowTheme.of(context).alternate,
-                    size: 20.0,
+                    size: 18.0,
                   ),
                 ),
               ),
               Expanded(
                 child: Text(
                   FFLocalizations.of(context).getText(
-                    'o1zj0116' /* Top-rated products ranking */,
+                    'pm4r9x2w' /* Keep your scans private */,
                   ),
                   textAlign: TextAlign.start,
                   style: FlutterFlowTheme.of(context).bodyMedium.override(
@@ -189,18 +235,155 @@ class _PremiumFeaturesListWidgetState extends State<PremiumFeaturesListWidget> {
                 ),
                 child: Align(
                   alignment: AlignmentDirectional(0.0, 0.0),
-                  child: FaIcon(
-                    FontAwesomeIcons.eyeSlash,
+                  child: Icon(
+                    Icons.lightbulb_outline_rounded,
                     color: FlutterFlowTheme.of(context).alternate,
-                    size: 18.0,
+                    size: 20.0,
                   ),
                 ),
               ),
               Expanded(
                 child: Text(
-                  FFLocalizations.of(context).getText(
-                    'pm4r9x2w' /* Keep your scans private */,
+                  FFLocalizations.of(context).languageCode == 'ru'
+                      ? 'Как правильно использовать'
+                      : FFLocalizations.of(context).languageCode == 'es'
+                          ? 'Cómo usar correctamente'
+                          : 'How-to-use guide',
+                  textAlign: TextAlign.start,
+                  style: FlutterFlowTheme.of(context).bodyMedium.override(
+                        fontFamily:
+                            FlutterFlowTheme.of(context).bodyMediumFamily,
+                        color: Colors.white,
+                        fontSize: 15.0,
+                        letterSpacing: 0.0,
+                        fontWeight: FontWeight.w500,
+                        lineHeight: 1.3,
+                        useGoogleFonts:
+                            !FlutterFlowTheme.of(context).bodyMediumIsCustom,
+                      ),
+                ),
+              ),
+            ].divide(SizedBox(width: 12.0)),
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              Container(
+                width: 40.0,
+                height: 40.0,
+                decoration: BoxDecoration(
+                  color: FlutterFlowTheme.of(context).primary,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: FlutterFlowTheme.of(context).primary,
                   ),
+                ),
+                child: Align(
+                  alignment: AlignmentDirectional(0.0, 0.0),
+                  child: Icon(
+                    Icons.face_retouching_natural,
+                    color: FlutterFlowTheme.of(context).alternate,
+                    size: 20.0,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  FFLocalizations.of(context).languageCode == 'ru'
+                      ? 'Совместимость с 5 типами кожи'
+                      : FFLocalizations.of(context).languageCode == 'es'
+                          ? 'Compatibilidad con 5 tipos de piel'
+                          : 'Skin compatibility for 5 skin types',
+                  textAlign: TextAlign.start,
+                  style: FlutterFlowTheme.of(context).bodyMedium.override(
+                        fontFamily:
+                            FlutterFlowTheme.of(context).bodyMediumFamily,
+                        color: Colors.white,
+                        fontSize: 15.0,
+                        letterSpacing: 0.0,
+                        fontWeight: FontWeight.w500,
+                        lineHeight: 1.3,
+                        useGoogleFonts:
+                            !FlutterFlowTheme.of(context).bodyMediumIsCustom,
+                      ),
+                ),
+              ),
+            ].divide(SizedBox(width: 12.0)),
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              Container(
+                width: 40.0,
+                height: 40.0,
+                decoration: BoxDecoration(
+                  color: FlutterFlowTheme.of(context).primary,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: FlutterFlowTheme.of(context).primary,
+                  ),
+                ),
+                child: Align(
+                  alignment: AlignmentDirectional(0.0, 0.0),
+                  child: Icon(
+                    Icons.verified_rounded,
+                    color: FlutterFlowTheme.of(context).alternate,
+                    size: 20.0,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  FFLocalizations.of(context).languageCode == 'ru'
+                      ? 'Все активные ингредиенты с эффективностью'
+                      : FFLocalizations.of(context).languageCode == 'es'
+                          ? 'Todos los ingredientes con eficacia'
+                          : 'All active ingredients with efficacy scores',
+                  textAlign: TextAlign.start,
+                  style: FlutterFlowTheme.of(context).bodyMedium.override(
+                        fontFamily:
+                            FlutterFlowTheme.of(context).bodyMediumFamily,
+                        color: Colors.white,
+                        fontSize: 15.0,
+                        letterSpacing: 0.0,
+                        fontWeight: FontWeight.w500,
+                        lineHeight: 1.3,
+                        useGoogleFonts:
+                            !FlutterFlowTheme.of(context).bodyMediumIsCustom,
+                      ),
+                ),
+              ),
+            ].divide(SizedBox(width: 12.0)),
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              Container(
+                width: 40.0,
+                height: 40.0,
+                decoration: BoxDecoration(
+                  color: FlutterFlowTheme.of(context).primary,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: FlutterFlowTheme.of(context).primary,
+                  ),
+                ),
+                child: Align(
+                  alignment: AlignmentDirectional(0.0, 0.0),
+                  child: Icon(
+                    Icons.notes_rounded,
+                    color: FlutterFlowTheme.of(context).alternate,
+                    size: 20.0,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  FFLocalizations.of(context).languageCode == 'ru'
+                      ? 'Личные заметки к продукту'
+                      : FFLocalizations.of(context).languageCode == 'es'
+                          ? 'Notas personales del producto'
+                          : 'Personal notes for your product',
                   textAlign: TextAlign.start,
                   style: FlutterFlowTheme.of(context).bodyMedium.override(
                         fontFamily:

@@ -1001,6 +1001,89 @@ class ExtractproductinfoNEWBCNDCopyCall {
         response,
         r'''$.language_code''',
       ));
+
+  // Quota fields — only present on 429 SCAN_QUOTA_EXCEEDED responses.
+  static int? quotaUsed(dynamic response) => castToType<int>(getJsonField(
+        response,
+        r'''$.limit''',
+      ));
+  static String? resetTime(dynamic response) => castToType<String>(getJsonField(
+        response,
+        r'''$.reset_time''',
+      ));
+  static String? quotaCode(dynamic response) => castToType<String>(getJsonField(
+        response,
+        r'''$.code''',
+      ));
+  static int? remaining(dynamic response) => castToType<int>(getJsonField(
+        response,
+        r'''$.remaining''',
+      ));
+  static String? resetAt(dynamic response) => castToType<String>(getJsonField(
+        response,
+        r'''$.reset_at''',
+      ));
+  static int? retryAfterSeconds(dynamic response) =>
+      castToType<int>(getJsonField(
+        response,
+        r'''$.retry_after_seconds''',
+      ));
+}
+
+/// GET /api/mirra/quota — returns the authenticated user's current scan quota state.
+class GetScanQuotaCall {
+  static Future<ApiCallResponse> call({
+    String? host,
+    String? token = '',
+  }) async {
+    host ??= FFDevEnvironmentValues().backendhost;
+
+    return ApiManager.instance.makeApiCall(
+      callName: 'getScanQuota',
+      apiUrl: '${host}api/mirra/quota',
+      callType: ApiCallType.GET,
+      headers: {
+        'Authorization': 'Bearer ${token}',
+      },
+      params: {},
+      returnBody: true,
+      encodeBodyUtf8: false,
+      decodeUtf8: false,
+      cache: false,
+      isStreamingApi: false,
+      alwaysAllowBody: false,
+    );
+  }
+
+  static String? plan(dynamic response) => castToType<String>(getJsonField(
+        response,
+        r'''$.plan''',
+      ));
+  static bool? isUnlimited(dynamic response) => castToType<bool>(getJsonField(
+        response,
+        r'''$.is_unlimited''',
+      ));
+  static int? quotaUsed(dynamic response) => castToType<int>(getJsonField(
+        response,
+        r'''$.quota_used''',
+      ));
+  static int? quotaLimit(dynamic response) => castToType<int>(getJsonField(
+        response,
+        r'''$.quota_limit''',
+      ));
+  static int? remaining(dynamic response) => castToType<int>(getJsonField(
+        response,
+        r'''$.remaining''',
+      ));
+  static String? resetAt(dynamic response) => castToType<String>(getJsonField(
+        response,
+        r'''$.reset_at''',
+      ));
+  static int? retryAfterSeconds(dynamic response) =>
+      castToType<int>(getJsonField(
+        response,
+        r'''$.retry_after_seconds''',
+      ));
 }
 
 class CopyproductNEWBCNDCall {

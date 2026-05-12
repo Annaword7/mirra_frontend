@@ -163,16 +163,6 @@ GoRouter createRouter(AppStateNotifier appStateNotifier, [Widget? entryPage]) =>
           builder: (context, params) => ProfileWidget(),
         ),
         FFRoute(
-          name: ImagedetailsWidget.routeName,
-          path: ImagedetailsWidget.routePath,
-          builder: (context, params) => ImagedetailsWidget(
-            imageid: params.getParam(
-              'imageid',
-              ParamType.int,
-            ),
-          ),
-        ),
-        FFRoute(
           name: ImagesbyAlbumWidget.routeName,
           path: ImagesbyAlbumWidget.routePath,
           builder: (context, params) => ImagesbyAlbumWidget(

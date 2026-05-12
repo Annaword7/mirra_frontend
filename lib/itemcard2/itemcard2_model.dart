@@ -1,4 +1,5 @@
 import '/backend/api_requests/api_calls.dart';
+import '/backend/supabase/database/tables/ingredients_efficacy.dart';
 import '/backend/supabase/supabase.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/item_card/ingridients/ingridients_widget.dart';
@@ -25,6 +26,8 @@ class Itemcard2Model extends FlutterFlowModel<Itemcard2Widget> {
   List<ImageTopIngredientsRow>? topIngredientsRaw;
   // Stores action output result for [Backend Call - Query Rows] action in itemcard2 widget.
   List<ImageIngredientIssuesRow>? ingredientIssuesRaw;
+  // Multilingual descriptions from ingredients_efficacy, keyed by lowercase inci_name.
+  Map<String, IngredientsEfficacyRow> efficacyDescMap = {};
   // Model for ingridients component.
   late IngridientsModel ingridientsModel;
   // Stores action output result for [Backend Call - API (feedback NEW BCND)] action in Container widget.

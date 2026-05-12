@@ -73,9 +73,10 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
             SafeArea(
           top: true,
           child: Align(
-            alignment: AlignmentDirectional(0.0, 1.0),
+            alignment: AlignmentDirectional(0.0, 0.0),
             child: Container(
               width: double.infinity,
+              height: double.infinity,
               constraints: BoxConstraints(
                 maxWidth: 600.0,
               ),
@@ -87,9 +88,9 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                   width: 1.0,
                 ),
               ),
-              child: Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(16.0, 12.0, 16.0, 32.0),
-                child: SingleChildScrollView(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: EdgeInsetsDirectional.fromSTEB(16.0, 12.0, 16.0, 32.0),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [

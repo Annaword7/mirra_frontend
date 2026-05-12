@@ -118,6 +118,8 @@ class _DeleteConfirmationWidgetState extends State<DeleteConfirmationWidget> {
 
                     if ((_model.deleteuseranswer?.succeeded ?? true)) {
                       FFAppState().isprouser = false;
+                      FFAppState().analysesused = 0;
+                      FFAppState().weekResetDate = null;
                       GoRouter.of(context).prepareAuthEvent();
                       await authManager.signOut();
                       GoRouter.of(context).clearRedirectLocation();

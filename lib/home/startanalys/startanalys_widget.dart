@@ -1,7 +1,9 @@
+import '/app_state.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'startanalys_model.dart';
 export 'startanalys_model.dart';
 
@@ -37,8 +39,28 @@ class _StartanalysWidgetState extends State<StartanalysWidget> {
     super.dispose();
   }
 
+  /// Returns a short "Resets in X days" / "Resets today" label based on the
+  /// window start date stored in FFAppState.weekResetDate.
+  String _resetLabel(DateTime? resetStart) {
+    if (resetStart == null) return '';
+    final resetAt = resetStart.add(const Duration(days: 7));
+    final diff = resetAt.difference(DateTime.now());
+    if (diff.isNegative) return '';
+    final days = diff.inDays;
+    if (days == 0) return '· Resets today';
+    if (days == 1) return '· Resets tomorrow';
+    return '· Resets in $days days';
+  }
+
   @override
   Widget build(BuildContext context) {
+    final appState = context.watch<FFAppState>();
+    final isPro = appState.isprouser;
+    final scansUsed = appState.analysesused;
+    const scanLimit = 20;
+    final remaining = (scanLimit - scansUsed).clamp(0, scanLimit);
+    final resetLabel = _resetLabel(appState.weekResetDate);
+
     return ListView(
       padding: EdgeInsets.zero,
       shrinkWrap: true,
@@ -149,7 +171,93 @@ class _StartanalysWidgetState extends State<StartanalysWidget> {
                     borderRadius: BorderRadius.circular(28.0),
                   ),
                 ),
+                // ── Quota status bar ────────────────────────────────────────
+                _QuotaStatusBar(
+                  isPro: isPro,
+                  scansUsed: scansUsed,
+                  scanLimit: scanLimit,
+                  remaining: remaining,
+                  resetLabel: resetLabel,
+                ),
               ].divide(SizedBox(height: 16.0)),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _QuotaStatusBar extends StatelessWidget {
+  const _QuotaStatusBar({
+    required this.isPro,
+    required this.scansUsed,
+    required this.scanLimit,
+    required this.remaining,
+    required this.resetLabel,
+  });
+
+  final bool isPro;
+  final int scansUsed;
+  final int scanLimit;
+  final int remaining;
+  final String resetLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    if (isPro) {
+      return Row(
+        children: [
+          Icon(Icons.all_inclusive, color: Colors.white70, size: 14.0),
+          SizedBox(width: 6.0),
+          Text(
+            'Unlimited scans',
+            style: TextStyle(
+              color: Colors.white70,
+              fontSize: 12.0,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      );
+    }
+
+    final progress = scanLimit > 0 ? scansUsed / scanLimit : 0.0;
+    final isExhausted = remaining == 0;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              '$remaining of $scanLimit scans left this week',
+              style: TextStyle(
+                color: isExhausted ? Colors.red[200] : Colors.white70,
+                fontSize: 12.0,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            if (resetLabel.isNotEmpty)
+              Text(
+                resetLabel,
+                style: TextStyle(
+                  color: Colors.white54,
+                  fontSize: 11.0,
+                ),
+              ),
+          ],
+        ),
+        SizedBox(height: 6.0),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4.0),
+          child: LinearProgressIndicator(
+            value: progress.clamp(0.0, 1.0),
+            minHeight: 4.0,
+            backgroundColor: Colors.white24,
+            valueColor: AlwaysStoppedAnimation<Color>(
+              isExhausted ? Colors.red[300]! : Colors.white,
             ),
           ),
         ),

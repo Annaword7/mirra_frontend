@@ -893,6 +893,8 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                 HapticFeedback.lightImpact();
                                 FFAppState().isprouser = false;
                                 FFAppState().onboardingDone = false;
+                                FFAppState().analysesused = 0;
+                                FFAppState().weekResetDate = null;
                                 GoRouter.of(context).prepareAuthEvent();
                                 await authManager.signOut();
                                 GoRouter.of(context).clearRedirectLocation();
@@ -939,6 +941,8 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                 HapticFeedback.lightImpact();
                                 FFAppState().isprouser = false;
                                 FFAppState().onboardingDone = false;
+                                FFAppState().analysesused = 0;
+                                FFAppState().weekResetDate = null;
                                 GoRouter.of(context).prepareAuthEvent();
                                 await authManager.signOut();
                                 GoRouter.of(context).clearRedirectLocation();

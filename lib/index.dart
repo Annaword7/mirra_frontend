@@ -11,8 +11,6 @@ export '/pages/onboarding_carousel/onboarding_carousel_widget.dart'
 export '/boards/boards/boards_widget.dart' show BoardsWidget;
 export '/home/home/home_widget.dart' show HomeWidget;
 export '/pages/profile/profile_widget.dart' show ProfileWidget;
-export '/item_card/imagedetails/imagedetails_widget.dart'
-    show ImagedetailsWidget;
 export '/boards/imagesby_album/imagesby_album_widget.dart'
     show ImagesbyAlbumWidget;
 export '/pages/forgot_password/forgot_password_widget.dart'

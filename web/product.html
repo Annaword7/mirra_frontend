@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MiRRA — карточка продукта</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --blue: #5C85D9;
+  --blue-dark: #3e63b7;
+  --blue-soft: #EEF3FF;
+  --bg: #F6F7FB;
+  --text: #151821;
+  --muted: #697386;
+  --border: #E1E7F2;
+  --green: #2E7D32;
+  --red: #C62828;
+  --shadow: 0 14px 40px rgba(48, 67, 111, 0.10);
+}
+body {
+  min-height: 100vh;
+  background: radial-gradient(circle at top left, #EAF0FF 0, transparent 34rem), var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", sans-serif;
+  padding: 28px 20px;
+}
+button { border: 0; cursor: pointer; font: inherit; }
+.page { max-width: 760px; margin: 0 auto; }
+.back { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; font-weight: 800; text-decoration: none; margin-bottom: 20px; }
+.back:hover { color: var(--blue); }
+.spinner-wrap { padding: 80px; text-align: center; }
+.spinner { display: inline-block; width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--blue); border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.error-page { text-align: center; padding: 80px 24px; color: var(--muted); font-size: 15px; }
+/* Header */
+.product-header { display: flex; gap: 20px; align-items: flex-start; margin-bottom: 24px; }
+.product-image { width: 120px; height: 120px; border-radius: 20px; object-fit: cover; background: var(--blue-soft); flex: 0 0 auto; }
+.product-image-ph { width: 120px; height: 120px; border-radius: 20px; background: var(--blue-soft); display: grid; place-items: center; font-size: 52px; flex: 0 0 auto; }
+.product-meta { flex: 1; min-width: 0; }
+.product-name { font-size: 24px; font-weight: 950; letter-spacing: -0.04em; line-height: 1.2; margin-bottom: 4px; }
+.product-brand { color: var(--muted); font-size: 15px; margin-bottom: 14px; }
+.score-pill { display: inline-flex; align-items: center; gap: 8px; border-radius: 999px; background: var(--blue-soft); padding: 8px 14px 8px 8px; font-weight: 950; }
+.score-letter { width: 36px; height: 36px; border-radius: 50%; color: white; display: grid; place-items: center; font-size: 16px; font-weight: 950; }
+.score-value { font-size: 20px; }
+/* Card sections */
+.section { background: rgba(255,255,255,0.92); border: 1px solid var(--border); border-radius: 24px; padding: 22px; box-shadow: var(--shadow); margin-bottom: 16px; }
+.section-title { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; font-weight: 800; }
+/* Category scores */
+.score-rows { display: grid; gap: 12px; }
+.score-row { display: grid; gap: 5px; }
+.score-row-head { display: flex; justify-content: space-between; font-size: 13px; }
+.score-row-label { font-weight: 700; }
+.score-row-value { font-weight: 900; }
+.bar { height: 8px; border-radius: 999px; overflow: hidden; background: #E9EEF8; }
+.bar span { display: block; height: 100%; background: linear-gradient(90deg, var(--blue), #8AA9EA); transition: width 0.7s ease; }
+/* Summary */
+.summary-text { font-size: 14px; line-height: 1.65; color: #394150; }
+/* Tags */
+.tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.tag { background: #F4F6FA; border-radius: 999px; padding: 6px 12px; font-size: 12px; color: var(--muted); font-weight: 700; }
+/* Ingredients */
+.ingredient-list { display: grid; gap: 10px; }
+.ingredient-item { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 12px; border: 1px solid var(--border); border-radius: 14px; background: white; }
+.ingredient-name { font-weight: 800; font-size: 13px; }
+.ingredient-meta { color: var(--muted); font-size: 12px; margin-top: 2px; line-height: 1.4; }
+.ingredient-category { font-size: 11px; padding: 3px 8px; border-radius: 999px; background: var(--blue-soft); color: var(--blue-dark); font-weight: 800; white-space: nowrap; }
+/* Issues */
+.issue-item { display: flex; gap: 12px; padding: 12px; border: 1px solid var(--border); border-radius: 14px; background: white; margin-bottom: 8px; }
+.issue-severity { font-size: 11px; padding: 3px 8px; border-radius: 999px; font-weight: 900; white-space: nowrap; }
+.issue-severity.high { background: #FFECEC; color: var(--red); }
+.issue-severity.medium { background: #FFF8E1; color: #E65100; }
+.issue-severity.low { background: #F4F6FA; color: var(--muted); }
+.issue-name { font-weight: 800; font-size: 13px; }
+.issue-desc { color: var(--muted); font-size: 12px; margin-top: 2px; line-height: 1.4; }
+/* Paywall */
+.paywall { border: 1.5px solid rgba(92,133,217,0.35); border-radius: 20px; padding: 24px; background: var(--blue-soft); margin-bottom: 16px; }
+.paywall-title { display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 900; margin-bottom: 6px; }
+.paywall-sub { color: var(--muted); font-size: 13px; line-height: 1.5; margin-bottom: 18px; }
+.paywall-features { display: grid; gap: 8px; margin-bottom: 20px; }
+.paywall-feature { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 700; }
+.paywall-feature::before { content: '✓'; color: var(--blue); font-weight: 900; flex: 0 0 auto; }
+.btn { min-height: 44px; border-radius: 13px; padding: 0 20px; font-weight: 800; font-size: 15px; background: var(--blue); color: white; transition: transform 0.12s, opacity 0.12s; }
+.btn:hover { opacity: 0.9; transform: translateY(-1px); }
+.btn.upgrade { background: linear-gradient(135deg, #5C85D9, #8AA9EA); }
+/* How-to-use */
+.howto-text { font-size: 14px; line-height: 1.7; color: #394150; white-space: pre-line; }
+@media (max-width: 600px) {
+  .product-header { flex-direction: column; }
+  .product-image, .product-image-ph { width: 100%; height: 200px; border-radius: 16px; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <a class="back" href="/cabinet">← Все продукты</a>
+  <div class="spinner-wrap" id="loading"><div class="spinner"></div></div>
+  <div id="productCard" style="display:none;"></div>
+</div>
+
+<script>
+const SUPABASE_URL = {{ supabase_url|tojson }};
+const ANON_KEY = {{ supabase_anon_key|tojson }};
+const BACKEND = {{ backend_base|tojson }};
+// TODO: Set RevenueCat Web Billing key (rcb_...) from RC Dashboard → Web Billing
+const RC_WEB_KEY = '';
+
+const session = JSON.parse(localStorage.getItem('mirraCabinetSession') || 'null');
+
+boot();
+
+async function boot() {
+  if (!session?.access_token) {
+    location.replace('/cabinet');
+    return;
+  }
+  const params = new URLSearchParams(location.search);
+  const id = parseInt(params.get('id'), 10);
+  if (!id) { showError('Не указан ID продукта'); return; }
+  try {
+    const [product, subscription, ingredients, issues] = await Promise.all([
+      supabaseGet(`images?id=eq.${id}&select=*`),
+      fetchSubscription(),
+      supabaseGet(`image_top_ingredients?image_id=eq.${id}&order=sort_order.asc`),
+      supabaseGet(`image_ingredient_issues?image_id=eq.${id}&order=severity.desc`)
+    ]);
+    const p = product[0];
+    if (!p) { showError('Продукт не найден'); return; }
+    const isPro = (subscription?.subscription_plan || 'free') === 'premium';
+    document.title = `MiRRA — ${p.product_name || 'Продукт'}`;
+    renderCard(p, isPro, ingredients || [], issues || []);
+  } catch (error) {
+    showError(error.message);
+  }
+}
+
+async function supabaseGet(path) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    headers: {
+      apikey: ANON_KEY,
+      Authorization: `Bearer ${session.access_token}`
+    }
+  });
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data.message || `HTTP ${response.status}`);
+  }
+  return response.json();
+}
+
+async function fetchSubscription() {
+  try {
+    const response = await fetch(`${BACKEND}/subscription/info`, {
+      headers: { Authorization: `Bearer ${session.access_token}` }
+    });
+    if (!response.ok) return null;
+    return response.json();
+  } catch { return null; }
+}
+
+function renderCard(p, isPro, ingredients, issues) {
+  document.getElementById('loading').style.display = 'none';
+  const card = document.getElementById('productCard');
+  card.style.display = 'block';
+
+  const composite = Math.round(p.sa_composite_score || 0);
+  const color = scoreColor(composite);
+  const grade = scoreGrade(composite);
+
+  const thumbHtml = p.image_url
+    ? `<img class="product-image" src="${escapeHtml(p.image_url)}" alt="" onerror="this.outerHTML='<div class=\\'product-image-ph\\'>🧴</div>'">`
+    : '<div class="product-image-ph">🧴</div>';
+
+  const scorePill = composite > 0 ? `
+    <div class="score-pill">
+      <span class="score-letter" style="background:${color}">${grade}</span>
+      <span class="score-value" style="color:${color}">${composite}</span>
+      <span style="color:var(--muted);font-size:13px;">/ 100</span>
+    </div>` : '';
+
+  const categoryScores = [
+    ['sa_efficacy_score',       'Эффективность'],
+    ['sa_safety_score',         'Безопасность'],
+    ['sa_stability_score',      'Стабильность'],
+    ['sa_ux_score',             'UX / Текстура'],
+    ['sa_comedogenicity_score', 'Комедогенность'],
+  ];
+
+  const scoreRowsHtml = categoryScores.map(([key, label]) => {
+    const val = Math.round(p[key] || 0);
+    return `<div class="score-row">
+      <div class="score-row-head">
+        <span class="score-row-label">${label}</span>
+        <span class="score-row-value" style="color:${scoreColor(val)}">${val}</span>
+      </div>
+      <div class="bar"><span style="width:${val}%;background:${scoreColor(val)}"></span></div>
+    </div>`;
+  }).join('');
+
+  const tagsHtml = (p.sa_best_for_tags || []).length
+    ? `<div class="section">
+        <div class="section-title">Подходит для</div>
+        <div class="tags">${(p.sa_best_for_tags||[]).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>
+      </div>` : '';
+
+  const expertHtml = p.sa_expert_analysis
+    ? `<div class="section">
+        <div class="section-title">Экспертный анализ</div>
+        <div class="summary-text">${escapeHtml(p.sa_expert_analysis)}</div>
+      </div>` : '';
+
+  const howToHtml = p.sa_how_to_use
+    ? `<div class="section">
+        <div class="section-title">Как использовать</div>
+        <div class="howto-text">${escapeHtml(p.sa_how_to_use)}</div>
+      </div>` : '';
+
+  const ingredientsHtml = ingredients.length
+    ? `<div class="section">
+        <div class="section-title">Ключевые ингредиенты</div>
+        <div class="ingredient-list">${ingredients.map(ing => `
+          <div class="ingredient-item">
+            <div>
+              <div class="ingredient-name">${escapeHtml(ing.ingredient_name)}</div>
+              <div class="ingredient-meta">
+                ${ing.concentration_estimate ? `Концентрация: ${escapeHtml(ing.concentration_estimate)}` : ''}
+                ${ing.description ? ` · ${escapeHtml(ing.description)}` : ''}
+              </div>
+            </div>
+            ${ing.category ? `<span class="ingredient-category">${escapeHtml(ing.category)}</span>` : ''}
+          </div>`).join('')}
+        </div>
+      </div>` : '';
+
+  const issuesHtml = issues.length
+    ? `<div class="section">
+        <div class="section-title">Потенциальные проблемы</div>
+        ${issues.map(issue => `
+          <div class="issue-item">
+            <div>
+              <div class="issue-name">${escapeHtml(issue.ingredient_name)}</div>
+              <div class="issue-desc">${escapeHtml(issue.description || issue.issue_type || '')}</div>
+            </div>
+            <span class="issue-severity ${issue.severity?.toLowerCase() || 'low'}">${escapeHtml(issue.severity || '')}</span>
+          </div>`).join('')}
+      </div>` : '';
+
+  const paywallHtml = `
+    <div class="paywall">
+      <div class="paywall-title">🔒 Полный анализ — в Pro</div>
+      <div class="paywall-sub">Откройте экспертный разбор, полный список INCI, анализ рисков и инструкцию по применению.</div>
+      <div class="paywall-features">
+        <div class="paywall-feature">Экспертный разбор состава</div>
+        <div class="paywall-feature">Полный список INCI</div>
+        <div class="paywall-feature">Ингредиенты-проблемы с уровнем риска</div>
+        <div class="paywall-feature">Инструкция по правильному применению</div>
+        <div class="paywall-feature">Совместимость с типом кожи</div>
+      </div>
+      <button class="btn upgrade" onclick="upgrade()">Оформить Pro</button>
+    </div>`;
+
+  card.innerHTML = `
+    <div class="product-header">
+      ${thumbHtml}
+      <div class="product-meta">
+        <div class="product-name">${escapeHtml(p.product_name || 'Без названия')}</div>
+        <div class="product-brand">${escapeHtml(p.brand || '')}</div>
+        ${scorePill}
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Оценки по категориям</div>
+      <div class="score-rows">${scoreRowsHtml}</div>
+    </div>
+
+    ${p.sa_quick_summary ? `
+    <div class="section">
+      <div class="section-title">Краткое резюме</div>
+      <div class="summary-text">${escapeHtml(p.sa_quick_summary)}</div>
+    </div>` : ''}
+
+    ${isPro ? expertHtml + tagsHtml + ingredientsHtml + issuesHtml + howToHtml : paywallHtml}
+  `;
+}
+
+function showError(message) {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('productCard').style.display = 'none';
+  document.querySelector('.page').insertAdjacentHTML('beforeend',
+    `<div class="error-page">⚠️<br><br>${escapeHtml(message)}</div>`
+  );
+}
+
+async function upgrade() {
+  if (!RC_WEB_KEY) {
+    alert('Web-платежи ещё не настроены. Оформите подписку через мобильное приложение MiRRA.');
+    return;
+  }
+  // RevenueCat Web Billing
+  // const { Purchases } = await import('https://cdn.revenuecat.com/...');
+  // const purchases = Purchases.configure(RC_WEB_KEY, session.user.id);
+  // const offerings = await purchases.getOfferings();
+  // await purchases.purchase({ rcPackage: offerings.current.availablePackages[0] });
+}
+
+function scoreColor(score) {
+  if (score >= 75) return '#2E7D32';
+  if (score >= 65) return '#43A047';
+  if (score >= 55) return '#C0CA33';
+  if (score >= 45) return '#FFB300';
+  if (score >= 35) return '#FF7043';
+  return '#C62828';
+}
+
+function scoreGrade(score) {
+  if (score >= 75) return 'A';
+  if (score >= 65) return 'B';
+  if (score >= 55) return 'C';
+  if (score >= 45) return 'D';
+  if (score >= 35) return 'E';
+  return 'F';
+}
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+}
+</script>
+</body>
+</html>
