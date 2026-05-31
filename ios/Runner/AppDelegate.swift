@@ -81,8 +81,17 @@ class MirraSceneDelegate: FlutterSceneDelegate {
     super.scene(scene, willConnectTo: session, options: connectionOptions)
   }
 
-  // Warm launch: app in background, opened by ShareExtension (mirradev://share)
-  // or by "Open In MiRRA" document handler (file:// URL).
+  // App foregrounded for any reason — check App Group for image saved by ShareExtension.
+  // iOS 17+ may foreground the app without delivering the URL via openURLContexts.
+  override func sceneWillEnterForeground(_ scene: UIScene) {
+    super.sceneWillEnterForeground(scene)
+    if ShareStore.defaults.string(forKey: ShareStore.pendingKey) != nil {
+      print("[Share] pending image found on foreground")
+      MirraSharePlugin.channel?.invokeMethod("sharedImage", arguments: nil)
+    }
+  }
+
+  // Warm launch: app in background, opened by "Open In MiRRA" document handler (file:// URL).
   override func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
     print("[Share] openURLContexts — count: \(URLContexts.count)")
     for ctx in URLContexts {
