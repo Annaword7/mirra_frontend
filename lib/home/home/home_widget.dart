@@ -1122,8 +1122,8 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                           ),
                                           score: staggeredViewImagesRow.saCompositeScore,
                                           stars: 0,
-                                          tags: staggeredViewImagesRow
-                                              .saBestForTags,
+                                          tags: staggeredViewImagesRow.saBestForTags,
+                                          hasSpf: staggeredViewImagesRow.saHasSpf,
                                           imageID: staggeredViewImagesRow.id,
                                           avgPrice: _model.priceMap['${(staggeredViewImagesRow.productName ?? '').toLowerCase().trim()}|${(staggeredViewImagesRow.brand ?? '').toLowerCase().trim()}']?.avgPrice,
                                           priceCurrencyCode: _model.priceMap['${(staggeredViewImagesRow.productName ?? '').toLowerCase().trim()}|${(staggeredViewImagesRow.brand ?? '').toLowerCase().trim()}']?.priceCurrencyCode,

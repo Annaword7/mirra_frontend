@@ -19,6 +19,7 @@ class ImagedetailedMainWidget extends StatefulWidget {
     this.stars,
     this.avgPrice,
     this.priceCurrencyCode,
+    this.hasSpf = false,
   })  : this.imageUrl = imageUrl ??
             'https://static.vecteezy.com/system/resources/thumbnails/022/014/063/small/missing-picture-page-for-website-design-or-mobile-app-design-no-image-available-icon-vector.jpg',
         this.brand = brand ?? 'no brand',
@@ -34,6 +35,7 @@ class ImagedetailedMainWidget extends StatefulWidget {
   final int? stars;
   final double? avgPrice;
   final String? priceCurrencyCode;
+  final bool hasSpf;
 
   @override
   State<ImagedetailedMainWidget> createState() =>
@@ -155,6 +157,41 @@ class _ImagedetailedMainWidgetState extends State<ImagedetailedMainWidget> {
                     padding: EdgeInsetsDirectional.fromSTEB(8.0, 8.0, 0.0, 0.0),
                     child: _ScoreBadge(score: widget.score),
                   ),
+                  if (widget.hasSpf)
+                    Positioned(
+                      bottom: 8,
+                      left: 8,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1565C0).withOpacity(0.9),
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: const [
+                            BoxShadow(
+                              blurRadius: 6,
+                              color: Color(0x44000000),
+                              offset: Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.wb_sunny_rounded, size: 12, color: Colors.white),
+                            SizedBox(width: 4),
+                            Text(
+                              'SPF',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   if (widget.avgPrice != null)
                     Positioned(
                       bottom: 8,

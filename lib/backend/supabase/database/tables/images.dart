@@ -131,6 +131,15 @@ class ImagesRow extends SupabaseDataRow {
   String? get productType => getField<String>('product_type');
   set productType(String? value) => setField<String>('product_type', value);
 
+  /// True when the product contains UV filters (read from sa_scoring_log.spf_info.has_spf).
+  bool get saHasSpf {
+    final log = saScoringLog;
+    if (log == null) return false;
+    final spfInfo = (log is Map) ? log['spf_info'] : null;
+    if (spfInfo == null) return false;
+    return spfInfo['has_spf'] == true;
+  }
+
   // Legacy aliases — columns removed from DB, mapped to nearest equivalents.
   double? get score => saCompositeScore;
   String? get summary => saQuickSummary;

@@ -326,6 +326,7 @@ class _FavoritesWidgetState extends State<FavoritesWidget> {
                                               ),
                                               imageID: topchildItem.id,
                                               tags: topchildItem.saBestForTags,
+                                              hasSpf: topchildItem.saHasSpf,
                                               stars: valueOrDefault<int>(
                                                 topchildItem.starsFromUser,
                                                 0,

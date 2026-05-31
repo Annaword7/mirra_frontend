@@ -4,25 +4,78 @@ import Firebase
 import FirebaseMessaging
 import UserNotifications
 
-// MARK: - Share Plugin
-// Handles images shared to MiRRA via the iOS share sheet ("Open In MiRRA").
-// Uses scene delegate (iOS 13+) as the primary path; app delegate kept as fallback.
-private class MirraSharePlugin: NSObject, FlutterPlugin, FlutterSceneLifeCycleDelegate {
+// MARK: - Shared store
+
+// Written by MirraSceneDelegate (before engine starts), read by MirraSharePlugin (Flutter side).
+enum ShareStore {
+  static let pendingKey   = "mirra_pending_shared_image"
+  static let tempFilename = "mirra_shared_image"
+
+  @discardableResult
+  static func save(url: URL) -> Bool {
+    print("[Share] incoming URL: \(url) isFileURL=\(url.isFileURL) scheme=\(url.scheme ?? "nil")")
+    guard url.isFileURL else { return false }
+    let needsScope = url.startAccessingSecurityScopedResource()
+    defer { if needsScope { url.stopAccessingSecurityScopedResource() } }
+    guard let data = try? Data(contentsOf: url) else {
+      print("[Share] ❌ could not read data")
+      return false
+    }
+    let ext = url.pathExtension.isEmpty ? "jpg" : url.pathExtension
+    let path = (NSTemporaryDirectory() as NSString)
+      .appendingPathComponent("\(tempFilename).\(ext)")
+    try? data.write(to: URL(fileURLWithPath: path))
+    UserDefaults.standard.set(path, forKey: pendingKey)
+    print("[Share] ✅ saved \(data.count) bytes → \(path)")
+    return true
+  }
+}
+
+// MARK: - Scene delegate
+//
+// Subclasses FlutterSceneDelegate to capture URLs before the Flutter engine
+// initialises — fixes cold-launch "Open In MiRRA" from third-party apps.
+
+@objc(MirraSceneDelegate)
+@available(iOS 13.0, *)
+class MirraSceneDelegate: FlutterSceneDelegate {
+
+  // Cold launch: image URL is in connectionOptions, not a later callback.
+  override func scene(_ scene: UIScene,
+                      willConnectTo session: UISceneSession,
+                      options connectionOptions: UIScene.ConnectionOptions) {
+    print("[Share] willConnectToSession — urlContexts: \(connectionOptions.urlContexts.count)")
+    for ctx in connectionOptions.urlContexts {
+      if ShareStore.save(url: ctx.url) { break }
+    }
+    super.scene(scene, willConnectTo: session, options: connectionOptions)
+  }
+
+  // Warm launch: app in background, user picks "Open In MiRRA".
+  override func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
+    print("[Share] openURLContexts — count: \(URLContexts.count)")
+    for ctx in URLContexts {
+      if ShareStore.save(url: ctx.url) {
+        MirraSharePlugin.channel?.invokeMethod("sharedImage", arguments: nil)
+        break
+      }
+    }
+    super.scene(scene, openURLContexts: URLContexts)
+  }
+}
+
+// MARK: - Share plugin
+
+class MirraSharePlugin: NSObject, FlutterPlugin {
 
   static var channel: FlutterMethodChannel?
-  private static let pendingKey = "mirra_pending_shared_image"
-  private static let tempFilename = "mirra_shared_image"
 
   static func register(with registrar: FlutterPluginRegistrar) {
     let ch = FlutterMethodChannel(name: "mirra/share",
                                   binaryMessenger: registrar.messenger())
-    let instance = MirraSharePlugin()
-    registrar.addMethodCallDelegate(instance, channel: ch)
-    registrar.addApplicationDelegate(instance)
-    if #available(iOS 13.0, *) {
-      registrar.addSceneDelegate(instance)
-    }
+    registrar.addMethodCallDelegate(MirraSharePlugin(), channel: ch)
     MirraSharePlugin.channel = ch
+    print("[Share] plugin channel ready")
   }
 
   func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -34,52 +87,20 @@ private class MirraSharePlugin: NSObject, FlutterPlugin, FlutterSceneLifeCycleDe
     }
   }
 
-  // Scene-based URL opening (iOS 13+, used when UISceneDelegateClassName is set in Info.plist).
-  @available(iOS 13.0, *)
-  func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) -> Bool {
-    for context in URLContexts {
-      let url = context.url
-      guard url.isFileURL else { continue }
-      saveSharedImage(from: url)
-      MirraSharePlugin.channel?.invokeMethod("sharedImage", arguments: nil)
-      return true
-    }
-    return false
-  }
-
-  // Legacy app-delegate path (kept for completeness; not called on scene-based apps).
-  func application(_ application: UIApplication, open url: URL,
-                   options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
-    guard url.isFileURL else { return false }
-    saveSharedImage(from: url)
-    MirraSharePlugin.channel?.invokeMethod("sharedImage", arguments: nil)
-    return true
-  }
-
-  // MARK: - Private helpers
-
-  private func saveSharedImage(from url: URL) {
-    guard let data = try? Data(contentsOf: url) else { return }
-    let ext = url.pathExtension.isEmpty ? "jpg" : url.pathExtension
-    let tempPath = (NSTemporaryDirectory() as NSString)
-      .appendingPathComponent("\(MirraSharePlugin.tempFilename).\(ext)")
-    try? data.write(to: URL(fileURLWithPath: tempPath))
-    UserDefaults.standard.set(tempPath, forKey: MirraSharePlugin.pendingKey)
-  }
-
   private func getPendingSharedImage(result: @escaping FlutterResult) {
-    guard let path = UserDefaults.standard.string(forKey: MirraSharePlugin.pendingKey) else {
+    guard let path = UserDefaults.standard.string(forKey: ShareStore.pendingKey) else {
       result(nil)
       return
     }
     defer {
-      UserDefaults.standard.removeObject(forKey: MirraSharePlugin.pendingKey)
+      UserDefaults.standard.removeObject(forKey: ShareStore.pendingKey)
       try? FileManager.default.removeItem(atPath: path)
     }
     guard let data = try? Data(contentsOf: URL(fileURLWithPath: path)) else {
       result(nil)
       return
     }
+    print("[Share] returning \(data.count) bytes to Flutter")
     result(FlutterStandardTypedData(bytes: data))
   }
 }
@@ -99,9 +120,6 @@ private class MirraSharePlugin: NSObject, FlutterPlugin, FlutterSceneLifeCycleDe
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
-  // Foreground notifications: suppress native banner so Flutter's local notification
-  // (created in notification_service.dart onMessage) is the only one shown.
-  // Its tap fires onDidReceiveNotificationResponse which handles deep-link navigation.
   override func userNotificationCenter(
     _ center: UNUserNotificationCenter,
     willPresent notification: UNNotification,
@@ -110,7 +128,6 @@ private class MirraSharePlugin: NSObject, FlutterPlugin, FlutterSceneLifeCycleDe
     completionHandler([])
   }
 
-  // FCM token received via delegate
   func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
     print("[FCM] Token: \(fcmToken ?? "nil")")
   }

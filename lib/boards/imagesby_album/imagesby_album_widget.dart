@@ -302,6 +302,7 @@ class _ImagesbyAlbumWidgetState extends State<ImagesbyAlbumWidget> {
                                   .roundToDouble(),
                               imageID: row.id,
                               tags: row.saBestForTags,
+                              hasSpf: row.saHasSpf,
                               stars: row.starsFromUser,
                             ),
                           );
