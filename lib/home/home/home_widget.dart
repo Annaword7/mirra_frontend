@@ -251,7 +251,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
   }
 
   Future<List<ImagesRow>> _fetchImages() => ImagesTable().queryRows(
-        columns: 'id,image_url,product_name,brand,sa_composite_score,sa_best_for_tags,created_at,product_type',
+        columns: 'id,image_url,product_name,brand,sa_composite_score,sa_best_for_tags,sa_scoring_log,created_at,product_type',
         queryFn: (q) => q
             .eqOrNull('user', currentUserUid)
             .order('created_at', ascending: false),
