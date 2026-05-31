@@ -6,19 +6,23 @@ import UserNotifications
 
 // MARK: - Shared store
 
-// Written by MirraSceneDelegate (before engine starts), read by MirraSharePlugin (Flutter side).
+// Written by MirraSceneDelegate or ShareExtension, read by MirraSharePlugin (Flutter side).
+// Uses App Group container so ShareExtension (separate process) can pass data to the main app.
 enum ShareStore {
-  static let pendingKey    = "mirra_pending_shared_image"
-  static let pendingUrlKey = "mirra_pending_shared_url"   // web image URL for Flutter to download
-  static let tempFilename  = "mirra_shared_image"
+  static let appGroup     = "group.mirra.app"
+  static let pendingKey   = "mirra_pending_shared_image"
+  static let tempFilename = "mirra_shared_image"
 
-  private static let imageExtensions: Set<String> = [
-    "jpg", "jpeg", "png", "gif", "webp", "heic", "heif", "bmp", "tiff", "tif"
-  ]
+  /// Shared UserDefaults accessible by both main app and ShareExtension.
+  static var defaults: UserDefaults { UserDefaults(suiteName: appGroup) ?? .standard }
 
-  // MARK: File URL (Photos app, Files app, downloaded files)
+  /// Shared file container directory (App Group).
+  static var containerURL: URL? {
+    FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroup)
+  }
 
-  /// Reads a file URL, copies data to tmp, stores path. Returns true if handled.
+  // MARK: File URL (Photos app, Files app — "Open In" path)
+
   @discardableResult
   static func saveFile(url: URL) -> Bool {
     print("[Share] incoming URL: \(url) isFileURL=\(url.isFileURL) scheme=\(url.scheme ?? "nil")")
@@ -32,46 +36,23 @@ enum ShareStore {
     return persist(data: data, ext: url.pathExtension)
   }
 
-  // MARK: Web URL (Safari web images)
-
-  static func isWebImageURL(_ url: URL) -> Bool {
-    guard let scheme = url.scheme,
-          scheme == "http" || scheme == "https" else { return false }
-    let ext = url.pathExtension.lowercased()
-    return imageExtensions.contains(ext)
-  }
-
-  /// Stores the web URL for Flutter to download (cold launch path).
-  static func saveWebURL(_ url: URL) {
-    UserDefaults.standard.set(url.absoluteString, forKey: pendingUrlKey)
-    print("[Share] ✅ stored web URL for Flutter: \(url)")
-  }
-
-  /// Downloads web image asynchronously, persists to tmp, calls completion on main. (warm launch path)
-  static func downloadAndPersist(url: URL, completion: @escaping () -> Void) {
-    print("[Share] ⬇️ downloading: \(url)")
-    URLSession.shared.dataTask(with: url) { data, _, error in
-      guard let data, error == nil else {
-        print("[Share] ❌ download failed: \(error?.localizedDescription ?? "unknown")")
-        return
-      }
-      if persist(data: data, ext: url.pathExtension) {
-        print("[Share] ✅ downloaded \(data.count) bytes")
-        DispatchQueue.main.async { completion() }
-      }
-    }.resume()
-  }
-
   // MARK: Private
 
   @discardableResult
-  private static func persist(data: Data, ext: String) -> Bool {
+  static func persist(data: Data, ext: String) -> Bool {
     let fileExt = ext.isEmpty ? "jpg" : ext
-    let path = (NSTemporaryDirectory() as NSString)
-      .appendingPathComponent("\(tempFilename).\(fileExt)")
+    // Prefer App Group container; fall back to tmp if not configured yet.
+    let fileURL: URL
+    if let base = containerURL {
+      fileURL = base.appendingPathComponent("\(tempFilename).\(fileExt)")
+    } else {
+      fileURL = URL(fileURLWithPath: (NSTemporaryDirectory() as NSString)
+        .appendingPathComponent("\(tempFilename).\(fileExt)"))
+    }
     do {
-      try data.write(to: URL(fileURLWithPath: path))
-      UserDefaults.standard.set(path, forKey: pendingKey)
+      try data.write(to: fileURL)
+      defaults.set(fileURL.path, forKey: pendingKey)
+      print("[Share] ✅ saved \(data.count) bytes → \(fileURL.path)")
       return true
     } catch {
       print("[Share] ❌ write failed: \(error)")
@@ -107,20 +88,21 @@ class MirraSceneDelegate: FlutterSceneDelegate {
     super.scene(scene, willConnectTo: session, options: connectionOptions)
   }
 
-  // Warm launch: app is in background, user picks "Open In MiRRA".
+  // Warm launch: app in background, opened by ShareExtension (mirradev://share)
+  // or by "Open In MiRRA" document handler (file:// URL).
   override func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
     print("[Share] openURLContexts — count: \(URLContexts.count)")
     for ctx in URLContexts {
       let url = ctx.url
-      if ShareStore.saveFile(url: url) {
+      // ShareExtension already saved the image to App Group — just notify Flutter.
+      if url.scheme == "mirradev" && url.host == "share" {
+        print("[Share] opened by ShareExtension")
         MirraSharePlugin.channel?.invokeMethod("sharedImage", arguments: nil)
         break
       }
-      if ShareStore.isWebImageURL(url) {
-        // Download in background; notify Flutter when done.
-        ShareStore.downloadAndPersist(url: url) {
-          MirraSharePlugin.channel?.invokeMethod("sharedImage", arguments: nil)
-        }
+      // "Open In" direct file URL (Photos app, Files app).
+      if ShareStore.saveFile(url: url) {
+        MirraSharePlugin.channel?.invokeMethod("sharedImage", arguments: nil)
         break
       }
     }
@@ -146,20 +128,17 @@ class MirraSharePlugin: NSObject, FlutterPlugin {
     switch call.method {
     case "getPendingSharedImage":
       getPendingSharedImage(result: result)
-    case "getPendingSharedImageUrl":
-      getPendingSharedImageUrl(result: result)
     default:
       result(FlutterMethodNotImplemented)
     }
   }
 
-  // Returns raw bytes of a locally saved image (file:// share path).
   private func getPendingSharedImage(result: @escaping FlutterResult) {
-    guard let path = UserDefaults.standard.string(forKey: ShareStore.pendingKey) else {
+    guard let path = ShareStore.defaults.string(forKey: ShareStore.pendingKey) else {
       result(nil); return
     }
     defer {
-      UserDefaults.standard.removeObject(forKey: ShareStore.pendingKey)
+      ShareStore.defaults.removeObject(forKey: ShareStore.pendingKey)
       try? FileManager.default.removeItem(atPath: path)
     }
     guard let data = try? Data(contentsOf: URL(fileURLWithPath: path)) else {
@@ -167,13 +146,6 @@ class MirraSharePlugin: NSObject, FlutterPlugin {
     }
     print("[Share] returning \(data.count) bytes to Flutter")
     result(FlutterStandardTypedData(bytes: data))
-  }
-
-  // Returns web image URL string for Flutter to download (cold-launch web-URL path).
-  private func getPendingSharedImageUrl(result: @escaping FlutterResult) {
-    let url = UserDefaults.standard.string(forKey: ShareStore.pendingUrlKey)
-    UserDefaults.standard.removeObject(forKey: ShareStore.pendingUrlKey)
-    result(url)
   }
 }
 
