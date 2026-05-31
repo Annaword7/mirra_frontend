@@ -76,14 +76,7 @@ class MirraSceneDelegate: FlutterSceneDelegate {
                       options connectionOptions: UIScene.ConnectionOptions) {
     print("[Share] willConnectToSession — urlContexts: \(connectionOptions.urlContexts.count)")
     for ctx in connectionOptions.urlContexts {
-      let url = ctx.url
-      if ShareStore.saveFile(url: url) { break }
-      if ShareStore.isWebImageURL(url) {
-        // Store URL for Flutter fallback download; also start native download in parallel.
-        ShareStore.saveWebURL(url)
-        ShareStore.downloadAndPersist(url: url) {}
-        break
-      }
+      if ShareStore.saveFile(url: ctx.url) { break }
     }
     super.scene(scene, willConnectTo: session, options: connectionOptions)
   }
