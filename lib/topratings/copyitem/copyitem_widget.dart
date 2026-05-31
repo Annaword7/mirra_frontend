@@ -23,6 +23,7 @@ class CopyitemWidget extends StatefulWidget {
 
 class _CopyitemWidgetState extends State<CopyitemWidget> {
   late CopyitemModel _model;
+  bool _isLoading = false;
 
   @override
   void setState(VoidCallback callback) {
@@ -57,7 +58,7 @@ class _CopyitemWidgetState extends State<CopyitemWidget> {
           padding: EdgeInsets.all(20.0),
           child: Container(
             decoration: BoxDecoration(
-              color: FlutterFlowTheme.of(context).secondaryBackground,
+              color: Colors.white,
               boxShadow: [
                 BoxShadow(
                   blurRadius: 12.0,
@@ -102,7 +103,7 @@ class _CopyitemWidgetState extends State<CopyitemWidget> {
                         style: FlutterFlowTheme.of(context).bodyMedium.override(
                               fontFamily:
                                   FlutterFlowTheme.of(context).bodyMediumFamily,
-                              color: FlutterFlowTheme.of(context).secondaryText,
+                              color: Colors.black,
                               letterSpacing: 0.0,
                               useGoogleFonts: !FlutterFlowTheme.of(context)
                                   .bodyMediumIsCustom,
@@ -127,59 +128,68 @@ class _CopyitemWidgetState extends State<CopyitemWidget> {
                           padding: EdgeInsets.all(8.0),
                           iconPadding: EdgeInsetsDirectional.fromSTEB(
                               0.0, 0.0, 0.0, 0.0),
-                          color: FlutterFlowTheme.of(context).alternate,
+                          color: const Color(0xFFE0E0E0),
                           textStyle: FlutterFlowTheme.of(context)
                               .titleSmall
                               .override(
                                 fontFamily: FlutterFlowTheme.of(context)
                                     .titleSmallFamily,
-                                color:
-                                    FlutterFlowTheme.of(context).secondaryText,
+                                color: const Color(0xFF757575),
                                 letterSpacing: 0.0,
                                 useGoogleFonts: !FlutterFlowTheme.of(context)
                                     .titleSmallIsCustom,
                               ),
                           elevation: 0.0,
                           borderSide: BorderSide(
-                            color: FlutterFlowTheme.of(context).alternate,
+                            color: const Color(0xFFE0E0E0),
                             width: 1.0,
                           ),
                           borderRadius: BorderRadius.circular(8.0),
                         ),
                       ),
                       FFButtonWidget(
-                        onPressed: () async {
-                          _model.copiedimage =
-                              await CopyproductNEWBCNDCall.call(
-                            host: FFDevEnvironmentValues().backendhost,
-                            sourceImageId: widget.imageid,
-                            targetUserId: currentUserUid,
-                            token: currentJwtToken,
-                          );
-
-                          final newId = CopyproductNEWBCNDCall.newimageid(
-                            _model.copiedimage?.jsonBody ?? '',
-                          );
-
-                          debugPrint('[CopyProduct] response: ${_model.copiedimage?.jsonBody}');
-                          debugPrint('[CopyProduct] new_image_id: $newId');
-
-                          Navigator.pop(context);
-
-                          if (newId != null) {
-                            context.pushNamed(
-                              Itemcard2Widget.routeName,
-                              queryParameters: {
-                                'imageid': serializeParam(newId, ParamType.int),
-                              },
+                        onPressed: _isLoading ? null : () async {
+                          safeSetState(() => _isLoading = true);
+                          try {
+                            _model.copiedimage =
+                                await CopyproductNEWBCNDCall.call(
+                              host: FFDevEnvironmentValues().backendhost,
+                              sourceImageId: widget.imageid,
+                              targetUserId: currentUserUid,
+                              token: currentJwtToken,
                             );
-                          } else {
-                            debugPrint('[CopyProduct] ERROR: new_image_id is null, cannot navigate');
-                          }
 
-                          safeSetState(() {});
+                            final newId = CopyproductNEWBCNDCall.newimageid(
+                              _model.copiedimage?.jsonBody ?? '',
+                            );
+
+                            debugPrint('[CopyProduct] response: ${_model.copiedimage?.jsonBody}');
+                            debugPrint('[CopyProduct] new_image_id: $newId');
+
+                            if (!context.mounted) return;
+                            Navigator.pop(context);
+
+                            if (newId != null) {
+                              context.pushNamed(
+                                Itemcard2Widget.routeName,
+                                queryParameters: {
+                                  'imageid': serializeParam(newId, ParamType.int),
+                                },
+                              );
+                            } else {
+                              debugPrint('[CopyProduct] ERROR: new_image_id is null, cannot navigate');
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Failed to copy product. Please try again.'),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            }
+                          } finally {
+                            if (mounted) safeSetState(() => _isLoading = false);
+                          }
                         },
-                        text: FFLocalizations.of(context).getText(
+                        text: _isLoading ? '...' : FFLocalizations.of(context).getText(
                           'noj51h6l' /* Copy */,
                         ),
                         options: FFButtonOptions(

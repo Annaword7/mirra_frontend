@@ -2,6 +2,8 @@ import 'dart:io' show Platform;
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import '/app_state.dart';
 
 export 'package:purchases_flutter/purchases_flutter.dart'
     show Package, Offering;
@@ -63,9 +65,11 @@ Future initialize(
 
     Purchases.addCustomerInfoUpdateListener((info) {
       customerInfo = info;
+      FFAppState().isprouser =
+          info.entitlements.all['EntitlementMirra']?.isActive ?? false;
     });
-  } on Exception catch (e) {
-    print("RevenueCat initialization failed: $e");
+  } on Exception catch (e, s) {
+    FirebaseCrashlytics.instance.recordError(e, s, fatal: false, reason: 'RevenueCat initialization failed');
   }
 }
 
@@ -84,7 +88,10 @@ Future<bool> purchasePackage(String package) async {
     final result = await Purchases.purchasePackage(revenueCatPackage);
     customerInfo = result.customerInfo;
     return true;
-  } catch (_) {
+  } catch (e, s) {
+    if (e is! PlatformException || e.code != 'purchase_cancelled') {
+      FirebaseCrashlytics.instance.recordError(e, s, fatal: false, reason: 'purchasePackage failed');
+    }
     return false;
   }
 }
@@ -101,8 +108,8 @@ Future loadOfferings() async {
   }
   try {
     _offerings = await Purchases.getOfferings();
-  } on PlatformException catch (e) {
-    print("Error loading offerings info: $e");
+  } on PlatformException catch (e, s) {
+    FirebaseCrashlytics.instance.recordError(e, s, fatal: false, reason: 'loadOfferings failed');
   }
 }
 
@@ -112,8 +119,8 @@ Future loadCustomerInfo() async {
   }
   try {
     _customerInfo = await Purchases.getCustomerInfo();
-  } on PlatformException catch (e) {
-    print("Error loading purchaser info: $e");
+  } on PlatformException catch (e, s) {
+    FirebaseCrashlytics.instance.recordError(e, s, fatal: false, reason: 'loadCustomerInfo failed');
   }
 }
 
@@ -129,8 +136,8 @@ Future<bool?> isEntitled(String entitlementId) async {
   try {
     customerInfo = await Purchases.getCustomerInfo();
     return customerInfo!.entitlements.all[entitlementId]?.isActive ?? false;
-  } on Exception catch (e) {
-    print("Unable to check RevenueCat entitlements: $e");
+  } on Exception catch (e, s) {
+    FirebaseCrashlytics.instance.recordError(e, s, fatal: false, reason: 'isEntitled check failed');
     return null;
   }
 }
@@ -140,7 +147,8 @@ Future login(String? uid) async {
   if (!_isConfigured) {
     return;
   }
-  if (uid == _loggedInUid) {
+  // Skip only when logging in the same identified user; always allow logout.
+  if (uid != null && uid == _loggedInUid) {
     return;
   }
   try {
@@ -150,8 +158,8 @@ Future login(String? uid) async {
       customerInfo = await Purchases.logOut();
     }
     _loggedInUid = uid;
-  } on Exception catch (e) {
-    print("Unable to logIn or logOut user in RevenueCat: $e");
+  } on Exception catch (e, s) {
+    FirebaseCrashlytics.instance.recordError(e, s, fatal: false, reason: 'RevenueCat login/logout failed');
   }
 }
 
@@ -170,7 +178,7 @@ Future restorePurchases() async {
   }
   try {
     customerInfo = await Purchases.restorePurchases();
-  } on PlatformException catch (e) {
-    print("Unable to restore purchases in RevenueCat: $e");
+  } on PlatformException catch (e, s) {
+    FirebaseCrashlytics.instance.recordError(e, s, fatal: false, reason: 'restorePurchases failed');
   }
 }

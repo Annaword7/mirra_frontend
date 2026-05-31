@@ -124,7 +124,7 @@ class _NegativeFeedbackWidgetState extends State<NegativeFeedbackWidget> {
                           child: TextFormField(
                             controller: _commentController,
                             focusNode: _commentFocusNode,
-                            autofocus: true,
+                            autofocus: false,
                             textCapitalization: TextCapitalization.sentences,
                             textInputAction: TextInputAction.next,
                             obscureText: false,

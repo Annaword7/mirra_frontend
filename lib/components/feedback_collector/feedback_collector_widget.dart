@@ -224,7 +224,10 @@ class FeedbackCollectorWidget extends StatelessWidget {
                           context: context,
                           isScrollControlled: true,
                           backgroundColor: Colors.transparent,
-                          builder: (context) => const NegativeFeedbackWidget(),
+                          builder: (context) => Padding(
+                            padding: MediaQuery.viewInsetsOf(context),
+                            child: const NegativeFeedbackWidget(),
+                          ),
                         );
                       }
                     },

@@ -158,7 +158,6 @@ Future<void> prefetchOnboardingCards() async {
 // CONSTANTS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-const _kBg = Color(0xFF060D1E);
 const _kArc = Color(0xFF5C85D9);
 const _kCardWidth = 195.0;
 const _kCardHeight = 272.0;
@@ -240,9 +239,7 @@ class _OnboardingTopCardsBodyState extends State<OnboardingTopCardsBody>
     final contentBottom = size.height * 0.60;
     final listHeight = _kCardHeight + _kTiltOverflow * 2;
 
-    return ColoredBox(
-      color: _kBg,
-      child: Stack(
+    return Stack(
         children: [
           Positioned.fill(child: CustomPaint(painter: _DotGridPainter())),
 
@@ -294,7 +291,6 @@ class _OnboardingTopCardsBodyState extends State<OnboardingTopCardsBody>
             ),
           ),
         ],
-      ),
     );
   }
 }

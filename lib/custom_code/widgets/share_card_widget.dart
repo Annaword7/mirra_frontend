@@ -24,7 +24,7 @@ import '/flutter_flow/analytics_service.dart';
 // ── Localization maps ──────────────────────────────────────────────────────────
 
 const _l10n = {
-  'share': {'en': 'Share', 'ru': 'Поделиться', 'es': 'Compartir'},
+  'share': {'en': 'Download', 'ru': 'Загрузить', 'es': 'Descargar'},
   'creating': {'en': 'Creating…', 'ru': 'Создаём…', 'es': 'Creando…'},
   'shareText': {
     'en': 'Analyzed with MiRRA',
@@ -82,16 +82,20 @@ class ShareCardWidget extends StatefulWidget {
     required this.brandName,
     required this.imageUrl,
     required this.score,
-    required this.safetyScore,
+    this.safetyScore,
     required this.efficacyScore,
     required this.tags,
     this.isStory = false,
     this.verdict = '',
     this.lang = 'en',
     this.imageId = 0,
-    this.quickSummary = '',
     this.bestForTags = const [],
-    this.expertAnalysis = '',
+    this.stabilityScore,
+    this.uxScore,
+    this.comedogenicityScore,
+    this.ingredients = '',
+    this.topIngredients = const [],
+    this.issueIngredients = const [],
   });
 
   final double width;
@@ -100,16 +104,20 @@ class ShareCardWidget extends StatefulWidget {
   final String brandName;
   final String imageUrl;
   final double score;
-  final double safetyScore;
+  final double? safetyScore;
   final double efficacyScore;
   final List<String> tags;
   final bool isStory;
   final String verdict;
   final String lang;
   final int imageId;
-  final String quickSummary;
   final List<String> bestForTags;
-  final String expertAnalysis;
+  final double? stabilityScore;
+  final double? uxScore;
+  final double? comedogenicityScore;
+  final String ingredients;
+  final List<String> topIngredients;
+  final List<String> issueIngredients;
 
   @override
   State<ShareCardWidget> createState() => _ShareCardWidgetState();
@@ -178,7 +186,14 @@ class _ShareCardWidgetState extends State<ShareCardWidget> {
                     imageUrl: widget.imageUrl,
                     score: widget.score,
                     lang: widget.lang,
-                    expertAnalysis: widget.expertAnalysis,
+                    efficacyScore: widget.efficacyScore,
+                    safetyScore: widget.safetyScore,
+                    stabilityScore: widget.stabilityScore,
+                    uxScore: widget.uxScore,
+                    comedogenicityScore: widget.comedogenicityScore,
+                    ingredients: widget.ingredients,
+                    topIngredients: widget.topIngredients,
+                    issueIngredients: widget.issueIngredients,
                   )
                 : _SquareCard(
                     productName: widget.productName,
@@ -186,7 +201,14 @@ class _ShareCardWidgetState extends State<ShareCardWidget> {
                     imageUrl: widget.imageUrl,
                     score: widget.score,
                     lang: widget.lang,
-                    expertAnalysis: widget.expertAnalysis,
+                    efficacyScore: widget.efficacyScore,
+                    safetyScore: widget.safetyScore,
+                    stabilityScore: widget.stabilityScore,
+                    uxScore: widget.uxScore,
+                    comedogenicityScore: widget.comedogenicityScore,
+                    ingredients: widget.ingredients,
+                    topIngredients: widget.topIngredients,
+                    issueIngredients: widget.issueIngredients,
                   ),
           ),
         ),
@@ -218,7 +240,7 @@ class _ShareCardWidgetState extends State<ShareCardWidget> {
                     height: 16,
                     child: CircularProgressIndicator(
                         strokeWidth: 2, color: Colors.white))
-                : const Icon(Icons.ios_share_rounded),
+                : const Icon(Icons.download_rounded),
             label: Text(
               _isCapturing
                   ? _t('creating', widget.lang)
@@ -233,13 +255,140 @@ class _ShareCardWidgetState extends State<ShareCardWidget> {
   }
 }
 
+// ── Axis labels ───────────────────────────────────────────────────────────────
+
+String _axisLabel(String lang, String axis) {
+  const labels = {
+    'efficacy':    {'en': 'Efficacy',        'ru': 'Эффективность',    'es': 'Eficacia'},
+    'safety':      {'en': 'Safety',          'ru': 'Безопасность',     'es': 'Seguridad'},
+    'stability':   {'en': 'Stability',       'ru': 'Стабильность',     'es': 'Estabilidad'},
+    'experience':  {'en': 'Experience',      'ru': 'Ощущения',         'es': 'Experiencia'},
+    'pore_safety': {'en': 'Non-Comedogenic', 'ru': 'Некомедоген.',     'es': 'No Comedogénico'},
+  };
+  return labels[axis]?[lang] ?? labels[axis]?['en'] ?? axis;
+}
+
+// ── Mini score bar ────────────────────────────────────────────────────────────
+
+Widget _miniBar(String label, double? value) {
+  final v = value == null ? 0.0 : value.clamp(0.0, 100.0);
+  final color = value == null ? const Color(0xFFBBBBBB) : _scoreColor(v);
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 4),
+    child: Row(
+      children: [
+        SizedBox(
+          width: 70,
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontSize: 7.5,
+              fontWeight: FontWeight.w500,
+              color: Color(0x99000000),
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        Expanded(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(2),
+            child: Stack(
+              children: [
+                Container(height: 4, color: color.withOpacity(0.12)),
+                FractionallySizedBox(
+                  widthFactor: v / 100,
+                  child: Container(
+                    height: 4,
+                    color: value == null ? Colors.transparent : color,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        SizedBox(
+          width: 22,
+          child: Text(
+            value == null ? '—' : '${v.round()}',
+            textAlign: TextAlign.right,
+            style: TextStyle(
+              fontSize: 7.5,
+              fontWeight: FontWeight.bold,
+              color: value == null ? const Color(0x55000000) : color,
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+// ── Ingredient rich text ──────────────────────────────────────────────────────
+
+Widget _ingredientRichText(
+  String raw,
+  List<String> topIngredients,
+  List<String> issueIngredients,
+) {
+  const greenText = Color(0xFF1B5E20);
+  const greenBg = Color(0xFFE8F5E9);
+  const redText = Color(0xFFB71C1C);
+  const redBg = Color(0xFFFFEBEE);
+
+  final greenSet = topIngredients.map((s) => s.toLowerCase().trim()).toSet();
+  final redSet = issueIngredients.map((s) => s.toLowerCase().trim()).toSet();
+
+  final tokens = raw.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+  final spans = <InlineSpan>[];
+  for (var i = 0; i < tokens.length; i++) {
+    final token = tokens[i];
+    final key = token.toLowerCase();
+    final isGreen = greenSet.contains(key);
+    final isRed = redSet.contains(key);
+    if (isGreen) {
+      spans.add(TextSpan(
+        text: token,
+        style: const TextStyle(color: greenText, backgroundColor: greenBg, fontWeight: FontWeight.bold),
+      ));
+    } else if (isRed) {
+      spans.add(TextSpan(
+        text: token,
+        style: const TextStyle(color: redText, backgroundColor: redBg, fontWeight: FontWeight.bold),
+      ));
+    } else {
+      spans.add(TextSpan(text: token));
+    }
+    if (i < tokens.length - 1) spans.add(const TextSpan(text: ', '));
+  }
+
+  return AutoSizeText.rich(
+    TextSpan(children: spans),
+    style: const TextStyle(
+      color: Color(0x99000000),
+      fontSize: 12,
+      height: 1.5,
+      letterSpacing: 0.2,
+    ),
+    minFontSize: 5,
+    overflow: TextOverflow.clip,
+  );
+}
+
 // ── Shared right-panel ─────────────────────────────────────────────────────────
 
 Widget _rightPanel({
   required String brandName,
   required String productName,
   required double score,
-  required String expertAnalysis,
+  required String lang,
+  required double? efficacyScore,
+  required double? safetyScore,
+  required double? stabilityScore,
+  required double? uxScore,
+  required double? comedogenicityScore,
+  required String ingredients,
+  required List<String> topIngredients,
+  required List<String> issueIngredients,
   required double nameFontSize,
   required double brandFontSize,
   required double badgeSize,
@@ -280,7 +429,7 @@ Widget _rightPanel({
             height: 1.2,
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         // Score badge
         Row(
           children: [
@@ -313,22 +462,18 @@ Widget _rightPanel({
             ),
           ],
         ),
-        const SizedBox(height: 10),
-        // Expert analysis — fills all remaining space
-        if (expertAnalysis.isNotEmpty)
+        const SizedBox(height: 8),
+        // Axis score bars
+        _miniBar(_axisLabel(lang, 'efficacy'), efficacyScore),
+        _miniBar(_axisLabel(lang, 'safety'), safetyScore),
+        _miniBar(_axisLabel(lang, 'stability'), stabilityScore),
+        _miniBar(_axisLabel(lang, 'experience'), uxScore),
+        _miniBar(_axisLabel(lang, 'pore_safety'), comedogenicityScore),
+        const SizedBox(height: 6),
+        // Ingredients with highlights — fills remaining space
+        if (ingredients.isNotEmpty)
           Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) => AutoSizeText(
-                expertAnalysis,
-                style: TextStyle(
-                  color: Colors.black.withOpacity(0.72),
-                  fontSize: 22,
-                  height: 1.45,
-                ),
-                minFontSize: 7,
-                maxLines: (constraints.maxHeight / (7 * 1.45)).ceil(),
-              ),
-            ),
+            child: _ingredientRichText(ingredients, topIngredients, issueIngredients),
           )
         else
           const Spacer(),
@@ -356,7 +501,14 @@ class _StoryCard extends StatelessWidget {
     required this.imageUrl,
     required this.score,
     required this.lang,
-    required this.expertAnalysis,
+    required this.efficacyScore,
+    required this.safetyScore,
+    required this.stabilityScore,
+    required this.uxScore,
+    required this.comedogenicityScore,
+    required this.ingredients,
+    required this.topIngredients,
+    required this.issueIngredients,
   });
 
   final String productName;
@@ -364,7 +516,14 @@ class _StoryCard extends StatelessWidget {
   final String imageUrl;
   final double score;
   final String lang;
-  final String expertAnalysis;
+  final double? efficacyScore;
+  final double? safetyScore;
+  final double? stabilityScore;
+  final double? uxScore;
+  final double? comedogenicityScore;
+  final String ingredients;
+  final List<String> topIngredients;
+  final List<String> issueIngredients;
 
   static const _primary = Color(0xFF5C85D9);
   static const _bg = Color(0xFFF5F7FF);
@@ -414,7 +573,15 @@ class _StoryCard extends StatelessWidget {
               brandName: brandName,
               productName: productName,
               score: score,
-              expertAnalysis: expertAnalysis,
+              lang: lang,
+              efficacyScore: efficacyScore,
+              safetyScore: safetyScore,
+              stabilityScore: stabilityScore,
+              uxScore: uxScore,
+              comedogenicityScore: comedogenicityScore,
+              ingredients: ingredients,
+              topIngredients: topIngredients,
+              issueIngredients: issueIngredients,
               nameFontSize: 17,
               brandFontSize: 11,
               badgeSize: 48,
@@ -438,7 +605,14 @@ class _SquareCard extends StatelessWidget {
     required this.imageUrl,
     required this.score,
     required this.lang,
-    required this.expertAnalysis,
+    required this.efficacyScore,
+    required this.safetyScore,
+    required this.stabilityScore,
+    required this.uxScore,
+    required this.comedogenicityScore,
+    required this.ingredients,
+    required this.topIngredients,
+    required this.issueIngredients,
   });
 
   final String productName;
@@ -446,7 +620,14 @@ class _SquareCard extends StatelessWidget {
   final String imageUrl;
   final double score;
   final String lang;
-  final String expertAnalysis;
+  final double? efficacyScore;
+  final double? safetyScore;
+  final double? stabilityScore;
+  final double? uxScore;
+  final double? comedogenicityScore;
+  final String ingredients;
+  final List<String> topIngredients;
+  final List<String> issueIngredients;
 
   static const _primary = Color(0xFF5C85D9);
   static const _bg = Color(0xFFF5F7FF);
@@ -494,7 +675,15 @@ class _SquareCard extends StatelessWidget {
               brandName: brandName,
               productName: productName,
               score: score,
-              expertAnalysis: expertAnalysis,
+              lang: lang,
+              efficacyScore: efficacyScore,
+              safetyScore: safetyScore,
+              stabilityScore: stabilityScore,
+              uxScore: uxScore,
+              comedogenicityScore: comedogenicityScore,
+              ingredients: ingredients,
+              topIngredients: topIngredients,
+              issueIngredients: issueIngredients,
               nameFontSize: 14,
               brandFontSize: 10,
               badgeSize: 40,

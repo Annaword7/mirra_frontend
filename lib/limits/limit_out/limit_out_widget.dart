@@ -178,7 +178,7 @@ Yo... */
                     mainAxisSize: MainAxisSize.max,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      if (!widget.isPro!)
+                      if (widget.isPro ?? false)
                         Align(
                           alignment: AlignmentDirectional(0.0, 0.0),
                           child: FFButtonWidget(
@@ -218,7 +218,7 @@ Yo... */
                             ),
                           ),
                         ),
-                      if (widget.isPro ?? true)
+                      if (!(widget.isPro ?? false))
                         Align(
                           alignment: AlignmentDirectional(0.0, 0.0),
                           child: FFButtonWidget(

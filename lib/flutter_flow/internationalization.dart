@@ -723,7 +723,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     '2rjs2u6d': {
       'en': 'See what your skincare really does',
       'es': 'Descubre qué hace realmente tu skincare',
-      'ru': 'Узнай, что на самом деле делает твоя косметика',
+      'ru': 'Узнай, что на самом деле внутри косметического продукта',
     },
     '8u51n3um': {
       'en': ' ≈ ',
@@ -772,6 +772,36 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
           'Precio de la suscripción: Es un precio simbólico que permite cubrir la continuidad de la aplicación y los costes de su funcionamiento, actualizaciones e implementación. Suscríbete y apoya la continuidad de la aplicación. Beneficios: El pago se realizará a través de tu ID de Apple tras confirmar la suscripción y se renovará automáticamente a menos que desactives la renovación automática al menos 24 horas antes del final del periodo de suscripción con la tarifa vigente en ese momento. Gestión de suscripciones: Puedes gestionar tus suscripciones y desactivar la renovación automática accediendo a la configuración de tu cuenta en la App Store tras la compra.',
       'ru':
           'Стоимость подписки: это символическая цена, за счет которой обеспечивается непрерывность работы приложения и покрытие расходов на его эксплуатацию, обновления и развертывание. Подпишитесь и поддержите непрерывность работы приложения. Оплата:\nОплата будет произведена через ваш Apple ID после подтверждения подписки, и подписка будет автоматически продлеваться, если автоматическое продление не будет отключено как минимум за 24 часа до окончания периода подписки с использованием текущей абонентской платы. Управление подписками: Вы можете управлять своими подписками и отключать автоматическое продление, перейдя в настройки своей учетной записи в App Store после покупки.',
+    },
+    'bv3k9mp1': {
+      'en': 'BEST VALUE',
+      'es': 'MEJOR PRECIO',
+      'ru': 'ВЫГОДНЕЕ',
+    },
+    'ca7s2xqt': {
+      'en': 'Cancel anytime · Secure payment via App Store',
+      'es': 'Cancela cuando quieras · Pago seguro vía App Store',
+      'ru': 'Отмена в любое время · Оплата через App Store',
+    },
+    'rs4p1dq2': {
+      'en': 'Your subscription has been successfully restored.',
+      'es': 'Tu suscripción se ha restaurado correctamente.',
+      'ru': 'Ваша подписка успешно восстановлена.',
+    },
+    'pu7x1ck3': {
+      'en': 'Purchase cancelled.',
+      'es': 'Compra cancelada.',
+      'ru': 'Покупка отменена.',
+    },
+    'pe2n5jf8': {
+      'en': 'Payment failed. Please try again.',
+      'es': 'Error en el pago. Por favor, inténtalo de nuevo.',
+      'ru': 'Ошибка оплаты. Пожалуйста, попробуйте ещё раз.',
+    },
+    'rf9m3wk5': {
+      'en': 'Something went wrong. We were unable to restore your purchases.',
+      'es': 'Algo salió mal. No pudimos restaurar tus compras.',
+      'ru': 'Что-то пошло не так. Не удалось восстановить покупки.',
     },
     'j321mb3y': {
       'en': 'Privacy Policy',
@@ -1691,7 +1721,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     'p2cdk61c': {
       'en': 'Are you sure you want to copy this item to your products? ',
       'es': '¿Estás seguro de que deseas copiar este artículo a tus productos?',
-      'ru': 'Вы уверены, что хотите скопировать этот элемент в свои товары?',
+      'ru': 'Вы уверены, что хотите скопировать этот элемент в свои продукты?',
     },
     '5gas3j6n': {
       'en': 'Cancel',
@@ -2046,7 +2076,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     'ty7a9smo': {
       'en': 'Toner',
       'es': 'Tónico',
-      'ru': 'Тоники',
+      'ru': 'Тонеры',
     },
     'mubk0pfy': {
       'en': 'Moisturizer',
@@ -2135,6 +2165,66 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Send',
       'es': 'Enviar',
       'ru': 'Отправить',
+    },
+    'err_ingredients_not_found_title': {
+      'en': 'Ingredients not found',
+      'es': 'Ingredientes no encontrados',
+      'ru': 'Состав не найден',
+    },
+    'err_ingredients_not_found_body': {
+      'en': 'We couldn\'t find the ingredient list for this product — it may not be widely available in your country. Thank you for sharing! We\'ll process it manually and add it to our database.',
+      'es': 'No pudimos encontrar el listado de ingredientes de este producto, puede que no sea muy conocido en tu país. ¡Gracias por compartirlo! Lo procesaremos manualmente y lo añadiremos a nuestra base de datos.',
+      'ru': 'Мы не смогли найти состав этого продукта, возможно он не так распространён в выбранной Вами стране. Спасибо, что поделились, мы обработаем продукт вручную и добавим в нашу базу.',
+    },
+    'err_product_not_found_title': {
+      'en': 'Product not recognized',
+      'es': 'Producto no reconocido',
+      'ru': 'Продукт не распознан',
+    },
+    'err_product_not_found_body': {
+      'en': 'Make sure the label is fully visible and well-lit, then try again.',
+      'es': 'Asegúrate de que la etiqueta sea visible y esté bien iluminada, luego intenta de nuevo.',
+      'ru': 'Убедитесь, что этикетка хорошо видна и освещена, затем попробуйте снова.',
+    },
+    'err_sub_sync_title': {
+      'en': 'Subscription sync',
+      'es': 'Sincronización de suscripción',
+      'ru': 'Синхронизация подписки',
+    },
+    'err_sub_sync_body': {
+      'en': 'Your Pro subscription is being verified. Please try again in a moment.',
+      'es': 'Tu suscripción Pro está siendo verificada. Inténtalo de nuevo en un momento.',
+      'ru': 'Ваша Pro-подписка проверяется. Попробуйте снова через несколько секунд.',
+    },
+    'err_generic_title': {
+      'en': 'Something went wrong',
+      'es': 'Algo salió mal',
+      'ru': 'Что-то пошло не так',
+    },
+    'err_generic_body': {
+      'en': 'We couldn\'t process this image. Please try again.',
+      'es': 'No pudimos procesar esta imagen. Por favor, inténtalo de nuevo.',
+      'ru': 'Не удалось обработать изображение. Попробуйте ещё раз.',
+    },
+    'err_ok_btn': {
+      'en': 'OK',
+      'es': 'OK',
+      'ru': 'Хорошо',
+    },
+    'item_not_found': {
+      'en': 'Product not found',
+      'es': 'Producto no encontrado',
+      'ru': 'Продукт не найден',
+    },
+    'analysis_pending_title': {
+      'en': 'Research in progress',
+      'es': 'Investigación en curso',
+      'ru': 'Исследование в процессе',
+    },
+    'analysis_pending_body': {
+      'en': 'The analysis of this product hasn\'t been completed yet. Come back a little later.',
+      'es': 'El análisis de este producto aún no ha finalizado. Vuelve un poco más tarde.',
+      'ru': 'Анализ этого продукта пока не завершён. Вернитесь немного позже.',
     },
   },
 ].reduce((a, b) => a..addAll(b));

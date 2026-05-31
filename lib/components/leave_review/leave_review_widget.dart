@@ -156,7 +156,7 @@ class _LeaveReviewWidgetState extends State<LeaveReviewWidget> {
                             controller: _model.folderTitleTextController,
                             focusNode: _model.folderTitleFocusNode,
                             autofocus: true,
-                            textCapitalization: TextCapitalization.words,
+                            textCapitalization: TextCapitalization.sentences,
                             textInputAction: TextInputAction.done,
                             obscureText: false,
                             decoration: InputDecoration(
@@ -229,7 +229,7 @@ class _LeaveReviewWidgetState extends State<LeaveReviewWidget> {
                                   return TextEditingValue(
                                     selection: newValue.selection,
                                     text: newValue.text.toCapitalization(
-                                        TextCapitalization.words),
+                                        TextCapitalization.sentences),
                                   );
                                 }),
                             ],

@@ -37,6 +37,12 @@ class FFAppState extends ChangeNotifier {
     _safeInit(() {
       _feedbackLastShownMs = prefs.getInt('ff_feedbackLastShownMs') ?? _feedbackLastShownMs;
     });
+    _safeInit(() {
+      _feedbackUserId = prefs.getString('ff_feedbackUserId') ?? _feedbackUserId;
+    });
+    _safeInit(() {
+      _userProfilePicture = prefs.getString('ff_userProfilePicture') ?? _userProfilePicture;
+    });
   }
 
   void update(VoidCallback callback) {
@@ -76,6 +82,7 @@ class FFAppState extends ChangeNotifier {
   String get userProfilePicture => _userProfilePicture;
   set userProfilePicture(String value) {
     _userProfilePicture = value;
+    prefs.setString('ff_userProfilePicture', value);
   }
 
   bool _subscriptionmonth = false;
@@ -100,6 +107,12 @@ class FFAppState extends ChangeNotifier {
   String get countrycode => _countrycode;
   set countrycode(String value) {
     _countrycode = value;
+  }
+
+  String _countrycodeiso = '';
+  String get countrycodeiso => _countrycodeiso;
+  set countrycodeiso(String value) {
+    _countrycodeiso = value;
   }
 
   String _uploudedimagepath = '';
@@ -201,6 +214,13 @@ class FFAppState extends ChangeNotifier {
   set feedbackLastShownMs(int value) {
     _feedbackLastShownMs = value;
     prefs.setInt('ff_feedbackLastShownMs', value);
+  }
+
+  String _feedbackUserId = '';
+  String get feedbackUserId => _feedbackUserId;
+  set feedbackUserId(String value) {
+    _feedbackUserId = value;
+    prefs.setString('ff_feedbackUserId', value);
   }
 }
 

@@ -16,18 +16,22 @@ class ImagedetailedTopRaitedWidget extends StatefulWidget {
     double? score,
     this.tags,
     required this.imageID,
+    this.avgPrice,
+    this.priceCurrencyCode,
   })  : this.imageUrl = imageUrl ??
             'https://static.vecteezy.com/system/resources/thumbnails/022/014/063/small/missing-picture-page-for-website-design-or-mobile-app-design-no-image-available-icon-vector.jpg',
         this.brand = brand ?? 'no brand',
         this.name = name ?? 'no name',
-        this.score = score ?? 0.0;
+        this.score = score;
 
   final String imageUrl;
   final String brand;
   final String name;
-  final double score;
+  final double? score;
   final List<String>? tags;
   final int? imageID;
+  final double? avgPrice;
+  final String? priceCurrencyCode;
 
   @override
   State<ImagedetailedTopRaitedWidget> createState() =>
@@ -112,6 +116,34 @@ class _ImagedetailedTopRaitedWidgetState
                     padding: EdgeInsetsDirectional.fromSTEB(8.0, 8.0, 0.0, 0.0),
                     child: _ScoreBadge(score: widget.score),
                   ),
+                  if (widget.avgPrice != null)
+                    Positioned(
+                      bottom: 8,
+                      right: 8,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.92),
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: const [
+                            BoxShadow(
+                              blurRadius: 6,
+                              color: Color(0x44000000),
+                              offset: Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                        child: Text(
+                          '~ ${_formatCardPrice(widget.avgPrice!, widget.priceCurrencyCode)}',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF333333),
+                            letterSpacing: 0.2,
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -157,92 +189,79 @@ class _ImagedetailedTopRaitedWidgetState
               ),
             ),
           ),
-          Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(8.0, 0.0, 8.0, 0.0),
-            child: Container(
-              width: MediaQuery.sizeOf(context).width * 1.0,
-              decoration: BoxDecoration(),
-              child: Visibility(
-                visible: widget.tags != null && (widget.tags)!.isNotEmpty,
-                child: Builder(
-                  builder: (context) {
-                    final tagsfromlist = widget.tags?.toList() ?? [];
-
-                    return Wrap(
-                      spacing: 4.0,
-                      runSpacing: 4.0,
-                      alignment: WrapAlignment.start,
-                      crossAxisAlignment: WrapCrossAlignment.start,
-                      direction: Axis.horizontal,
-                      runAlignment: WrapAlignment.start,
-                      verticalDirection: VerticalDirection.down,
-                      clipBehavior: Clip.none,
-                      children: List.generate(tagsfromlist.length,
-                          (tagsfromlistIndex) {
-                        final tagsfromlistItem =
-                            tagsfromlist[tagsfromlistIndex];
-                        return Container(
-                          height: 35.0,
-                          decoration: BoxDecoration(
-                            color: FlutterFlowTheme.of(context).secondary,
-                            borderRadius: BorderRadius.circular(16.0),
-                          ),
-                          child: Padding(
-                            padding: EdgeInsetsDirectional.fromSTEB(
-                                17.0, 12.0, 18.0, 8.0),
-                            child: Text(
-                              tagsfromlistItem,
-                              style: FlutterFlowTheme.of(context)
-                                  .bodyMedium
-                                  .override(
-                                    fontFamily: FlutterFlowTheme.of(context)
-                                        .bodyMediumFamily,
-                                    fontSize: 10.0,
-                                    letterSpacing: 0.0,
-                                    useGoogleFonts:
-                                        !FlutterFlowTheme.of(context)
-                                            .bodyMediumIsCustom,
-                                  ),
-                            ),
-                          ),
-                        );
-                      }),
-                    );
-                  },
-                ),
-              ),
-            ),
-          ),
         ].divide(SizedBox(height: 8.0)).addToEnd(SizedBox(height: 8.0)),
       ),
     );
   }
 }
 
+String _formatCardPrice(double price, String? code) {
+  const symbols = {
+    'ARS': 'AR\$', 'CAD': 'CA\$', 'CLP': 'CL\$', 'CNY': '¥',
+    'COP': 'CO\$', 'EUR': '€', 'GBP': '£', 'JPY': '¥',
+    'KRW': '₩', 'MXN': 'MX\$', 'PEN': 'S/', 'RUB': '₽', 'USD': '\$',
+  };
+  final sym = symbols[code] ?? code ?? '';
+  return '$sym${price.round()}';
+}
+
 class _ScoreBadge extends StatelessWidget {
   const _ScoreBadge({required this.score});
-  final double score;
+  final double? score;
 
   Color get _color {
-    if (score >= 75) return const Color(0xFF1B5E20);
-    if (score >= 65) return const Color(0xFF43A047);
-    if (score >= 55) return const Color(0xFFC0CA33);
-    if (score >= 45) return const Color(0xFFFFB300);
-    if (score >= 35) return const Color(0xFFFF7043);
+    final s = score!;
+    if (s >= 75) return const Color(0xFF1B5E20);
+    if (s >= 65) return const Color(0xFF43A047);
+    if (s >= 55) return const Color(0xFFC0CA33);
+    if (s >= 45) return const Color(0xFFFFB300);
+    if (s >= 35) return const Color(0xFFFF7043);
     return const Color(0xFFD32F2F);
   }
 
   String get _grade {
-    if (score >= 75) return 'A';
-    if (score >= 65) return 'B';
-    if (score >= 55) return 'C';
-    if (score >= 45) return 'D';
-    if (score >= 35) return 'E';
+    final s = score!;
+    if (s >= 75) return 'A';
+    if (s >= 65) return 'B';
+    if (s >= 55) return 'C';
+    if (s >= 45) return 'D';
+    if (s >= 35) return 'E';
     return 'F';
   }
 
   @override
   Widget build(BuildContext context) {
+    if (score == null) {
+      return Container(
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.92),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: const [
+            BoxShadow(
+              blurRadius: 8,
+              color: Color(0x33000000),
+              offset: Offset(0, 2),
+            )
+          ],
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.science_outlined, size: 18, color: Colors.grey.shade400),
+            const SizedBox(width: 6),
+            Text(
+              '···',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey.shade400,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
     return Container(
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.92),
@@ -262,7 +281,7 @@ class _ScoreBadge extends StatelessWidget {
           CircularPercentIndicator(
             radius: 20.0,
             lineWidth: 3.5,
-            percent: (score / 100.0).clamp(0.0, 1.0),
+            percent: (score! / 100.0).clamp(0.0, 1.0),
             backgroundColor: _color.withOpacity(0.15),
             progressColor: _color,
             circularStrokeCap: CircularStrokeCap.round,
@@ -282,7 +301,7 @@ class _ScoreBadge extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                '${score.toStringAsFixed(0)}/100',
+                '${score!.toStringAsFixed(0)}/100',
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,

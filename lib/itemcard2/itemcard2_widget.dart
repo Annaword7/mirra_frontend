@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' show sin, pi;
 import '/auth/supabase_auth/auth_util.dart';
 import '/components/feedback_collector/feedback_collector_widget.dart';
 import '/components/feedback_collector/feedback_service.dart';
@@ -7,7 +8,9 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 import '/flutter_flow/analytics_service.dart';
 import '/backend/api_requests/api_calls.dart';
 import '/backend/supabase/database/tables/ingredients_efficacy.dart';
+import '/backend/supabase/database/tables/product_prices.dart';
 import '/backend/supabase/supabase.dart';
+import '/app_state.dart';
 import '/boards/albumslist/albumslist_widget.dart';
 import '/components/new_album/new_album_widget.dart';
 import '/flutter_flow/flutter_flow_animations.dart';
@@ -15,6 +18,7 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/item_card/deleteitem/deleteitem_widget.dart';
 import '/item_card/ingridients/ingridients_widget.dart';
+import '/components/score_breakdown/score_breakdown_widget.dart';
 import '/item_card/markasspam/markasspam_widget.dart';
 import '/topratings/copyitem/copyitem_widget.dart';
 import '/topratings/hidenavailability/hidenavailability_widget.dart';
@@ -58,6 +62,9 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
   var hasContainerTriggered1 = false;
   var hasContainerTriggered2 = false;
   bool? _feedbackVote; // true = helpful, false = not helpful, null = no vote
+  bool _proPreviewActive = false;
+  bool _proPreviewUsed = false;
+  late AnimationController _proPreviewPulse;
   final animationsMap = <String, AnimationInfo>{};
 
   @override
@@ -65,6 +72,13 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
     super.initState();
     _model = createModel(context, () => Itemcard2Model());
     _loadFeedbackVote();
+    _loadProPreviewState();
+    _proPreviewPulse = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+      lowerBound: 0.65,
+      upperBound: 1.0,
+    )..repeat(reverse: true);
 
     // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
@@ -78,6 +92,22 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
           widget.imageid,
         ),
       );
+      final _img = _model.imageraw?.firstOrNull;
+      if (_img != null) {
+        final _nameKey = (_img.productName ?? '').toLowerCase().trim();
+        final _brandKey = (_img.brand ?? '').toLowerCase().trim();
+        final _countryCode = FFAppState().countrycodeiso;
+        if (_nameKey.isNotEmpty && _brandKey.isNotEmpty && _countryCode.isNotEmpty) {
+          final _prices = await ProductPricesTable().queryRows(
+            queryFn: (q) => q
+                .eqOrNull('product_name_key', _nameKey)
+                .eqOrNull('brand_key', _brandKey)
+                .eqOrNull('country_code', _countryCode),
+            limit: 1,
+          );
+          _model.priceRow = _prices.firstOrNull;
+        }
+      }
       _model.skinCompabilityRaw = await ImageSkinCompatibilityTable().queryRows(
         queryFn: (q) => q.eqOrNull(
           'image_id',
@@ -113,6 +143,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
       // If analysis is pending (score not yet computed), retry scientific
       // analysis now — ingredients have likely been researched since the
       // 202 was returned during the original scan.
+      if (!mounted) return;
       if (_model.imageraw?.firstOrNull?.saCompositeScore == null &&
           widget.imageid != null) {
         final retry = await ScientificanalysisNEWBCNDCall.call(
@@ -153,6 +184,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
 
       // Show feedback prompt after the card has rendered and user has had
       // time to see the results.
+      if (!mounted) return;
       final feedbackState = context.read<FFAppState>();
       if (feedbackState.feedbackPendingScan &&
           await FeedbackService.shouldShowPrompt(feedbackState)) {
@@ -226,6 +258,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
 
   @override
   void dispose() {
+    _proPreviewPulse.dispose();
     _model.dispose();
 
     super.dispose();
@@ -237,6 +270,22 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
     if (prefs.containsKey(key)) {
       safeSetState(() => _feedbackVote = prefs.getBool(key));
     }
+  }
+
+  Future<void> _loadProPreviewState() async {
+    final prefs = await SharedPreferences.getInstance();
+    safeSetState(() {
+      _proPreviewUsed = prefs.getBool('pro_preview_used') ?? false;
+    });
+  }
+
+  Future<void> _activateProPreview() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('pro_preview_used', true);
+    safeSetState(() {
+      _proPreviewActive = true;
+      _proPreviewUsed = true;
+    });
   }
 
   Future<void> _saveFeedbackVote(bool vote) async {
@@ -259,13 +308,15 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
       ...?_model.ingredientIssuesRaw?.map((r) => r.ingredientName),
     ];
     if (names.isEmpty) return;
-    final rows = await IngredientsEfficacyTable().queryRows(
-      queryFn: (q) => q.inFilterOrNull('inci_name', names),
-    );
-    _model.efficacyDescMap = {
-      for (final r in rows) r.inciName.toLowerCase(): r,
-    };
-    if (mounted) safeSetState(() {});
+    try {
+      final rows = await IngredientsEfficacyTable().queryRows(
+        queryFn: (q) => q.inFilterOrNull('inci_name', names),
+      );
+      _model.efficacyDescMap = {
+        for (final r in rows) r.inciName.toLowerCase(): r,
+      };
+      if (mounted) safeSetState(() {});
+    } catch (_) {}
   }
 
   String _efficacyDesc(String ingredientName, String lang, String? fallback) {
@@ -274,6 +325,53 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
     if (lang == 'ru') return row.descriptionRu ?? row.descriptionEn ?? fallback ?? '';
     if (lang == 'es') return row.descriptionEs ?? row.descriptionEn ?? fallback ?? '';
     return row.descriptionEn ?? fallback ?? '';
+  }
+
+  String _currencySymbol(String? code) {
+    const symbols = {
+      'ARS': 'AR\$', 'CAD': 'CA\$', 'CLP': 'CL\$', 'CNY': '¥',
+      'COP': 'CO\$', 'EUR': '€', 'GBP': '£', 'JPY': '¥',
+      'KRW': '₩', 'MXN': 'MX\$', 'PEN': 'S/', 'RUB': '₽', 'USD': '\$',
+    };
+    return symbols[code] ?? code ?? '';
+  }
+
+String _formatPrice(double price, String? code) {
+    final sym = _currencySymbol(code);
+    return '$sym${price.round()}';
+  }
+
+  Widget _buildPendingPlaceholder(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 48.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const _FlaskResearchAnimation(),
+          const SizedBox(height: 10),
+          Text(
+            FFLocalizations.of(context).getText('analysis_pending_title'),
+            textAlign: TextAlign.center,
+            style: FlutterFlowTheme.of(context).titleMedium.override(
+                  fontFamily: FlutterFlowTheme.of(context).titleMediumFamily,
+                  color: FlutterFlowTheme.of(context).primaryText,
+                  fontWeight: FontWeight.bold,
+                  useGoogleFonts: !FlutterFlowTheme.of(context).titleMediumIsCustom,
+                ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            FFLocalizations.of(context).getText('analysis_pending_body'),
+            textAlign: TextAlign.center,
+            style: FlutterFlowTheme.of(context).bodyMedium.override(
+                  fontFamily: FlutterFlowTheme.of(context).bodyMediumFamily,
+                  color: FlutterFlowTheme.of(context).secondaryText,
+                  useGoogleFonts: !FlutterFlowTheme.of(context).bodyMediumIsCustom,
+                ),
+          ),
+        ],
+      ),
+    );
   }
 
   String _scoreGrade(int s) {
@@ -643,7 +741,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                   label: FFLocalizations.of(context).getText('fab_copy'),
                   labelStyle: FlutterFlowTheme.of(context).bodyMedium,
                   onTap: () async {
-                    if (currentUserUid.isEmpty) {
+                    if (currentUserUid.isEmpty || currentUserIsAnonymous) {
                       await showModalBottomSheet(
                         isScrollControlled: true,
                         backgroundColor: Colors.transparent,
@@ -832,6 +930,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                               ].divide(SizedBox(height: 10.0)),
                                             ),
                                           ),
+                                          if (_model.imageraw?.firstOrNull?.saCompositeScore != null)
                                           Container(
                                             decoration: BoxDecoration(
                                               color: Color(0x39FFFFFF),
@@ -969,6 +1068,9 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                             ),
                           ],
                         ),
+                        if (_model.imageraw?.firstOrNull?.saCompositeScore == null)
+                          _buildPendingPlaceholder(context)
+                        else ...[
                         // ── Verdict card (all users) ──
                         Builder(builder: (context) {
                           final score = _model.overallscore ?? 0;
@@ -1090,12 +1192,14 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                         Builder(builder: (context) {
                           final raw = _model.imageraw?.firstOrNull;
                           if (raw == null) return const SizedBox.shrink();
+                          final lang =
+                              FFLocalizations.of(context).languageCode;
                           final axes = [
-                            ('Efficacy', raw.saEfficacyScore),
-                            ('Safety', raw.saSafetyScore),
-                            ('Stability', raw.saStabilityScore),
-                            ('Experience', raw.saUxScore),
-                            ('Pore Safety', raw.saComedogenicityScore),
+                            (_axisLabel(lang, 'efficacy'), raw.saEfficacyScore),
+                            (_axisLabel(lang, 'safety'), raw.saSafetyScore),
+                            (_axisLabel(lang, 'stability'), raw.saStabilityScore),
+                            (_axisLabel(lang, 'experience'), raw.saUxScore),
+                            (_axisLabel(lang, 'pore_safety'), raw.saComedogenicityScore),
                           ];
                           if (axes.every((e) => e.$2 == null)) {
                             return const SizedBox.shrink();
@@ -1147,34 +1251,175 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                             ),
                           );
                         }),
-                        if (appState.isprouser)
-                          Padding(
-                            padding: EdgeInsetsDirectional.fromSTEB(
-                                16.0, 16.0, 16.0, 0.0),
-                            child: wrapWithModel(
-                              model: _model.ingridientsModel,
-                              updateCallback: () => safeSetState(() {}),
-                              child: IngridientsWidget(
-                                ingridients: valueOrDefault<String>(
-                                  _model.imageraw?.firstOrNull?.ingredients,
-                                  '-',
+                        // ── Average Price (hidden when not yet available) ──
+                        Builder(builder: (context) {
+                          final price = _model.priceRow;
+                          final avg = price?.avgPrice;
+                          if (avg == null) return const SizedBox.shrink();
+                          final code = price?.priceCurrencyCode;
+                          final min = price?.priceMin;
+                          final max = price?.priceMax;
+                          final lang = FFLocalizations.of(context).languageCode;
+
+                          Widget _priceCard(Widget content) => Padding(
+                                padding: const EdgeInsetsDirectional.fromSTEB(
+                                    16.0, 16.0, 16.0, 0.0),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF5F8FF),
+                                    borderRadius: BorderRadius.circular(20.0),
+                                    boxShadow: const [
+                                      BoxShadow(
+                                        blurRadius: 8.0,
+                                        color: Color(0x1A000000),
+                                        offset: Offset(0.0, 2.0),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 20.0, vertical: 16.0),
+                                    child: content,
+                                  ),
                                 ),
-                                topIngredients: _model.topIngredientsRaw
-                                        ?.map((r) => r.ingredientName
-                                            .toLowerCase()
-                                            .trim())
-                                        .toList() ??
-                                    const [],
-                                issueIngredients: _model.ingredientIssuesRaw
-                                        ?.map((r) => r.ingredientName
-                                            .toLowerCase()
-                                            .trim())
-                                        .toList() ??
-                                    const [],
+                              );
+
+                          return _priceCard(Row(
+                              children: [
+                                Icon(Icons.sell_outlined,
+                                    color:
+                                        FlutterFlowTheme.of(context).primary,
+                                    size: 28.0),
+                                const SizedBox(width: 14),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        lang == 'ru'
+                                            ? 'Средняя цена'
+                                            : lang == 'es'
+                                                ? 'Precio promedio'
+                                                : 'Average Price',
+                                        style: FlutterFlowTheme.of(context)
+                                            .bodyMedium
+                                            .override(
+                                              fontFamily:
+                                                  FlutterFlowTheme.of(context)
+                                                      .bodyMediumFamily,
+                                              color: FlutterFlowTheme.of(
+                                                      context)
+                                                  .secondaryText,
+                                              fontSize: 12.0,
+                                              letterSpacing: 0.0,
+                                              useGoogleFonts:
+                                                  !FlutterFlowTheme.of(context)
+                                                      .bodyMediumIsCustom,
+                                            ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        _formatPrice(avg, code),
+                                        style: FlutterFlowTheme.of(context)
+                                            .bodyMedium
+                                            .override(
+                                              fontFamily:
+                                                  FlutterFlowTheme.of(context)
+                                                      .bodyMediumFamily,
+                                              fontSize: 22.0,
+                                              fontWeight: FontWeight.bold,
+                                              letterSpacing: 0.0,
+                                              useGoogleFonts:
+                                                  !FlutterFlowTheme.of(context)
+                                                      .bodyMediumIsCustom,
+                                            ),
+                                      ),
+                                      if (min != null && max != null)
+                                        Text(
+                                          '${_formatPrice(min, code)} – ${_formatPrice(max, code)}',
+                                          style: FlutterFlowTheme.of(context)
+                                              .bodyMedium
+                                              .override(
+                                                fontFamily:
+                                                    FlutterFlowTheme.of(context)
+                                                        .bodyMediumFamily,
+                                                color: FlutterFlowTheme.of(
+                                                        context)
+                                                    .secondaryText,
+                                                fontSize: 12.0,
+                                                letterSpacing: 0.0,
+                                                useGoogleFonts:
+                                                    !FlutterFlowTheme.of(
+                                                            context)
+                                                        .bodyMediumIsCustom,
+                                              ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                                if (code != null)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: FlutterFlowTheme.of(context)
+                                          .primary
+                                          .withOpacity(0.1),
+                                      borderRadius:
+                                          BorderRadius.circular(8.0),
+                                    ),
+                                    child: Text(
+                                      code,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: FlutterFlowTheme.of(context)
+                                            .primary,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ));
+                        }),
+                        Padding(
+                          padding: EdgeInsetsDirectional.fromSTEB(
+                              16.0, 16.0, 16.0, 0.0),
+                          child: wrapWithModel(
+                            model: _model.ingridientsModel,
+                            updateCallback: () => safeSetState(() {}),
+                            child: IngridientsWidget(
+                              ingridients: valueOrDefault<String>(
+                                _model.imageraw?.firstOrNull?.ingredients,
+                                '-',
                               ),
+                              topIngredients: _model.topIngredientsRaw
+                                      ?.map((r) => r.ingredientName
+                                          .toLowerCase()
+                                          .trim())
+                                      .toList() ??
+                                  const [],
+                              issueIngredients: _model.ingredientIssuesRaw
+                                      ?.map((r) => r.ingredientName
+                                          .toLowerCase()
+                                          .trim())
+                                      .toList() ??
+                                  const [],
                             ),
                           ),
-                        if (appState.isprouser)
+                        ),
+                        if (appState.isprouser || _proPreviewActive)
+                          Builder(builder: (context) {
+                            final log = _model.imageraw?.firstOrNull?.saScoringLog;
+                            if (log == null) return const SizedBox.shrink();
+                            return Padding(
+                              padding: const EdgeInsetsDirectional.fromSTEB(
+                                  16.0, 16.0, 16.0, 0.0),
+                              child: ScoreBreakdownWidget(scoringLog: log),
+                            );
+                          }),
+                        if (appState.isprouser || _proPreviewActive)
                         Padding(
                           padding: EdgeInsetsDirectional.fromSTEB(
                               16.0, 24.0, 16.0, 0.0),
@@ -1259,7 +1504,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                             ),
                           ),
                         ),
-                        if (appState.isprouser)
+                        if (appState.isprouser || _proPreviewActive)
                         Padding(
                           padding: EdgeInsetsDirectional.fromSTEB(
                               16.0, 16.0, 16.0, 0.0),
@@ -1343,7 +1588,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                             ),
                           ),
                         ),
-                        if (appState.isprouser)
+                        if (appState.isprouser || _proPreviewActive)
                         Padding(
                           padding: EdgeInsetsDirectional.fromSTEB(
                               16.0, 24.0, 0.0, 0.0),
@@ -1365,7 +1610,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                 ),
                           ),
                         ),
-                        if (appState.isprouser)
+                        if (appState.isprouser || _proPreviewActive)
                         Builder(
                           builder: (context) {
                             final skintypecompatibility = _model
@@ -1410,10 +1655,9 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                             children: [
                                               Flexible(
                                                 child: Text(
-                                                  valueOrDefault<String>(
+                                                  _skinTypeLabel(
                                                     skintypecompatibilityItem
-                                                        .label,
-                                                    '-',
+                                                        .skinType,
                                                   ),
                                                   style:
                                                       FlutterFlowTheme.of(
@@ -1606,7 +1850,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                         ),
                         // ── Top Negative Ingredients ──
                         Builder(builder: (context) {
-                          final isPro = appState.isprouser;
+                          final isPro = appState.isprouser || _proPreviewActive;
                           final lang = FFLocalizations.of(context).languageCode;
                           final allNegative = _model.ingredientIssuesRaw?.toList() ?? [];
                           if (allNegative.isEmpty) return const SizedBox.shrink();
@@ -1705,7 +1949,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                         // ── Top Active Ingredients ──
                         Builder(
                           builder: (context) {
-                            final isPro = appState.isprouser;
+                            final isPro = appState.isprouser || _proPreviewActive;
                             final lang = FFLocalizations.of(context).languageCode;
                             final allIngredients = _model.topIngredientsRaw?.toList() ?? [];
                             if (allIngredients.isEmpty) return const SizedBox.shrink();
@@ -1786,46 +2030,28 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                                                     .bodyMediumIsCustom,
                                                           ),
                                                     ),
-                                                    Container(
-                                                      decoration: BoxDecoration(
-                                                        color: FlutterFlowTheme
-                                                                .of(context)
-                                                            .secondaryBackground,
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(10.0),
+                                                    Text(
+                                                      valueOrDefault<String>(
+                                                        topIngredientsItem.category,
+                                                        '-',
                                                       ),
-                                                      child: Padding(
-                                                        padding:
-                                                            EdgeInsetsDirectional
-                                                                .fromSTEB(
-                                                                    12.0,
-                                                                    8.0,
-                                                                    12.0,
-                                                                    8.0),
-                                                        child: Text(
-                                                          valueOrDefault<
-                                                              String>(
-                                                            topIngredientsItem
-                                                                .category,
-                                                            '-',
-                                                          ),
-                                                          style: FlutterFlowTheme
-                                                                  .of(context)
-                                                              .bodyMedium
-                                                              .override(
-                                                                fontFamily: FlutterFlowTheme.of(
+                                                      style: FlutterFlowTheme
+                                                              .of(context)
+                                                          .bodyMedium
+                                                          .override(
+                                                            fontFamily: FlutterFlowTheme.of(
+                                                                    context)
+                                                                .bodyMediumFamily,
+                                                            color: FlutterFlowTheme
+                                                                    .of(context)
+                                                                .secondaryText,
+                                                            fontSize: 11.0,
+                                                            letterSpacing: 0.0,
+                                                            useGoogleFonts:
+                                                                !FlutterFlowTheme.of(
                                                                         context)
-                                                                    .bodyMediumFamily,
-                                                                letterSpacing:
-                                                                    0.0,
-                                                                useGoogleFonts:
-                                                                    !FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .bodyMediumIsCustom,
-                                                              ),
-                                                        ),
-                                                      ),
+                                                                    .bodyMediumIsCustom,
+                                                          ),
                                                     ),
                                                     Text(
                                                       _efficacyDesc(
@@ -1930,6 +2156,10 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                                               FlutterFlowTheme.of(
                                                                       context)
                                                                   .bodyMediumFamily,
+                                                          color: FlutterFlowTheme
+                                                                  .of(context)
+                                                              .secondaryText,
+                                                          fontSize: 11.0,
                                                           letterSpacing: 0.0,
                                                           useGoogleFonts:
                                                               !FlutterFlowTheme
@@ -1991,7 +2221,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                         },
                       ),
                         // ── Paywall upsell (free users only) ──
-                        if (!appState.isprouser)
+                        if (!appState.isprouser && !_proPreviewActive)
                           Padding(
                             padding: EdgeInsetsDirectional.fromSTEB(
                                 16.0, 24.0, 16.0, 32.0),
@@ -2118,6 +2348,45 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                         ),
                                       ),
                                     ),
+                                    if (!_proPreviewUsed) ...[
+                                      SizedBox(height: 16),
+                                      Center(
+                                        child: AnimatedBuilder(
+                                          animation: _proPreviewPulse,
+                                          builder: (context, child) => Opacity(
+                                            opacity: _proPreviewPulse.value,
+                                            child: child,
+                                          ),
+                                          child: GestureDetector(
+                                            onTap: _activateProPreview,
+                                            child: Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                                              decoration: BoxDecoration(
+                                                border: Border.all(
+                                                  color: FlutterFlowTheme.of(context).primary,
+                                                  width: 1.5,
+                                                ),
+                                                borderRadius: BorderRadius.circular(50),
+                                              ),
+                                              child: Text(
+                                                FFLocalizations.of(context).languageCode == 'ru'
+                                                    ? 'Посмотреть Pro-анализ один раз бесплатно →'
+                                                    : FFLocalizations.of(context).languageCode == 'es'
+                                                        ? 'Ver análisis Pro una vez gratis →'
+                                                        : 'Preview Pro analysis once for free →',
+                                                style: FlutterFlowTheme.of(context).bodySmall.override(
+                                                      fontFamily: FlutterFlowTheme.of(context).bodySmallFamily,
+                                                      color: FlutterFlowTheme.of(context).primary,
+                                                      letterSpacing: 0.0,
+                                                      fontWeight: FontWeight.w600,
+                                                      useGoogleFonts: !FlutterFlowTheme.of(context).bodySmallIsCustom,
+                                                    ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ],
                                 ),
                               ),
@@ -2600,6 +2869,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                         // bottom padding so sticky banner doesn't overlap content
                         if (currentUserIsAnonymous)
                           const SizedBox(height: 80),
+                        ], // end of analysis sections
                       ],
                     ),
                   ),
@@ -2660,6 +2930,31 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
       },
     );
   }
+
+  String _axisLabel(String lang, String axis) {
+    const labels = {
+      'efficacy':   {'en': 'Efficacy',    'ru': 'Эффективность', 'es': 'Eficacia'},
+      'safety':     {'en': 'Safety',      'ru': 'Безопасность',  'es': 'Seguridad'},
+      'stability':  {'en': 'Stability',   'ru': 'Стабильность',  'es': 'Estabilidad'},
+      'experience': {'en': 'Experience',  'ru': 'Ощущения',      'es': 'Experiencia'},
+      'pore_safety':{'en': 'Non-Comedogenic', 'ru': 'Некомедогенность', 'es': 'No Comedogénico'},
+    };
+    return labels[axis]?[lang] ?? labels[axis]?['en'] ?? axis;
+  }
+
+  String _skinTypeLabel(String skinType) {
+    final lang = FFLocalizations.of(context).languageCode;
+    const labels = {
+      'dry':        {'en': 'Dry',          'ru': 'Сухая',               'es': 'Seca'},
+      'oily':       {'en': 'Oily',         'ru': 'Жирная',              'es': 'Grasa'},
+      'normal':     {'en': 'Normal',       'ru': 'Нормальная',          'es': 'Normal'},
+      'combination':{'en': 'Combination',  'ru': 'Комбинированная',     'es': 'Mixta'},
+      'sensitive':  {'en': 'Sensitive',    'ru': 'Чувствительная',      'es': 'Sensible'},
+      'acne_prone': {'en': 'Acne-Prone',   'ru': 'Склонная к акне',     'es': 'Propensa al acné'},
+    };
+    return labels[skinType]?[lang] ?? labels[skinType]?['en'] ?? skinType;
+  }
+
 }
 
 class _AnonSaveBanner extends StatelessWidget {
@@ -3129,4 +3424,176 @@ class _LoginRequiredSheet extends StatelessWidget {
       ),
     );
   }
+}
+
+class _FlaskResearchAnimation extends StatefulWidget {
+  const _FlaskResearchAnimation();
+
+  @override
+  State<_FlaskResearchAnimation> createState() =>
+      _FlaskResearchAnimationState();
+}
+
+class _FlaskResearchAnimationState extends State<_FlaskResearchAnimation>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 3),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final color = FlutterFlowTheme.of(context).primary;
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (_, __) => CustomPaint(
+        size: const Size(80, 94),
+        painter: _FlaskPainter(t: _ctrl.value, color: color),
+      ),
+    );
+  }
+}
+
+class _FlaskPainter extends CustomPainter {
+  final double t;
+  final Color color;
+
+  const _FlaskPainter({required this.t, required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+
+    // Flask geometry
+    final neckL = w * 0.38;
+    final neckR = w * 0.62;
+    final neckTop = h * 0.05;
+    final neckBot = h * 0.35;
+    final cx = w * 0.5;
+    final cy = h * 0.71;
+    final rx = w * 0.40;
+    final ry = h * 0.26;
+
+    // Flask outline path (Erlenmeyer style)
+    final flaskPath = Path()
+      ..moveTo(neckL, neckTop)
+      ..lineTo(neckR, neckTop)
+      ..lineTo(neckR, neckBot)
+      ..quadraticBezierTo(neckR, cy - ry * 0.5, cx + rx, cy)
+      ..arcToPoint(Offset(cx - rx, cy),
+          radius: Radius.elliptical(rx, ry), clockwise: false)
+      ..quadraticBezierTo(neckL, cy - ry * 0.5, neckL, neckBot)
+      ..close();
+
+    // Clip to flask shape for liquid + bubbles
+    canvas.save();
+    canvas.clipPath(flaskPath);
+
+    // Liquid fill (two wave layers)
+    final liquidY = cy - ry * 0.18;
+    const waveAmp = 3.5;
+
+    void drawWave(double phaseOffset, double opacity) {
+      final path = Path();
+      path.moveTo(0,
+          liquidY + waveAmp * sin((t + phaseOffset) * 2 * pi));
+      for (double x = 0; x <= w; x++) {
+        path.lineTo(
+          x,
+          liquidY +
+              waveAmp * sin((x / w * 2.5 + t + phaseOffset) * 2 * pi),
+        );
+      }
+      path.lineTo(w, h);
+      path.lineTo(0, h);
+      path.close();
+      canvas.drawPath(path, Paint()..color = color.withAlpha((255 * opacity).round()));
+    }
+
+    drawWave(0.0, 0.22);
+    drawWave(0.18, 0.16);
+
+    // Rising bubbles
+    const bubbles = [
+      (0.30, 0.00, 3.5),
+      (0.55, 0.37, 4.0),
+      (0.42, 0.63, 2.5),
+      (0.68, 0.18, 3.2),
+      (0.22, 0.80, 2.0),
+    ];
+    for (final b in bubbles) {
+      final xFrac = b.$1;
+      final phase = b.$2;
+      final r = b.$3;
+      final bt = (t + phase) % 1.0;
+      final startY = cy + ry * 0.75;
+      final endY = liquidY - r * 1.5;
+      final y = startY - (startY - endY) * bt;
+      final x = w * xFrac + sin(bt * pi * 3) * 4.0;
+      final alpha = bt > 0.75 ? (1.0 - bt) / 0.25 : 1.0;
+      canvas.drawCircle(
+        Offset(x, y),
+        r * (0.5 + 0.5 * bt),
+        Paint()..color = color.withAlpha((140 * alpha).round()),
+      );
+    }
+
+    canvas.restore();
+
+    // Flask stroke
+    canvas.drawPath(
+      flaskPath,
+      Paint()
+        ..color = color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.5
+        ..strokeJoin = StrokeJoin.round,
+    );
+
+    // Opening rim
+    canvas.drawLine(
+      Offset(neckL - 3, neckTop),
+      Offset(neckR + 3, neckTop),
+      Paint()
+        ..color = color
+        ..strokeWidth = 3.0
+        ..strokeCap = StrokeCap.round,
+    );
+
+    // Floating sparkle dots (research effect)
+    const sparks = [
+      (0.07, 0.42, 0.00),
+      (0.93, 0.48, 0.33),
+      (0.87, 0.28, 0.66),
+    ];
+    for (final s in sparks) {
+      final sx = w * s.$1;
+      final sy = h * s.$2;
+      final phase = s.$3;
+      final st = (t + phase) % 1.0;
+      final alpha = sin(st * pi);
+      final dy = -sin(st * pi) * 9;
+      canvas.drawCircle(
+        Offset(sx, sy + dy),
+        2.5,
+        Paint()..color = color.withAlpha((160 * alpha).round()),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_FlaskPainter old) => old.t != t;
 }

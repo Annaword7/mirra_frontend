@@ -15,6 +15,8 @@ import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/flutter_flow/upload_data.dart';
 import '/limits/limit_out/limit_out_widget.dart';
+import '/components/error_popup/error_popup_widget.dart';
+import '/components/guest_prefs_sheet/guest_prefs_sheet_widget.dart';
 import 'dart:ui';
 import '/index.dart';
 import 'package:flutter/material.dart';
@@ -22,6 +24,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'takeor_upload_page_model.dart';
 export 'takeor_upload_page_model.dart';
@@ -52,6 +55,9 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
 
     // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
+      FFAppState().analysisloading = false;
+      FFAppState().Producanalysstate = 0;
+      FFAppState().uploadedimageurl = '';
       _model.useranalyspage = await UsersTable().queryRows(
         queryFn: (q) => q.eqOrNull(
           'id',
@@ -97,6 +103,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
 
   /// Upload raw bytes (shared from an external app) and run the full analysis chain.
   Future<void> _handleSharedImage(BuildContext context, Uint8List bytes) async {
+    await _ensureCountrySet();
     // Upload bytes directly (bypasses image picker)
     final storagePath =
         'users_images/shared_${DateTime.now().millisecondsSinceEpoch}.jpg';
@@ -134,17 +141,94 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
   Future<void> _showPendingResearchDialog(BuildContext context) async {
     final lang = FFLocalizations.of(context).languageCode;
     String t(String key) => _kPendingResearchL10n[key]?[lang] ?? _kPendingResearchL10n[key]!['en']!;
+    final theme = FlutterFlowTheme.of(context);
     await showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(t('title')),
-        content: Text(t('body')),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(t('button')),
+      barrierDismissible: true,
+      barrierColor: Colors.black54,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(24.0),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20.0),
+            boxShadow: const [
+              BoxShadow(
+                blurRadius: 24.0,
+                color: Color(0x1A000000),
+                offset: Offset(0.0, 8.0),
+              ),
+            ],
           ),
-        ],
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24.0, 28.0, 24.0, 24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 56.0,
+                  height: 56.0,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFE3F2FD),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.hourglass_top_rounded,
+                    color: Color(0xFF1565C0),
+                    size: 28.0,
+                  ),
+                ),
+                const SizedBox(height: 16.0),
+                Text(
+                  t('title'),
+                  textAlign: TextAlign.center,
+                  style: theme.headlineSmall.override(
+                    fontFamily: theme.headlineSmallFamily,
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.0,
+                    useGoogleFonts: !theme.headlineSmallIsCustom,
+                  ),
+                ),
+                const SizedBox(height: 8.0),
+                Text(
+                  t('body'),
+                  textAlign: TextAlign.center,
+                  style: theme.bodyMedium.override(
+                    fontFamily: theme.bodyMediumFamily,
+                    color: theme.secondaryText,
+                    letterSpacing: 0.0,
+                    useGoogleFonts: !theme.bodyMediumIsCustom,
+                  ),
+                ),
+                const SizedBox(height: 24.0),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50.0,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: theme.primary,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14.0),
+                      ),
+                    ),
+                    child: Text(
+                      t('button'),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15.0,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -214,34 +298,38 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
         // Gallery: extract-product-info failed.
         // Check for quota exhaustion before showing a generic error.
         if ((_model.extractedproductGalary?.statusCode ?? 0) == 429) {
-          await showModalBottomSheet(
-            isScrollControlled: true,
-            backgroundColor: Colors.transparent,
-            enableDrag: false,
-            context: context,
-            builder: (context) {
-              return GestureDetector(
-                onTap: () {
-                  FocusScope.of(context).unfocus();
-                  FocusManager.instance.primaryFocus?.unfocus();
-                },
-                child: Padding(
-                  padding: MediaQuery.viewInsetsOf(context),
-                  child: LimitOutWidget(
-                    limit: ExtractproductinfoNEWBCNDCopyCall.quotaUsed(
-                          (_model.extractedproductGalary?.jsonBody ?? ''),
-                        ) ??
-                        20,
-                    date: ExtractproductinfoNEWBCNDCopyCall.resetTime(
-                          (_model.extractedproductGalary?.jsonBody ?? ''),
-                        ) ??
-                        '',
-                    isPro: context.read<FFAppState>().isprouser,
+          if (context.read<FFAppState>().isprouser) {
+            await ErrorPopupWidget.show(context, ErrorPopupType.subscriptionSync);
+          } else {
+            await showModalBottomSheet(
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              enableDrag: false,
+              context: context,
+              builder: (context) {
+                return GestureDetector(
+                  onTap: () {
+                    FocusScope.of(context).unfocus();
+                    FocusManager.instance.primaryFocus?.unfocus();
+                  },
+                  child: Padding(
+                    padding: MediaQuery.viewInsetsOf(context),
+                    child: LimitOutWidget(
+                      limit: ExtractproductinfoNEWBCNDCopyCall.quotaUsed(
+                                (_model.extractedproductGalary?.jsonBody ?? ''),
+                              ) ??
+                          20,
+                      date: ExtractproductinfoNEWBCNDCopyCall.resetTime(
+                                (_model.extractedproductGalary?.jsonBody ?? ''),
+                              ) ??
+                          '',
+                      isPro: false,
+                    ),
                   ),
-                ),
-              );
-            },
-          ).then((value) => safeSetState(() {}));
+                );
+              },
+            ).then((value) => safeSetState(() {}));
+          }
           // No image was created (quota check ran before image creation).
         } else {
           await TelegrammessegeCall.call(
@@ -250,21 +338,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
             email: 'from mobile app Extract Product Name Step',
             form: 'tech message',
           );
-          await showDialog(
-            context: context,
-            builder: (alertDialogContext) {
-              return AlertDialog(
-                title: Text('Error!'),
-                content: Text('Product not found, data error - 3'),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(alertDialogContext),
-                    child: Text('Ok'),
-                  ),
-                ],
-              );
-            },
-          );
+          await ErrorPopupWidget.show(context, ErrorPopupType.productNotFound);
           final _gallImgId = ExtractproductinfoNEWBCNDCopyCall.iamgeID(
             (_model.extractedproductGalary?.jsonBody ?? ''),
           );
@@ -310,11 +384,27 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
             ));
           }
           FFAppState().feedbackPendingScan = true;
-          FFAppState().uploadedimageurl = '';
-          FFAppState().analysisloading = false;
-          FFAppState().Producanalysstate = 0;
-          safeSetState(() {});
-          context.pushNamed(
+          if (!mounted) {
+            FFAppState().uploadedimageurl = '';
+            FFAppState().analysisloading = false;
+            FFAppState().Producanalysstate = 0;
+            final navCtx = appNavigatorKey.currentContext;
+            if (navCtx != null) {
+              navCtx.pushNamed(
+                Itemcard2Widget.routeName,
+                queryParameters: {
+                  'imageid': serializeParam(
+                    ExtractproductinfoNEWBCNDCopyCall.iamgeID(
+                      (_model.extractedproductGalary?.jsonBody ?? ''),
+                    ),
+                    ParamType.int,
+                  ),
+                }.withoutNulls,
+              );
+            }
+            return;
+          }
+          await context.pushNamed(
             Itemcard2Widget.routeName,
             queryParameters: {
               'imageid': serializeParam(
@@ -325,27 +415,15 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
               ),
             }.withoutNulls,
           );
+          FFAppState().uploadedimageurl = '';
+          FFAppState().analysisloading = false;
+          FFAppState().Producanalysstate = 0;
+          safeSetState(() {});
         } else {
           final statusCode =
               _model.scientificanalysresultcamara?.statusCode ?? 0;
           if (statusCode == 422) {
-            await showDialog(
-              context: context,
-              builder: (alertDialogContext) {
-                return AlertDialog(
-                  title: Text(
-                      FFLocalizations.of(context).getText('nnsq0kj5')),
-                  content: Text(
-                      FFLocalizations.of(context).getText('48je50c9')),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(alertDialogContext),
-                      child: Text('Ok'),
-                    ),
-                  ],
-                );
-              },
-            );
+            await ErrorPopupWidget.show(context, ErrorPopupType.unsupported);
           } else {
             await TelegrammessegeCall.call(
               messega:
@@ -353,21 +431,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
               email: 'from mobile app',
               form: 'tech message',
             );
-            await showDialog(
-              context: context,
-              builder: (alertDialogContext) {
-                return AlertDialog(
-                  title: Text('Error!'),
-                  content: Text('Product not found, data error'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(alertDialogContext),
-                      child: Text('Ok'),
-                    ),
-                  ],
-                );
-              },
-            );
+            await ErrorPopupWidget.show(context, ErrorPopupType.productNotFound);
           }
           FFAppState().uploadedimageurl = '';
           FFAppState().analysisloading = false;
@@ -385,21 +449,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
         }
       } else {
         if ((_model.analyseImageProductName?.statusCode ?? 200) == 400) {
-          await showDialog(
-            context: context,
-            builder: (alertDialogContext) {
-              return AlertDialog(
-                title: Text('Error!'),
-                content: Text('Product not found, data error'),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(alertDialogContext),
-                    child: Text('Ok'),
-                  ),
-                ],
-              );
-            },
-          );
+          await ErrorPopupWidget.show(context, ErrorPopupType.productNotFound);
           FFAppState().uploadedimageurl = '';
           FFAppState().analysisloading = false;
           FFAppState().Producanalysstate = 0;
@@ -414,32 +464,36 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
           );
         } else if ((_model.analyseImageProductName?.statusCode ?? 200) ==
             429) {
-          await showModalBottomSheet(
-            isScrollControlled: true,
-            backgroundColor: Colors.transparent,
-            enableDrag: false,
-            context: context,
-            builder: (context) {
-              return GestureDetector(
-                onTap: () {
-                  FocusScope.of(context).unfocus();
-                  FocusManager.instance.primaryFocus?.unfocus();
-                },
-                child: Padding(
-                  padding: MediaQuery.viewInsetsOf(context),
-                  child: LimitOutWidget(
-                    limit: SearchingredientsNEWBCNDCall.limit(
-                      (_model.analyseImageProductName?.jsonBody ?? ''),
-                    )!,
-                    date: SearchingredientsNEWBCNDCall.resettime(
-                      (_model.analyseImageProductName?.jsonBody ?? ''),
-                    )!,
-                    isPro: context.read<FFAppState>().isprouser,
+          if (context.read<FFAppState>().isprouser) {
+            await ErrorPopupWidget.show(context, ErrorPopupType.subscriptionSync);
+          } else {
+            await showModalBottomSheet(
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              enableDrag: false,
+              context: context,
+              builder: (context) {
+                return GestureDetector(
+                  onTap: () {
+                    FocusScope.of(context).unfocus();
+                    FocusManager.instance.primaryFocus?.unfocus();
+                  },
+                  child: Padding(
+                    padding: MediaQuery.viewInsetsOf(context),
+                    child: LimitOutWidget(
+                      limit: SearchingredientsNEWBCNDCall.limit(
+                        (_model.analyseImageProductName?.jsonBody ?? ''),
+                      )!,
+                      date: SearchingredientsNEWBCNDCall.resettime(
+                        (_model.analyseImageProductName?.jsonBody ?? ''),
+                      )!,
+                      isPro: false,
+                    ),
                   ),
-                ),
-              );
-            },
-          ).then((value) => safeSetState(() {}));
+                );
+              },
+            ).then((value) => safeSetState(() {}));
+          }
           FFAppState().uploadedimageurl = '';
           FFAppState().analysisloading = false;
           FFAppState().Producanalysstate = 0;
@@ -454,6 +508,9 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
           );
         } else if ((_model.analyseImageProductName?.statusCode ?? 200) ==
             500) {
+          FirebaseCrashlytics.instance.log(
+            'Backend 500 on gallery analysis: body=${_model.analyseImageProductName?.jsonBody}',
+          );
           context.pushNamed(HomeWidget.routeName);
           await ImagesTable().delete(
             matchingRows: (rows) => rows.eqOrNull(
@@ -463,51 +520,29 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
               ),
             ),
           );
-          await showDialog(
-            context: context,
-            builder: (alertDialogContext) {
-              return AlertDialog(
-                title: Text(SearchingredientsNEWBCNDCall.error(
-                  (_model.analyseImageProductName?.jsonBody ?? ''),
-                )!),
-                content: Text(SearchingredientsNEWBCNDCall.details(
-                  (_model.analyseImageProductName?.jsonBody ?? ''),
-                )!),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(alertDialogContext),
-                    child: Text('Ok'),
-                  ),
-                ],
-              );
-            },
-          );
+          await ErrorPopupWidget.show(context, ErrorPopupType.generic);
           FFAppState().uploadedimageurl = '';
           FFAppState().analysisloading = false;
           FFAppState().Producanalysstate = 0;
           safeSetState(() {});
         } else if ((_model.analyseImageProductName?.statusCode ?? 200) ==
             422) {
-          await showDialog(
-            context: context,
-            builder: (alertDialogContext) {
-              return AlertDialog(
-                title: Text('Unsupported product'),
-                content: Text(
-                  SearchingredientsNEWBCNDCall.error(
-                    (_model.analyseImageProductName?.jsonBody ?? ''),
-                  ) ??
-                      'This product type is not supported yet.',
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(alertDialogContext),
-                    child: Text('Ok'),
-                  ),
-                ],
-              );
-            },
+          await ErrorPopupWidget.show(context, ErrorPopupType.unsupported);
+          FFAppState().uploadedimageurl = '';
+          FFAppState().analysisloading = false;
+          FFAppState().Producanalysstate = 0;
+          safeSetState(() {});
+          await ImagesTable().delete(
+            matchingRows: (rows) => rows.eqOrNull(
+              'id',
+              ExtractproductinfoNEWBCNDCopyCall.iamgeID(
+                (_model.extractedproductGalary?.jsonBody ?? ''),
+              ),
+            ),
           );
+        } else if ((_model.analyseImageProductName?.statusCode ?? 200) ==
+            404) {
+          await ErrorPopupWidget.show(context, ErrorPopupType.ingredientsNotFound);
           FFAppState().uploadedimageurl = '';
           FFAppState().analysisloading = false;
           FFAppState().Producanalysstate = 0;
@@ -527,21 +562,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
             email: 'from mobile app',
             form: 'tech message',
           );
-          await showDialog(
-            context: context,
-            builder: (alertDialogContext) {
-              return AlertDialog(
-                title: Text('Error!'),
-                content: Text('Product not found, data error'),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(alertDialogContext),
-                    child: Text('Ok'),
-                  ),
-                ],
-              );
-            },
-          );
+          await ErrorPopupWidget.show(context, ErrorPopupType.productNotFound);
           FFAppState().uploadedimageurl = '';
           FFAppState().analysisloading = false;
           FFAppState().Producanalysstate = 0;
@@ -559,6 +580,38 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
     } else {
       FFAppState().analysisloading = false;
       safeSetState(() {});
+    }
+  }
+
+  /// Shows [GuestPrefsSheet] if the current user has no country set, then
+  /// reloads user/country data so the subsequent scan uses the correct country.
+  Future<void> _ensureCountrySet() async {
+    if (_model.useranalyspage?.firstOrNull?.countryId != null) return;
+
+    await showModalBottomSheet(
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      context: context,
+      builder: (_) => Padding(
+        padding: MediaQuery.viewInsetsOf(context),
+        child: const GuestPrefsSheet(),
+      ),
+    );
+
+    // Reload so the API calls pick up the newly chosen country.
+    _model.useranalyspage = await UsersTable().queryRows(
+      queryFn: (q) => q.eqOrNull('id', currentUserUid),
+    );
+    _model.countriesRaw = await CountriesTable().queryRows(
+      queryFn: (q) => q.eqOrNull(
+        'id',
+        _model.useranalyspage?.firstOrNull?.countryId,
+      ),
+    );
+    final countryRow = _model.countriesRaw?.firstOrNull;
+    if (countryRow != null) {
+      FFAppState().countrycode = countryRow.nameEn;
+      FFAppState().countrycodeiso = countryRow.code;
     }
   }
 
@@ -582,11 +635,19 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
       onPressed: () async {
         var _shouldSetState = false;
         _shouldSetState = true;
+        await _ensureCountrySet();
         {
-          final selectedMedia = await selectMedia(
-            storageFolderPath: 'users_images',
-            multiImage: false,
-          );
+          List<SelectedFile>? selectedMedia;
+          try {
+            selectedMedia = await selectMedia(
+              storageFolderPath: 'users_images',
+              multiImage: false,
+            );
+          } catch (e, s) {
+            FirebaseCrashlytics.instance.recordError(e, s, fatal: false, reason: 'selectMedia (camera) failed');
+            if (_shouldSetState) safeSetState(() {});
+            return;
+          }
           if (selectedMedia != null &&
               selectedMedia.every((m) =>
                   validateFileFormat(m.storagePath, context))) {
@@ -611,6 +672,10 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                 bucketName: 'images',
                 selectedFiles: selectedMedia,
               );
+            } catch (e, s) {
+              FirebaseCrashlytics.instance.recordError(e, s, fatal: false, reason: 'Supabase upload failed (camera)');
+              if (_shouldSetState) safeSetState(() {});
+              return;
             } finally {
               _model.isDataUploading_uploadImageSupabaseCamera = false;
             }
@@ -694,34 +759,40 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
             } else {
               // Camera: extract-product-info failed.
               if ((_model.extractedproductcamera?.statusCode ?? 0) == 429) {
-                await showModalBottomSheet(
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  enableDrag: false,
-                  context: context,
-                  builder: (context) {
-                    return GestureDetector(
-                      onTap: () {
-                        FocusScope.of(context).unfocus();
-                        FocusManager.instance.primaryFocus?.unfocus();
-                      },
-                      child: Padding(
-                        padding: MediaQuery.viewInsetsOf(context),
-                        child: LimitOutWidget(
-                          limit: ExtractproductinfoNEWBCNDCopyCall.quotaUsed(
-                                (_model.extractedproductcamera?.jsonBody ?? ''),
-                              ) ??
-                              20,
-                          date: ExtractproductinfoNEWBCNDCopyCall.resetTime(
-                                (_model.extractedproductcamera?.jsonBody ?? ''),
-                              ) ??
-                              '',
-                          isPro: context.read<FFAppState>().isprouser,
+                if (context.read<FFAppState>().isprouser) {
+                  await ErrorPopupWidget.show(context, ErrorPopupType.subscriptionSync);
+                } else {
+                  await showModalBottomSheet(
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    enableDrag: false,
+                    context: context,
+                    builder: (context) {
+                      return GestureDetector(
+                        onTap: () {
+                          FocusScope.of(context).unfocus();
+                          FocusManager.instance.primaryFocus?.unfocus();
+                        },
+                        child: Padding(
+                          padding: MediaQuery.viewInsetsOf(context),
+                          child: LimitOutWidget(
+                            limit: ExtractproductinfoNEWBCNDCopyCall.quotaUsed(
+                                      (_model.extractedproductcamera?.jsonBody ??
+                                          ''),
+                                    ) ??
+                                20,
+                            date: ExtractproductinfoNEWBCNDCopyCall.resetTime(
+                                      (_model.extractedproductcamera?.jsonBody ??
+                                          ''),
+                                    ) ??
+                                '',
+                            isPro: false,
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                ).then((value) => safeSetState(() {}));
+                      );
+                    },
+                  ).then((value) => safeSetState(() {}));
+                }
                 // No image was created (quota check ran before image creation).
               } else {
                 await TelegrammessegeCall.call(
@@ -731,22 +802,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                   form: 'tech message',
                 );
 
-                await showDialog(
-                  context: context,
-                  builder: (alertDialogContext) {
-                    return AlertDialog(
-                      title: Text('Error!'),
-                      content: Text('Product not found, data error'),
-                      actions: [
-                        TextButton(
-                          onPressed: () =>
-                              Navigator.pop(alertDialogContext),
-                          child: Text('Ok'),
-                        ),
-                      ],
-                    );
-                  },
-                );
+                await ErrorPopupWidget.show(context, ErrorPopupType.productNotFound);
                 final _camImgId = ExtractproductinfoNEWBCNDCopyCall.iamgeID(
                   (_model.extractedproductcamera?.jsonBody ?? ''),
                 );
@@ -796,11 +852,27 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                   ));
                 }
                 FFAppState().feedbackPendingScan = true;
-                FFAppState().uploadedimageurl = '';
-                FFAppState().analysisloading = false;
-                FFAppState().Producanalysstate = 0;
-                safeSetState(() {});
-                context.pushNamed(
+                if (!mounted) {
+                  FFAppState().uploadedimageurl = '';
+                  FFAppState().analysisloading = false;
+                  FFAppState().Producanalysstate = 0;
+                  final navCtx = appNavigatorKey.currentContext;
+                  if (navCtx != null) {
+                    navCtx.pushNamed(
+                      Itemcard2Widget.routeName,
+                      queryParameters: {
+                        'imageid': serializeParam(
+                          ExtractproductinfoNEWBCNDCopyCall.iamgeID(
+                            (_model.extractedproductcamera?.jsonBody ?? ''),
+                          ),
+                          ParamType.int,
+                        ),
+                      }.withoutNulls,
+                    );
+                  }
+                  return;
+                }
+                await context.pushNamed(
                   Itemcard2Widget.routeName,
                   queryParameters: {
                     'imageid': serializeParam(
@@ -811,28 +883,15 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                     ),
                   }.withoutNulls,
                 );
+                FFAppState().uploadedimageurl = '';
+                FFAppState().analysisloading = false;
+                FFAppState().Producanalysstate = 0;
+                safeSetState(() {});
               } else {
                 final _cameraScientificStatusCode =
                     _model.scientificanalysresultgalary?.statusCode ?? 0;
                 if (_cameraScientificStatusCode == 422) {
-                  await showDialog(
-                    context: context,
-                    builder: (alertDialogContext) {
-                      return AlertDialog(
-                        title: Text(FFLocalizations.of(context)
-                            .getText('nnsq0kj5')),
-                        content: Text(FFLocalizations.of(context)
-                            .getText('48je50c9')),
-                        actions: [
-                          TextButton(
-                            onPressed: () =>
-                                Navigator.pop(alertDialogContext),
-                            child: Text('Ok'),
-                          ),
-                        ],
-                      );
-                    },
-                  );
+                  await ErrorPopupWidget.show(context, ErrorPopupType.unsupported);
                 } else {
                   await TelegrammessegeCall.call(
                     messega:
@@ -840,23 +899,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                     email: 'from mobile app',
                     form: 'tech message',
                   );
-
-                  await showDialog(
-                    context: context,
-                    builder: (alertDialogContext) {
-                      return AlertDialog(
-                        title: Text('Error!'),
-                        content: Text('Product not found, data error'),
-                        actions: [
-                          TextButton(
-                            onPressed: () =>
-                                Navigator.pop(alertDialogContext),
-                            child: Text('Ok'),
-                          ),
-                        ],
-                      );
-                    },
-                  );
+                  await ErrorPopupWidget.show(context, ErrorPopupType.productNotFound);
                 }
                 FFAppState().uploadedimageurl = '';
                 FFAppState().analysisloading = false;
@@ -877,22 +920,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
               if ((_model.analyseImageProductNameCamera?.statusCode ??
                       200) ==
                   400) {
-                await showDialog(
-                  context: context,
-                  builder: (alertDialogContext) {
-                    return AlertDialog(
-                      title: Text('Error!'),
-                      content: Text('Product not found, data error'),
-                      actions: [
-                        TextButton(
-                          onPressed: () =>
-                              Navigator.pop(alertDialogContext),
-                          child: Text('Ok'),
-                        ),
-                      ],
-                    );
-                  },
-                );
+                await ErrorPopupWidget.show(context, ErrorPopupType.productNotFound);
                 await ImagesTable().delete(
                   matchingRows: (rows) => rows.eqOrNull(
                     'id',
@@ -909,36 +937,40 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                 if ((_model.analyseImageProductNameCamera?.statusCode ??
                         200) ==
                     429) {
-                  await showModalBottomSheet(
-                    isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
-                    enableDrag: false,
-                    context: context,
-                    builder: (context) {
-                      return GestureDetector(
-                        onTap: () {
-                          FocusScope.of(context).unfocus();
-                          FocusManager.instance.primaryFocus?.unfocus();
-                        },
-                        child: Padding(
-                          padding: MediaQuery.viewInsetsOf(context),
-                          child: LimitOutWidget(
-                            limit: SearchingredientsNEWBCNDCall.limit(
-                              (_model.analyseImageProductNameCamera
-                                      ?.jsonBody ??
-                                  ''),
-                            )!,
-                            date: SearchingredientsNEWBCNDCall.resettime(
-                              (_model.analyseImageProductNameCamera
-                                      ?.jsonBody ??
-                                  ''),
-                            )!,
-                            isPro: context.read<FFAppState>().isprouser,
+                  if (context.read<FFAppState>().isprouser) {
+                    await ErrorPopupWidget.show(context, ErrorPopupType.subscriptionSync);
+                  } else {
+                    await showModalBottomSheet(
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      enableDrag: false,
+                      context: context,
+                      builder: (context) {
+                        return GestureDetector(
+                          onTap: () {
+                            FocusScope.of(context).unfocus();
+                            FocusManager.instance.primaryFocus?.unfocus();
+                          },
+                          child: Padding(
+                            padding: MediaQuery.viewInsetsOf(context),
+                            child: LimitOutWidget(
+                              limit: SearchingredientsNEWBCNDCall.limit(
+                                (_model.analyseImageProductNameCamera
+                                            ?.jsonBody ??
+                                        ''),
+                              )!,
+                              date: SearchingredientsNEWBCNDCall.resettime(
+                                (_model.analyseImageProductNameCamera
+                                            ?.jsonBody ??
+                                        ''),
+                              )!,
+                              isPro: false,
+                            ),
                           ),
-                        ),
-                      );
-                    },
-                  ).then((value) => safeSetState(() {}));
+                        );
+                      },
+                    ).then((value) => safeSetState(() {}));
+                  }
 
                   await ImagesTable().delete(
                     matchingRows: (rows) => rows.eqOrNull(
@@ -956,6 +988,9 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                   if ((_model.analyseImageProductNameCamera?.statusCode ??
                           200) ==
                       500) {
+                    FirebaseCrashlytics.instance.log(
+                      'Backend 500 on camera analysis: body=${_model.analyseImageProductNameCamera?.jsonBody}',
+                    );
                     context.pushNamed(HomeWidget.routeName);
 
                     await ImagesTable().delete(
@@ -966,31 +1001,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                         ),
                       ),
                     );
-                    await showDialog(
-                      context: context,
-                      builder: (alertDialogContext) {
-                        return AlertDialog(
-                          title: Text(SearchingredientsNEWBCNDCall.error(
-                            (_model.analyseImageProductNameCamera
-                                    ?.jsonBody ??
-                                ''),
-                          )!),
-                          content:
-                              Text(SearchingredientsNEWBCNDCall.details(
-                            (_model.analyseImageProductNameCamera
-                                    ?.jsonBody ??
-                                ''),
-                          )!),
-                          actions: [
-                            TextButton(
-                              onPressed: () =>
-                                  Navigator.pop(alertDialogContext),
-                              child: Text('Ok'),
-                            ),
-                          ],
-                        );
-                      },
-                    );
+                    await ErrorPopupWidget.show(context, ErrorPopupType.generic);
                     safeSetState(() {});
                     FFAppState().uploadedimageurl = '';
                     FFAppState().analysisloading = false;
@@ -1000,29 +1011,26 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                               ?.statusCode ??
                           200) ==
                       422) {
-                    await showDialog(
-                      context: context,
-                      builder: (alertDialogContext) {
-                        return AlertDialog(
-                          title: Text('Unsupported product'),
-                          content: Text(
-                            SearchingredientsNEWBCNDCall.error(
-                              (_model.analyseImageProductNameCamera
-                                      ?.jsonBody ??
-                                  ''),
-                            ) ??
-                                'This product type is not supported yet.',
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () =>
-                                  Navigator.pop(alertDialogContext),
-                              child: Text('Ok'),
-                            ),
-                          ],
-                        );
-                      },
+                    await ErrorPopupWidget.show(context, ErrorPopupType.unsupported);
+                    FFAppState().uploadedimageurl = '';
+                    FFAppState().analysisloading = false;
+                    FFAppState().Producanalysstate = 0;
+                    safeSetState(() {});
+                    await ImagesTable().delete(
+                      matchingRows: (rows) => rows.eqOrNull(
+                        'id',
+                        ExtractproductinfoNEWBCNDCopyCall.iamgeID(
+                          (_model.extractedproductcamera?.jsonBody ?? ''),
+                        ),
+                      ),
                     );
+                    if (_shouldSetState) safeSetState(() {});
+                    return;
+                  } else if ((_model.analyseImageProductNameCamera
+                              ?.statusCode ??
+                          200) ==
+                      404) {
+                    await ErrorPopupWidget.show(context, ErrorPopupType.ingredientsNotFound);
                     FFAppState().uploadedimageurl = '';
                     FFAppState().analysisloading = false;
                     FFAppState().Producanalysstate = 0;
@@ -1045,22 +1053,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                       form: 'tech message',
                     );
 
-                    await showDialog(
-                      context: context,
-                      builder: (alertDialogContext) {
-                        return AlertDialog(
-                          title: Text('Error!'),
-                          content: Text('Product not found, data error'),
-                          actions: [
-                            TextButton(
-                              onPressed: () =>
-                                  Navigator.pop(alertDialogContext),
-                              child: Text('Ok'),
-                            ),
-                          ],
-                        );
-                      },
-                    );
+                    await ErrorPopupWidget.show(context, ErrorPopupType.productNotFound);
                     FFAppState().uploadedimageurl = '';
                     FFAppState().analysisloading = false;
                     FFAppState().Producanalysstate = 0;
@@ -1127,11 +1120,19 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
       onPressed: () async {
         var _shouldSetState = false;
         _shouldSetState = true;
-        final selectedMedia = await selectMedia(
-          storageFolderPath: 'users_images',
-          mediaSource: MediaSource.photoGallery,
-          multiImage: false,
-        );
+        await _ensureCountrySet();
+        List<SelectedFile>? selectedMedia;
+        try {
+          selectedMedia = await selectMedia(
+            storageFolderPath: 'users_images',
+            mediaSource: MediaSource.photoGallery,
+            multiImage: false,
+          );
+        } catch (e, s) {
+          FirebaseCrashlytics.instance.recordError(e, s, fatal: false, reason: 'selectMedia (gallery) failed');
+          if (_shouldSetState) safeSetState(() {});
+          return;
+        }
         if (selectedMedia != null &&
             selectedMedia.every((m) =>
                 validateFileFormat(m.storagePath, context))) {
@@ -1156,6 +1157,10 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
               bucketName: 'images',
               selectedFiles: selectedMedia,
             );
+          } catch (e, s) {
+            FirebaseCrashlytics.instance.recordError(e, s, fatal: false, reason: 'Supabase upload failed (gallery)');
+            if (_shouldSetState) safeSetState(() {});
+            return;
           } finally {
             _model.isDataUploading_uploadImageSupabaseGallary = false;
           }

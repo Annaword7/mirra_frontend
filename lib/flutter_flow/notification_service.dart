@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -138,8 +139,8 @@ class NotificationService {
           .update({'is_active': false})
           .eq('user_id', userId)
           .eq('token', token);
-    } catch (e) {
-      debugPrint('[Push] Failed to deactivate token: $e');
+    } catch (e, s) {
+      FirebaseCrashlytics.instance.recordError(e, s, fatal: false, reason: 'deactivate push token failed');
     }
   }
 
@@ -160,8 +161,8 @@ class NotificationService {
         onConflict: 'user_id,token',
       );
       debugPrint('[Push] Token saved for user $userId');
-    } catch (e) {
-      debugPrint('[Push] Failed to save token: $e');
+    } catch (e, s) {
+      FirebaseCrashlytics.instance.recordError(e, s, fatal: false, reason: 'save push token failed');
     }
   }
 

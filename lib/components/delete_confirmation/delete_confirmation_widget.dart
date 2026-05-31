@@ -3,9 +3,11 @@ import '/backend/api_requests/api_calls.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
+import '/flutter_flow/revenue_cat_util.dart' as revenue_cat;
 import '/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'delete_confirmation_model.dart';
 export 'delete_confirmation_model.dart';
 
@@ -120,6 +122,10 @@ class _DeleteConfirmationWidgetState extends State<DeleteConfirmationWidget> {
                       FFAppState().isprouser = false;
                       FFAppState().analysesused = 0;
                       FFAppState().weekResetDate = null;
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.remove('hint_upload_seen');
+                      await prefs.remove('pro_preview_used');
+                      await revenue_cat.login(null);
                       GoRouter.of(context).prepareAuthEvent();
                       await authManager.signOut();
                       GoRouter.of(context).clearRedirectLocation();

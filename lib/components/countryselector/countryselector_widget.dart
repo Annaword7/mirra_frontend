@@ -9,7 +9,11 @@ import 'countryselector_model.dart';
 export 'countryselector_model.dart';
 
 class CountryselectorWidget extends StatefulWidget {
-  const CountryselectorWidget({super.key});
+  const CountryselectorWidget({super.key, this.languageCode});
+
+  /// When provided, overrides the app locale for country name labels.
+  /// Use this to preview labels in a language not yet applied to the app.
+  final String? languageCode;
 
   @override
   State<CountryselectorWidget> createState() => _CountryselectorWidgetState();
@@ -17,6 +21,7 @@ class CountryselectorWidget extends StatefulWidget {
 
 class _CountryselectorWidgetState extends State<CountryselectorWidget> {
   late CountryselectorModel _model;
+  late Future<(List<CountriesRow>, int?)> _dataFuture;
 
   @override
   void setState(VoidCallback callback) {
@@ -28,25 +33,33 @@ class _CountryselectorWidgetState extends State<CountryselectorWidget> {
   void initState() {
     super.initState();
     _model = createModel(context, () => CountryselectorModel());
-
+    _dataFuture = _loadData();
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
+  }
+
+  Future<(List<CountriesRow>, int?)> _loadData() async {
+    final results = await Future.wait([
+      CountriesTable().queryRows(queryFn: (q) => q),
+      UsersTable().queryRows(
+        queryFn: (q) => q.eqOrNull('id', currentUserUid),
+      ),
+    ]);
+    final countries = results[0] as List<CountriesRow>;
+    final users = results[1] as List<UsersRow>;
+    return (countries, users.firstOrNull?.countryId);
   }
 
   @override
   void dispose() {
     _model.maybeDispose();
-
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<CountriesRow>>(
-      future: CountriesTable().queryRows(
-        queryFn: (q) => q,
-      ),
+    return FutureBuilder<(List<CountriesRow>, int?)>(
+      future: _dataFuture,
       builder: (context, snapshot) {
-        // Customize what your widget looks like when it's loading.
         if (!snapshot.hasData) {
           return Center(
             child: SizedBox(
@@ -60,19 +73,21 @@ class _CountryselectorWidgetState extends State<CountryselectorWidget> {
             ),
           );
         }
-        List<CountriesRow> dropDownCountriesRowList = snapshot.data!;
+        final (dropDownCountriesRowList, userCountryId) = snapshot.data!;
 
         return FlutterFlowDropDown<int>(
           controller: _model.dropDownValueController ??=
               FormFieldController<int>(
-            _model.dropDownValue ??= 18,
+            _model.dropDownValue ??= userCountryId,
           ),
           options: List<int>.from(
               dropDownCountriesRowList.map((e) => e.id).toList()),
           optionLabels: () {
-            if (FFLocalizations.of(context).languageCode == 'ru') {
+            final lang = widget.languageCode ??
+                FFLocalizations.of(context).languageCode;
+            if (lang == 'ru') {
               return dropDownCountriesRowList.map((e) => e.nameRu).toList();
-            } else if (FFLocalizations.of(context).languageCode == 'es') {
+            } else if (lang == 'es') {
               return dropDownCountriesRowList.map((e) => e.nameEs).toList();
             } else {
               return dropDownCountriesRowList.map((e) => e.nameEn).toList();
@@ -111,12 +126,12 @@ class _CountryselectorWidgetState extends State<CountryselectorWidget> {
                 useGoogleFonts:
                     !FlutterFlowTheme.of(context).bodyMediumIsCustom,
               ),
-          hintText: FFLocalizations.of(context).getText(
-            'ocz602t7' /* Your region */,
-          ),
-          searchHintText: FFLocalizations.of(context).getText(
-            'qsbnew6g' /* Search... */,
-          ),
+          hintText: widget.languageCode == null
+              ? FFLocalizations.of(context).getText('ocz602t7')
+              : const {'ru': 'Ваш регион', 'es': 'Tu región'}[widget.languageCode] ?? 'Your region',
+          searchHintText: widget.languageCode == null
+              ? FFLocalizations.of(context).getText('qsbnew6g')
+              : const {'ru': 'Поиск...', 'es': 'Buscar...'}[widget.languageCode] ?? 'Search...',
           icon: Icon(
             Icons.keyboard_arrow_down_rounded,
             color: FlutterFlowTheme.of(context).secondaryText,

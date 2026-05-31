@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 import 'schema/util/firestore_util.dart';
 
@@ -61,8 +62,9 @@ Future<int> queryCollectionCount(
     query = query.limit(limit);
   }
 
-  return query.count().get().catchError((err) {
-    print('Error querying $collection: $err');
+  return query.count().get().catchError((err, StackTrace s) {
+    FirebaseCrashlytics.instance.recordError(err, s, fatal: false, reason: 'queryCollectionCount failed');
+    throw err;
   }).then((value) => value.count!);
 }
 
@@ -78,8 +80,8 @@ Stream<List<T>> queryCollection<T>(
   if (limit > 0 || singleRecord) {
     query = query.limit(singleRecord ? 1 : limit);
   }
-  return query.snapshots().handleError((err) {
-    print('Error querying $collection: $err');
+  return query.snapshots().handleError((err, StackTrace s) {
+    FirebaseCrashlytics.instance.recordError(err, s, fatal: false, reason: 'queryCollection stream error');
   }).map((s) => s.docs
       .map(
         (d) => safeGet(

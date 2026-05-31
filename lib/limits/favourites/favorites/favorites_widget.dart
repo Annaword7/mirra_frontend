@@ -45,8 +45,11 @@ class _FavoritesWidgetState extends State<FavoritesWidget> {
           currentUserUid,
         ),
       );
-      FFAppState().userProfilePicture =
-          _model.userrow!.firstOrNull!.profileImage!;
+      final profileImage =
+          _model.userrow?.firstOrNull?.profileImage;
+      if (profileImage != null) {
+        FFAppState().userProfilePicture = profileImage;
+      }
       safeSetState(() {});
     });
 

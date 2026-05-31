@@ -38,7 +38,19 @@ void main() async {
   await initFirebase();
 
   // Catch all Flutter framework errors
-  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+  FlutterError.onError = (FlutterErrorDetails details) {
+    // GoTrue background token refresh network errors are non-fatal —
+    // the user doesn't see a crash, the SDK retries automatically.
+    final stack = details.stack?.toString() ?? '';
+    if (stack.contains('_autoRefreshTokenTick') ||
+        stack.contains('GoTrueClient') ||
+        stack.contains('google_fonts_base') ||
+        stack.contains('_httpFetchFontAndSaveToDevice')) {
+      FirebaseCrashlytics.instance.recordFlutterError(details);
+      return;
+    }
+    FirebaseCrashlytics.instance.recordFlutterFatalError(details);
+  };
   // Catch errors outside Flutter (platform, isolates, async)
   PlatformDispatcher.instance.onError = (error, stack) {
     FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
@@ -266,7 +278,7 @@ class _MyAppState extends State<MyApp> {
           );
         }
 
-        if (FFDevEnvironmentValues.currentEnvironment != 'Development') {
+        if (!FFDevEnvironmentValues.isNonProd) {
           return child;
         }
         // Dev-only banner: shows which backend is active
@@ -285,7 +297,7 @@ class _MyAppState extends State<MyApp> {
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
-                    'DEV',
+                    FFDevEnvironmentValues.envLabel,
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 11,

@@ -6,6 +6,7 @@ import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/flutter_flow/upload_data.dart';
 import '/index.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -73,6 +74,12 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
       ),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
+          FirebaseCrashlytics.instance.recordError(
+            snapshot.error,
+            snapshot.stackTrace,
+            fatal: false,
+            reason: 'EditProfile FutureBuilder error',
+          );
           return Scaffold(
             backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
             body: Center(
@@ -349,12 +356,14 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
                                         decoration: BoxDecoration(
                                           color: FlutterFlowTheme.of(context)
                                               .alternate,
-                                          image: DecorationImage(
-                                            fit: BoxFit.cover,
-                                            image: Image.network(
-                                              FFAppState().userProfilePicture,
-                                            ).image,
-                                          ),
+                                          image: FFAppState().userProfilePicture.isNotEmpty
+                                              ? DecorationImage(
+                                                  fit: BoxFit.cover,
+                                                  image: NetworkImage(
+                                                    FFAppState().userProfilePicture,
+                                                  ),
+                                                )
+                                              : null,
                                           shape: BoxShape.circle,
                                         ),
                                         child: editProfileUsersRow?.profileImage != null
@@ -366,6 +375,7 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
                                                   width: 120.0,
                                                   height: 120.0,
                                                   fit: BoxFit.cover,
+                                                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                                                 ),
                                               )
                                             : const SizedBox.shrink(),

@@ -771,7 +771,6 @@ mixin _AnalysisMixin<T extends StatefulWidget>
         ),
         for (int i = 0; i < 4; i++) buildNode(i, cx, cy, lang),
         buildTopBadge(context, safeTop, activeIdx),
-        if (activeIdx >= 0) buildPropertiesPanel(activeIdx, lang),
         ...extra,
       ],
     );
@@ -955,7 +954,7 @@ class _OnboardingAnalysisBodyState extends State<OnboardingAnalysisBody>
     return AnimatedBuilder(
       animation: Listenable.merge([scanCtrl, pulseCtrl, mainCtrl]),
       builder: (context, _) => ColoredBox(
-        color: _kBg,
+        color: Colors.transparent,
         child: buildSceneStack(context, cx, cy, safeTop, const []),
       ),
     );

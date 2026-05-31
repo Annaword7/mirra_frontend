@@ -40,19 +40,10 @@ String _t(BuildContext context, String ru, String en, String es) {
 }
 
 // ── Slide definitions ────────────────────────────────────────────────────────
-// Slide 0 = OnboardingAnalysisBody animation (no video)
-// Slides 1–4 = video slides
+// Slide 0 = video (onboarding_1.mp4)
+// Slide 1 = OnboardingAnalysisBody animation (no video)
 
 const _slides = [
-  _SlideData(
-    // index 0 — animated analysis demo (no video)
-    titleRu: 'Получите полноценный анализ',
-    titleEn: 'Get a full ingredient analysis',
-    titleEs: 'Obtén un análisis completo',
-    subtitleRu: 'всего за 30 секунд',
-    subtitleEn: 'in just 30 seconds',
-    subtitleEs: 'en solo 30 segundos',
-  ),
   _SlideData(
     videoAsset: 'assets/videos/onboarding_1.mp4',
     titleRu: 'Сканируйте косметические продукты',
@@ -61,6 +52,15 @@ const _slides = [
     subtitleRu: 'перед покупкой',
     subtitleEn: 'before you buy',
     subtitleEs: 'antes de comprar',
+  ),
+  _SlideData(
+    // index 1 — animated analysis demo (no video)
+    titleRu: 'Получите полноценный анализ',
+    titleEn: 'Get a full ingredient analysis',
+    titleEs: 'Obtén un análisis completo',
+    subtitleRu: 'всего за 30 секунд',
+    subtitleEn: 'in just 30 seconds',
+    subtitleEs: 'en solo 30 segundos',
   ),
   _SlideData(
     videoAsset: 'assets/videos/onboarding_3.mp4',
@@ -73,9 +73,9 @@ const _slides = [
   ),
   _SlideData(
     // index 3 — top cards auto-scroll widget (no video)
-    titleRu: 'Коллекция топ продуктов от сообщества',
+    titleRu: 'Топ продукты от сообщества',
     titleEn: 'Community top products',
-    titleEs: 'Los mejores productos de la comunidad',
+    titleEs: 'Los mejores productos',
     subtitleRu: 'Быстро находите то, что уже проверено',
     subtitleEn: 'Quickly find what\'s already been tested',
     subtitleEs: 'Encuentra lo que ya está probado',
@@ -150,26 +150,58 @@ class _OnboardingCarouselWidgetState extends State<OnboardingCarouselWidget> {
   }
 
   /// Returns the video controller for page [i].
-  /// Only slides 1 and 2 have videos → _controllers[0] and [1].
+  /// Slide 0 and 2 have videos → _controllers[0] and [1].
   VideoPlayerController? _controllerFor(int i) {
-    if (i == 1) return _controllers.isNotEmpty ? _controllers[0] : null;
+    if (i == 0) return _controllers.isNotEmpty ? _controllers[0] : null;
     if (i == 2) return _controllers.length > 1 ? _controllers[1] : null;
     return null;
   }
 
   Widget _buildVideoSlide(VideoPlayerController controller) {
     if (!controller.value.isInitialized) {
-      return const ColoredBox(color: Color(0xFF0C1A35));
+      return const SizedBox.expand();
     }
-    return SizedBox.expand(
-      child: FittedBox(
-        fit: BoxFit.fitWidth,
-        child: SizedBox(
-          width: controller.value.size.width,
-          height: controller.value.size.height,
-          child: VideoPlayer(controller),
-        ),
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final w = constraints.maxWidth;
+        final h = constraints.maxHeight;
+        // Width fixed, height cropped to leave ~55% for text
+        final vw = w * 0.78;
+        final vh = h * 0.55;
+        final aspect = controller.value.aspectRatio;
+        // Natural video height at this width — will overflow and be clipped
+        final naturalVh = vw / aspect;
+        return Align(
+          alignment: const Alignment(0, -0.82),
+          child: Container(
+            width: vw,
+            height: vh,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.45),
+                  blurRadius: 32,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: OverflowBox(
+                alignment: Alignment.topCenter,
+                maxWidth: vw,
+                maxHeight: naturalVh,
+                child: SizedBox(
+                  width: vw,
+                  height: naturalVh,
+                  child: VideoPlayer(controller),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -194,97 +226,87 @@ class _OnboardingCarouselWidgetState extends State<OnboardingCarouselWidget> {
               ),
             ),
 
-            // 2. Page content (animation or video)
-            Positioned.fill(
-              child: PageView.builder(
-                controller: _model.pageViewController ??=
-                    PageController(initialPage: 0),
-                onPageChanged: (i) {
-                  // Pause all; play only the controller for the new page
-                  final activeCtrl = _controllerFor(i);
-                  for (final c in _controllers) {
-                    if (!c.value.isInitialized) continue;
-                    c == activeCtrl ? c.play() : c.pause();
-                  }
-                  safeSetState(() {});
-                },
-                itemCount: _slides.length,
-                itemBuilder: (_, i) {
-                  if (i == 0) return const OnboardingAnalysisBody();
-                  if (i == 3) return const OnboardingTopCardsBody();
-                  if (i == 4) return const OnboardingShareBody();
-                  final ctrl = _controllerFor(i);
-                  if (ctrl == null) return const SizedBox.shrink();
-                  return _buildVideoSlide(ctrl);
-                },
-              ),
-            ),
-
-            // 3. Top gradient
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: Container(
-                height: 60,
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [_bgColor, Color(0x00060D1E)],
-                  ),
-                ),
-              ),
-            ),
-
-            // 4. Bottom gradient
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: Container(
-                height: MediaQuery.sizeOf(context).height * 0.52,
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    stops: [0.0, 0.75],
-                    colors: [Color(0x00060D1E), _bgColor],
-                  ),
-                ),
-              ),
-            ),
-
-            // 5. Skip button (top-left, barely visible)
-            Positioned(
-              top: 0,
-              left: 0,
-              child: SafeArea(
-                child: GestureDetector(
-                  onTap: () {
-                    FFAppState().onboardingDone = true;
-                    context.goNamed(PaywallpageWidget.routeName);
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-                    child: Text(
-                      _t(context, 'Пропустить', 'Skip', 'Omitir'),
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.28),
-                        fontSize: 13,
-                        fontWeight: FontWeight.w400,
+            // 2. Column: skip button above video area
+            Column(
+              children: [
+                // 2a. Skip button (above video)
+                SafeArea(
+                  bottom: false,
+                  child: GestureDetector(
+                    onTap: () {
+                      FFAppState().onboardingDone = true;
+                      context.goNamed(PaywallpageWidget.routeName);
+                    },
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+                        child: Text(
+                          _t(context, 'Пропустить', 'Skip', 'Omitir'),
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.28),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ),
 
-            // 6. Text + dots + button
-            Positioned.fill(
-              child: SafeArea(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                // 2b. Video / slide area
+                Expanded(
+                  child: Stack(
+                    children: [
+                      // Page content (animation or video)
+                      Positioned.fill(
+                        child: PageView.builder(
+                          controller: _model.pageViewController ??=
+                              PageController(initialPage: 0),
+                          onPageChanged: (i) {
+                            final activeCtrl = _controllerFor(i);
+                            for (final c in _controllers) {
+                              if (!c.value.isInitialized) continue;
+                              c == activeCtrl ? c.play() : c.pause();
+                            }
+                            safeSetState(() {});
+                          },
+                          itemCount: _slides.length,
+                          itemBuilder: (_, i) {
+                            if (i == 1) return const OnboardingAnalysisBody();
+                            if (i == 3) return const OnboardingTopCardsBody();
+                            if (i == 4) return const OnboardingShareBody();
+                            final ctrl = _controllerFor(i);
+                            if (ctrl == null) return const SizedBox.shrink();
+                            return _buildVideoSlide(ctrl);
+                          },
+                        ),
+                      ),
+
+                      // Bottom gradient
+                      Positioned(
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        child: Container(
+                          height: MediaQuery.sizeOf(context).height * 0.52,
+                          decoration: const BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              stops: [0.0, 0.75],
+                              colors: [Color(0x00060D1E), _bgColor],
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // Text + dots + button
+                      Positioned.fill(
+                        child: SafeArea(
+                          top: false,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -402,6 +424,11 @@ class _OnboardingCarouselWidgetState extends State<OnboardingCarouselWidget> {
                   ],
                 ),
               ),
+            ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ],
         ),

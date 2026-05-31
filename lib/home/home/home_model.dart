@@ -1,3 +1,4 @@
+import '/backend/supabase/database/tables/product_prices.dart';
 import '/backend/supabase/supabase.dart';
 import '/components/navbar/navbar_widget.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -25,6 +26,9 @@ class HomeModel extends FlutterFlowModel<HomeWidget> {
   Future<List<ImagesRow>>? imagesFuture;
   // Currently selected filter category key ('all', 'serum', 'toner', etc.)
   String selectedCategory = 'all';
+
+  // Prices from product_prices table, keyed by 'product_name_key|brand_key'.
+  Map<String, ProductPricesRow> priceMap = {};
 
   final scrollController = ScrollController();
 

@@ -6,11 +6,13 @@ import '/components/navbar/navbar_widget.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
+import '/flutter_flow/revenue_cat_util.dart' as revenue_cat;
 import '/environment_values.dart';
 import '/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'profile_model.dart';
 export 'profile_model.dart';
 
@@ -104,14 +106,6 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                             height: 120.0,
                             decoration: BoxDecoration(
                               color: FlutterFlowTheme.of(context).alternate,
-                              image: (profileUsersRow?.profileImage ?? '').isNotEmpty
-                                  ? DecorationImage(
-                                      fit: BoxFit.cover,
-                                      image: Image.network(
-                                        profileUsersRow!.profileImage!,
-                                      ).image,
-                                    )
-                                  : null,
                               shape: BoxShape.circle,
                               border: Border.all(
                                 color: FlutterFlowTheme.of(context).alternate,
@@ -125,6 +119,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                   'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
                                 ),
                                 fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                               ),
                             ),
                           ),
@@ -693,7 +688,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                             ].divide(SizedBox(height: 12.0)),
                           ),
                         ),
-                        if (FFDevEnvironmentValues.currentEnvironment == 'Development')
+                        if (FFDevEnvironmentValues.isNonProd)
                           Padding(
                             padding: EdgeInsetsDirectional.fromSTEB(16.0, 12.0, 16.0, 0.0),
                             child: InkWell(
@@ -726,7 +721,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                       const Icon(Icons.replay_rounded, color: Color(0xFFFF5963), size: 24.0),
                                       const SizedBox(width: 12),
                                       Text(
-                                        'Сбросить онбординг [DEV]',
+                                        'Сбросить онбординг [${FFDevEnvironmentValues.envLabel}]',
                                         style: FlutterFlowTheme.of(context).bodyMedium.override(
                                               fontFamily: FlutterFlowTheme.of(context).bodyMediumFamily,
                                               color: const Color(0xFFFF5963),
@@ -740,7 +735,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                               ),
                             ),
                           ),
-                        if (FFDevEnvironmentValues.currentEnvironment == 'Development')
+                        if (FFDevEnvironmentValues.isNonProd)
                           Padding(
                             padding: EdgeInsetsDirectional.fromSTEB(16.0, 12.0, 16.0, 0.0),
                             child: InkWell(
@@ -776,7 +771,53 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                       const Icon(Icons.rate_review_outlined, color: Color(0xFFFF5963), size: 24.0),
                                       const SizedBox(width: 12),
                                       Text(
-                                        'Показать feedback prompt [DEV]',
+                                        'Показать feedback prompt [${FFDevEnvironmentValues.envLabel}]',
+                                        style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                              fontFamily: FlutterFlowTheme.of(context).bodyMediumFamily,
+                                              color: const Color(0xFFFF5963),
+                                              letterSpacing: 0.0,
+                                              useGoogleFonts: !FlutterFlowTheme.of(context).bodyMediumIsCustom,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        if (FFDevEnvironmentValues.isNonProd)
+                          Padding(
+                            padding: EdgeInsetsDirectional.fromSTEB(16.0, 12.0, 16.0, 0.0),
+                            child: InkWell(
+                              splashColor: Colors.transparent,
+                              focusColor: Colors.transparent,
+                              hoverColor: Colors.transparent,
+                              highlightColor: Colors.transparent,
+                              onTap: () async {
+                                HapticFeedback.lightImpact();
+                                final prefs = await SharedPreferences.getInstance();
+                                await prefs.remove('pro_preview_used');
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Pro preview reset. Free view available again.')),
+                                );
+                              },
+                              child: Container(
+                                width: double.infinity,
+                                height: 55.0,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFFE0E0),
+                                  borderRadius: BorderRadius.circular(16.0),
+                                  border: Border.all(color: const Color(0xFFFF5963)),
+                                ),
+                                child: Padding(
+                                  padding: EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 8.0, 0.0),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.max,
+                                    children: [
+                                      const Icon(Icons.visibility_outlined, color: Color(0xFFFF5963), size: 24.0),
+                                      const SizedBox(width: 12),
+                                      Text(
+                                        'Сбросить pro preview [${FFDevEnvironmentValues.envLabel}]',
                                         style: FlutterFlowTheme.of(context).bodyMedium.override(
                                               fontFamily: FlutterFlowTheme.of(context).bodyMediumFamily,
                                               color: const Color(0xFFFF5963),
@@ -895,6 +936,10 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                 FFAppState().onboardingDone = false;
                                 FFAppState().analysesused = 0;
                                 FFAppState().weekResetDate = null;
+                                final prefs = await SharedPreferences.getInstance();
+                                await prefs.remove('hint_upload_seen');
+                                await prefs.remove('pro_preview_used');
+                                await revenue_cat.login(null);
                                 GoRouter.of(context).prepareAuthEvent();
                                 await authManager.signOut();
                                 GoRouter.of(context).clearRedirectLocation();
@@ -943,6 +988,10 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                 FFAppState().onboardingDone = false;
                                 FFAppState().analysesused = 0;
                                 FFAppState().weekResetDate = null;
+                                final prefs = await SharedPreferences.getInstance();
+                                await prefs.remove('hint_upload_seen');
+                                await prefs.remove('pro_preview_used');
+                                await revenue_cat.login(null);
                                 GoRouter.of(context).prepareAuthEvent();
                                 await authManager.signOut();
                                 GoRouter.of(context).clearRedirectLocation();

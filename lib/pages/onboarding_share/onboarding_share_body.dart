@@ -6,7 +6,6 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 // WIDGET
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-const _kBg = Color(0xFF060D1E);
 const _kArc = Color(0xFF5C85D9);
 
 class OnboardingShareBody extends StatefulWidget {
@@ -44,9 +43,7 @@ class _OnboardingShareBodyState extends State<OnboardingShareBody>
     final size = MediaQuery.sizeOf(context);
     final cardWidth = (size.width * 0.84).clamp(0.0, 360.0);
 
-    return ColoredBox(
-      color: _kBg,
-      child: Stack(
+    return Stack(
         children: [
           // Dot grid
           Positioned.fill(child: CustomPaint(painter: _DotGridPainter())),
@@ -139,7 +136,6 @@ class _OnboardingShareBodyState extends State<OnboardingShareBody>
             ),
           ),
         ],
-      ),
     );
   }
 }

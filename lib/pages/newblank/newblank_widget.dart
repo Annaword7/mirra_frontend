@@ -1,13 +1,14 @@
 import 'dart:async';
 
 import '/auth/supabase_auth/auth_util.dart';
-
+import '/components/guest_prefs_sheet/guest_prefs_sheet_widget.dart';
 import '/flutter_flow/analytics_service.dart';
 
 import '/flutter_flow/flutter_flow_theme.dart';
 
 import '/flutter_flow/flutter_flow_util.dart';
 
+import '/flutter_flow/nav/nav.dart';
 import '/index.dart';
 
 import 'package:flutter/material.dart';
@@ -80,6 +81,9 @@ class _NewblankWidgetState extends State<NewblankWidget> {
 
     }
 
+    // Prevent GoRouter from auto-redirecting on auth change so we can show
+    // the prefs sheet before navigating manually.
+    AppStateNotifier.instance.updateNotifyOnAuthChange(false);
     final user = await authManager.signInAnonymously(context);
 
     if (mounted) {
@@ -92,22 +96,29 @@ class _NewblankWidgetState extends State<NewblankWidget> {
 
       unawaited(AnalyticsService.instance.trackAnonSessionStarted());
 
-      context.goNamed(
+      await showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        isDismissible: false,
+        enableDrag: false,
+        backgroundColor: Colors.transparent,
+        builder: (_) => const GuestPrefsSheet(),
+      );
 
+      // After the sheet, this widget may already be disposed — setAppLanguage
+      // inside GuestPrefsSheet triggers _MyAppState.setState which rebuilds
+      // GoRouter and replaces Newblank with Home (user is now logged in).
+      // Use the global navigator key to navigate regardless of mounted state.
+      final navCtx = appNavigatorKey.currentContext;
+      if (navCtx == null) return;
+      navCtx.goNamed(
         TakeorUploadPageWidget.routeName,
-
         extra: <String, dynamic>{
-
           '__transition_info__': TransitionInfo(
-
             hasTransition: true,
-
             transitionType: PageTransitionType.fade,
-
           ),
-
         },
-
       );
 
     }

@@ -6,9 +6,8 @@ import UserNotifications
 
 // MARK: - Share Plugin
 // Handles images shared to MiRRA via the iOS share sheet ("Open In MiRRA").
-// Registers as an application delegate so it receives application(_:open:options:)
-// via the FlutterAppDelegate → FlutterSceneDelegate plugin bridge.
-private class MirraSharePlugin: NSObject, FlutterPlugin {
+// Uses scene delegate (iOS 13+) as the primary path; app delegate kept as fallback.
+private class MirraSharePlugin: NSObject, FlutterPlugin, FlutterSceneLifeCycleDelegate {
 
   static var channel: FlutterMethodChannel?
   private static let pendingKey = "mirra_pending_shared_image"
@@ -20,6 +19,9 @@ private class MirraSharePlugin: NSObject, FlutterPlugin {
     let instance = MirraSharePlugin()
     registrar.addMethodCallDelegate(instance, channel: ch)
     registrar.addApplicationDelegate(instance)
+    if #available(iOS 13.0, *) {
+      registrar.addSceneDelegate(instance)
+    }
     MirraSharePlugin.channel = ch
   }
 
@@ -32,13 +34,24 @@ private class MirraSharePlugin: NSObject, FlutterPlugin {
     }
   }
 
-  // Called by FlutterAppDelegate when the app is opened with a URL.
-  // FlutterSceneDelegate also delegates scene-based URL opens here.
+  // Scene-based URL opening (iOS 13+, used when UISceneDelegateClassName is set in Info.plist).
+  @available(iOS 13.0, *)
+  func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) -> Bool {
+    for context in URLContexts {
+      let url = context.url
+      guard url.isFileURL else { continue }
+      saveSharedImage(from: url)
+      MirraSharePlugin.channel?.invokeMethod("sharedImage", arguments: nil)
+      return true
+    }
+    return false
+  }
+
+  // Legacy app-delegate path (kept for completeness; not called on scene-based apps).
   func application(_ application: UIApplication, open url: URL,
                    options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
     guard url.isFileURL else { return false }
     saveSharedImage(from: url)
-    // Notify Flutter (may be nil if engine isn't ready yet; Flutter checks on resume)
     MirraSharePlugin.channel?.invokeMethod("sharedImage", arguments: nil)
     return true
   }

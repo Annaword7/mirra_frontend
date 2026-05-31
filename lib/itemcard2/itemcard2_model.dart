@@ -1,5 +1,6 @@
 import '/backend/api_requests/api_calls.dart';
 import '/backend/supabase/database/tables/ingredients_efficacy.dart';
+import '/backend/supabase/database/tables/product_prices.dart';
 import '/backend/supabase/supabase.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/item_card/ingridients/ingridients_widget.dart';
@@ -40,6 +41,8 @@ class Itemcard2Model extends FlutterFlowModel<Itemcard2Widget> {
   String? Function(BuildContext, String?)? textControllerValidator;
   // Stores action output result for [Backend Call - Query Rows] action in Row widget.
   List<AlbumRow>? albums;
+  // Price data from product_prices table for this product × user's country.
+  ProductPricesRow? priceRow;
 
   @override
   void initState(BuildContext context) {

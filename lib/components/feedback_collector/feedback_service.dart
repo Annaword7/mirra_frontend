@@ -1,7 +1,7 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '/app_state.dart';
+import '/auth/supabase_auth/auth_util.dart';
 
 class FeedbackService {
   static Future<String> _appVersion() async {
@@ -13,11 +13,24 @@ class FeedbackService {
     }
   }
 
-  /// ✅ ВАЖНО: state передаётся извне (из Provider)
+  /// Resets per-user feedback fields when a different user is detected on this device.
+  static void _resetIfUserChanged(FFAppState state) {
+    final userId = currentUserUid;
+    if (userId.isEmpty || state.feedbackUserId == userId) return;
+    state.feedbackUserId = userId;
+    state.feedbackReviewSubmitted = false;
+    state.feedbackBannerDismissed = false;
+    state.feedbackLastShownMs = 0;
+    state.feedbackLastShownVersion = '';
+  }
+
   static Future<bool> shouldShowPrompt(FFAppState state) async {
     if (!state.feedbackCollectorEnabled) return false;
-    if (state.feedbackReviewSubmitted) return false;
     if (!Platform.isIOS) return false;
+
+    _resetIfUserChanged(state);
+
+    if (state.feedbackReviewSubmitted) return false;
 
     if (state.feedbackBannerDismissed) {
       final version = await _appVersion();

@@ -1,3 +1,4 @@
+import '/backend/supabase/database/tables/product_prices.dart';
 import '/backend/supabase/supabase.dart';
 import '/components/navbar/navbar_widget.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -16,6 +17,9 @@ class TopratedModel extends FlutterFlowModel<TopratedWidget> {
   List<ImagesRow>? allImages;
   // Currently selected filter category key ('all', 'serum', 'toner', etc.)
   String selectedCategory = 'all';
+
+  // Prices from product_prices table, keyed by 'product_name_key|brand_key'.
+  Map<String, ProductPricesRow> priceMap = {};
   // State field(s) for ListView widget.
   ScrollController? listViewController;
   // State field(s) for StaggeredView widget.

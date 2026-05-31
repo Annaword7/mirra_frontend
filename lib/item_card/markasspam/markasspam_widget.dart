@@ -59,7 +59,7 @@ class _MarkasspamWidgetState extends State<MarkasspamWidget> {
           padding: EdgeInsets.all(20.0),
           child: Container(
             decoration: BoxDecoration(
-              color: FlutterFlowTheme.of(context).secondaryBackground,
+              color: Colors.white,
               boxShadow: [
                 BoxShadow(
                   blurRadius: 12.0,
@@ -104,7 +104,7 @@ class _MarkasspamWidgetState extends State<MarkasspamWidget> {
                         style: FlutterFlowTheme.of(context).bodyMedium.override(
                               fontFamily:
                                   FlutterFlowTheme.of(context).bodyMediumFamily,
-                              color: FlutterFlowTheme.of(context).secondaryText,
+                              color: Colors.black,
                               letterSpacing: 0.0,
                               useGoogleFonts: !FlutterFlowTheme.of(context)
                                   .bodyMediumIsCustom,
@@ -129,21 +129,20 @@ class _MarkasspamWidgetState extends State<MarkasspamWidget> {
                           padding: EdgeInsets.all(8.0),
                           iconPadding: EdgeInsetsDirectional.fromSTEB(
                               0.0, 0.0, 0.0, 0.0),
-                          color: FlutterFlowTheme.of(context).alternate,
+                          color: const Color(0xFFE0E0E0),
                           textStyle: FlutterFlowTheme.of(context)
                               .titleSmall
                               .override(
                                 fontFamily: FlutterFlowTheme.of(context)
                                     .titleSmallFamily,
-                                color:
-                                    FlutterFlowTheme.of(context).secondaryText,
+                                color: const Color(0xFF757575),
                                 letterSpacing: 0.0,
                                 useGoogleFonts: !FlutterFlowTheme.of(context)
                                     .titleSmallIsCustom,
                               ),
                           elevation: 0.0,
                           borderSide: BorderSide(
-                            color: FlutterFlowTheme.of(context).alternate,
+                            color: const Color(0xFFE0E0E0),
                             width: 1.0,
                           ),
                           borderRadius: BorderRadius.circular(8.0),
@@ -172,7 +171,7 @@ class _MarkasspamWidgetState extends State<MarkasspamWidget> {
                           padding: EdgeInsets.all(8.0),
                           iconPadding: EdgeInsetsDirectional.fromSTEB(
                               0.0, 0.0, 0.0, 0.0),
-                          color: FlutterFlowTheme.of(context).error,
+                          color: const Color(0xFF1976D2),
                           textStyle: FlutterFlowTheme.of(context)
                               .titleSmall
                               .override(

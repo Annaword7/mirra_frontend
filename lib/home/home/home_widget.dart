@@ -1,5 +1,6 @@
 import '/app_state.dart';
 import '/auth/supabase_auth/auth_util.dart';
+import '/backend/supabase/database/tables/product_prices.dart';
 import '/backend/supabase/supabase.dart';
 import '/flutter_flow/revenue_cat_util.dart' as revenue_cat;
 import '/components/navbar/navbar_widget.dart';
@@ -42,7 +43,7 @@ const Map<String, List<String>> _kHomeCategoryTypes = {
 const Map<String, Map<String, String>> _kCategoryLabels = {
   'all':         {'en': 'All',        'ru': 'Все',              'es': 'Todo'},
   'serum':       {'en': 'Serum',      'ru': 'Сыворотки',        'es': 'Sérum'},
-  'toner':       {'en': 'Toner',      'ru': 'Тоники',           'es': 'Tónico'},
+  'toner':       {'en': 'Toner',      'ru': 'Тонеры',           'es': 'Tónico'},
   'moisturizer': {'en': 'Moisturizer','ru': 'Кремы',            'es': 'Hidratante'},
   'mask':        {'en': 'Mask',       'ru': 'Маски',            'es': 'Mascarilla'},
   'cleanser':    {'en': 'Cleanser',   'ru': 'Очищение',         'es': 'Limpiador'},
@@ -117,6 +118,19 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
     }
   }
 
+  Future<void> _refreshQuota() async {
+    final rows = await UsersTable().queryRows(
+      queryFn: (q) => q.eqOrNull('id', currentUserUid),
+    );
+    if (!mounted) return;
+    final userRow = rows.firstOrNull;
+    if (userRow == null) return;
+    FFAppState().analysesused =
+        valueOrDefault<int>(userRow.monthlyAnalysesUsed, FFAppState().analysesused);
+    FFAppState().weekResetDate = userRow.lastResetDate;
+    safeSetState(() {});
+  }
+
   void _onRouteChanged() {
     if (!mounted) return;
     final location =
@@ -124,6 +138,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
     if (_lastLocation != HomeWidget.routePath &&
         location == HomeWidget.routePath) {
       _refreshImages();
+      _refreshQuota();
     }
     _lastLocation = location;
   }
@@ -142,20 +157,33 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
       _lastLocation = _goRouter!.routeInformationProvider.value.uri.path;
       _goRouter!.routerDelegate.addListener(_onRouteChanged);
       _refreshImages();
-      _model.usersanswer = await UsersTable().queryRows(
-        queryFn: (q) => q.eqOrNull(
-          'id',
-          currentUserUid,
-        ),
-      );
-      if (!mounted) return;
-      if ((_model.usersanswer ?? []).isNotEmpty) {
-        _model.countrieshome = await CountriesTable().queryRows(
+      try {
+        _model.usersanswer = await UsersTable().queryRows(
           queryFn: (q) => q.eqOrNull(
             'id',
-            _model.usersanswer?.firstOrNull?.countryId,
+            currentUserUid,
           ),
         );
+      } catch (e) {
+        debugPrint('Home initState: user query failed: $e');
+        return;
+      }
+      if (!mounted) return;
+      final profileImageUrl = _model.usersanswer?.firstOrNull?.profileImage ?? '';
+      if (profileImageUrl.isNotEmpty) {
+        FFAppState().userProfilePicture = profileImageUrl;
+      }
+      if ((_model.usersanswer ?? []).isNotEmpty) {
+        try {
+          _model.countrieshome = await CountriesTable().queryRows(
+            queryFn: (q) => q.eqOrNull(
+              'id',
+              _model.usersanswer?.firstOrNull?.countryId,
+            ),
+          );
+        } catch (e) {
+          debugPrint('Home initState: countries query failed: $e');
+        }
         if (!mounted) return;
 
         FFAppState().isprouser =
@@ -178,6 +206,19 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
           countryRow?.nameEn,
           FFAppState().countrycode,
         );
+        FFAppState().countrycodeiso = valueOrDefault<String>(
+          countryRow?.code,
+          FFAppState().countrycodeiso,
+        );
+        if (_model.imagesFuture != null &&
+            FFAppState().countrycodeiso.isNotEmpty) {
+          try {
+            final images = await _model.imagesFuture!;
+            await _loadPriceMap(images);
+          } catch (e) {
+            debugPrint('Home initState: images/price load failed: $e');
+          }
+        }
         FFAppState().spamlist =
             (userRow?.spamImages ?? []).toList().cast<int>();
         FFAppState().analysesused = valueOrDefault<int>(
@@ -217,9 +258,41 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
       );
 
   void _refreshImages() {
+    _model.priceMap = {};
+    final future = _fetchImages();
     safeSetState(() {
-      _model.imagesFuture = _fetchImages();
+      _model.imagesFuture = future;
     });
+    future.then((images) async {
+      if (FFAppState().countrycodeiso.isNotEmpty && mounted) {
+        await _loadPriceMap(images);
+        if (mounted) safeSetState(() {});
+      }
+    });
+  }
+
+  Future<void> _loadPriceMap(List<ImagesRow> images) async {
+    final countryCode = FFAppState().countrycodeiso;
+    if (countryCode.isEmpty || !mounted) return;
+
+    final nameKeys = images
+        .map((r) => (r.productName ?? '').toLowerCase().trim())
+        .where((s) => s.isNotEmpty)
+        .toSet()
+        .toList();
+
+    if (nameKeys.isEmpty) return;
+
+    final prices = await ProductPricesTable().queryRows(
+      queryFn: (q) => q
+          .eqOrNull('country_code', countryCode)
+          .inFilterOrNull('product_name_key', nameKeys),
+    );
+
+    if (!mounted) return;
+    _model.priceMap = {
+      for (final p in prices) '${p.productNameKey}|${p.brandKey}': p,
+    };
   }
 
   List<String> _availableChips(List<ImagesRow> images) {
@@ -341,55 +414,26 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                             context.pushNamed(
                                                 ProfileWidget.routeName);
                                           },
-                                          child: Stack(
-                                            alignment:
-                                                AlignmentDirectional(0.0, 0.0),
-                                            children: [
-                                              Container(
-                                                width: 44.0,
-                                                height: 44.0,
-                                                decoration: BoxDecoration(
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .primary,
-                                                  shape: BoxShape.circle,
-                                                ),
-                                              ),
-                                              InkWell(
-                                                splashColor: Colors.transparent,
-                                                focusColor: Colors.transparent,
-                                                hoverColor: Colors.transparent,
-                                                highlightColor:
-                                                    Colors.transparent,
-                                                onTap: () async {
-                                                  context.pushNamed(
-                                                      ProfileWidget.routeName);
-                                                },
-                                                child: Container(
-                                                  width: 40.0,
-                                                  height: 40.0,
-                                                  decoration: BoxDecoration(
-                                                    image: DecorationImage(
+                                          child: Container(
+                                            width: 40.0,
+                                            height: 40.0,
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              color: FlutterFlowTheme.of(context).primary,
+                                              image: appState.userProfilePicture.isNotEmpty
+                                                  ? DecorationImage(
                                                       fit: BoxFit.cover,
-                                                      image: Image.network(
-                                                        valueOrDefault<String>(
-                                                          _model
-                                                              .usersanswer
-                                                              ?.firstOrNull
-                                                              ?.profileImage,
-                                                          'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
-                                                        ),
-                                                      ).image,
-                                                    ),
-                                                    shape: BoxShape.circle,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
+                                                      image: NetworkImage(appState.userProfilePicture),
+                                                    )
+                                                  : null,
+                                            ),
+                                            child: appState.userProfilePicture.isEmpty
+                                                ? const Icon(Icons.person, color: Colors.white, size: 22)
+                                                : null,
                                           ),
                                         ),
                                         if (!appState.isprouser)
-                                          FFButtonWidget(
+                                          Flexible(child: FFButtonWidget(
                                             onPressed: () async {
                                               context.pushNamed(
                                                   PaywallpageWidget.routeName);
@@ -432,11 +476,11 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                               borderRadius:
                                                   BorderRadius.circular(18.0),
                                             ),
-                                          ),
+                                          )),
                                       ].divide(SizedBox(width: 16.0)),
                                     ),
                                     ),
-                                    if (FFDevEnvironmentValues.currentEnvironment == 'Development')
+                                    if (FFDevEnvironmentValues.isNonProd)
                                       GestureDetector(
                                         onTap: _toggleAutoScroll,
                                         child: Container(
@@ -560,7 +604,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                             ),
                           Padding(
                             padding: EdgeInsetsDirectional.fromSTEB(
-                                20.0, 18.0, 20.0, 0.0),
+                                16.0, 18.0, 16.0, 0.0),
                             child: Container(
                               width: double.infinity,
                               clipBehavior: Clip.antiAlias,
@@ -613,7 +657,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                   // Content
                                   Padding(
                                     padding: EdgeInsetsDirectional.fromSTEB(
-                                        18.0, 16.0, 18.0, 16.0),
+                                        16.0, 16.0, 16.0, 16.0),
                                     child: Row(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.center,
@@ -686,7 +730,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                             child: child,
                                           ),
                                           child: GestureDetector(
-                                            onTap: () async {
+                                            onTap: () {
                                               context.pushNamed(
                                                 TakeorUploadPageWidget
                                                     .routeName,
@@ -973,6 +1017,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                               FFButtonWidget(
                                                 onPressed: () => context.pushNamed(TakeorUploadPageWidget.routeName),
                                                 text: btnLabel,
+                                                showLoadingIndicator: false,
                                                 options: FFButtonOptions(
                                                   height: 50,
                                                   padding: const EdgeInsetsDirectional.fromSTEB(28, 0, 28, 0),
@@ -1075,21 +1120,13 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                             staggeredViewImagesRow.productName,
                                             'No product name info',
                                           ),
-                                          score: valueOrDefault<double>(
-                                            ((valueOrDefault<double>(
-                                                          staggeredViewImagesRow
-                                                              .saCompositeScore,
-                                                          0.0,
-                                                        ) ??
-                                                        0)
-                                                    .round())
-                                                .toDouble(),
-                                            0.0,
-                                          ),
+                                          score: staggeredViewImagesRow.saCompositeScore,
                                           stars: 0,
                                           tags: staggeredViewImagesRow
                                               .saBestForTags,
                                           imageID: staggeredViewImagesRow.id,
+                                          avgPrice: _model.priceMap['${(staggeredViewImagesRow.productName ?? '').toLowerCase().trim()}|${(staggeredViewImagesRow.brand ?? '').toLowerCase().trim()}']?.avgPrice,
+                                          priceCurrencyCode: _model.priceMap['${(staggeredViewImagesRow.productName ?? '').toLowerCase().trim()}|${(staggeredViewImagesRow.brand ?? '').toLowerCase().trim()}']?.priceCurrencyCode,
                                         ),
                                       );
                                     },

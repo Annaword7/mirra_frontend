@@ -23,10 +23,12 @@ Future<dynamic> rcPurchasePackage(
   String appUserId,
 ) async {
   try {
-    // Логиним пользователя
-    final current = await Purchases.appUserID;
-    if (current != appUserId) {
-      await Purchases.logIn(appUserId);
+    // Логиним пользователя (пропускаем если ID пустой — например, до создания аккаунта)
+    if (appUserId.isNotEmpty) {
+      final current = await Purchases.appUserID;
+      if (current != appUserId) {
+        await Purchases.logIn(appUserId);
+      }
     }
 
     // Получаем офферинг и пакет

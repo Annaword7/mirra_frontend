@@ -44,3 +44,4 @@ export 'tables/ingredients.dart';
 export 'tables/album_images.dart';
 export 'tables/unsorted_images.dart';
 export 'tables/risk_flags.dart';
+export 'tables/product_prices.dart';

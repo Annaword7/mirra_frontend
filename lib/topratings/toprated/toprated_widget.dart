@@ -1,4 +1,6 @@
+import '/app_state.dart';
 import '/auth/supabase_auth/auth_util.dart';
+import '/backend/supabase/database/tables/product_prices.dart';
 import '/backend/supabase/supabase.dart';
 import '/components/navbar/navbar_widget.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -31,7 +33,7 @@ const Map<String, List<String>> _kCategoryTypes = {
 const Map<String, Map<String, String>> _kCategoryLabels = {
   'all':         {'en': 'All',        'ru': 'Все',              'es': 'Todo'},
   'serum':       {'en': 'Serum',      'ru': 'Сыворотки',        'es': 'Sérum'},
-  'toner':       {'en': 'Toner',      'ru': 'Тоники',           'es': 'Tónico'},
+  'toner':       {'en': 'Toner',      'ru': 'Тонеры',           'es': 'Tónico'},
   'moisturizer': {'en': 'Moisturizer','ru': 'Кремы',            'es': 'Hidratante'},
   'mask':        {'en': 'Mask',       'ru': 'Маски',            'es': 'Mascarilla'},
   'cleanser':    {'en': 'Cleanser',   'ru': 'Очищение',         'es': 'Limpiador'},
@@ -78,12 +80,14 @@ class _TopratedWidgetState extends State<TopratedWidget> {
       _model.usersanswer2 = await UsersTable().queryRows(
         queryFn: (q) => q.eqOrNull('id', currentUserUid),
       );
+      if (!mounted) return;
       if (_model.usersanswer2!.length <= 0) {
         context.pushNamed(LogInPageWidget.routeName);
         return;
       }
 
       // Load top-rated images once — filtered client-side afterwards.
+      if (!mounted) return;
       _model.allImages = await ImagesTable().queryRows(
         columns:
             'id,image_url,product_name,brand,sa_composite_score,user,language_code,product_type,sa_best_for_tags',
@@ -94,6 +98,10 @@ class _TopratedWidgetState extends State<TopratedWidget> {
             .order('sa_composite_score', ascending: false),
         limit: 50,
       );
+
+      if (FFAppState().countrycodeiso.isNotEmpty && _model.allImages != null) {
+        await _loadPriceMap(_model.allImages!);
+      }
 
       safeSetState(() {});
 
@@ -113,6 +121,30 @@ class _TopratedWidgetState extends State<TopratedWidget> {
   void dispose() {
     _model.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadPriceMap(List<ImagesRow> images) async {
+    final countryCode = FFAppState().countrycodeiso;
+    if (countryCode.isEmpty || !mounted) return;
+
+    final nameKeys = images
+        .map((r) => (r.productName ?? '').toLowerCase().trim())
+        .where((s) => s.isNotEmpty)
+        .toSet()
+        .toList();
+
+    if (nameKeys.isEmpty) return;
+
+    final prices = await ProductPricesTable().queryRows(
+      queryFn: (q) => q
+          .eqOrNull('country_code', countryCode)
+          .inFilterOrNull('product_name_key', nameKeys),
+    );
+
+    if (!mounted) return;
+    _model.priceMap = {
+      for (final p in prices) '${p.productNameKey}|${p.brandKey}': p,
+    };
   }
 
   List<ImagesRow> _filteredImages() {
@@ -381,6 +413,8 @@ class _TopratedWidgetState extends State<TopratedWidget> {
                                           score: item.saCompositeScore,
                                           imageID: item.id,
                                           tags: item.saBestForTags,
+                                          avgPrice: _model.priceMap['${(item.productName ?? '').toLowerCase().trim()}|${(item.brand ?? '').toLowerCase().trim()}']?.avgPrice,
+                                          priceCurrencyCode: _model.priceMap['${(item.productName ?? '').toLowerCase().trim()}|${(item.brand ?? '').toLowerCase().trim()}']?.priceCurrencyCode,
                                         ),
                                       );
                                     },

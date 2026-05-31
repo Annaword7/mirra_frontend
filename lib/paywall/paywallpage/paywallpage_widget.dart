@@ -33,15 +33,25 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
+  bool _offeringsLoading = false;
+
   @override
   void initState() {
     super.initState();
     _model = createModel(context, () => PaywallpageModel());
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       // Default to annual plan (better value)
       FFAppState().subscriptionmonth = false;
       safeSetState(() {});
+
+      // Load offerings if not already available
+      if (revenue_cat.offerings?.current?.weekly == null ||
+          revenue_cat.offerings?.current?.annual == null) {
+        safeSetState(() => _offeringsLoading = true);
+        await revenue_cat.loadOfferings();
+        if (mounted) safeSetState(() => _offeringsLoading = false);
+      }
     });
   }
 
@@ -51,6 +61,10 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
 
     super.dispose();
   }
+
+  bool get _offeringsReady =>
+      revenue_cat.offerings?.current?.weekly != null &&
+      revenue_cat.offerings?.current?.annual != null;
 
   @override
   Widget build(BuildContext context) {
@@ -168,6 +182,12 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                         updateCallback: () => safeSetState(() {}),
                         child: PremiumFeaturesListWidget(),
                       ).animate().fadeIn(duration: 500.ms, delay: 160.ms).slideY(begin: 0.12, end: 0.0, duration: 500.ms, delay: 160.ms, curve: Curves.easeOut),
+                      if (_offeringsLoading || !_offeringsReady)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 40),
+                          child: CircularProgressIndicator(color: Colors.white),
+                        )
+                      else ...[
                       InkWell(
                         splashColor: Colors.transparent,
                         focusColor: Colors.transparent,
@@ -434,27 +454,23 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                                               );
                                             }
                                           }
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                MessegefrompaymentStruct
-                                                        .maybeFromMap(
-                                                            _model.rCPayment!)!
-                                                    .message,
-                                                style: TextStyle(
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .primaryText,
+                                          {
+                                            final _r = MessegefrompaymentStruct.maybeFromMap(_model.rCPayment!);
+                                            if (_r != null && !_r.ok) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    _r.cancelled
+                                                        ? FFLocalizations.of(context).getText('pu7x1ck3')
+                                                        : FFLocalizations.of(context).getText('pe2n5jf8'),
+                                                    style: TextStyle(color: FlutterFlowTheme.of(context).primaryText),
+                                                  ),
+                                                  duration: const Duration(milliseconds: 4000),
+                                                  backgroundColor: FlutterFlowTheme.of(context).secondary,
                                                 ),
-                                              ),
-                                              duration:
-                                                  Duration(milliseconds: 4000),
-                                              backgroundColor:
-                                                  FlutterFlowTheme.of(context)
-                                                      .secondary,
-                                            ),
-                                          );
+                                              );
+                                            }
+                                          }
 
                                           safeSetState(() {});
                                         },
@@ -563,7 +579,7 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                                       child: Padding(
                                         padding: EdgeInsetsDirectional.fromSTEB(12.0, 6.0, 12.0, 6.0),
                                         child: Text(
-                                          'BEST VALUE',
+                                          FFLocalizations.of(context).getText('bv3k9mp1'),
                                           textAlign: TextAlign.center,
                                           style: FlutterFlowTheme.of(context).labelSmall.override(
                                                 fontFamily: FlutterFlowTheme.of(context).labelSmallFamily,
@@ -892,30 +908,23 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                                                     );
                                                   }
                                                 }
-                                                ScaffoldMessenger.of(context)
-                                                    .showSnackBar(
-                                                  SnackBar(
-                                                    content: Text(
-                                                      MessegefrompaymentStruct
-                                                              .maybeFromMap(_model
-                                                                  .rCPayment2!)!
-                                                          .hasMessage()
-                                                          .toString(),
-                                                      style: TextStyle(
-                                                        color:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .primaryText,
+                                                {
+                                                  final _r = MessegefrompaymentStruct.maybeFromMap(_model.rCPayment2!);
+                                                  if (_r != null && !_r.ok) {
+                                                    ScaffoldMessenger.of(context).showSnackBar(
+                                                      SnackBar(
+                                                        content: Text(
+                                                          _r.cancelled
+                                                              ? FFLocalizations.of(context).getText('pu7x1ck3')
+                                                              : FFLocalizations.of(context).getText('pe2n5jf8'),
+                                                          style: TextStyle(color: FlutterFlowTheme.of(context).primaryText),
+                                                        ),
+                                                        duration: const Duration(milliseconds: 4000),
+                                                        backgroundColor: FlutterFlowTheme.of(context).secondary,
                                                       ),
-                                                    ),
-                                                    duration: Duration(
-                                                        milliseconds: 4000),
-                                                    backgroundColor:
-                                                        FlutterFlowTheme.of(
-                                                                context)
-                                                            .secondary,
-                                                  ),
-                                                );
+                                                    );
+                                                  }
+                                                }
 
                                                 safeSetState(() {});
                                               },
@@ -982,10 +991,11 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                           ),
                         ),
                       ).animate().fadeIn(duration: 500.ms, delay: 320.ms).slideY(begin: 0.12, end: 0.0, duration: 500.ms, delay: 320.ms, curve: Curves.easeOut),
+                      ], // end of offerings-ready block
                       Padding(
                         padding: EdgeInsetsDirectional.fromSTEB(0.0, 16.0, 0.0, 0.0),
                         child: Text(
-                          'Cancel anytime · Secure payment via App Store',
+                          FFLocalizations.of(context).getText('ca7s2xqt'),
                           textAlign: TextAlign.center,
                           style: FlutterFlowTheme.of(context).bodySmall.override(
                                 fontFamily: FlutterFlowTheme.of(context).bodySmallFamily,
@@ -1021,7 +1031,7 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    'You\'ve Successfuly RetrivedYour Subscription',
+                                    FFLocalizations.of(context).getText('rs4p1dq2'),
                                     style: TextStyle(
                                       color: FlutterFlowTheme.of(context)
                                           .primaryText,
@@ -1036,7 +1046,7 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    'Something went wrong. We were unable to restore your purchases.',
+                                    FFLocalizations.of(context).getText('rf9m3wk5'),
                                     style: TextStyle(
                                       color: FlutterFlowTheme.of(context)
                                           .primaryText,
