@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'dart:async';
 import 'dart:typed_data';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 import '/custom_code/actions/index.dart' as actions;
 import 'shared_image_state.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -180,14 +181,26 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> _loadAndRoutePendingSharedImage() async {
     try {
-      final result =
+      // 1. File-based share (Photos app, Files app, downloaded files).
+      final bytes =
           await _shareChannel.invokeMethod<Uint8List>('getPendingSharedImage');
-      if (result != null && result.isNotEmpty) {
-        SharedImageState.instance.pendingImage = result;
+      if (bytes != null && bytes.isNotEmpty) {
+        SharedImageState.instance.pendingImage = bytes;
         _router.go('/takeorUploadPage');
+        return;
+      }
+      // 2. Web image URL (Safari share — cold launch fallback).
+      final url =
+          await _shareChannel.invokeMethod<String>('getPendingSharedImageUrl');
+      if (url != null && url.isNotEmpty) {
+        final response = await http.get(Uri.parse(url));
+        if (response.statusCode == 200 && response.bodyBytes.isNotEmpty) {
+          SharedImageState.instance.pendingImage = response.bodyBytes;
+          _router.go('/takeorUploadPage');
+        }
       }
     } catch (_) {
-      // Channel not available (Android / web) — ignore silently
+      // Channel not available (Android / web) — ignore silently.
     }
   }
 
