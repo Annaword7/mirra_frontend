@@ -1409,6 +1409,155 @@ String _formatPrice(double price, String? code) {
                             ),
                           ),
                         ),
+                        // ── SPF block (all users, only when product contains UV filters) ──
+                        Builder(builder: (context) {
+                          final raw = _model.imageraw?.firstOrNull;
+                          if (raw == null || !raw.saHasSpf) {
+                            return const SizedBox.shrink();
+                          }
+                          final log = raw.saScoringLog;
+                          final spfInfo = (log is Map) ? log['spf_info'] as Map? : null;
+                          final filterType   = spfInfo?['filter_type'] as String? ?? '';
+                          final broadSpectrum = spfInfo?['broad_spectrum'] == true;
+                          final filters = (spfInfo?['filters'] as List?)
+                              ?.map((f) => f['name'] as String? ?? '')
+                              .where((n) => n.isNotEmpty)
+                              .toList() ?? [];
+                          final lang = FFLocalizations.of(context).languageCode;
+
+                          String filterTypeLabel() {
+                            if (lang == 'ru') {
+                              if (filterType == 'mineral') return 'Минеральный';
+                              if (filterType == 'chemical') return 'Химический';
+                              return 'Минеральный + химический';
+                            } else if (lang == 'es') {
+                              if (filterType == 'mineral') return 'Mineral';
+                              if (filterType == 'chemical') return 'Químico';
+                              return 'Mineral + químico';
+                            } else {
+                              if (filterType == 'mineral') return 'Mineral';
+                              if (filterType == 'chemical') return 'Chemical';
+                              return 'Mineral + chemical';
+                            }
+                          }
+
+                          return Padding(
+                            padding: const EdgeInsetsDirectional.fromSTEB(
+                                16.0, 16.0, 16.0, 0.0),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE8F4FD),
+                                borderRadius: BorderRadius.circular(20.0),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    blurRadius: 8.0,
+                                    color: Color(0x1A000000),
+                                    offset: Offset(0.0, 2.0),
+                                  ),
+                                ],
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 20.0, vertical: 16.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Header row: badge + title
+                                    Row(
+                                      children: [
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFF1565C0),
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 10, vertical: 5),
+                                          child: const Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(Icons.wb_sunny_rounded,
+                                                  size: 14,
+                                                  color: Colors.white),
+                                              SizedBox(width: 5),
+                                              Text(
+                                                'SPF',
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.white,
+                                                  letterSpacing: 0.5,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Text(
+                                          lang == 'ru'
+                                              ? 'Солнцезащитный фильтр'
+                                              : lang == 'es'
+                                                  ? 'Filtro solar'
+                                                  : 'UV Protection',
+                                          style: FlutterFlowTheme.of(context)
+                                              .bodyMedium
+                                              .override(
+                                                fontFamily: FlutterFlowTheme.of(
+                                                        context)
+                                                    .bodyMediumFamily,
+                                                fontSize: 16.0,
+                                                fontWeight: FontWeight.bold,
+                                                letterSpacing: 0.0,
+                                                useGoogleFonts:
+                                                    !FlutterFlowTheme.of(context)
+                                                        .bodyMediumIsCustom,
+                                              ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 12),
+                                    // Legend rows
+                                    _SpfLegendRow(
+                                      icon: Icons.science_rounded,
+                                      label: lang == 'ru'
+                                          ? 'Тип фильтра'
+                                          : lang == 'es'
+                                              ? 'Tipo de filtro'
+                                              : 'Filter type',
+                                      value: filterTypeLabel(),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    _SpfLegendRow(
+                                      icon: broadSpectrum
+                                          ? Icons.check_circle_rounded
+                                          : Icons.radio_button_unchecked,
+                                      iconColor: broadSpectrum
+                                          ? const Color(0xFF2E7D32)
+                                          : null,
+                                      label: lang == 'ru'
+                                          ? 'Широкий спектр (UVA + UVB)'
+                                          : lang == 'es'
+                                              ? 'Espectro amplio (UVA + UVB)'
+                                              : 'Broad spectrum (UVA + UVB)',
+                                      value: '',
+                                    ),
+                                    if (filters.isNotEmpty) ...[
+                                      const SizedBox(height: 6),
+                                      _SpfLegendRow(
+                                        icon: Icons.list_rounded,
+                                        label: lang == 'ru'
+                                            ? 'Фильтры'
+                                            : lang == 'es'
+                                                ? 'Filtros'
+                                                : 'Filters',
+                                        value: filters.join(', '),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
                         if (appState.isprouser || _proPreviewActive)
                           Builder(builder: (context) {
                             final log = _model.imageraw?.firstOrNull?.saScoringLog;
@@ -3596,4 +3745,49 @@ class _FlaskPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_FlaskPainter old) => old.t != t;
+}
+
+class _SpfLegendRow extends StatelessWidget {
+  const _SpfLegendRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.iconColor,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color? iconColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon,
+            size: 16,
+            color: iconColor ?? FlutterFlowTheme.of(context).secondaryText),
+        const SizedBox(width: 8),
+        Expanded(
+          child: RichText(
+            text: TextSpan(
+              style: FlutterFlowTheme.of(context).bodySmall.copyWith(
+                    fontSize: 13,
+                    color: FlutterFlowTheme.of(context).primaryText,
+                  ),
+              children: [
+                TextSpan(
+                  text: '$label',
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                if (value.isNotEmpty)
+                  TextSpan(text: ':  $value'),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }
