@@ -94,13 +94,10 @@ class ShareViewController: UIViewController {
     } catch {
       print("[ShareExt] ❌ write: \(error)"); finish(); return
     }
-    extensionContext?.completeRequest(returningItems: []) { [weak self] _ in
-      self?.openMainApp()
+    guard let url = URL(string: "mirradev://share") else {
+      finish(); return
     }
-  }
-
-  private func openMainApp() {
-    guard let url = URL(string: "mirradev://share") else { return }
+    // open() dismisses the extension AND launches the main app — no completeRequest needed.
     extensionContext?.open(url, completionHandler: nil)
   }
 
