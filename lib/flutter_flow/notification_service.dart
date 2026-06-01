@@ -78,8 +78,14 @@ class NotificationService {
       _saveToken(newToken);
     });
 
-    // Foreground: show as local notification
+    // Foreground: if message carries image_id (analysis complete), navigate immediately.
+    // Otherwise show as local notification so user can tap at their convenience.
     FirebaseMessaging.onMessage.listen((message) {
+      final imageId = message.data['image_id'];
+      if (imageId != null) {
+        _onTap?.call(message.data);
+        return;
+      }
       final n = message.notification;
       if (n == null) return;
       _localNotifications.show(
@@ -99,7 +105,7 @@ class NotificationService {
             presentSound: true,
           ),
         ),
-        payload: message.data['image_id'],
+        payload: imageId,
       );
     });
 
