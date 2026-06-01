@@ -65,6 +65,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
   bool _proPreviewActive = false;
   bool _proPreviewUsed = false;
   late AnimationController _proPreviewPulse;
+  Timer? _pendingPollingTimer;
   final animationsMap = <String, AnimationInfo>{};
 
   @override
@@ -153,32 +154,10 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
           token: currentJwtToken,
         );
         if ((retry?.succeeded ?? false) && (retry?.statusCode ?? 0) == 200) {
-          _model.imageraw = await ImagesTable().queryRows(
-            queryFn: (q) => q.eqOrNull('id', widget.imageid),
-          );
-          _model.skinCompabilityRaw =
-              await ImageSkinCompatibilityTable().queryRows(
-            queryFn: (q) => q.eqOrNull('image_id', widget.imageid),
-          );
-          _model.topIngredientsRaw =
-              await ImageTopIngredientsTable().queryRows(
-            queryFn: (q) => q.eqOrNull('image_id', widget.imageid),
-          );
-          _model.ingredientIssuesRaw =
-              await ImageIngredientIssuesTable().queryRows(
-            queryFn: (q) => q.eqOrNull('image_id', widget.imageid),
-          );
-          _loadEfficacyDescriptions();
-          _model.overallscore = valueOrDefault<int>(
-            (valueOrDefault<double>(
-                          _model.imageraw?.firstOrNull?.saCompositeScore,
-                          0.0,
-                        ) ??
-                        0)
-                    .round(),
-            0,
-          );
-          safeSetState(() {});
+          await _reloadAnalysisData();
+        } else {
+          // Analysis still pending (202) — poll Supabase until score appears.
+          _startPendingPolling();
         }
       }
 
@@ -258,10 +237,56 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
 
   @override
   void dispose() {
+    _pendingPollingTimer?.cancel();
     _proPreviewPulse.dispose();
     _model.dispose();
 
     super.dispose();
+  }
+
+  Future<void> _reloadAnalysisData() async {
+    if (!mounted || widget.imageid == null) return;
+    _model.imageraw = await ImagesTable().queryRows(
+      queryFn: (q) => q.eqOrNull('id', widget.imageid),
+    );
+    _model.skinCompabilityRaw =
+        await ImageSkinCompatibilityTable().queryRows(
+      queryFn: (q) => q.eqOrNull('image_id', widget.imageid),
+    );
+    _model.topIngredientsRaw =
+        await ImageTopIngredientsTable().queryRows(
+      queryFn: (q) => q.eqOrNull('image_id', widget.imageid),
+    );
+    _model.ingredientIssuesRaw =
+        await ImageIngredientIssuesTable().queryRows(
+      queryFn: (q) => q.eqOrNull('image_id', widget.imageid),
+    );
+    _loadEfficacyDescriptions();
+    _model.overallscore = valueOrDefault<int>(
+      (valueOrDefault<double>(
+                    _model.imageraw?.firstOrNull?.saCompositeScore,
+                    0.0,
+                  ) ??
+                  0)
+              .round(),
+      0,
+    );
+    if (mounted) safeSetState(() {});
+  }
+
+  void _startPendingPolling() {
+    _pendingPollingTimer?.cancel();
+    _pendingPollingTimer = Timer.periodic(const Duration(seconds: 6), (_) async {
+      if (!mounted) { _pendingPollingTimer?.cancel(); return; }
+      final rows = await ImagesTable().queryRows(
+        queryFn: (q) => q.eqOrNull('id', widget.imageid),
+      );
+      if ((rows.firstOrNull?.saCompositeScore ?? 0) > 0) {
+        _pendingPollingTimer?.cancel();
+        _model.imageraw = rows;
+        await _reloadAnalysisData();
+      }
+    });
   }
 
   Future<void> _loadFeedbackVote() async {
@@ -1737,7 +1762,6 @@ String _formatPrice(double price, String? code) {
                             ),
                           ),
                         ),
-                        if (appState.isprouser || _proPreviewActive)
                         Padding(
                           padding: EdgeInsetsDirectional.fromSTEB(
                               16.0, 24.0, 0.0, 0.0),
@@ -1759,7 +1783,6 @@ String _formatPrice(double price, String? code) {
                                 ),
                           ),
                         ),
-                        if (appState.isprouser || _proPreviewActive)
                         Builder(
                           builder: (context) {
                             final skintypecompatibility = _model
