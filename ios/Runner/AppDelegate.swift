@@ -81,15 +81,6 @@ class MirraSceneDelegate: FlutterSceneDelegate {
     super.scene(scene, willConnectTo: session, options: connectionOptions)
   }
 
-  // App fully active — safe to navigate in Flutter.
-  // sceneWillEnterForeground fires too early (app not yet active → GoRouter can't navigate).
-  override func sceneDidBecomeActive(_ scene: UIScene) {
-    super.sceneDidBecomeActive(scene)
-    if ShareStore.defaults.string(forKey: ShareStore.pendingKey) != nil {
-      print("[Share] pending image found, app active → notifying Flutter")
-      MirraSharePlugin.channel?.invokeMethod("sharedImage", arguments: nil)
-    }
-  }
 
   // Clear app icon badge whenever the app becomes active.
   override func sceneDidBecomeActive(_ scene: UIScene) {
@@ -170,6 +161,16 @@ class MirraSharePlugin: NSObject, FlutterPlugin {
     Messaging.messaging().delegate = self
     application.registerForRemoteNotifications()
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
+
+  // App fully active — safe moment for Flutter to navigate.
+  // Fires after sceneWillEnterForeground, when GoRouter is ready to handle pushes.
+  override func applicationDidBecomeActive(_ application: UIApplication) {
+    super.applicationDidBecomeActive(application)
+    if ShareStore.defaults.string(forKey: ShareStore.pendingKey) != nil {
+      print("[Share] pending image found, app active → notifying Flutter")
+      MirraSharePlugin.channel?.invokeMethod("sharedImage", arguments: nil)
+    }
   }
 
   override func userNotificationCenter(
