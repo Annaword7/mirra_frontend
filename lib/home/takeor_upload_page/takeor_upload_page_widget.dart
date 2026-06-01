@@ -355,7 +355,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
         return;
       }
 
-      if ((_model.analyseImageProductName?.statusCode ?? 200) == 200) {
+      if ((_model.analyseImageProductName?.statusCode ?? 0) == 200) {
         FFAppState().Producanalysstate = 3;
         safeSetState(() {});
         _model.scientificanalysresultcamara =
@@ -586,6 +586,9 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
   /// Shows [GuestPrefsSheet] if the current user has no country set, then
   /// reloads user/country data so the subsequent scan uses the correct country.
   Future<void> _ensureCountrySet() async {
+    _model.useranalyspage ??= await UsersTable().queryRows(
+      queryFn: (q) => q.eqOrNull('id', currentUserUid),
+    );
     if (_model.useranalyspage?.firstOrNull?.countryId != null) return;
 
     await showModalBottomSheet(
@@ -820,7 +823,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
             }
 
             if ((_model.analyseImageProductNameCamera?.statusCode ??
-                    200) ==
+                    0) ==
                 200) {
               FFAppState().Producanalysstate = 3;
               safeSetState(() {});
