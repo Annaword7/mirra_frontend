@@ -81,14 +81,20 @@ class MirraSceneDelegate: FlutterSceneDelegate {
     super.scene(scene, willConnectTo: session, options: connectionOptions)
   }
 
-  // App foregrounded for any reason — check App Group for image saved by ShareExtension.
-  // iOS 17+ may foreground the app without delivering the URL via openURLContexts.
-  override func sceneWillEnterForeground(_ scene: UIScene) {
-    super.sceneWillEnterForeground(scene)
+  // App fully active — safe to navigate in Flutter.
+  // sceneWillEnterForeground fires too early (app not yet active → GoRouter can't navigate).
+  override func sceneDidBecomeActive(_ scene: UIScene) {
+    super.sceneDidBecomeActive(scene)
     if ShareStore.defaults.string(forKey: ShareStore.pendingKey) != nil {
-      print("[Share] pending image found on foreground")
+      print("[Share] pending image found, app active → notifying Flutter")
       MirraSharePlugin.channel?.invokeMethod("sharedImage", arguments: nil)
     }
+  }
+
+  // Clear app icon badge whenever the app becomes active.
+  override func sceneDidBecomeActive(_ scene: UIScene) {
+    super.sceneDidBecomeActive(scene)
+    UIApplication.shared.applicationIconBadgeNumber = 0
   }
 
   // Warm launch: app in background, opened by "Open In MiRRA" document handler (file:// URL).
