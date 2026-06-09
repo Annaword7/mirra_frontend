@@ -183,14 +183,26 @@ class SupabaseAuthManager extends AuthManager
     try {
       await SupaFlow.client
           .rpc('claim_anonymous_scans', params: {'anon_uid': anonUid});
-    } catch (_) {
+    } catch (e) {
       // Migration is best-effort; never block the sign-in flow.
+      debugPrint('claim_anonymous_scans failed for anon_uid=$anonUid: $e');
     }
   }
 
   @override
-  Future<BaseAuthUser?> signInWithApple(BuildContext context) =>
-      _signInOrCreateAccount(context, appleSignInFunc);
+  Future<BaseAuthUser?> signInWithApple(BuildContext context) async {
+    // If the current session is anonymous, capture the UID so we can
+    // reassign its scans to the real account after sign-in.
+    final anonUid = _anonUidIfAnonymous();
+
+    final result = await _signInOrCreateAccount(context, appleSignInFunc);
+
+    if (result != null && anonUid != null) {
+      await _claimAnonScans(anonUid);
+    }
+
+    return result;
+  }
 
   @override
   Future<BaseAuthUser?> signInAnonymously(BuildContext context) async {
