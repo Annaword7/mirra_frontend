@@ -1,9 +1,6 @@
 import 'dart:ui';
 import 'dart:async';
-import 'dart:typed_data';
-import 'package:flutter/services.dart';
 import '/custom_code/actions/index.dart' as actions;
-import 'shared_image_state.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/gestures.dart';
@@ -42,10 +39,17 @@ void main() async {
     // GoTrue background token refresh network errors are non-fatal —
     // the user doesn't see a crash, the SDK retries automatically.
     final stack = details.stack?.toString() ?? '';
+    final exceptionStr = details.exception.toString();
     if (stack.contains('_autoRefreshTokenTick') ||
         stack.contains('GoTrueClient') ||
         stack.contains('google_fonts_base') ||
-        stack.contains('_httpFetchFontAndSaveToDevice')) {
+        stack.contains('_httpFetchFontAndSaveToDevice') ||
+        // Network failures surfaced through a FutureBuilder bound to a
+        // Supabase/Postgrest query — the UI shows an error state, not a crash.
+        stack.contains('postgrest_builder.dart') ||
+        exceptionStr.contains('ClientException') ||
+        exceptionStr.contains('SocketException') ||
+        exceptionStr.contains('TimeoutException')) {
       FirebaseCrashlytics.instance.recordFlutterError(details);
       return;
     }
@@ -151,9 +155,6 @@ class _MyAppState extends State<MyApp> {
     // Handle Universal Links (mirra.up.railway.app/product/{id})
     _initDeepLinks();
 
-    // Handle images shared from external apps ("Open in MiRRA")
-    _initShareChannel();
-
     // Push notifications
     NotificationService.instance.init(
       onTap: (data) {
@@ -161,34 +162,6 @@ class _MyAppState extends State<MyApp> {
         if (imageId != null) _router.go('/itemcard2?imageid=$imageId');
       },
     );
-  }
-
-  static const _shareChannel = MethodChannel('mirra/share');
-
-  void _initShareChannel() {
-    _shareChannel.setMethodCallHandler((call) async {
-      if (call.method == 'sharedImage') {
-        await _loadAndRoutePendingSharedImage();
-      }
-    });
-    // Check for an image that arrived before Flutter was ready
-    // (e.g. cold launch via "Open In")
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadAndRoutePendingSharedImage();
-    });
-  }
-
-  Future<void> _loadAndRoutePendingSharedImage() async {
-    try {
-      final bytes =
-          await _shareChannel.invokeMethod<Uint8List>('getPendingSharedImage');
-      if (bytes != null && bytes.isNotEmpty) {
-        SharedImageState.instance.pendingImage = bytes;
-        _router.go('/takeorUploadPage');
-      }
-    } catch (_) {
-      // Channel not available (Android / web) — ignore silently.
-    }
   }
 
   void _initDeepLinks() {
@@ -246,11 +219,8 @@ class _MyAppState extends State<MyApp> {
         FallbackCupertinoLocalizationDelegate(),
       ],
       locale: _locale,
-      supportedLocales: const [
-        Locale('en'),
-        Locale('ru'),
-        Locale('es'),
-      ],
+      supportedLocales:
+          kSupportedLanguages.map((language) => createLocale(language)).toList(),
       theme: ThemeData(
         brightness: Brightness.light,
         scrollbarTheme: ScrollbarThemeData(
