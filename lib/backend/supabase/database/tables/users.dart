@@ -69,6 +69,44 @@ class UsersRow extends SupabaseDataRow {
   set lastResetDate(DateTime? value) =>
       setField<DateTime>('last_reset_date', value);
 
-  List<int> get spamImages => getListField<int>('spam_images');
+  List<int> get spamImages {
+    final raw = data['spam_images'];
+    if (raw == null) return [];
+    return (raw as List)
+        .map((v) => int.tryParse(v.toString()))
+        .whereType<int>()
+        .toList();
+  }
+
   set spamImages(List<int>? value) => setListField<int>('spam_images', value);
+
+  /// Skin profile from onboarding — the single source of truth for fit
+  /// composition. Matrix taps on the card are ephemeral previews and never
+  /// write here.
+  String? get skinType => getField<String>('skin_type');
+  set skinType(String? value) => setField<String>('skin_type', value);
+
+  bool? get skinSensitivity => getField<bool>('skin_sensitivity');
+  set skinSensitivity(bool? value) =>
+      setField<bool>('skin_sensitivity', value);
+
+  /// Goals: acne, pigmentation, barrier, anti_aging, hydration, pores
+  List<String> get skinGoals => getListField<String>('skin_goals');
+  set skinGoals(List<String>? value) =>
+      setListField<String>('skin_goals', value);
+
+  /// Acne-proneness — independent of skin_type (migration 20260613).
+  bool? get acneProne => getField<bool>('acne_prone');
+  set acneProne(bool? value) => setField<bool>('acne_prone', value);
+
+  /// Optional onboarding answers (not in scoring yet; migration 20260613).
+  String? get ageRange => getField<String>('age_range');
+  set ageRange(String? value) => setField<String>('age_range', value);
+
+  String? get budgetRange => getField<String>('budget_range');
+  set budgetRange(String? value) => setField<String>('budget_range', value);
+
+  List<String> get trustedBrands => getListField<String>('trusted_brands');
+  set trustedBrands(List<String>? value) =>
+      setListField<String>('trusted_brands', value);
 }

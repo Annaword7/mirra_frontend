@@ -66,9 +66,13 @@ T? _supaDeserialize<T>(dynamic value) {
 
   switch (T) {
     case int:
-      return (value as num).round() as T?;
+      if (value is num) return value.round() as T?;
+      if (value is String) return int.tryParse(value) as T?;
+      return null;
     case double:
-      return (value as num).toDouble() as T?;
+      if (value is num) return value.toDouble() as T?;
+      if (value is String) return double.tryParse(value) as T?;
+      return null;
     case DateTime:
       return DateTime.tryParse(value as String)?.toLocal() as T?;
     case PostgresTime:

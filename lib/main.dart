@@ -34,13 +34,16 @@ void main() async {
 
   await initFirebase();
 
-  // Catch all Flutter framework errors
+  // Catch all Flutter framework errors.
+  // IMPORTANT: We call recordError() directly instead of recordFlutterFatalError()
+  // because the latter calls FlutterError.presentError() synchronously, which
+  // calls this same handler again → infinite recursion → stack overflow → crash loop.
   FlutterError.onError = (FlutterErrorDetails details) {
     // GoTrue background token refresh network errors are non-fatal —
     // the user doesn't see a crash, the SDK retries automatically.
     final stack = details.stack?.toString() ?? '';
     final exceptionStr = details.exception.toString();
-    if (stack.contains('_autoRefreshTokenTick') ||
+    final isNonFatal = stack.contains('_autoRefreshTokenTick') ||
         stack.contains('GoTrueClient') ||
         stack.contains('google_fonts_base') ||
         stack.contains('_httpFetchFontAndSaveToDevice') ||
@@ -49,11 +52,13 @@ void main() async {
         stack.contains('postgrest_builder.dart') ||
         exceptionStr.contains('ClientException') ||
         exceptionStr.contains('SocketException') ||
-        exceptionStr.contains('TimeoutException')) {
-      FirebaseCrashlytics.instance.recordFlutterError(details);
-      return;
-    }
-    FirebaseCrashlytics.instance.recordFlutterFatalError(details);
+        exceptionStr.contains('TimeoutException');
+    FirebaseCrashlytics.instance.recordError(
+      details.exception,
+      details.stack,
+      reason: details.context,
+      fatal: !isNonFatal,
+    );
   };
   // Catch errors outside Flutter (platform, isolates, async)
   PlatformDispatcher.instance.onError = (error, stack) {
@@ -145,6 +150,9 @@ class _MyAppState extends State<MyApp> {
         _appStateNotifier.update(user);
         if (user.loggedIn) {
           NotificationService.instance.onUserLogin();
+          FirebaseCrashlytics.instance.setUserIdentifier(user.uid ?? '');
+        } else {
+          FirebaseCrashlytics.instance.setUserIdentifier('');
         }
       });
     jwtTokenStream.listen((_) {});
@@ -248,38 +256,7 @@ class _MyAppState extends State<MyApp> {
           );
         }
 
-        if (!FFDevEnvironmentValues.isNonProd) {
-          return child;
-        }
-        // Dev-only banner: shows which backend is active
-        return Stack(
-          children: [
-            child,
-            Positioned(
-              top: MediaQuery.of(context).padding.top + 4,
-              right: 8,
-              child: IgnorePointer(
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: const Color(0xCCFF6B00),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    FFDevEnvironmentValues.envLabel,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        );
+        return child;
       },
     );
   }
