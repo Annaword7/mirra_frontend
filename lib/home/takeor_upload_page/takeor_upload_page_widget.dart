@@ -1,9 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'dart:typed_data';
 import '/app_state.dart';
 import '/auth/supabase_auth/auth_util.dart';
-import '/shared_image_state.dart';
 import '/flutter_flow/analytics_service.dart';
 import '/backend/api_requests/api_calls.dart';
 import '/backend/supabase/supabase.dart';
@@ -90,57 +88,11 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
 
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
 
-    // Consume image shared from "Open in MiRRA" (e.g. from Photos share sheet)
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final bytes = SharedImageState.instance.pendingImage;
-      if (bytes == null) return;
-      SharedImageState.instance.pendingImage = null;
-      await _handleSharedImage(context, bytes);
-    });
-
     _loadHintState();
   }
 
-  /// Upload raw bytes (shared from an external app) and run the full analysis chain.
-  Future<void> _handleSharedImage(BuildContext context, Uint8List bytes) async {
-    await _ensureCountrySet();
-    // Upload bytes directly (bypasses image picker)
-    final storagePath =
-        'users_images/shared_${DateTime.now().millisecondsSinceEpoch}.jpg';
-    final selectedFile = SelectedFile(storagePath: storagePath, bytes: bytes);
-    safeSetState(
-        () => _model.isDataUploading_uploadImageSupabaseGallary = true);
-    String downloadUrl = '';
-    try {
-      downloadUrl = await uploadSupabaseStorageFile(
-          bucketName: 'images', selectedFile: selectedFile);
-    } finally {
-      _model.isDataUploading_uploadImageSupabaseGallary = false;
-    }
-    if (downloadUrl.isEmpty) return;
-
-    safeSetState(() {
-      _model.uploadedLocalFile_uploadImageSupabaseGallary = FFUploadedFile(
-        name: storagePath.split('/').last,
-        bytes: bytes,
-      );
-      _model.uploadedFileUrl_uploadImageSupabaseGallary = downloadUrl;
-    });
-
-    await _runGalleryAnalysisFromModel(context);
-  }
-
-  static const Map<String, Map<String, String>> _kPendingResearchL10n = {
-    'title':   {'en': 'Analysis in progress',   'ru': 'Анализ в процессе',    'es': 'Análisis en curso'},
-    'body':    {'en': 'Some ingredients are still being researched. The full analysis will be ready in ~30 seconds — you\'ll see it on the home screen and get a notification.',
-                'ru': 'Некоторые компоненты ещё исследуются. Полный анализ будет готов примерно через 30 секунд — вы увидите его на главном экране и получите уведомление.',
-                'es': 'Algunos ingredientes están siendo investigados. El análisis completo estará listo en ~30 segundos — lo verás en la pantalla principal y recibirás una notificación.'},
-    'button':  {'en': 'OK',                     'ru': 'Хорошо',               'es': 'OK'},
-  };
-
   Future<void> _showPendingResearchDialog(BuildContext context) async {
-    final lang = FFLocalizations.of(context).languageCode;
-    String t(String key) => _kPendingResearchL10n[key]?[lang] ?? _kPendingResearchL10n[key]!['en']!;
+    String t(String key) => FFLocalizations.of(context).getText('tu_$key');
     final theme = FlutterFlowTheme.of(context);
     await showDialog(
       context: context,
@@ -233,9 +185,8 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
     );
   }
 
-  /// Analysis chain shared between the gallery button and _handleSharedImage.
-  /// Reads _model.uploadedFileUrl_uploadImageSupabaseGallary which must be set
-  /// before calling this method.
+  /// Gallery analysis chain. Reads _model.uploadedFileUrl_uploadImageSupabaseGallary
+  /// which must be set before calling this method.
   Future<void> _runGalleryAnalysisFromModel(BuildContext context) async {
     unawaited(
         AnalyticsService.instance.trackAnalysisStarted(source: 'gallery'));
@@ -542,19 +493,22 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
           );
         } else if ((_model.analyseImageProductName?.statusCode ?? 200) ==
             404) {
-          await ErrorPopupWidget.show(context, ErrorPopupType.ingredientsNotFound);
-          FFAppState().uploadedimageurl = '';
-          FFAppState().analysisloading = false;
-          FFAppState().Producanalysstate = 0;
-          safeSetState(() {});
-          await ImagesTable().delete(
-            matchingRows: (rows) => rows.eqOrNull(
-              'id',
-              ExtractproductinfoNEWBCNDCopyCall.iamgeID(
+          final _gallImgId = ExtractproductinfoNEWBCNDCopyCall.iamgeID(
+            (_model.extractedproductGalary?.jsonBody ?? ''),
+          );
+          if (_gallImgId != null) {
+            await _handleIngredientsNotFound(
+              imageId: _gallImgId,
+              languageCode: ExtractproductinfoNEWBCNDCopyCall.langcode(
                 (_model.extractedproductGalary?.jsonBody ?? ''),
               ),
-            ),
-          );
+            );
+          } else {
+            FFAppState().uploadedimageurl = '';
+            FFAppState().analysisloading = false;
+            FFAppState().Producanalysstate = 0;
+            safeSetState(() {});
+          }
         } else {
           await TelegrammessegeCall.call(
             messega:
@@ -583,9 +537,19 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
     }
   }
 
+  // ── Country check ────────────────────────────────────────────────────────
+
   /// Shows [GuestPrefsSheet] if the current user has no country set, then
   /// reloads user/country data so the subsequent scan uses the correct country.
   Future<void> _ensureCountrySet() async {
+    // Reaching here without a session (anon sign-in normally happens on the
+    // guest-entry screen) would send "" to a uuid column (Postgres 22P02).
+    // Sign in anonymously first so the query is valid and the country sheet
+    // can persist; bail out safely if that still didn't yield a uid.
+    if (currentUserUid.isEmpty) {
+      await authManager.signInAnonymously(context);
+      if (!mounted || currentUserUid.isEmpty) return;
+    }
     _model.useranalyspage ??= await UsersTable().queryRows(
       queryFn: (q) => q.eqOrNull('id', currentUserUid),
     );
@@ -618,6 +582,103 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
     }
   }
 
+  Future<void> _handleIngredientsNotFound({
+    required int imageId,
+    required String? languageCode,
+  }) async {
+    final ingredients = await ErrorPopupWidget.showIngredientInput(context);
+    if (ingredients == null || ingredients.trim().isEmpty) {
+      FFAppState().uploadedimageurl = '';
+      FFAppState().analysisloading = false;
+      FFAppState().Producanalysstate = 0;
+      safeSetState(() {});
+      await ImagesTable().delete(
+        matchingRows: (rows) => rows.eqOrNull('id', imageId),
+      );
+      return;
+    }
+
+    FFAppState().Producanalysstate = 3;
+    safeSetState(() {});
+
+    final setResult = await SetProductIngredientsCall.call(
+      imageId: imageId,
+      ingredients: ingredients.trim(),
+      token: currentJwtToken,
+    );
+
+    if (!setResult.succeeded) {
+      await ErrorPopupWidget.show(context, ErrorPopupType.generic);
+      FFAppState().uploadedimageurl = '';
+      FFAppState().analysisloading = false;
+      FFAppState().Producanalysstate = 0;
+      safeSetState(() {});
+      await ImagesTable().delete(
+        matchingRows: (rows) => rows.eqOrNull('id', imageId),
+      );
+      return;
+    }
+
+    final analysisResult = await ScientificanalysisNEWBCNDCall.call(
+      host: FFDevEnvironmentValues().backendhost,
+      imageId: imageId.toString(),
+      userId: currentUserUid,
+      languageCode: languageCode,
+      token: currentJwtToken,
+    );
+
+    if (analysisResult.succeeded) {
+      if ((analysisResult.statusCode ?? 200) == 202) {
+        await _showPendingResearchDialog(context);
+        unawaited(ResearchAndAnalyzeCall.call(
+          host: FFDevEnvironmentValues().backendhost,
+          imageId: imageId,
+          languageCode: FFLocalizations.of(context).languageCode,
+          token: currentJwtToken,
+        ));
+      }
+      FFAppState().feedbackPendingScan = true;
+      if (!mounted) {
+        FFAppState().uploadedimageurl = '';
+        FFAppState().analysisloading = false;
+        FFAppState().Producanalysstate = 0;
+        final navCtx = appNavigatorKey.currentContext;
+        if (navCtx != null) {
+          navCtx.pushNamed(
+            Itemcard2Widget.routeName,
+            queryParameters: {
+              'imageid': serializeParam(imageId, ParamType.int),
+            }.withoutNulls,
+          );
+        }
+        return;
+      }
+      await context.pushNamed(
+        Itemcard2Widget.routeName,
+        queryParameters: {
+          'imageid': serializeParam(imageId, ParamType.int),
+        }.withoutNulls,
+      );
+      FFAppState().uploadedimageurl = '';
+      FFAppState().analysisloading = false;
+      FFAppState().Producanalysstate = 0;
+      safeSetState(() {});
+    } else {
+      if ((analysisResult.statusCode ?? 0) == 422) {
+        await ErrorPopupWidget.show(context, ErrorPopupType.unsupported);
+      } else {
+        await ErrorPopupWidget.show(context, ErrorPopupType.generic);
+      }
+      FFAppState().uploadedimageurl = '';
+      FFAppState().analysisloading = false;
+      FFAppState().Producanalysstate = 0;
+      safeSetState(() {});
+      await ImagesTable().delete(
+        matchingRows: (rows) => rows.eqOrNull('id', imageId),
+      );
+    }
+  }
+
   Future<void> _loadHintState() async {
     final prefs = await SharedPreferences.getInstance();
     final seen = prefs.getBool('hint_upload_seen') ?? false;
@@ -633,9 +694,51 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
     super.dispose();
   }
 
+  /// Returns a formatted reset-date string from local app state, or ''.
+  String _resetDateString() {
+    final resetDate = FFAppState().weekResetDate;
+    if (resetDate == null) return '';
+    final resetAt = resetDate.add(const Duration(days: 7));
+    final diff = resetAt.difference(DateTime.now());
+    if (diff.isNegative) return '';
+    final days = diff.inDays;
+    if (days == 0) return resetAt.toLocal().toString().substring(0, 10);
+    return resetAt.toLocal().toString().substring(0, 10);
+  }
+
+  /// Shows LimitOutWidget as a bottom sheet. Returns after it's dismissed.
+  Future<void> _showLimitOut(BuildContext context) async {
+    final appState = context.read<FFAppState>();
+    await showModalBottomSheet(
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      enableDrag: false,
+      context: context,
+      builder: (ctx) => GestureDetector(
+        onTap: () {
+          FocusScope.of(ctx).unfocus();
+          FocusManager.instance.primaryFocus?.unfocus();
+        },
+        child: Padding(
+          padding: MediaQuery.viewInsetsOf(ctx),
+          child: LimitOutWidget(
+            limit: appState.analysesused,
+            date: _resetDateString(),
+            isPro: false,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildCameraButton(BuildContext context) {
     return FFButtonWidget(
       onPressed: () async {
+        final appState = context.read<FFAppState>();
+        if (appState.analysesused >= appState.freeScanLimit) {
+          await _showLimitOut(context);
+          return;
+        }
         var _shouldSetState = false;
         _shouldSetState = true;
         await _ensureCountrySet();
@@ -1033,19 +1136,22 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                               ?.statusCode ??
                           200) ==
                       404) {
-                    await ErrorPopupWidget.show(context, ErrorPopupType.ingredientsNotFound);
-                    FFAppState().uploadedimageurl = '';
-                    FFAppState().analysisloading = false;
-                    FFAppState().Producanalysstate = 0;
-                    safeSetState(() {});
-                    await ImagesTable().delete(
-                      matchingRows: (rows) => rows.eqOrNull(
-                        'id',
-                        ExtractproductinfoNEWBCNDCopyCall.iamgeID(
+                    final _camImgId = ExtractproductinfoNEWBCNDCopyCall.iamgeID(
+                      (_model.extractedproductcamera?.jsonBody ?? ''),
+                    );
+                    if (_camImgId != null) {
+                      await _handleIngredientsNotFound(
+                        imageId: _camImgId,
+                        languageCode: ExtractproductinfoNEWBCNDCopyCall.langcode(
                           (_model.extractedproductcamera?.jsonBody ?? ''),
                         ),
-                      ),
-                    );
+                      );
+                    } else {
+                      FFAppState().uploadedimageurl = '';
+                      FFAppState().analysisloading = false;
+                      FFAppState().Producanalysstate = 0;
+                      safeSetState(() {});
+                    }
                     if (_shouldSetState) safeSetState(() {});
                     return;
                   } else {
@@ -1121,6 +1227,11 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
   Widget _buildGalleryButton(BuildContext context) {
     return FFButtonWidget(
       onPressed: () async {
+        final appState = context.read<FFAppState>();
+        if (appState.analysesused >= appState.freeScanLimit) {
+          await _showLimitOut(context);
+          return;
+        }
         var _shouldSetState = false;
         _shouldSetState = true;
         await _ensureCountrySet();

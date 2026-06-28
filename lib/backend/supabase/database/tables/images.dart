@@ -124,6 +124,42 @@ class ImagesRow extends SupabaseDataRow {
   set saScoringLog(dynamic value) =>
       setField<dynamic>('sa_scoring_log', value);
 
+  /// INCI position of the first ≤1% marker (phenoxyethanol, carbomer, …)
+  int? get saOnePercentLinePos => getField<int>('sa_one_percent_line_pos');
+  set saOnePercentLinePos(int? value) =>
+      setField<int>('sa_one_percent_line_pos', value);
+
+  String? get saOnePercentLineMarker =>
+      getField<String>('sa_one_percent_line_marker');
+  set saOnePercentLineMarker(String? value) =>
+      setField<String>('sa_one_percent_line_marker', value);
+
+  /// Honest analysis confidence: high / medium / low
+  String? get saConfidenceLevel => getField<String>('sa_confidence_level');
+  set saConfidenceLevel(String? value) =>
+      setField<String>('sa_confidence_level', value);
+
+  /// Full confidence object: {level, score, composite_range, composite_delta, reasons}
+  dynamic get saConfidence => getField<dynamic>('sa_confidence');
+  set saConfidence(dynamic value) =>
+      setField<dynamic>('sa_confidence', value);
+
+  /// Goal → {score, evidence[]} table for client-side fit composition
+  dynamic get saGoalSupport => getField<dynamic>('sa_goal_support');
+  set saGoalSupport(dynamic value) =>
+      setField<dynamic>('sa_goal_support', value);
+
+  /// Claim audit: [{claim, verdict, support_score, evidence[]}]
+  dynamic get saClaimAudit => getField<dynamic>('sa_claim_audit');
+  set saClaimAudit(dynamic value) =>
+      setField<dynamic>('sa_claim_audit', value);
+
+  /// Pre-parsed INCI list in position order (jsonb array of strings).
+  /// Authoritative split source for the 1% line; empty on pre-v2 records.
+  List<String> get saInciList => getListField<String>('sa_inci_list');
+  set saInciList(List<String>? value) =>
+      setListField<String>('sa_inci_list', value);
+
   String? get productCategory => getField<String>('product_category');
   set productCategory(String? value) =>
       setField<String>('product_category', value);

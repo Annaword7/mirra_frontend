@@ -95,7 +95,7 @@ GoRouter createRouter(AppStateNotifier appStateNotifier, [Widget? entryPage]) =>
 
         return appState.onboardingDone
             ? NewblankWidget()
-            : OnboardingCarouselWidget();
+            : OnboardingQuizWidget();
       },
       routes: [
         FFRoute(
@@ -116,7 +116,7 @@ GoRouter createRouter(AppStateNotifier appStateNotifier, [Widget? entryPage]) =>
 
             return appState.onboardingDone
                 ? NewblankWidget()
-                : OnboardingCarouselWidget();
+                : OnboardingQuizWidget();
           },
         ),
         FFRoute(
@@ -135,14 +135,9 @@ GoRouter createRouter(AppStateNotifier appStateNotifier, [Widget? entryPage]) =>
           builder: (context, params) => OnboardingProfileWidget(),
         ),
         FFRoute(
-          name: OnboardingInstructionsWidget.routeName,
-          path: OnboardingInstructionsWidget.routePath,
-          builder: (context, params) => OnboardingInstructionsWidget(),
-        ),
-        FFRoute(
-          name: OnboardingCarouselWidget.routeName,
-          path: OnboardingCarouselWidget.routePath,
-          builder: (context, params) => OnboardingCarouselWidget(),
+          name: OnboardingQuizWidget.routeName,
+          path: OnboardingQuizWidget.routePath,
+          builder: (context, params) => OnboardingQuizWidget(),
         ),
         FFRoute(
           name: BoardsWidget.routeName,
@@ -155,6 +150,12 @@ GoRouter createRouter(AppStateNotifier appStateNotifier, [Widget? entryPage]) =>
           path: HomeWidget.routePath,
           requireAuth: true,
           builder: (context, params) => HomeWidget(),
+        ),
+        FFRoute(
+          name: SearchWidget.routeName,
+          path: SearchWidget.routePath,
+          requireAuth: true,
+          builder: (context, params) => const SearchWidget(),
         ),
         FFRoute(
           name: ProfileWidget.routeName,

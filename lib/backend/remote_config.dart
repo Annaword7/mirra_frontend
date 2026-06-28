@@ -21,6 +21,11 @@ Future<void> fetchRemoteConfig() async {
     } else {
       debugPrint('[RemoteConfig] feedbackCollectorEnabled key not found in app_config');
     }
+
+    if (map.containsKey('free_scan_limit')) {
+      final val = int.tryParse(map['free_scan_limit']!);
+      if (val != null && val > 0) FFAppState().freeScanLimit = val;
+    }
   } catch (e) {
     debugPrint('[RemoteConfig] ❌ fetch failed: $e');
   }

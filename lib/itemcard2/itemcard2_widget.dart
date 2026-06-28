@@ -7,7 +7,6 @@ import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import '/flutter_flow/analytics_service.dart';
 import '/backend/api_requests/api_calls.dart';
-import '/backend/supabase/database/tables/ingredients_efficacy.dart';
 import '/backend/supabase/database/tables/product_prices.dart';
 import '/backend/supabase/supabase.dart';
 import '/app_state.dart';
@@ -26,15 +25,12 @@ import '/topratings/hidenavailability/hidenavailability_widget.dart';
 import '/topratings/makeprivate/makeprivate_widget.dart';
 import '/topratings/makepublic/makepublic_widget.dart';
 import '/index.dart';
-import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_blurhash/flutter_blurhash.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:octo_image/octo_image.dart';
-import 'package:percent_indicator/percent_indicator.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'itemcard2_model.dart';
@@ -60,12 +56,6 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
   late Itemcard2Model _model;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
-  var hasContainerTriggered1 = false;
-  var hasContainerTriggered2 = false;
-  bool? _feedbackVote; // true = helpful, false = not helpful, null = no vote
-  bool _proPreviewActive = false;
-  bool _proPreviewUsed = false;
-  late AnimationController _proPreviewPulse;
   Timer? _pendingPollingTimer;
   final animationsMap = <String, AnimationInfo>{};
 
@@ -73,14 +63,6 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
   void initState() {
     super.initState();
     _model = createModel(context, () => Itemcard2Model());
-    _loadFeedbackVote();
-    _loadProPreviewState();
-    _proPreviewPulse = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1500),
-      lowerBound: 0.65,
-      upperBound: 1.0,
-    )..repeat(reverse: true);
 
     // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
@@ -88,12 +70,9 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
         imageId: widget.imageid ?? 0,
         source: 'direct',
       ));
-      _model.imageraw = await ImagesTable().queryRows(
-        queryFn: (q) => q.eqOrNull(
-          'id',
-          widget.imageid,
-        ),
-      );
+      await _loadAnalysis();
+      // Average price for this product × the user's country (needs the loaded
+      // image row for the product/brand keys).
       final _img = _model.imageraw?.firstOrNull;
       if (_img != null) {
         final _nameKey = (_img.productName ?? '').toLowerCase().trim();
@@ -112,24 +91,6 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
           _model.priceRow = _prices.firstOrNull;
         }
       }
-      _model.skinCompabilityRaw = await ImageSkinCompatibilityTable().queryRows(
-        queryFn: (q) => q.eqOrNull(
-          'image_id',
-          widget.imageid,
-        ),
-      );
-      _model.topIngredientsRaw = await ImageTopIngredientsTable().queryRows(
-        queryFn: (q) => q.eqOrNull(
-          'image_id',
-          widget.imageid,
-        ),
-      );
-      _model.ingredientIssuesRaw = await ImageIngredientIssuesTable().queryRows(
-        queryFn: (q) => q.eqOrNull(
-          'image_id',
-          widget.imageid,
-        ),
-      );
       // Skin profile from onboarding — default viewing context for the fit card.
       if (currentUserUid.isNotEmpty) {
         try {
@@ -137,22 +98,17 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
             queryFn: (q) => q.eq('id', currentUserUid),
             limit: 1,
           );
-          _model.userSkinType = userRows.firstOrNull?.skinType;
+          final u = userRows.firstOrNull;
+          _model.userSkinType = u?.skinType;
+          _model.userIsSensitive =
+              (u?.skinSensitivity ?? false) || u?.skinType == 'sensitive';
+          _model.userIsAcneProne = u?.skinType == 'acne_prone' ||
+              (u?.skinGoals.contains('acne') ?? false);
         } catch (_) {
-          // Column may not exist before the v2 migration — cold start.
+          // Columns may not exist before the v2 migration — cold start.
         }
       }
-      _loadEfficacyDescriptions();
       _model.loading = false;
-      _model.overallscore = valueOrDefault<int>(
-        (valueOrDefault<double>(
-                  _model.imageraw?.firstOrNull?.saCompositeScore,
-                  0.0,
-                ) ??
-                0)
-            .round(),
-        0,
-      );
       safeSetState(() {});
 
       // If analysis is pending (score not yet computed), retry scientific
@@ -168,7 +124,8 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
           token: currentJwtToken,
         );
         if ((retry?.succeeded ?? false) && (retry?.statusCode ?? 0) == 200) {
-          await _reloadAnalysisData();
+          await _loadAnalysis();
+          if (mounted) safeSetState(() {});
         } else {
           // Analysis still pending (202) — poll Supabase until score appears.
           _startPendingPolling();
@@ -197,35 +154,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
       }
     });
 
-    _model.textFieldFocusNode ??= FocusNode();
-
     animationsMap.addAll({
-      'containerOnActionTriggerAnimation1': AnimationInfo(
-        trigger: AnimationTrigger.onActionTrigger,
-        applyInitialState: false,
-        effectsBuilder: () => [
-          FadeEffect(
-            curve: Curves.easeInOutQuint,
-            delay: 0.0.ms,
-            duration: 600.0.ms,
-            begin: 0.105,
-            end: 1.0,
-          ),
-        ],
-      ),
-      'containerOnActionTriggerAnimation2': AnimationInfo(
-        trigger: AnimationTrigger.onActionTrigger,
-        applyInitialState: false,
-        effectsBuilder: () => [
-          FadeEffect(
-            curve: Curves.easeInOutQuint,
-            delay: 0.0.ms,
-            duration: 600.0.ms,
-            begin: 0.105,
-            end: 1.0,
-          ),
-        ],
-      ),
       'iconOnPageLoadAnimation': AnimationInfo(
         loop: true,
         trigger: AnimationTrigger.onPageLoad,
@@ -253,14 +182,16 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
   @override
   void dispose() {
     _pendingPollingTimer?.cancel();
-    _proPreviewPulse.dispose();
     _model.dispose();
 
     super.dispose();
   }
 
-  Future<void> _reloadAnalysisData() async {
-    if (!mounted || widget.imageid == null) return;
+  /// Loads the image row + its analysis tables (skin compatibility, top
+  /// ingredients, issues). Shared by the initial page load and the
+  /// pending-analysis retry/polling.
+  Future<void> _loadAnalysis() async {
+    if (widget.imageid == null) return;
     _model.imageraw = await ImagesTable().queryRows(
       queryFn: (q) => q.eqOrNull('id', widget.imageid),
     );
@@ -273,17 +204,6 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
     _model.ingredientIssuesRaw = await ImageIngredientIssuesTable().queryRows(
       queryFn: (q) => q.eqOrNull('image_id', widget.imageid),
     );
-    _loadEfficacyDescriptions();
-    _model.overallscore = valueOrDefault<int>(
-      (valueOrDefault<double>(
-                _model.imageraw?.firstOrNull?.saCompositeScore,
-                0.0,
-              ) ??
-              0)
-          .round(),
-      0,
-    );
-    if (mounted) safeSetState(() {});
   }
 
   void _startPendingPolling() {
@@ -299,75 +219,10 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
       );
       if ((rows.firstOrNull?.saCompositeScore ?? 0) > 0) {
         _pendingPollingTimer?.cancel();
-        _model.imageraw = rows;
-        await _reloadAnalysisData();
+        await _loadAnalysis();
+        if (mounted) safeSetState(() {});
       }
     });
-  }
-
-  Future<void> _loadFeedbackVote() async {
-    final prefs = await SharedPreferences.getInstance();
-    final key = 'feedback_vote_${widget.imageid}';
-    if (prefs.containsKey(key)) {
-      safeSetState(() => _feedbackVote = prefs.getBool(key));
-    }
-  }
-
-  Future<void> _loadProPreviewState() async {
-    final prefs = await SharedPreferences.getInstance();
-    safeSetState(() {
-      _proPreviewUsed = prefs.getBool('pro_preview_used') ?? false;
-    });
-  }
-
-  Future<void> _activateProPreview() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('pro_preview_used', true);
-    safeSetState(() {
-      _proPreviewActive = true;
-      _proPreviewUsed = true;
-    });
-  }
-
-  Future<void> _saveFeedbackVote(bool vote) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('feedback_vote_${widget.imageid}', vote);
-  }
-
-  Color _scoreColor(int s) {
-    if (s >= 75) return const Color(0xFF1B5E20);
-    if (s >= 65) return const Color(0xFF43A047);
-    if (s >= 55) return const Color(0xFFC0CA33);
-    if (s >= 45) return const Color(0xFFFFB300);
-    if (s >= 35) return const Color(0xFFFF7043);
-    return const Color(0xFFD32F2F);
-  }
-
-  Future<void> _loadEfficacyDescriptions() async {
-    final names = [
-      ...?_model.topIngredientsRaw?.map((r) => r.ingredientName),
-      ...?_model.ingredientIssuesRaw?.map((r) => r.ingredientName),
-    ];
-    if (names.isEmpty) return;
-    try {
-      final rows = await IngredientsEfficacyTable().queryRows(
-        queryFn: (q) => q.inFilterOrNull('inci_name', names),
-      );
-      _model.efficacyDescMap = {
-        for (final r in rows) r.inciName.toLowerCase(): r,
-      };
-      if (mounted) safeSetState(() {});
-    } catch (_) {}
-  }
-
-  String _efficacyDesc(String ingredientName, String lang, String? fallback) {
-    final row = _model.efficacyDescMap[ingredientName.toLowerCase()];
-    if (row == null) return fallback ?? '';
-    if (lang == 'ru')
-      return row.descriptionRu ?? row.descriptionEn ?? fallback ?? '';
-    if (lang == 'es')
-      return row.descriptionEs ?? row.descriptionEn ?? fallback ?? '';
-    return row.descriptionEn ?? fallback ?? '';
   }
 
   String _currencySymbol(String? code) {
@@ -423,62 +278,6 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                   useGoogleFonts:
                       !FlutterFlowTheme.of(context).bodyMediumIsCustom,
                 ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _scoreGrade(int s) {
-    if (s >= 75) return 'A';
-    if (s >= 65) return 'B';
-    if (s >= 55) return 'C';
-    if (s >= 45) return 'D';
-    return 'F';
-  }
-
-  Widget _axisBar(BuildContext context, String label, double? value) {
-    final v = (value ?? 0.0).clamp(0.0, 100.0);
-    final color = _scoreColor(v.round());
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: FlutterFlowTheme.of(context).secondaryText,
-                  letterSpacing: 0.2,
-                ),
-              ),
-              Text(
-                value == null ? '—' : '${v.round()}',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  color: value == null
-                      ? FlutterFlowTheme.of(context).secondaryText
-                      : color,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          LinearPercentIndicator(
-            percent: v / 100.0,
-            lineHeight: 6.0,
-            backgroundColor: color.withOpacity(0.12),
-            progressColor: value == null ? Colors.transparent : color,
-            barRadius: const Radius.circular(4),
-            padding: EdgeInsets.zero,
-            animation: true,
           ),
         ],
       ),
@@ -927,9 +726,15 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                                 fit: BoxFit.cover,
                                               ),
                                             ),
-                                            image: NetworkImage(
-                                              _model.imageraw!.firstOrNull!
-                                                  .imageUrl,
+                                            // Cap decode resolution: a huge
+                                            // source image otherwise decodes at
+                                            // full size and OOM-kills the app.
+                                            image: ResizeImage(
+                                              NetworkImage(
+                                                _model.imageraw!.firstOrNull!
+                                                    .imageUrl,
+                                              ),
+                                              width: 1080,
                                             ),
                                             fit: BoxFit.cover,
                                           ),
@@ -1104,7 +909,9 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                         ],
                                       ),
                                     ),
-                                    Padding(
+                                    SizedBox(
+                                      width: double.infinity,
+                                      child: Padding(
                                       padding: EdgeInsetsDirectional.fromSTEB(
                                           16.0, 0.0, 16.0, 20.0),
                                       child: Builder(
@@ -1114,55 +921,51 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                                   .toList() ??
                                               [];
 
-                                          return SingleChildScrollView(
-                                            scrollDirection: Axis.horizontal,
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children:
-                                                  List.generate(bestfor.length,
-                                                      (bestforIndex) {
-                                                final bestforItem =
-                                                    bestfor[bestforIndex];
-                                                return Container(
-                                                  decoration: BoxDecoration(
-                                                    color: Color(0x62FFFFFF),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            24.0),
-                                                  ),
-                                                  child: Padding(
-                                                    padding:
-                                                        EdgeInsetsDirectional
-                                                            .fromSTEB(12.0, 8.0,
-                                                                12.0, 8.0),
-                                                    child: Text(
-                                                      bestforItem,
-                                                      style:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .bodyMedium
-                                                              .override(
-                                                                fontFamily: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMediumFamily,
-                                                                color: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .alternate,
-                                                                letterSpacing:
-                                                                    0.0,
-                                                                useGoogleFonts:
-                                                                    !FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .bodyMediumIsCustom,
-                                                              ),
-                                                    ),
-                                                  ),
-                                                );
-                                              }).divide(SizedBox(width: 10.0)),
-                                            ),
+                                          return Wrap(
+                                            spacing: 8.0,
+                                            runSpacing: 8.0,
+                                            alignment: WrapAlignment.start,
+                                            children: bestfor
+                                                .map((tag) => Container(
+                                                      decoration: BoxDecoration(
+                                                        color:
+                                                            Color(0x62FFFFFF),
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(24.0),
+                                                      ),
+                                                      padding: EdgeInsets
+                                                          .symmetric(
+                                                              horizontal: 12.0,
+                                                              vertical: 8.0),
+                                                      child: Text(
+                                                        tag,
+                                                        maxLines: 1,
+                                                        style: FlutterFlowTheme
+                                                                .of(context)
+                                                            .bodyMedium
+                                                            .override(
+                                                              fontFamily:
+                                                                  FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .bodyMediumFamily,
+                                                              color: FlutterFlowTheme
+                                                                      .of(context)
+                                                                  .alternate,
+                                                              letterSpacing:
+                                                                  0.0,
+                                                              useGoogleFonts:
+                                                                  !FlutterFlowTheme.of(
+                                                                          context)
+                                                                      .bodyMediumIsCustom,
+                                                            ),
+                                                      ),
+                                                    ))
+                                                .toList(),
                                           );
                                         },
                                       ),
+                                    ),
                                     ),
                                   ],
                                 ),
@@ -1174,175 +977,57 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                             null)
                           _buildPendingPlaceholder(context)
                         else ...[
-                          // ── Verdict card (all users) ──
-                          Builder(builder: (context) {
-                            final score = _model.overallscore ?? 0;
-                            final sColor = _scoreColor(score);
-                            final grade = _scoreGrade(score);
-                            final ratingText =
-                                _model.imageraw?.firstOrNull?.saRatingText ??
-                                    '';
-                            final summary =
-                                _model.imageraw?.firstOrNull?.saQuickSummary ??
-                                    '';
-                            return Padding(
-                              padding: EdgeInsetsDirectional.fromSTEB(
-                                  16.0, 16.0, 16.0, 0.0),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFF5F8FF),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      blurRadius: 24.0,
-                                      color: sColor.withOpacity(0.28),
-                                      offset: const Offset(0.0, 6.0),
-                                    ),
-                                    const BoxShadow(
-                                      blurRadius: 8.0,
-                                      color: Color(0x1A000000),
-                                      offset: Offset(0.0, 2.0),
-                                    ),
-                                  ],
-                                  borderRadius: BorderRadius.circular(20.0),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(20.0),
-                                  child: Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      // Score ring with glow
-                                      Container(
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: sColor.withOpacity(0.35),
-                                              blurRadius: 20,
-                                              spreadRadius: 2,
-                                            ),
-                                          ],
-                                        ),
-                                        child: CircularPercentIndicator(
-                                          radius: 46.0,
-                                          lineWidth: 8.0,
-                                          percent:
-                                              (score / 100.0).clamp(0.0, 1.0),
-                                          backgroundColor:
-                                              sColor.withOpacity(0.12),
-                                          progressColor: sColor,
-                                          circularStrokeCap:
-                                              CircularStrokeCap.round,
-                                          animation: true,
-                                          center: Text(
-                                            grade,
-                                            style: TextStyle(
-                                              fontSize: 28,
-                                              fontWeight: FontWeight.bold,
-                                              color: sColor,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 16),
-                                      // Rating + summary
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            if (ratingText.isNotEmpty)
-                                              Text(
-                                                ratingText,
-                                                style: FlutterFlowTheme.of(
-                                                        context)
-                                                    .bodyMedium
-                                                    .override(
-                                                      fontFamily:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .bodyMediumFamily,
-                                                      color:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .primaryText,
-                                                      fontSize: 15.0,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      letterSpacing: 0.0,
-                                                      useGoogleFonts:
-                                                          !FlutterFlowTheme.of(
-                                                                  context)
-                                                              .bodyMediumIsCustom,
-                                                    ),
-                                              ),
-                                            if (ratingText.isNotEmpty)
-                                              const SizedBox(height: 6),
-                                            if (summary.isNotEmpty)
-                                              Text(
-                                                summary,
-                                                style: FlutterFlowTheme.of(
-                                                        context)
-                                                    .bodyMedium
-                                                    .override(
-                                                      fontFamily:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .bodyMediumFamily,
-                                                      color:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .secondaryText,
-                                                      letterSpacing: 0.0,
-                                                      useGoogleFonts:
-                                                          !FlutterFlowTheme.of(
-                                                                  context)
-                                                              .bodyMediumIsCustom,
-                                                    ),
-                                              ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            );
-                          }),
-                          // ── Axis scores (all users) ──
+                          // ── Fit card v2: verdict + tappable skin-type matrix +
+                          // active dose statuses + addressed warnings + claim audit.
+                          // Matrix taps are ephemeral previews (never written to profile).
+                          if (_model.imageraw?.firstOrNull != null)
+                            ProductCardV2Widget(
+                              image: _model.imageraw!.first,
+                              skinCompatibility:
+                                  _model.skinCompabilityRaw ?? const [],
+                              topIngredients:
+                                  _model.topIngredientsRaw ?? const [],
+                              ingredientIssues:
+                                  _model.ingredientIssuesRaw ?? const [],
+                              userSkinType: _model.userSkinType,
+                              userIsSensitive: _model.userIsSensitive,
+                              userIsAcneProne: _model.userIsAcneProne,
+                              isPro: true,
+                            ),
+                          // ── SPF block (all users, only when product contains UV filters) ──
                           Builder(builder: (context) {
                             final raw = _model.imageraw?.firstOrNull;
-                            if (raw == null) return const SizedBox.shrink();
-                            final lang =
-                                FFLocalizations.of(context).languageCode;
-                            final axes = [
-                              (
-                                _axisLabel(lang, 'efficacy'),
-                                raw.saEfficacyScore
-                              ),
-                              (_axisLabel(lang, 'safety'), raw.saSafetyScore),
-                              (
-                                _axisLabel(lang, 'stability'),
-                                raw.saStabilityScore
-                              ),
-                              (_axisLabel(lang, 'experience'), raw.saUxScore),
-                              (
-                                _axisLabel(lang, 'pore_safety'),
-                                raw.saComedogenicityScore
-                              ),
-                            ];
-                            if (axes.every((e) => e.$2 == null)) {
+                            if (raw == null || !raw.saHasSpf) {
                               return const SizedBox.shrink();
                             }
-                            final left = [axes[0], axes[2], axes[4]];
-                            final right = [axes[1], axes[3]];
+                            final log = raw.saScoringLog;
+                            final spfInfo =
+                                (log is Map) ? log['spf_info'] as Map? : null;
+                            final filterType =
+                                spfInfo?['filter_type'] as String? ?? '';
+                            final broadSpectrum =
+                                spfInfo?['broad_spectrum'] == true;
+                            final filters = (spfInfo?['filters'] as List?)
+                                    ?.map((f) => f['name'] as String? ?? '')
+                                    .where((n) => n.isNotEmpty)
+                                    .toList() ??
+                                [];
+
+                            String filterTypeLabel() {
+                              final loc = FFLocalizations.of(context);
+                              if (filterType == 'mineral')
+                                return loc.getText('ic2_filter_mineral');
+                              if (filterType == 'chemical')
+                                return loc.getText('ic2_filter_chemical');
+                              return loc.getText('ic2_filter_combined');
+                            }
+
                             return Padding(
                               padding: const EdgeInsetsDirectional.fromSTEB(
                                   16.0, 16.0, 16.0, 0.0),
                               child: Container(
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFF5F8FF),
+                                  color: const Color(0xFFE8F4FD),
                                   borderRadius: BorderRadius.circular(20.0),
                                   boxShadow: const [
                                     BoxShadow(
@@ -1353,30 +1038,93 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                   ],
                                 ),
                                 child: Padding(
-                                  padding: const EdgeInsets.all(20.0),
-                                  child: Row(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16.0, vertical: 16.0),
+                                  child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      Expanded(
-                                        child: Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: left
-                                              .map((e) =>
-                                                  _axisBar(context, e.$1, e.$2))
-                                              .toList(),
-                                        ),
+                                      // Header row: badge + title
+                                      Row(
+                                        children: [
+                                          Container(
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFF1565C0),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 10, vertical: 5),
+                                            child: const Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(Icons.wb_sunny_rounded,
+                                                    size: 14,
+                                                    color: Colors.white),
+                                                SizedBox(width: 5),
+                                                Text(
+                                                  'SPF',
+                                                  style: TextStyle(
+                                                    fontSize: 13,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.white,
+                                                    letterSpacing: 0.5,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Text(
+                                            FFLocalizations.of(context)
+                                                .getText('ic2_uv_protection'),
+                                            style: FlutterFlowTheme.of(context)
+                                                .bodyMedium
+                                                .override(
+                                                  fontFamily:
+                                                      FlutterFlowTheme.of(
+                                                              context)
+                                                          .bodyMediumFamily,
+                                                  fontSize: 16.0,
+                                                  fontWeight: FontWeight.bold,
+                                                  letterSpacing: 0.0,
+                                                  useGoogleFonts:
+                                                      !FlutterFlowTheme.of(
+                                                              context)
+                                                          .bodyMediumIsCustom,
+                                                ),
+                                          ),
+                                        ],
                                       ),
-                                      const SizedBox(width: 16),
-                                      Expanded(
-                                        child: Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: right
-                                              .map((e) =>
-                                                  _axisBar(context, e.$1, e.$2))
-                                              .toList(),
-                                        ),
+                                      const SizedBox(height: 12),
+                                      // Legend rows
+                                      _SpfLegendRow(
+                                        icon: Icons.science_rounded,
+                                        label: FFLocalizations.of(context)
+                                            .getText('ic2_filter_type'),
+                                        value: filterTypeLabel(),
                                       ),
+                                      const SizedBox(height: 6),
+                                      _SpfLegendRow(
+                                        icon: broadSpectrum
+                                            ? Icons.check_circle_rounded
+                                            : Icons.radio_button_unchecked,
+                                        iconColor: broadSpectrum
+                                            ? const Color(0xFF2E7D32)
+                                            : null,
+                                        label: FFLocalizations.of(context)
+                                            .getText('ic2_broad_spectrum'),
+                                        value: '',
+                                      ),
+                                      if (filters.isNotEmpty) ...[
+                                        const SizedBox(height: 6),
+                                        _SpfLegendRow(
+                                          icon: Icons.list_rounded,
+                                          label: FFLocalizations.of(context)
+                                              .getText('ic2_filters'),
+                                          value: filters.join(', '),
+                                        ),
+                                      ],
                                     ],
                                   ),
                                 ),
@@ -1409,7 +1157,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                     ),
                                     child: Padding(
                                       padding: const EdgeInsets.symmetric(
-                                          horizontal: 20.0, vertical: 16.0),
+                                          horizontal: 16.0, vertical: 16.0),
                                       child: content,
                                     ),
                                   ),
@@ -1535,244 +1283,35 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                               ),
                             ),
                           ),
-                          // ── SPF block (all users, only when product contains UV filters) ──
                           Builder(builder: (context) {
-                            final raw = _model.imageraw?.firstOrNull;
-                            if (raw == null || !raw.saHasSpf) {
-                              return const SizedBox.shrink();
-                            }
-                            final log = raw.saScoringLog;
-                            final spfInfo =
-                                (log is Map) ? log['spf_info'] as Map? : null;
-                            final filterType =
-                                spfInfo?['filter_type'] as String? ?? '';
-                            final broadSpectrum =
-                                spfInfo?['broad_spectrum'] == true;
-                            final filters = (spfInfo?['filters'] as List?)
-                                    ?.map((f) => f['name'] as String? ?? '')
-                                    .where((n) => n.isNotEmpty)
-                                    .toList() ??
-                                [];
-
-                            String filterTypeLabel() {
-                              final loc = FFLocalizations.of(context);
-                              if (filterType == 'mineral')
-                                return loc.getText('ic2_filter_mineral');
-                              if (filterType == 'chemical')
-                                return loc.getText('ic2_filter_chemical');
-                              return loc.getText('ic2_filter_combined');
-                            }
-
-                            return Padding(
-                              padding: const EdgeInsetsDirectional.fromSTEB(
-                                  16.0, 16.0, 16.0, 0.0),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFE8F4FD),
-                                  borderRadius: BorderRadius.circular(20.0),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                      blurRadius: 8.0,
-                                      color: Color(0x1A000000),
-                                      offset: Offset(0.0, 2.0),
-                                    ),
-                                  ],
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 20.0, vertical: 16.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      // Header row: badge + title
-                                      Row(
-                                        children: [
-                                          Container(
-                                            decoration: BoxDecoration(
-                                              color: const Color(0xFF1565C0),
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                            ),
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 10, vertical: 5),
-                                            child: const Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Icon(Icons.wb_sunny_rounded,
-                                                    size: 14,
-                                                    color: Colors.white),
-                                                SizedBox(width: 5),
-                                                Text(
-                                                  'SPF',
-                                                  style: TextStyle(
-                                                    fontSize: 13,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.white,
-                                                    letterSpacing: 0.5,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          const SizedBox(width: 12),
-                                          Text(
-                                            FFLocalizations.of(context)
-                                                .getText('ic2_uv_protection'),
-                                            style: FlutterFlowTheme.of(context)
-                                                .bodyMedium
-                                                .override(
-                                                  fontFamily:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMediumFamily,
-                                                  fontSize: 16.0,
-                                                  fontWeight: FontWeight.bold,
-                                                  letterSpacing: 0.0,
-                                                  useGoogleFonts:
-                                                      !FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMediumIsCustom,
-                                                ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 12),
-                                      // Legend rows
-                                      _SpfLegendRow(
-                                        icon: Icons.science_rounded,
-                                        label: FFLocalizations.of(context)
-                                            .getText('ic2_filter_type'),
-                                        value: filterTypeLabel(),
-                                      ),
-                                      const SizedBox(height: 6),
-                                      _SpfLegendRow(
-                                        icon: broadSpectrum
-                                            ? Icons.check_circle_rounded
-                                            : Icons.radio_button_unchecked,
-                                        iconColor: broadSpectrum
-                                            ? const Color(0xFF2E7D32)
-                                            : null,
-                                        label: FFLocalizations.of(context)
-                                            .getText('ic2_broad_spectrum'),
-                                        value: '',
-                                      ),
-                                      if (filters.isNotEmpty) ...[
-                                        const SizedBox(height: 6),
-                                        _SpfLegendRow(
-                                          icon: Icons.list_rounded,
-                                          label: FFLocalizations.of(context)
-                                              .getText('ic2_filters'),
-                                          value: filters.join(', '),
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            );
-                          }),
-                          if (appState.isprouser || _proPreviewActive)
-                            Builder(builder: (context) {
-                              final log =
-                                  _model.imageraw?.firstOrNull?.saScoringLog;
+                            final img = _model.imageraw?.firstOrNull;
+                            final log = img?.saScoringLog;
                               if (log == null) return const SizedBox.shrink();
+                              // Prefer the backend's parsed INCI list; fall back
+                              // to a client split (keeps "1,2-Hexanediol" intact)
+                              // so the 1% ring + issue dots work on old records.
+                              final inci = (img?.saInciList.isNotEmpty ?? false)
+                                  ? img!.saInciList
+                                  : (img?.ingredients ?? '')
+                                      .split(RegExp(r',(?!\s*\d)|\n'))
+                                      .map((s) => s.trim())
+                                      .where((s) => s.isNotEmpty)
+                                      .toList();
                               return Padding(
                                 padding: const EdgeInsetsDirectional.fromSTEB(
                                     16.0, 16.0, 16.0, 0.0),
-                                child: ScoreBreakdownWidget(scoringLog: log),
+                                child: ScoreBreakdownWidget(
+                                  scoringLog: log,
+                                  topIngredients:
+                                      _model.topIngredientsRaw ?? const [],
+                                  ingredientIssues:
+                                      _model.ingredientIssuesRaw ?? const [],
+                                  inciList: inci,
+                                  onePercentLinePos: img?.saOnePercentLinePos,
+                                ),
                               );
                             }),
-                          if (appState.isprouser || _proPreviewActive)
-                            Padding(
-                              padding: EdgeInsetsDirectional.fromSTEB(
-                                  16.0, 24.0, 16.0, 0.0),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFF5F8FF),
-                                  borderRadius: BorderRadius.circular(24.0),
-                                  border: Border(
-                                    left: BorderSide(
-                                      color:
-                                          FlutterFlowTheme.of(context).primary,
-                                      width: 4.0,
-                                    ),
-                                  ),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                      blurRadius: 8.0,
-                                      color: Color(0x14000000),
-                                      offset: Offset(0.0, 2.0),
-                                    ),
-                                  ],
-                                ),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.max,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Padding(
-                                      padding: EdgeInsetsDirectional.fromSTEB(
-                                          16.0, 16.0, 16.0, 16.0),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.max,
-                                        children: [
-                                          FaIcon(
-                                            FontAwesomeIcons.fire,
-                                            color: FlutterFlowTheme.of(context)
-                                                .primary,
-                                            size: 30.0,
-                                          ),
-                                          Text(
-                                            FFLocalizations.of(context).getText(
-                                              'cox122eb' /* Expert Analysis */,
-                                            ),
-                                            style: FlutterFlowTheme.of(context)
-                                                .bodyMedium
-                                                .override(
-                                                  fontFamily:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMediumFamily,
-                                                  fontSize: 18.0,
-                                                  letterSpacing: 0.0,
-                                                  fontWeight: FontWeight.bold,
-                                                  useGoogleFonts:
-                                                      !FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMediumIsCustom,
-                                                ),
-                                          ),
-                                        ].divide(SizedBox(width: 12.0)),
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: EdgeInsetsDirectional.fromSTEB(
-                                          16.0, 0.0, 16.0, 16.0),
-                                      child: Text(
-                                        valueOrDefault<String>(
-                                          _model.imageraw?.firstOrNull
-                                              ?.saExpertAnalysis,
-                                          '-',
-                                        ),
-                                        style: FlutterFlowTheme.of(context)
-                                            .bodyMedium
-                                            .override(
-                                              fontFamily:
-                                                  FlutterFlowTheme.of(context)
-                                                      .bodyMediumFamily,
-                                              letterSpacing: 0.0,
-                                              useGoogleFonts:
-                                                  !FlutterFlowTheme.of(context)
-                                                      .bodyMediumIsCustom,
-                                            ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          if (appState.isprouser || _proPreviewActive)
-                            Padding(
+                          Padding(
                               padding: EdgeInsetsDirectional.fromSTEB(
                                   16.0, 16.0, 16.0, 0.0),
                               child: Container(
@@ -1800,7 +1339,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                   children: [
                                     Padding(
                                       padding: EdgeInsetsDirectional.fromSTEB(
-                                          16.0, 16.0, 16.0, 16.0),
+                                          12.0, 16.0, 16.0, 16.0),
                                       child: Row(
                                         mainAxisSize: MainAxisSize.max,
                                         children: [
@@ -1835,7 +1374,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                     ),
                                     Padding(
                                       padding: EdgeInsetsDirectional.fromSTEB(
-                                          16.0, 0.0, 16.0, 16.0),
+                                          12.0, 0.0, 16.0, 16.0),
                                       child: Text(
                                         valueOrDefault<String>(
                                           _model.imageraw?.firstOrNull
@@ -1859,1222 +1398,11 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                 ),
                               ),
                             ),
-                          // ── Fit card v2: verdict + tappable skin-type matrix +
-                          // active dose statuses + addressed warnings + claim audit.
-                          // Matrix taps are ephemeral previews (never written to profile).
-                          if (_model.imageraw?.firstOrNull != null)
-                            ProductCardV2Widget(
-                              image: _model.imageraw!.first,
-                              skinCompatibility:
-                                  _model.skinCompabilityRaw ?? const [],
-                              topIngredients:
-                                  _model.topIngredientsRaw ?? const [],
-                              ingredientIssues:
-                                  _model.ingredientIssuesRaw ?? const [],
-                              userSkinType: _model.userSkinType,
-                              isPro: appState.isprouser || _proPreviewActive,
-                            ),
-                          // ── Top Negative Ingredients ──
-                          Builder(builder: (context) {
-                            final isPro =
-                                appState.isprouser || _proPreviewActive;
-                            final lang =
-                                FFLocalizations.of(context).languageCode;
-                            final allNegative =
-                                _model.ingredientIssuesRaw?.toList() ?? [];
-                            if (allNegative.isEmpty)
-                              return const SizedBox.shrink();
-                            final shown = isPro
-                                ? allNegative
-                                : allNegative.take(1).toList();
-                            final hiddenCount =
-                                allNegative.length - shown.length;
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Padding(
-                                  padding: EdgeInsetsDirectional.fromSTEB(
-                                      16.0, 24.0, 16.0, 0.0),
-                                  child: Text(
-                                    FFLocalizations.of(context)
-                                        .getText('top_negative_ingredients'),
-                                    style: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .override(
-                                          fontFamily:
-                                              FlutterFlowTheme.of(context)
-                                                  .bodyMediumFamily,
-                                          fontSize: 18.0,
-                                          letterSpacing: 0.0,
-                                          fontWeight: FontWeight.bold,
-                                          useGoogleFonts:
-                                              !FlutterFlowTheme.of(context)
-                                                  .bodyMediumIsCustom,
-                                        ),
-                                  ),
-                                ),
-                                ...shown.map((issue) => Padding(
-                                      padding: EdgeInsetsDirectional.fromSTEB(
-                                          16.0, 12.0, 16.0, 0.0),
-                                      child: Container(
-                                        width: double.infinity,
-                                        decoration: BoxDecoration(
-                                          color: FlutterFlowTheme.of(context)
-                                              .alternate,
-                                          borderRadius:
-                                              BorderRadius.circular(24.0),
-                                          border: Border.all(
-                                            color: const Color(0xFFFF7043)
-                                                .withOpacity(0.35),
-                                          ),
-                                        ),
-                                        child: Padding(
-                                          padding: EdgeInsets.all(16.0),
-                                          child: Row(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text('⚠️',
-                                                  style: const TextStyle(
-                                                      fontSize: 20)),
-                                              const SizedBox(width: 12),
-                                              Expanded(
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  mainAxisSize:
-                                                      MainAxisSize.min,
-                                                  children: [
-                                                    Text(
-                                                      issue.ingredientName,
-                                                      style: FlutterFlowTheme
-                                                              .of(context)
-                                                          .bodyMedium
-                                                          .override(
-                                                            fontFamily:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMediumFamily,
-                                                            fontSize: 16.0,
-                                                            letterSpacing: 0.0,
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                            useGoogleFonts:
-                                                                !FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMediumIsCustom,
-                                                          ),
-                                                    ),
-                                                    if (_efficacyDesc(
-                                                            issue
-                                                                .ingredientName,
-                                                            lang,
-                                                            issue.description ??
-                                                                issue.issueType)
-                                                        .isNotEmpty) ...[
-                                                      const SizedBox(height: 4),
-                                                      Text(
-                                                        _efficacyDesc(
-                                                            issue
-                                                                .ingredientName,
-                                                            lang,
-                                                            issue.description ??
-                                                                issue
-                                                                    .issueType),
-                                                        style:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .bodyMedium
-                                                                .override(
-                                                                  fontFamily: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .bodyMediumFamily,
-                                                                  color: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .secondaryText,
-                                                                  letterSpacing:
-                                                                      0.0,
-                                                                  useGoogleFonts:
-                                                                      !FlutterFlowTheme.of(
-                                                                              context)
-                                                                          .bodyMediumIsCustom,
-                                                                ),
-                                                      ),
-                                                    ],
-                                                  ],
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    )),
-                                if (!isPro && hiddenCount > 0)
-                                  Padding(
-                                    padding: EdgeInsetsDirectional.fromSTEB(
-                                        16.0, 8.0, 16.0, 0.0),
-                                    child: InkWell(
-                                      onTap: () => context.pushNamed(
-                                          PaywallpageWidget.routeName),
-                                      child: Text(
-                                        '+$hiddenCount ${FFLocalizations.of(context).getText('more_in_pro')}',
-                                        style: FlutterFlowTheme.of(context)
-                                            .bodyMedium
-                                            .override(
-                                              fontFamily:
-                                                  FlutterFlowTheme.of(context)
-                                                      .bodyMediumFamily,
-                                              color:
-                                                  FlutterFlowTheme.of(context)
-                                                      .primary,
-                                              letterSpacing: 0.0,
-                                              fontWeight: FontWeight.w600,
-                                              useGoogleFonts:
-                                                  !FlutterFlowTheme.of(context)
-                                                      .bodyMediumIsCustom,
-                                            ),
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            );
-                          }),
-                          // ── Top Active Ingredients ──
-                          Builder(
-                            builder: (context) {
-                              final isPro =
-                                  appState.isprouser || _proPreviewActive;
-                              final lang =
-                                  FFLocalizations.of(context).languageCode;
-                              final allIngredients =
-                                  _model.topIngredientsRaw?.toList() ?? [];
-                              if (allIngredients.isEmpty)
-                                return const SizedBox.shrink();
-                              final topIngredients = isPro
-                                  ? allIngredients
-                                  : allIngredients.take(3).toList();
-                              final hiddenCount =
-                                  allIngredients.length - topIngredients.length;
-
-                              return Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Padding(
-                                    padding: EdgeInsetsDirectional.fromSTEB(
-                                        16.0, 24.0, 16.0, 0.0),
-                                    child: Text(
-                                      FFLocalizations.of(context)
-                                          .getText('gs46omyo'),
-                                      style: FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .override(
-                                            fontFamily:
-                                                FlutterFlowTheme.of(context)
-                                                    .bodyMediumFamily,
-                                            fontSize: 18.0,
-                                            letterSpacing: 0.0,
-                                            fontWeight: FontWeight.bold,
-                                            useGoogleFonts:
-                                                !FlutterFlowTheme.of(context)
-                                                    .bodyMediumIsCustom,
-                                          ),
-                                    ),
-                                  ),
-                                  ...List.generate(topIngredients.length,
-                                      (topIngredientsIndex) {
-                                    final topIngredientsItem =
-                                        topIngredients[topIngredientsIndex];
-                                    return Padding(
-                                      padding: EdgeInsetsDirectional.fromSTEB(
-                                          16.0, 12.0, 16.0, 0.0),
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          color: FlutterFlowTheme.of(context)
-                                              .alternate,
-                                          borderRadius:
-                                              BorderRadius.circular(24.0),
-                                          border: Border.all(
-                                            color: FlutterFlowTheme.of(context)
-                                                .secondaryBackground,
-                                          ),
-                                        ),
-                                        child: Padding(
-                                          padding: EdgeInsets.all(16.0),
-                                          child: Column(
-                                            mainAxisSize: MainAxisSize.max,
-                                            children: [
-                                              Row(
-                                                mainAxisSize: MainAxisSize.max,
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceBetween,
-                                                children: [
-                                                  Flexible(
-                                                    child: Column(
-                                                      mainAxisSize:
-                                                          MainAxisSize.min,
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        Text(
-                                                          valueOrDefault<
-                                                              String>(
-                                                            topIngredientsItem
-                                                                .ingredientName,
-                                                            '-',
-                                                          ),
-                                                          style: FlutterFlowTheme
-                                                                  .of(context)
-                                                              .bodyMedium
-                                                              .override(
-                                                                fontFamily: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMediumFamily,
-                                                                fontSize: 16.0,
-                                                                letterSpacing:
-                                                                    0.0,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
-                                                                useGoogleFonts:
-                                                                    !FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .bodyMediumIsCustom,
-                                                              ),
-                                                        ),
-                                                        Text(
-                                                          valueOrDefault<
-                                                              String>(
-                                                            topIngredientsItem
-                                                                .category,
-                                                            '-',
-                                                          ),
-                                                          style: FlutterFlowTheme
-                                                                  .of(context)
-                                                              .bodyMedium
-                                                              .override(
-                                                                fontFamily: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMediumFamily,
-                                                                color: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .secondaryText,
-                                                                fontSize: 11.0,
-                                                                letterSpacing:
-                                                                    0.0,
-                                                                useGoogleFonts:
-                                                                    !FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .bodyMediumIsCustom,
-                                                              ),
-                                                        ),
-                                                        Text(
-                                                          _efficacyDesc(
-                                                            topIngredientsItem
-                                                                .ingredientName,
-                                                            lang,
-                                                            topIngredientsItem
-                                                                .description,
-                                                          ).isNotEmpty
-                                                              ? _efficacyDesc(
-                                                                  topIngredientsItem
-                                                                      .ingredientName,
-                                                                  lang,
-                                                                  topIngredientsItem
-                                                                      .description)
-                                                              : (topIngredientsItem
-                                                                      .description ??
-                                                                  '-'),
-                                                          style: FlutterFlowTheme
-                                                                  .of(context)
-                                                              .bodyMedium
-                                                              .override(
-                                                                fontFamily: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMediumFamily,
-                                                                letterSpacing:
-                                                                    0.0,
-                                                                useGoogleFonts:
-                                                                    !FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .bodyMediumIsCustom,
-                                                              ),
-                                                        ),
-                                                      ].divide(SizedBox(
-                                                          height: 12.0)),
-                                                    ),
-                                                  ),
-                                                  Column(
-                                                    mainAxisSize:
-                                                        MainAxisSize.max,
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment.end,
-                                                    children: [
-                                                      Text(
-                                                        FFLocalizations.of(
-                                                                context)
-                                                            .getText(
-                                                          'sgfwkpt4' /* Position */,
-                                                        ),
-                                                        style:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .bodyMedium
-                                                                .override(
-                                                                  fontFamily: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .bodyMediumFamily,
-                                                                  letterSpacing:
-                                                                      0.0,
-                                                                  useGoogleFonts:
-                                                                      !FlutterFlowTheme.of(
-                                                                              context)
-                                                                          .bodyMediumIsCustom,
-                                                                ),
-                                                      ),
-                                                      Text(
-                                                        '#${valueOrDefault<String>(
-                                                          topIngredientsItem
-                                                              .inciPosition
-                                                              ?.toString(),
-                                                          '0',
-                                                        )}',
-                                                        style:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .bodyMedium
-                                                                .override(
-                                                                  fontFamily: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .bodyMediumFamily,
-                                                                  color: FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .primary,
-                                                                  fontSize:
-                                                                      20.0,
-                                                                  letterSpacing:
-                                                                      0.0,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold,
-                                                                  useGoogleFonts:
-                                                                      !FlutterFlowTheme.of(
-                                                                              context)
-                                                                          .bodyMediumIsCustom,
-                                                                ),
-                                                      ),
-                                                    ].divide(
-                                                        SizedBox(height: 10.0)),
-                                                  ),
-                                                ],
-                                              ),
-                                              Row(
-                                                mainAxisSize: MainAxisSize.max,
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceBetween,
-                                                children: [
-                                                  Text(
-                                                    FFLocalizations.of(context)
-                                                        .getText(
-                                                      '92xu2duz' /* Efficacy Contribution */,
-                                                    ),
-                                                    style: FlutterFlowTheme.of(
-                                                            context)
-                                                        .bodyMedium
-                                                        .override(
-                                                          fontFamily:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMediumFamily,
-                                                          color: FlutterFlowTheme
-                                                                  .of(context)
-                                                              .secondaryText,
-                                                          fontSize: 11.0,
-                                                          letterSpacing: 0.0,
-                                                          useGoogleFonts:
-                                                              !FlutterFlowTheme
-                                                                      .of(context)
-                                                                  .bodyMediumIsCustom,
-                                                        ),
-                                                  ),
-                                                  Text(
-                                                    '${valueOrDefault<String>(
-                                                      topIngredientsItem
-                                                          .efficacyContribution
-                                                          ?.toString(),
-                                                      '0',
-                                                    )}%',
-                                                    style: FlutterFlowTheme.of(
-                                                            context)
-                                                        .bodyMedium
-                                                        .override(
-                                                          fontFamily:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMediumFamily,
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          useGoogleFonts:
-                                                              !FlutterFlowTheme
-                                                                      .of(context)
-                                                                  .bodyMediumIsCustom,
-                                                        ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ].divide(SizedBox(height: 10.0)),
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  }),
-                                  if (!isPro && hiddenCount > 0)
-                                    Padding(
-                                      padding: EdgeInsetsDirectional.fromSTEB(
-                                          16.0, 8.0, 16.0, 0.0),
-                                      child: InkWell(
-                                        onTap: () => context.pushNamed(
-                                            PaywallpageWidget.routeName),
-                                        child: Text(
-                                          '+$hiddenCount ${FFLocalizations.of(context).getText('more_in_pro')}',
-                                          style: FlutterFlowTheme.of(context)
-                                              .bodyMedium
-                                              .override(
-                                                fontFamily:
-                                                    FlutterFlowTheme.of(context)
-                                                        .bodyMediumFamily,
-                                                color:
-                                                    FlutterFlowTheme.of(context)
-                                                        .primary,
-                                                letterSpacing: 0.0,
-                                                fontWeight: FontWeight.w600,
-                                                useGoogleFonts:
-                                                    !FlutterFlowTheme.of(
-                                                            context)
-                                                        .bodyMediumIsCustom,
-                                              ),
-                                        ),
-                                      ),
-                                    ),
-                                ],
-                              );
-                            },
-                          ),
-                          // ── Paywall upsell (free users only) ──
-                          if (!appState.isprouser && !_proPreviewActive)
-                            Padding(
-                              padding: EdgeInsetsDirectional.fromSTEB(
-                                  16.0, 24.0, 16.0, 32.0),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: FlutterFlowTheme.of(context)
-                                      .primaryBackground,
-                                  borderRadius: BorderRadius.circular(20.0),
-                                  border: Border.all(
-                                    color: FlutterFlowTheme.of(context)
-                                        .primary
-                                        .withOpacity(0.4),
-                                    width: 1.5,
-                                  ),
-                                ),
-                                child: Padding(
-                                  padding: EdgeInsets.all(20.0),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Icon(Icons.lock_outline_rounded,
-                                              color:
-                                                  FlutterFlowTheme.of(context)
-                                                      .primary,
-                                              size: 22.0),
-                                          SizedBox(width: 10),
-                                          Text(
-                                            FFLocalizations.of(context)
-                                                .getText('ic2_pro_title'),
-                                            style: FlutterFlowTheme.of(context)
-                                                .bodyMedium
-                                                .override(
-                                                  fontFamily:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMediumFamily,
-                                                  fontSize: 16.0,
-                                                  fontWeight: FontWeight.bold,
-                                                  letterSpacing: 0.0,
-                                                  useGoogleFonts:
-                                                      !FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMediumIsCustom,
-                                                ),
-                                          ),
-                                        ],
-                                      ),
-                                      SizedBox(height: 14),
-                                      _PaywallBullet(
-                                        icon: Icons.all_inclusive_rounded,
-                                        label: FFLocalizations.of(context)
-                                            .getText('ic2_pro_unlimited'),
-                                      ),
-                                      _PaywallBullet(
-                                        icon: Icons.science_outlined,
-                                        label: FFLocalizations.of(context)
-                                            .getText('ic2_pro_expert'),
-                                      ),
-                                      _PaywallBullet(
-                                        icon: Icons.list_alt_rounded,
-                                        label: FFLocalizations.of(context)
-                                            .getText('ic2_pro_inci'),
-                                      ),
-                                      _PaywallBullet(
-                                        icon: Icons.lightbulb_outline_rounded,
-                                        label: FFLocalizations.of(context)
-                                            .getText('ic2_pro_howto'),
-                                      ),
-                                      _PaywallBullet(
-                                        icon: Icons.face_retouching_natural,
-                                        label: FFLocalizations.of(context)
-                                            .getText('ic2_pro_skin'),
-                                      ),
-                                      _PaywallBullet(
-                                        icon: Icons.list_alt_rounded,
-                                        label: FFLocalizations.of(context)
-                                            .getText('ic2_pro_actives'),
-                                      ),
-                                      _PaywallBullet(
-                                        icon: Icons.notes_rounded,
-                                        label: FFLocalizations.of(context)
-                                            .getText('ic2_pro_notes'),
-                                      ),
-                                      SizedBox(height: 16),
-                                      SizedBox(
-                                        width: double.infinity,
-                                        child: ElevatedButton(
-                                          onPressed: () => context.pushNamed(
-                                              PaywallpageWidget.routeName),
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor:
-                                                FlutterFlowTheme.of(context)
-                                                    .primary,
-                                            foregroundColor: Colors.white,
-                                            padding: EdgeInsets.symmetric(
-                                                vertical: 14.0),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(12.0),
-                                            ),
-                                          ),
-                                          child: Text(
-                                            FFLocalizations.of(context)
-                                                .getText('ic2_pro_cta'),
-                                            style: FlutterFlowTheme.of(context)
-                                                .bodyMedium
-                                                .override(
-                                                  fontFamily:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMediumFamily,
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.bold,
-                                                  letterSpacing: 0.0,
-                                                  useGoogleFonts:
-                                                      !FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMediumIsCustom,
-                                                ),
-                                          ),
-                                        ),
-                                      ),
-                                      if (!_proPreviewUsed) ...[
-                                        SizedBox(height: 16),
-                                        Center(
-                                          child: AnimatedBuilder(
-                                            animation: _proPreviewPulse,
-                                            builder: (context, child) =>
-                                                Opacity(
-                                              opacity: _proPreviewPulse.value,
-                                              child: child,
-                                            ),
-                                            child: GestureDetector(
-                                              onTap: _activateProPreview,
-                                              child: Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                        horizontal: 18,
-                                                        vertical: 10),
-                                                decoration: BoxDecoration(
-                                                  border: Border.all(
-                                                    color: FlutterFlowTheme.of(
-                                                            context)
-                                                        .primary,
-                                                    width: 1.5,
-                                                  ),
-                                                  borderRadius:
-                                                      BorderRadius.circular(50),
-                                                ),
-                                                child: Text(
-                                                  FFLocalizations.of(context)
-                                                      .getText(
-                                                          'ic2_pro_preview'),
-                                                  style: FlutterFlowTheme.of(
-                                                          context)
-                                                      .bodySmall
-                                                      .override(
-                                                        fontFamily:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .bodySmallFamily,
-                                                        color:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .primary,
-                                                        letterSpacing: 0.0,
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                        useGoogleFonts:
-                                                            !FlutterFlowTheme
-                                                                    .of(context)
-                                                                .bodySmallIsCustom,
-                                                      ),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          if (appState.isprouser)
-                            Padding(
-                              padding: EdgeInsetsDirectional.fromSTEB(
-                                  16.0, 24.0, 16.0, 24.0),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: FlutterFlowTheme.of(context).alternate,
-                                  borderRadius: BorderRadius.circular(24.0),
-                                  border: Border.all(
-                                    color: FlutterFlowTheme.of(context)
-                                        .secondaryBackground,
-                                  ),
-                                ),
-                                child: Padding(
-                                  padding: EdgeInsets.all(16.0),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.max,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        FFLocalizations.of(context).getText(
-                                          'ijod64a2' /* Your feedback */,
-                                        ),
-                                        style: FlutterFlowTheme.of(context)
-                                            .bodyMedium
-                                            .override(
-                                              fontFamily:
-                                                  FlutterFlowTheme.of(context)
-                                                      .bodyMediumFamily,
-                                              fontSize: 18.0,
-                                              letterSpacing: 0.0,
-                                              fontWeight: FontWeight.bold,
-                                              useGoogleFonts:
-                                                  !FlutterFlowTheme.of(context)
-                                                      .bodyMediumIsCustom,
-                                            ),
-                                      ),
-                                      Text(
-                                        FFLocalizations.of(context).getText(
-                                          'e2fxci9s' /* Was this analysis helpful?  */,
-                                        ),
-                                        style: FlutterFlowTheme.of(context)
-                                            .bodyMedium
-                                            .override(
-                                              fontFamily:
-                                                  FlutterFlowTheme.of(context)
-                                                      .bodyMediumFamily,
-                                              letterSpacing: 0.0,
-                                              useGoogleFonts:
-                                                  !FlutterFlowTheme.of(context)
-                                                      .bodyMediumIsCustom,
-                                            ),
-                                      ),
-                                      Row(
-                                        mainAxisSize: MainAxisSize.max,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceEvenly,
-                                        children: [
-                                          InkWell(
-                                            splashColor: Colors.transparent,
-                                            focusColor: Colors.transparent,
-                                            hoverColor: Colors.transparent,
-                                            highlightColor: Colors.transparent,
-                                            onTap: () async {
-                                              if (animationsMap[
-                                                      'containerOnActionTriggerAnimation1'] !=
-                                                  null) {
-                                                safeSetState(() =>
-                                                    hasContainerTriggered1 =
-                                                        true);
-                                                SchedulerBinding.instance
-                                                    .addPostFrameCallback(
-                                                        (_) async => animationsMap[
-                                                                'containerOnActionTriggerAnimation1']!
-                                                            .controller
-                                                            .forward(
-                                                                from: 0.0));
-                                              }
-                                              _model.apiResult6oo =
-                                                  await FeedbackNEWBCNDCall
-                                                      .call(
-                                                host: FFDevEnvironmentValues()
-                                                    .backendhost,
-                                                imageId:
-                                                    widget.imageid?.toString(),
-                                                userId: currentUserUid,
-                                                vote: true,
-                                                token: currentJwtToken,
-                                              );
-
-                                              if ((_model.apiResult6oo
-                                                      ?.succeeded ??
-                                                  true)) {
-                                                safeSetState(
-                                                    () => _feedbackVote = true);
-                                                unawaited(
-                                                    _saveFeedbackVote(true));
-                                                ScaffoldMessenger.of(context)
-                                                    .showSnackBar(
-                                                  SnackBar(
-                                                    content: Text(
-                                                      'Thnaks for your feedback!',
-                                                      style: TextStyle(
-                                                        color:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .primaryText,
-                                                      ),
-                                                    ),
-                                                    duration: Duration(
-                                                        milliseconds: 4000),
-                                                    backgroundColor:
-                                                        FlutterFlowTheme.of(
-                                                                context)
-                                                            .secondary,
-                                                  ),
-                                                );
-                                              } else {
-                                                ScaffoldMessenger.of(context)
-                                                    .showSnackBar(
-                                                  SnackBar(
-                                                    content: Text(
-                                                      'Ups! Something went wrong!',
-                                                      style: TextStyle(
-                                                        color:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .primaryText,
-                                                      ),
-                                                    ),
-                                                    duration: Duration(
-                                                        milliseconds: 4000),
-                                                    backgroundColor:
-                                                        FlutterFlowTheme.of(
-                                                                context)
-                                                            .secondary,
-                                                  ),
-                                                );
-                                              }
-
-                                              safeSetState(() {});
-                                            },
-                                            child: Container(
-                                              decoration: BoxDecoration(
-                                                color: _feedbackVote == true
-                                                    ? const Color(0xFF43A047)
-                                                        .withOpacity(0.1)
-                                                    : null,
-                                                borderRadius:
-                                                    BorderRadius.circular(12.0),
-                                                border: Border.all(
-                                                  color: _feedbackVote == true
-                                                      ? const Color(0xFF43A047)
-                                                      : FlutterFlowTheme.of(
-                                                              context)
-                                                          .secondaryText,
-                                                  width: _feedbackVote == true
-                                                      ? 2.0
-                                                      : 1.0,
-                                                ),
-                                              ),
-                                              child: Padding(
-                                                padding: EdgeInsetsDirectional
-                                                    .fromSTEB(
-                                                        22.0, 18.0, 22.0, 18.0),
-                                                child: Row(
-                                                  mainAxisSize:
-                                                      MainAxisSize.max,
-                                                  children: [
-                                                    Icon(
-                                                      Icons.thumb_up_rounded,
-                                                      color:
-                                                          _feedbackVote == true
-                                                              ? const Color(
-                                                                  0xFF43A047)
-                                                              : const Color(
-                                                                  0xE61A1A1A),
-                                                      size: 24.0,
-                                                    ),
-                                                    Text(
-                                                      FFLocalizations.of(
-                                                              context)
-                                                          .getText(
-                                                        'on05z6xe' /* Helpful */,
-                                                      ),
-                                                      style: FlutterFlowTheme
-                                                              .of(context)
-                                                          .bodyMedium
-                                                          .override(
-                                                            fontFamily:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMediumFamily,
-                                                            color: _feedbackVote ==
-                                                                    true
-                                                                ? const Color(
-                                                                    0xFF43A047)
-                                                                : const Color(
-                                                                    0xEA1A1A1A),
-                                                            letterSpacing: 0.0,
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                            useGoogleFonts:
-                                                                !FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMediumIsCustom,
-                                                          ),
-                                                    ),
-                                                  ].divide(
-                                                      SizedBox(width: 10.0)),
-                                                ),
-                                              ),
-                                            ),
-                                          ).animateOnActionTrigger(
-                                              animationsMap[
-                                                  'containerOnActionTriggerAnimation1']!,
-                                              hasBeenTriggered:
-                                                  hasContainerTriggered1),
-                                          InkWell(
-                                            splashColor: Colors.transparent,
-                                            focusColor: Colors.transparent,
-                                            hoverColor: Colors.transparent,
-                                            highlightColor: Colors.transparent,
-                                            onTap: () async {
-                                              if (animationsMap[
-                                                      'containerOnActionTriggerAnimation2'] !=
-                                                  null) {
-                                                safeSetState(() =>
-                                                    hasContainerTriggered2 =
-                                                        true);
-                                                SchedulerBinding.instance
-                                                    .addPostFrameCallback(
-                                                        (_) async => animationsMap[
-                                                                'containerOnActionTriggerAnimation2']!
-                                                            .controller
-                                                            .forward(
-                                                                from: 0.0));
-                                              }
-                                              _model.apiResult6oo8 =
-                                                  await FeedbackNEWBCNDCall
-                                                      .call(
-                                                host: FFDevEnvironmentValues()
-                                                    .backendhost,
-                                                imageId:
-                                                    widget.imageid?.toString(),
-                                                userId: currentUserUid,
-                                                vote: false,
-                                                token: currentJwtToken,
-                                              );
-
-                                              if ((_model.apiResult6oo8
-                                                      ?.succeeded ??
-                                                  true)) {
-                                                safeSetState(() =>
-                                                    _feedbackVote = false);
-                                                unawaited(
-                                                    _saveFeedbackVote(false));
-                                                ScaffoldMessenger.of(context)
-                                                    .showSnackBar(
-                                                  SnackBar(
-                                                    content: Text(
-                                                      'Thnaks for your feedback!',
-                                                      style: TextStyle(
-                                                        color:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .primaryText,
-                                                      ),
-                                                    ),
-                                                    duration: Duration(
-                                                        milliseconds: 4000),
-                                                    backgroundColor:
-                                                        FlutterFlowTheme.of(
-                                                                context)
-                                                            .secondary,
-                                                  ),
-                                                );
-                                              } else {
-                                                ScaffoldMessenger.of(context)
-                                                    .showSnackBar(
-                                                  SnackBar(
-                                                    content: Text(
-                                                      'Ups! Something went wrong!',
-                                                      style: TextStyle(
-                                                        color:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .primaryText,
-                                                      ),
-                                                    ),
-                                                    duration: Duration(
-                                                        milliseconds: 4000),
-                                                    backgroundColor:
-                                                        FlutterFlowTheme.of(
-                                                                context)
-                                                            .secondary,
-                                                  ),
-                                                );
-                                              }
-
-                                              safeSetState(() {});
-                                            },
-                                            child: Container(
-                                              decoration: BoxDecoration(
-                                                color: _feedbackVote == false
-                                                    ? const Color(0xFFD32F2F)
-                                                        .withOpacity(0.1)
-                                                    : null,
-                                                borderRadius:
-                                                    BorderRadius.circular(12.0),
-                                                border: Border.all(
-                                                  color: _feedbackVote == false
-                                                      ? const Color(0xFFD32F2F)
-                                                      : FlutterFlowTheme.of(
-                                                              context)
-                                                          .secondaryText,
-                                                  width: _feedbackVote == false
-                                                      ? 2.0
-                                                      : 1.0,
-                                                ),
-                                              ),
-                                              child: Padding(
-                                                padding: EdgeInsetsDirectional
-                                                    .fromSTEB(
-                                                        22.0, 18.0, 22.0, 18.0),
-                                                child: Row(
-                                                  mainAxisSize:
-                                                      MainAxisSize.max,
-                                                  children: [
-                                                    Icon(
-                                                      Icons.thumb_down_rounded,
-                                                      color:
-                                                          _feedbackVote == false
-                                                              ? const Color(
-                                                                  0xFFD32F2F)
-                                                              : const Color(
-                                                                  0xE61A1A1A),
-                                                      size: 24.0,
-                                                    ),
-                                                    Text(
-                                                      FFLocalizations.of(
-                                                              context)
-                                                          .getText(
-                                                        '330wbi7z' /* Not Helpful */,
-                                                      ),
-                                                      style: FlutterFlowTheme
-                                                              .of(context)
-                                                          .bodyMedium
-                                                          .override(
-                                                            fontFamily:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMediumFamily,
-                                                            color: _feedbackVote ==
-                                                                    false
-                                                                ? const Color(
-                                                                    0xFFD32F2F)
-                                                                : const Color(
-                                                                    0xE61A1A1A),
-                                                            letterSpacing: 0.0,
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                            useGoogleFonts:
-                                                                !FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMediumIsCustom,
-                                                          ),
-                                                    ),
-                                                  ].divide(
-                                                      SizedBox(width: 10.0)),
-                                                ),
-                                              ),
-                                            ),
-                                          ).animateOnActionTrigger(
-                                              animationsMap[
-                                                  'containerOnActionTriggerAnimation2']!,
-                                              hasBeenTriggered:
-                                                  hasContainerTriggered2),
-                                        ],
-                                      ),
-                                      Divider(
-                                        thickness: 1.0,
-                                        color:
-                                            FlutterFlowTheme.of(context).info,
-                                      ),
-                                      Text(
-                                        FFLocalizations.of(context).getText(
-                                          '5a7j03ug' /* Personal Notes */,
-                                        ),
-                                        style: FlutterFlowTheme.of(context)
-                                            .bodyMedium
-                                            .override(
-                                              fontFamily:
-                                                  FlutterFlowTheme.of(context)
-                                                      .bodyMediumFamily,
-                                              letterSpacing: 0.0,
-                                              fontWeight: FontWeight.bold,
-                                              useGoogleFonts:
-                                                  !FlutterFlowTheme.of(context)
-                                                      .bodyMediumIsCustom,
-                                            ),
-                                      ),
-                                      TextFormField(
-                                        controller: _model.textController ??=
-                                            TextEditingController(
-                                          text:
-                                              itemcard2ImagesRow?.personalNotes,
-                                        ),
-                                        focusNode: _model.textFieldFocusNode,
-                                        onChanged: (_) => EasyDebounce.debounce(
-                                          '_model.textController',
-                                          Duration(milliseconds: 2000),
-                                          () async {
-                                            await ImagesTable().update(
-                                              data: {
-                                                'personal_notes':
-                                                    _model.textController.text,
-                                              },
-                                              matchingRows: (rows) =>
-                                                  rows.eqOrNull(
-                                                'id',
-                                                widget.imageid,
-                                              ),
-                                            );
-                                            safeSetState(() {});
-                                          },
-                                        ),
-                                        autofocus: false,
-                                        enabled: true,
-                                        textInputAction: TextInputAction.done,
-                                        obscureText: false,
-                                        decoration: InputDecoration(
-                                          isDense: true,
-                                          hintText: FFLocalizations.of(context)
-                                              .getText(
-                                            'abj9484s' /* There is nothing here at the m... */,
-                                          ),
-                                          hintStyle: FlutterFlowTheme.of(
-                                                  context)
-                                              .labelMedium
-                                              .override(
-                                                fontFamily:
-                                                    FlutterFlowTheme.of(context)
-                                                        .labelMediumFamily,
-                                                letterSpacing: 0.0,
-                                                useGoogleFonts:
-                                                    !FlutterFlowTheme.of(
-                                                            context)
-                                                        .labelMediumIsCustom,
-                                              ),
-                                          enabledBorder: OutlineInputBorder(
-                                            borderSide: BorderSide(
-                                              color: Color(0x65F2EBB4),
-                                              width: 1.0,
-                                            ),
-                                            borderRadius:
-                                                BorderRadius.circular(16.0),
-                                          ),
-                                          focusedBorder: OutlineInputBorder(
-                                            borderSide: BorderSide(
-                                              color: Color(0x00000000),
-                                              width: 1.0,
-                                            ),
-                                            borderRadius:
-                                                BorderRadius.circular(16.0),
-                                          ),
-                                          errorBorder: OutlineInputBorder(
-                                            borderSide: BorderSide(
-                                              color:
-                                                  FlutterFlowTheme.of(context)
-                                                      .error,
-                                              width: 1.0,
-                                            ),
-                                            borderRadius:
-                                                BorderRadius.circular(16.0),
-                                          ),
-                                          focusedErrorBorder:
-                                              OutlineInputBorder(
-                                            borderSide: BorderSide(
-                                              color:
-                                                  FlutterFlowTheme.of(context)
-                                                      .error,
-                                              width: 1.0,
-                                            ),
-                                            borderRadius:
-                                                BorderRadius.circular(16.0),
-                                          ),
-                                          filled: true,
-                                          fillColor: Color(0x66F2EBB4),
-                                          hoverColor: Color(0x87F2EBB4),
-                                        ),
-                                        style: FlutterFlowTheme.of(context)
-                                            .bodyMedium
-                                            .override(
-                                              fontFamily:
-                                                  FlutterFlowTheme.of(context)
-                                                      .bodyMediumFamily,
-                                              letterSpacing: 0.0,
-                                              useGoogleFonts:
-                                                  !FlutterFlowTheme.of(context)
-                                                      .bodyMediumIsCustom,
-                                            ),
-                                        maxLines: 4,
-                                        cursorColor:
-                                            FlutterFlowTheme.of(context)
-                                                .primaryText,
-                                        enableInteractiveSelection: true,
-                                        validator: _model
-                                            .textControllerValidator
-                                            .asValidator(context),
-                                      ),
-                                    ].divide(SizedBox(height: 10.0)),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          // bottom padding so sticky banner doesn't overlap content
-                          if (currentUserIsAnonymous)
-                            const SizedBox(height: 80),
+                          // Trailing bottom spacer so the last block (e.g. "How
+                          // to use" for pro users) is fully visible; extra height
+                          // for the anonymous sticky save-banner.
+                          SizedBox(
+                              height: currentUserIsAnonymous ? 80.0 : 40.0),
                         ], // end of analysis sections
                       ],
                     ),
@@ -3135,11 +1463,6 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
         );
       },
     );
-  }
-
-  String _axisLabel(String lang, String axis) {
-    final label = FFLocalizations.of(context).getText('dim_$axis');
-    return label.isEmpty ? axis : label;
   }
 
 }
@@ -3443,48 +1766,17 @@ class _KeyFactRow extends StatelessWidget {
   }
 }
 
-class _PaywallBullet extends StatelessWidget {
-  const _PaywallBullet({required this.icon, required this.label});
-  final IconData icon;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 16.0, color: FlutterFlowTheme.of(context).primary),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              label,
-              style: FlutterFlowTheme.of(context).bodyMedium.override(
-                    fontFamily: FlutterFlowTheme.of(context).bodyMediumFamily,
-                    letterSpacing: 0.0,
-                    useGoogleFonts:
-                        !FlutterFlowTheme.of(context).bodyMediumIsCustom,
-                  ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _LoginRequiredSheet extends StatelessWidget {
   const _LoginRequiredSheet();
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        color: FlutterFlowTheme.of(context).secondaryBackground,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24.0)),
       ),
-      padding: EdgeInsets.fromLTRB(24.0, 24.0, 24.0, 40.0),
+      padding: const EdgeInsets.fromLTRB(24.0, 16.0, 24.0, 40.0),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -3492,42 +1784,43 @@ class _LoginRequiredSheet extends StatelessWidget {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: FlutterFlowTheme.of(context).alternate,
+              color: const Color(0xFFE0E0E0),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           Icon(
             Icons.lock_outline_rounded,
             size: 48,
             color: FlutterFlowTheme.of(context).primary,
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           Text(
             FFLocalizations.of(context)
                 .getText('copy_login_title' /* Sign in to copy */),
             style: FlutterFlowTheme.of(context).titleMedium.override(
                   fontFamily: FlutterFlowTheme.of(context).titleMediumFamily,
+                  color: const Color(0xFF111111),
                   fontWeight: FontWeight.bold,
                   letterSpacing: 0.0,
                   useGoogleFonts:
                       !FlutterFlowTheme.of(context).titleMediumIsCustom,
                 ),
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Text(
             FFLocalizations.of(context).getText(
-                'copy_login_body' /* Create a free account to save products to your collection. */),
+                'copy_login_body' /* Create a free account to copy products to your profile. */),
             textAlign: TextAlign.center,
             style: FlutterFlowTheme.of(context).bodyMedium.override(
                   fontFamily: FlutterFlowTheme.of(context).bodyMediumFamily,
-                  color: FlutterFlowTheme.of(context).secondaryText,
+                  color: const Color(0xFF666666),
                   letterSpacing: 0.0,
                   useGoogleFonts:
                       !FlutterFlowTheme.of(context).bodyMediumIsCustom,
                 ),
           ),
-          SizedBox(height: 24),
+          const SizedBox(height: 24),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
@@ -3537,10 +1830,10 @@ class _LoginRequiredSheet extends StatelessWidget {
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: FlutterFlowTheme.of(context).primary,
-                foregroundColor: FlutterFlowTheme.of(context).info,
-                padding: EdgeInsets.symmetric(vertical: 14),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 elevation: 0,
               ),
@@ -3549,7 +1842,7 @@ class _LoginRequiredSheet extends StatelessWidget {
                     .getText('copy_login_btn' /* Sign in */),
                 style: FlutterFlowTheme.of(context).titleSmall.override(
                       fontFamily: FlutterFlowTheme.of(context).titleSmallFamily,
-                      color: FlutterFlowTheme.of(context).info,
+                      color: Colors.white,
                       letterSpacing: 0.0,
                       useGoogleFonts:
                           !FlutterFlowTheme.of(context).titleSmallIsCustom,
@@ -3557,7 +1850,7 @@ class _LoginRequiredSheet extends StatelessWidget {
               ),
             ),
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 4),
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
@@ -3565,7 +1858,7 @@ class _LoginRequiredSheet extends StatelessWidget {
                   .getText('copy_login_cancel' /* Cancel */),
               style: FlutterFlowTheme.of(context).bodyMedium.override(
                     fontFamily: FlutterFlowTheme.of(context).bodyMediumFamily,
-                    color: FlutterFlowTheme.of(context).secondaryText,
+                    color: const Color(0xFF999999),
                     letterSpacing: 0.0,
                     useGoogleFonts:
                         !FlutterFlowTheme.of(context).bodyMediumIsCustom,

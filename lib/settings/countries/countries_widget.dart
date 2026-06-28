@@ -52,7 +52,7 @@ class _CountriesWidgetState extends State<CountriesWidget> {
         // Customize what your widget looks like when it's loading.
         if (!snapshot.hasData) {
           return Scaffold(
-            backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+            backgroundColor: Colors.white,
             body: Center(
               child: SizedBox(
                 width: 50.0,
@@ -79,16 +79,16 @@ class _CountriesWidgetState extends State<CountriesWidget> {
           },
           child: Scaffold(
             key: scaffoldKey,
-            backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+            backgroundColor: Colors.white,
             appBar: AppBar(
-              backgroundColor: FlutterFlowTheme.of(context).primary,
+              backgroundColor: Colors.white,
               automaticallyImplyLeading: false,
               leading: FlutterFlowIconButton(
                 borderRadius: 20.0,
                 buttonSize: 40.0,
                 icon: Icon(
                   Icons.arrow_back_rounded,
-                  color: FlutterFlowTheme.of(context).alternate,
+                  color: const Color(0xFF1A1A1A),
                   size: 24.0,
                 ),
                 onPressed: () async {
@@ -102,19 +102,11 @@ class _CountriesWidgetState extends State<CountriesWidget> {
                     '8pwht5ld' /* Your Region */,
                   ),
                   style: FlutterFlowTheme.of(context).titleLarge.override(
-                        font: GoogleFonts.sora(
-                          fontWeight: FlutterFlowTheme.of(context)
-                              .titleLarge
-                              .fontWeight,
-                          fontStyle:
-                              FlutterFlowTheme.of(context).titleLarge.fontStyle,
-                        ),
-                        color: FlutterFlowTheme.of(context).alternate,
+                        font: GoogleFonts.sora(fontWeight: FontWeight.w500),
+                        color: const Color(0xFF1A1A1A),
+                        fontSize: 24.0,
                         letterSpacing: 0.0,
-                        fontWeight:
-                            FlutterFlowTheme.of(context).titleLarge.fontWeight,
-                        fontStyle:
-                            FlutterFlowTheme.of(context).titleLarge.fontStyle,
+                        fontWeight: FontWeight.w500,
                       ),
                 ),
               ),
@@ -147,8 +139,9 @@ class _CountriesWidgetState extends State<CountriesWidget> {
                                 .override(
                                   fontFamily: FlutterFlowTheme.of(context)
                                       .bodyMediumFamily,
+                                  fontSize: 16.0,
                                   color:
-                                      FlutterFlowTheme.of(context).primaryText,
+                                      const Color(0xFF1A1A1A),
                                   letterSpacing: 0.0,
                                   useGoogleFonts: !FlutterFlowTheme.of(context)
                                       .bodyMediumIsCustom,
@@ -207,13 +200,15 @@ class _CountriesWidgetState extends State<CountriesWidget> {
                                     child: Container(
                                       width: double.infinity,
                                       decoration: BoxDecoration(
-                                        color: FlutterFlowTheme.of(context)
-                                            .secondaryBackground,
+                                        color: const Color(0xFFF3F4F6),
                                         borderRadius:
                                             BorderRadius.circular(12.0),
                                         border: Border.all(
-                                          color: FlutterFlowTheme.of(context)
-                                              .secondaryBackground,
+                                          color: countriesUsersRow?.countryId ==
+                                                  listViewCountriesRow.id
+                                              ? FlutterFlowTheme.of(context)
+                                                  .primary
+                                              : Colors.transparent,
                                           width: 2.0,
                                         ),
                                       ),
@@ -241,10 +236,9 @@ class _CountriesWidgetState extends State<CountriesWidget> {
                                                             FlutterFlowTheme.of(
                                                                     context)
                                                                 .bodyMediumFamily,
+                                  fontSize: 16.0,
                                                         color:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .primaryText,
+                                                            const Color(0xFF1A1A1A),
                                                         letterSpacing: 0.0,
                                                         useGoogleFonts:
                                                             !FlutterFlowTheme
@@ -279,10 +273,9 @@ class _CountriesWidgetState extends State<CountriesWidget> {
                                                             FlutterFlowTheme.of(
                                                                     context)
                                                                 .bodyMediumFamily,
+                                  fontSize: 16.0,
                                                         color:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .primaryText,
+                                                            const Color(0xFF1A1A1A),
                                                         letterSpacing: 0.0,
                                                         useGoogleFonts:
                                                             !FlutterFlowTheme
@@ -300,9 +293,7 @@ class _CountriesWidgetState extends State<CountriesWidget> {
                                                     listViewCountriesRow.id)
                                                   Icon(
                                                     Icons.radio_button_off,
-                                                    color: FlutterFlowTheme.of(
-                                                            context)
-                                                        .primary,
+                                                    color: const Color(0xFF555555),
                                                     size: 24.0,
                                                   ),
                                                 if (countriesUsersRow
@@ -310,9 +301,7 @@ class _CountriesWidgetState extends State<CountriesWidget> {
                                                     listViewCountriesRow.id)
                                                   Icon(
                                                     Icons.check_circle_rounded,
-                                                    color: FlutterFlowTheme.of(
-                                                            context)
-                                                        .primary,
+                                                    color: const Color(0xFF555555),
                                                     size: 24.0,
                                                   ),
                                               ],

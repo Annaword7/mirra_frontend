@@ -20,6 +20,12 @@ class FFAppState extends ChangeNotifier {
       _darkModeSet = prefs.getBool('ff_darkModeSet') ?? _darkModeSet;
     });
     _safeInit(() {
+      _freeScanLimit = prefs.getInt('ff_freeScanLimit') ?? _freeScanLimit;
+    });
+    _safeInit(() {
+      _showLinkTelegram = prefs.getBool('ff_showLinkTelegram') ?? _showLinkTelegram;
+    });
+    _safeInit(() {
       _onboardingDone = prefs.getBool('ff_onboardingDone') ?? _onboardingDone;
     });
     _safeInit(() {
@@ -43,6 +49,37 @@ class FFAppState extends ChangeNotifier {
     _safeInit(() {
       _userProfilePicture = prefs.getString('ff_userProfilePicture') ?? _userProfilePicture;
     });
+    _safeInit(() {
+      _obSkinType = prefs.getString('ff_obSkinType') ?? _obSkinType;
+    });
+    _safeInit(() {
+      if (prefs.containsKey('ff_obSensitive')) {
+        _obSensitive = prefs.getBool('ff_obSensitive');
+      }
+    });
+    _safeInit(() {
+      if (prefs.containsKey('ff_obAcneProne')) {
+        _obAcneProne = prefs.getBool('ff_obAcneProne');
+      }
+    });
+    _safeInit(() {
+      _obGoals = prefs.getStringList('ff_obGoals') ?? _obGoals;
+    });
+    _safeInit(() {
+      _obAgeRange = prefs.getString('ff_obAgeRange') ?? _obAgeRange;
+    });
+    _safeInit(() {
+      _obBudgetRange = prefs.getString('ff_obBudgetRange') ?? _obBudgetRange;
+    });
+    _safeInit(() {
+      _obTrustedBrands = prefs.getStringList('ff_obTrustedBrands') ?? _obTrustedBrands;
+    });
+    _safeInit(() {
+      _obPendingFlush = prefs.getBool('ff_obPendingFlush') ?? _obPendingFlush;
+    });
+    _safeInit(() {
+      _obStep = prefs.getInt('ff_obStep') ?? _obStep;
+    });
   }
 
   void update(VoidCallback callback) {
@@ -64,6 +101,25 @@ class FFAppState extends ChangeNotifier {
   set darkModeSet(bool value) {
     _darkModeSet = value;
     prefs.setBool('ff_darkModeSet', value);
+  }
+
+  // Free weekly scan limit. Source of truth is the app_config DB row
+  // ('free_scan_limit'), fetched once per session; persisted so the value
+  // survives offline / first paint before the DB read returns.
+  int _freeScanLimit = 10;
+  int get freeScanLimit => _freeScanLimit;
+  set freeScanLimit(int value) {
+    _freeScanLimit = value;
+    prefs.setInt('ff_freeScanLimit', value);
+  }
+
+  // Whether to show the "Link Telegram" item in the profile menu.
+  // Source of truth is app_config ('show_link_telegram'), default true.
+  bool _showLinkTelegram = true;
+  bool get showLinkTelegram => _showLinkTelegram;
+  set showLinkTelegram(bool value) {
+    _showLinkTelegram = value;
+    prefs.setBool('ff_showLinkTelegram', value);
   }
 
   String _uploadedimageurl = '';
@@ -221,6 +277,99 @@ class FFAppState extends ChangeNotifier {
   set feedbackUserId(String value) {
     _feedbackUserId = value;
     prefs.setString('ff_feedbackUserId', value);
+  }
+
+  // ── Onboarding skin-profile buffer ──
+  // Answers are collected pre-login and persisted so the quiz survives an app
+  // kill mid-flow (spec §5 "бросил на середине"). Flushed to users + cleared
+  // on the first authenticated screen when [obPendingFlush] is true.
+
+  String? _obSkinType;
+  String? get obSkinType => _obSkinType;
+  set obSkinType(String? value) {
+    _obSkinType = value;
+    value == null
+        ? prefs.remove('ff_obSkinType')
+        : prefs.setString('ff_obSkinType', value);
+  }
+
+  bool? _obSensitive;
+  bool? get obSensitive => _obSensitive;
+  set obSensitive(bool? value) {
+    _obSensitive = value;
+    value == null
+        ? prefs.remove('ff_obSensitive')
+        : prefs.setBool('ff_obSensitive', value);
+  }
+
+  bool? _obAcneProne;
+  bool? get obAcneProne => _obAcneProne;
+  set obAcneProne(bool? value) {
+    _obAcneProne = value;
+    value == null
+        ? prefs.remove('ff_obAcneProne')
+        : prefs.setBool('ff_obAcneProne', value);
+  }
+
+  List<String> _obGoals = [];
+  List<String> get obGoals => _obGoals;
+  set obGoals(List<String> value) {
+    _obGoals = value;
+    prefs.setStringList('ff_obGoals', value);
+  }
+
+  String? _obAgeRange;
+  String? get obAgeRange => _obAgeRange;
+  set obAgeRange(String? value) {
+    _obAgeRange = value;
+    value == null
+        ? prefs.remove('ff_obAgeRange')
+        : prefs.setString('ff_obAgeRange', value);
+  }
+
+  String? _obBudgetRange;
+  String? get obBudgetRange => _obBudgetRange;
+  set obBudgetRange(String? value) {
+    _obBudgetRange = value;
+    value == null
+        ? prefs.remove('ff_obBudgetRange')
+        : prefs.setString('ff_obBudgetRange', value);
+  }
+
+  List<String> _obTrustedBrands = [];
+  List<String> get obTrustedBrands => _obTrustedBrands;
+  set obTrustedBrands(List<String> value) {
+    _obTrustedBrands = value;
+    prefs.setStringList('ff_obTrustedBrands', value);
+  }
+
+  bool _obPendingFlush = false;
+  bool get obPendingFlush => _obPendingFlush;
+  set obPendingFlush(bool value) {
+    _obPendingFlush = value;
+    prefs.setBool('ff_obPendingFlush', value);
+  }
+
+  // Resume point for an interrupted quiz (step index).
+  int _obStep = 0;
+  int get obStep => _obStep;
+  set obStep(int value) {
+    _obStep = value;
+    prefs.setInt('ff_obStep', value);
+  }
+
+  /// Wipe the buffered onboarding answers (after a successful flush, or on
+  /// "Пропустить"). Does not touch [onboardingDone].
+  void clearOnboardingBuffer() {
+    obSkinType = null;
+    obSensitive = null;
+    obAcneProne = null;
+    obGoals = [];
+    obAgeRange = null;
+    obBudgetRange = null;
+    obTrustedBrands = [];
+    obPendingFlush = false;
+    obStep = 0;
   }
 }
 

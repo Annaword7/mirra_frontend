@@ -34,4 +34,7 @@ class ImageSkinCompatibilityRow extends SupabaseDataRow {
 
   String? get label => getField<String>('label');
   set label(String? value) => setField<String>('label', value);
+
+  String? get verdict => getField<String>('verdict');
+  set verdict(String? value) => setField<String>('verdict', value);
 }

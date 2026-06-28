@@ -92,7 +92,7 @@ class _NegativeFeedbackWidgetState extends State<NegativeFeedbackWidget> {
                     padding: const EdgeInsetsDirectional.fromSTEB(0.0, 24.0, 0.0, 0.0),
                     child: Text(
                       FFLocalizations.of(context).getText('fc_neg_title'),
-                      textAlign: TextAlign.center,
+                      textAlign: TextAlign.start,
                       style: FlutterFlowTheme.of(context).headlineSmall.override(
                             fontFamily: FlutterFlowTheme.of(context).headlineSmallFamily,
                             fontSize: 26.0,

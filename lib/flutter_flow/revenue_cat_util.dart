@@ -147,18 +147,21 @@ Future login(String? uid) async {
   if (!_isConfigured) {
     return;
   }
-  // Skip only when logging in the same identified user; always allow logout.
-  if (uid != null && uid == _loggedInUid) {
+  // Skip when there is no identity change: same user re-login or already-anonymous logout.
+  if (uid == _loggedInUid) {
     return;
   }
   try {
     if (uid != null) {
       customerInfo = (await Purchases.logIn(uid)).customerInfo;
+      // Anchor identity for webhooks (renewals can carry an anonymous app_user_id);
+      // the backend resolves the user via this supabase_uid attribute.
+      await Purchases.setAttributes({'supabase_uid': uid});
     } else {
       customerInfo = await Purchases.logOut();
     }
     _loggedInUid = uid;
-  } on Exception catch (e, s) {
+  } catch (e, s) {
     FirebaseCrashlytics.instance.recordError(e, s, fatal: false, reason: 'RevenueCat login/logout failed');
   }
 }

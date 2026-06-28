@@ -3,17 +3,40 @@ import '/backend/supabase/supabase.dart';
 import '/flutter_flow/flutter_flow_drop_down.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
+import '/flutter_flow/internationalization.dart' show kTranslationsMap;
 import '/flutter_flow/form_field_controller.dart';
 import 'package:flutter/material.dart';
 import 'countryselector_model.dart';
 export 'countryselector_model.dart';
 
 class CountryselectorWidget extends StatefulWidget {
-  const CountryselectorWidget({super.key, this.languageCode});
+  const CountryselectorWidget({
+    super.key,
+    this.languageCode,
+    this.fillColor,
+    this.textColor,
+    this.iconColor,
+    this.textSize,
+    this.borderRadius,
+    this.borderColor,
+    this.borderWidth,
+    this.elevation,
+  });
 
   /// When provided, overrides the app locale for country name labels.
   /// Use this to preview labels in a language not yet applied to the app.
   final String? languageCode;
+
+  /// Optional style overrides (default to the app theme). Used by the
+  /// light-themed quick-setup sheet to force a neutral field with black text.
+  final Color? fillColor;
+  final Color? textColor;
+  final Color? iconColor;
+  final double? textSize;
+  final double? borderRadius;
+  final Color? borderColor;
+  final double? borderWidth;
+  final double? elevation;
 
   @override
   State<CountryselectorWidget> createState() => _CountryselectorWidgetState();
@@ -110,38 +133,49 @@ class _CountryselectorWidgetState extends State<CountryselectorWidget> {
           searchHintTextStyle:
               FlutterFlowTheme.of(context).labelMedium.override(
                     fontFamily: FlutterFlowTheme.of(context).labelMediumFamily,
+                    color: widget.textColor,
+                    fontSize: widget.textSize,
                     letterSpacing: 0.0,
                     useGoogleFonts:
                         !FlutterFlowTheme.of(context).labelMediumIsCustom,
                   ),
           searchTextStyle: FlutterFlowTheme.of(context).bodyMedium.override(
                 fontFamily: FlutterFlowTheme.of(context).bodyMediumFamily,
+                color: widget.textColor,
+                    fontSize: widget.textSize,
                 letterSpacing: 0.0,
                 useGoogleFonts:
                     !FlutterFlowTheme.of(context).bodyMediumIsCustom,
               ),
           textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
                 fontFamily: FlutterFlowTheme.of(context).bodyMediumFamily,
+                color: widget.textColor,
+                    fontSize: widget.textSize,
                 letterSpacing: 0.0,
                 useGoogleFonts:
                     !FlutterFlowTheme.of(context).bodyMediumIsCustom,
               ),
           hintText: widget.languageCode == null
               ? FFLocalizations.of(context).getText('ocz602t7')
-              : const {'ru': 'Ваш регион', 'es': 'Tu región'}[widget.languageCode] ?? 'Your region',
+              : (kTranslationsMap['ocz602t7']?[widget.languageCode] ??
+                  kTranslationsMap['ocz602t7']?['en'] ??
+                  'Your region'),
           searchHintText: widget.languageCode == null
               ? FFLocalizations.of(context).getText('qsbnew6g')
-              : const {'ru': 'Поиск...', 'es': 'Buscar...'}[widget.languageCode] ?? 'Search...',
+              : (kTranslationsMap['qsbnew6g']?[widget.languageCode] ??
+                  kTranslationsMap['qsbnew6g']?['en'] ??
+                  'Search...'),
           icon: Icon(
             Icons.keyboard_arrow_down_rounded,
-            color: FlutterFlowTheme.of(context).secondaryText,
+            color: widget.iconColor ??
+                FlutterFlowTheme.of(context).secondaryText,
             size: 24.0,
           ),
-          fillColor: FlutterFlowTheme.of(context).alternate,
-          elevation: 2.0,
-          borderColor: Colors.transparent,
-          borderWidth: 0.0,
-          borderRadius: 16.0,
+          fillColor: widget.fillColor ?? FlutterFlowTheme.of(context).alternate,
+          elevation: widget.elevation ?? 2.0,
+          borderColor: widget.borderColor ?? Colors.transparent,
+          borderWidth: widget.borderWidth ?? 0.0,
+          borderRadius: widget.borderRadius ?? 16.0,
           margin: EdgeInsetsDirectional.fromSTEB(12.0, 0.0, 12.0, 0.0),
           hidesUnderline: true,
           isOverButton: false,

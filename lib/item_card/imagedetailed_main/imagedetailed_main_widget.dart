@@ -123,8 +123,13 @@ class _ImagedetailedMainWidgetState extends State<ImagedetailedMainWidget> {
                             fit: BoxFit.cover,
                           ),
                         ),
-                        image: NetworkImage(
-                          widget.imageUrl,
+                        // Cap decode resolution: grid tiles otherwise decode
+                        // each photo at full source size and OOM-kill the app.
+                        image: ResizeImage(
+                          NetworkImage(
+                            widget.imageUrl,
+                          ),
+                          width: 720,
                         ),
                         width: MediaQuery.sizeOf(context).width * 1.0,
                         height: 300.0,

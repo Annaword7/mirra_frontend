@@ -48,16 +48,16 @@ class _LangsWidgetState extends State<LangsWidget> {
       },
       child: Scaffold(
         key: scaffoldKey,
-        backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+        backgroundColor: Colors.white,
         appBar: AppBar(
-          backgroundColor: FlutterFlowTheme.of(context).primary,
+          backgroundColor: Colors.white,
           automaticallyImplyLeading: false,
           leading: FlutterFlowIconButton(
             borderRadius: 20.0,
             buttonSize: 40.0,
             icon: Icon(
               Icons.arrow_back_rounded,
-              color: FlutterFlowTheme.of(context).alternate,
+              color: const Color(0xFF1A1A1A),
               size: 24.0,
             ),
             onPressed: () async {
@@ -71,18 +71,11 @@ class _LangsWidgetState extends State<LangsWidget> {
                 'c7dzaokw' /* App language */,
               ),
               style: FlutterFlowTheme.of(context).titleLarge.override(
-                    font: GoogleFonts.sora(
-                      fontWeight:
-                          FlutterFlowTheme.of(context).titleLarge.fontWeight,
-                      fontStyle:
-                          FlutterFlowTheme.of(context).titleLarge.fontStyle,
-                    ),
-                    color: FlutterFlowTheme.of(context).alternate,
+                    font: GoogleFonts.sora(fontWeight: FontWeight.w500),
+                    color: const Color(0xFF1A1A1A),
+                    fontSize: 24.0,
                     letterSpacing: 0.0,
-                    fontWeight:
-                        FlutterFlowTheme.of(context).titleLarge.fontWeight,
-                    fontStyle:
-                        FlutterFlowTheme.of(context).titleLarge.fontStyle,
+                    fontWeight: FontWeight.w500,
                   ),
             ),
           ),
@@ -104,259 +97,85 @@ class _LangsWidgetState extends State<LangsWidget> {
                 child: Column(
                   mainAxisSize: MainAxisSize.max,
                   children: [
-                    ListView(
-                      padding: EdgeInsets.zero,
-                      primary: false,
-                      shrinkWrap: true,
-                      scrollDirection: Axis.vertical,
-                      children: [
-                        InkWell(
-                          splashColor: Colors.transparent,
-                          focusColor: Colors.transparent,
-                          hoverColor: Colors.transparent,
-                          highlightColor: Colors.transparent,
-                          onTap: () async {
-                            _model.langcode = 'en';
-                            safeSetState(() {});
-                            setAppLanguage(context, 'en');
-                            if (currentUserUid.isNotEmpty) {
-                              await UsersTable().update(
-                                data: {'language_code': 'en'},
-                                matchingRows: (q) => q.eq('id', currentUserUid),
-                              );
-                            }
-                            context.safePop();
-                          },
-                          child: Container(
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              color: FlutterFlowTheme.of(context)
-                                  .secondaryBackground,
-                              borderRadius: BorderRadius.circular(12.0),
-                              border: Border.all(
-                                color: FlutterFlowTheme.of(context)
-                                    .secondaryBackground,
-                                width: 2.0,
-                              ),
-                            ),
-                            child: Padding(
-                              padding: EdgeInsets.all(16.0),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.max,
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    FFLocalizations.of(context).getText(
-                                      'kgd7sdul' /* 🇺🇸 English */,
-                                    ),
-                                    style: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .override(
-                                          fontFamily:
-                                              FlutterFlowTheme.of(context)
-                                                  .bodyMediumFamily,
-                                          color: FlutterFlowTheme.of(context)
-                                              .primaryText,
-                                          letterSpacing: 0.0,
-                                          useGoogleFonts:
-                                              !FlutterFlowTheme.of(context)
-                                                  .bodyMediumIsCustom,
-                                        ),
+                    Expanded(
+                      child: ListView(
+                        padding: EdgeInsets.zero,
+                        primary: false,
+                        shrinkWrap: false,
+                        scrollDirection: Axis.vertical,
+                        children: [
+                          ...kAppLanguages.map((lang) {
+                            final selected =
+                                FFLocalizations.of(context).languageCode ==
+                                    lang.code;
+                            return InkWell(
+                              splashColor: Colors.transparent,
+                              focusColor: Colors.transparent,
+                              hoverColor: Colors.transparent,
+                              highlightColor: Colors.transparent,
+                              onTap: () async {
+                                _model.langcode = lang.code;
+                                safeSetState(() {});
+                                setAppLanguage(context, lang.code);
+                                if (currentUserUid.isNotEmpty) {
+                                  await UsersTable().update(
+                                    data: {'language_code': lang.code},
+                                    matchingRows: (q) =>
+                                        q.eq('id', currentUserUid),
+                                  );
+                                }
+                                context.safePop();
+                              },
+                              child: Container(
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF3F4F6),
+                                  borderRadius: BorderRadius.circular(12.0),
+                                  border: Border.all(
+                                    color: selected
+                                        ? FlutterFlowTheme.of(context).primary
+                                        : Colors.transparent,
+                                    width: 2.0,
                                   ),
-                                  Row(
+                                ),
+                                child: Padding(
+                                  padding: EdgeInsets.all(16.0),
+                                  child: Row(
                                     mainAxisSize: MainAxisSize.max,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
-                                      if (FFLocalizations.of(context)
-                                              .languageCode !=
-                                          'en')
-                                        Icon(
-                                          Icons.radio_button_off,
-                                          color: FlutterFlowTheme.of(context)
-                                              .primary,
-                                          size: 24.0,
-                                        ),
-                                      if (FFLocalizations.of(context)
-                                              .languageCode ==
-                                          'en')
-                                        Icon(
-                                          Icons.check_circle_rounded,
-                                          color: FlutterFlowTheme.of(context)
-                                              .primary,
-                                          size: 24.0,
-                                        ),
+                                      Text(
+                                        '${lang.flag} ${lang.nativeName}',
+                                        style: FlutterFlowTheme.of(context)
+                                            .bodyMedium
+                                            .override(
+                                              fontFamily:
+                                                  FlutterFlowTheme.of(context)
+                                                      .bodyMediumFamily,
+                                              color: const Color(0xFF1A1A1A),
+                                              fontSize: 16.0,
+                                              letterSpacing: 0.0,
+                                              useGoogleFonts:
+                                                  !FlutterFlowTheme.of(context)
+                                                      .bodyMediumIsCustom,
+                                            ),
+                                      ),
+                                      Icon(
+                                        selected
+                                            ? Icons.check_circle_rounded
+                                            : Icons.radio_button_off,
+                                        color: const Color(0xFF555555),
+                                        size: 24.0,
+                                      ),
                                     ],
                                   ),
-                                ],
+                                ),
                               ),
-                            ),
-                          ),
-                        ),
-                        InkWell(
-                          splashColor: Colors.transparent,
-                          focusColor: Colors.transparent,
-                          hoverColor: Colors.transparent,
-                          highlightColor: Colors.transparent,
-                          onTap: () async {
-                            _model.langcode = 'ru';
-                            safeSetState(() {});
-                            setAppLanguage(context, 'ru');
-                            if (currentUserUid.isNotEmpty) {
-                              await UsersTable().update(
-                                data: {'language_code': 'ru'},
-                                matchingRows: (q) => q.eq('id', currentUserUid),
-                              );
-                            }
-                            context.safePop();
-                          },
-                          child: Container(
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              color: FlutterFlowTheme.of(context)
-                                  .secondaryBackground,
-                              borderRadius: BorderRadius.circular(12.0),
-                              border: Border.all(
-                                color: FlutterFlowTheme.of(context)
-                                    .secondaryBackground,
-                                width: 2.0,
-                              ),
-                            ),
-                            child: Padding(
-                              padding: EdgeInsets.all(16.0),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.max,
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    FFLocalizations.of(context).getText(
-                                      'gp7z3wuj' /*  🇷🇺 Русский */,
-                                    ),
-                                    style: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .override(
-                                          fontFamily:
-                                              FlutterFlowTheme.of(context)
-                                                  .bodyMediumFamily,
-                                          color: FlutterFlowTheme.of(context)
-                                              .primaryText,
-                                          letterSpacing: 0.0,
-                                          useGoogleFonts:
-                                              !FlutterFlowTheme.of(context)
-                                                  .bodyMediumIsCustom,
-                                        ),
-                                  ),
-                                  Row(
-                                    mainAxisSize: MainAxisSize.max,
-                                    children: [
-                                      if (FFLocalizations.of(context)
-                                              .languageCode !=
-                                          'ru')
-                                        Icon(
-                                          Icons.radio_button_off,
-                                          color: FlutterFlowTheme.of(context)
-                                              .primary,
-                                          size: 24.0,
-                                        ),
-                                      if (FFLocalizations.of(context)
-                                              .languageCode ==
-                                          'ru')
-                                        Icon(
-                                          Icons.check_circle_rounded,
-                                          color: FlutterFlowTheme.of(context)
-                                              .primary,
-                                          size: 24.0,
-                                        ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        InkWell(
-                          splashColor: Colors.transparent,
-                          focusColor: Colors.transparent,
-                          hoverColor: Colors.transparent,
-                          highlightColor: Colors.transparent,
-                          onTap: () async {
-                            _model.langcode = 'es';
-                            safeSetState(() {});
-                            setAppLanguage(context, 'es');
-                            if (currentUserUid.isNotEmpty) {
-                              await UsersTable().update(
-                                data: {'language_code': 'es'},
-                                matchingRows: (q) => q.eq('id', currentUserUid),
-                              );
-                            }
-                            context.safePop();
-                          },
-                          child: Container(
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              color: FlutterFlowTheme.of(context)
-                                  .secondaryBackground,
-                              borderRadius: BorderRadius.circular(12.0),
-                              border: Border.all(
-                                color: FlutterFlowTheme.of(context)
-                                    .secondaryBackground,
-                                width: 2.0,
-                              ),
-                            ),
-                            child: Padding(
-                              padding: EdgeInsets.all(16.0),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.max,
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    FFLocalizations.of(context).getText(
-                                      'lfacw4vw' /*  🇪🇸 Español */,
-                                    ),
-                                    style: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .override(
-                                          fontFamily:
-                                              FlutterFlowTheme.of(context)
-                                                  .bodyMediumFamily,
-                                          color: FlutterFlowTheme.of(context)
-                                              .primaryText,
-                                          letterSpacing: 0.0,
-                                          useGoogleFonts:
-                                              !FlutterFlowTheme.of(context)
-                                                  .bodyMediumIsCustom,
-                                        ),
-                                  ),
-                                  Row(
-                                    mainAxisSize: MainAxisSize.max,
-                                    children: [
-                                      if (FFLocalizations.of(context)
-                                              .languageCode !=
-                                          'es')
-                                        Icon(
-                                          Icons.radio_button_off,
-                                          color: FlutterFlowTheme.of(context)
-                                              .primary,
-                                          size: 24.0,
-                                        ),
-                                      if (FFLocalizations.of(context)
-                                              .languageCode ==
-                                          'es')
-                                        Icon(
-                                          Icons.check_circle_rounded,
-                                          color: FlutterFlowTheme.of(context)
-                                              .primary,
-                                          size: 24.0,
-                                        ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ].divide(SizedBox(height: 12.0)),
+                            );
+                          }),
+                        ].divide(SizedBox(height: 12.0)),
+                      ),
                     ),
                   ].divide(SizedBox(height: 24.0)),
                 ),

@@ -63,13 +63,6 @@ class _NewblankWidgetState extends State<NewblankWidget> {
 
   }
 
-  String _t(BuildContext context, Map<String, String> map) {
-
-    final lang = FFLocalizations.of(context).languageCode;
-
-    return map[lang] ?? map['en']!;
-
-  }
 
   Future<void> _tryAnonymously() async {
 
@@ -96,14 +89,16 @@ class _NewblankWidgetState extends State<NewblankWidget> {
 
       unawaited(AnalyticsService.instance.trackAnonSessionStarted());
 
-      await showModalBottomSheet(
+      final saved = await showModalBottomSheet<bool>(
         context: context,
         isScrollControlled: true,
-        isDismissible: false,
-        enableDrag: false,
         backgroundColor: Colors.transparent,
         builder: (_) => const GuestPrefsSheet(),
       );
+
+      // Only navigate when the user completed setup (saved == true).
+      // Tapping outside dismisses the sheet and returns null — stay on page.
+      if (saved != true) return;
 
       // After the sheet, this widget may already be disposed — setAppLanguage
       // inside GuestPrefsSheet triggers _MyAppState.setState which rebuilds
@@ -143,7 +138,7 @@ class _NewblankWidgetState extends State<NewblankWidget> {
 
         key: scaffoldKey,
 
-        backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+        backgroundColor: Colors.white,
 
         body: SafeArea(
 
@@ -187,15 +182,7 @@ class _NewblankWidgetState extends State<NewblankWidget> {
 
                 Text(
 
-                  _t(context, {
-
-                    'ru': 'Проверь состав\nза 30 секунд',
-
-                    'es': 'Analiza el INCI\nen 30 segundos',
-
-                    'en': 'Check ingredients\nin 30 seconds',
-
-                  }),
+                  FFLocalizations.of(context).getText('nb_check_30s'),
 
                   textAlign: TextAlign.center,
 
@@ -204,8 +191,9 @@ class _NewblankWidgetState extends State<NewblankWidget> {
                         fontFamily:
 
                             FlutterFlowTheme.of(context).displaySmallFamily,
+                        color: Colors.black,
 
-                        fontSize: 34.0,
+                        fontSize: 24.0,
 
                         letterSpacing: 0.0,
 
@@ -233,21 +221,7 @@ class _NewblankWidgetState extends State<NewblankWidget> {
 
                 Text(
 
-                  _t(context, {
-
-                    'ru':
-
-                        'Сфотографируй косметику — узнай что внутри и безопасно ли это для твоей кожи',
-
-                    'es':
-
-                        'Fotografía cualquier cosmético y descubre qué hay dentro y si es seguro para tu piel',
-
-                    'en':
-
-                        'Photograph any cosmetic and find out what\'s inside and whether it\'s safe for your skin',
-
-                  }),
+                  FFLocalizations.of(context).getText('nb_subtitle'),
 
                   textAlign: TextAlign.center,
 
@@ -256,8 +230,9 @@ class _NewblankWidgetState extends State<NewblankWidget> {
                         fontFamily:
 
                             FlutterFlowTheme.of(context).bodyLargeFamily,
+                        fontSize: 16.0,
 
-                        color: FlutterFlowTheme.of(context).secondaryText,
+                        color: Colors.black,
 
                         letterSpacing: 0.0,
 
@@ -339,15 +314,8 @@ class _NewblankWidgetState extends State<NewblankWidget> {
 
                               Text(
 
-                                _t(context, {
-
-                                  'ru': 'Попробовать',
-
-                                  'es': 'Probar gratis',
-
-                                  'en': 'Try it free',
-
-                                }),
+                                FFLocalizations.of(context)
+                                    .getText('nb_try_free'),
 
                                 style: FlutterFlowTheme.of(context)
 
@@ -358,6 +326,7 @@ class _NewblankWidgetState extends State<NewblankWidget> {
                                       fontFamily: FlutterFlowTheme.of(context)
 
                                           .titleSmallFamily,
+                                      fontSize: 16.0,
 
                                       color: Colors.white,
 
@@ -437,21 +406,15 @@ class _NewblankWidgetState extends State<NewblankWidget> {
 
                     child: Text(
 
-                      _t(context, {
-
-                        'ru': 'Войти / Зарегистрироваться',
-
-                        'es': 'Entrar / Crear cuenta',
-
-                        'en': 'Sign in / Create account',
-
-                      }),
+                      FFLocalizations.of(context)
+                          .getText('nb_signin_register'),
 
                       style: FlutterFlowTheme.of(context).bodyMedium.override(
 
                             fontFamily:
 
                                 FlutterFlowTheme.of(context).bodyMediumFamily,
+                            fontSize: 16.0,
 
                             color: FlutterFlowTheme.of(context).primary,
 

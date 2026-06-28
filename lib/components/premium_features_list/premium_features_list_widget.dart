@@ -69,11 +69,7 @@ class _PremiumFeaturesListWidgetState extends State<PremiumFeaturesListWidget> {
               ),
               Expanded(
                 child: Text(
-                  FFLocalizations.of(context).languageCode == 'ru'
-                      ? 'Безлимитное количество сканов'
-                      : FFLocalizations.of(context).languageCode == 'es'
-                          ? 'Escaneos ilimitados'
-                          : 'Unlimited scans',
+                  FFLocalizations.of(context).getText('ic2_pro_unlimited'),
                   textAlign: TextAlign.start,
                   style: FlutterFlowTheme.of(context).bodyMedium.override(
                         fontFamily:
@@ -244,11 +240,7 @@ class _PremiumFeaturesListWidgetState extends State<PremiumFeaturesListWidget> {
               ),
               Expanded(
                 child: Text(
-                  FFLocalizations.of(context).languageCode == 'ru'
-                      ? 'Как правильно использовать'
-                      : FFLocalizations.of(context).languageCode == 'es'
-                          ? 'Cómo usar correctamente'
-                          : 'How-to-use guide',
+                  FFLocalizations.of(context).getText('ic2_pro_howto'),
                   textAlign: TextAlign.start,
                   style: FlutterFlowTheme.of(context).bodyMedium.override(
                         fontFamily:
@@ -289,11 +281,7 @@ class _PremiumFeaturesListWidgetState extends State<PremiumFeaturesListWidget> {
               ),
               Expanded(
                 child: Text(
-                  FFLocalizations.of(context).languageCode == 'ru'
-                      ? 'Совместимость с 5 типами кожи'
-                      : FFLocalizations.of(context).languageCode == 'es'
-                          ? 'Compatibilidad con 5 tipos de piel'
-                          : 'Skin compatibility for 5 skin types',
+                  FFLocalizations.of(context).getText('ic2_pro_skin'),
                   textAlign: TextAlign.start,
                   style: FlutterFlowTheme.of(context).bodyMedium.override(
                         fontFamily:
@@ -334,11 +322,7 @@ class _PremiumFeaturesListWidgetState extends State<PremiumFeaturesListWidget> {
               ),
               Expanded(
                 child: Text(
-                  FFLocalizations.of(context).languageCode == 'ru'
-                      ? 'Все активные ингредиенты с эффективностью'
-                      : FFLocalizations.of(context).languageCode == 'es'
-                          ? 'Todos los ingredientes con eficacia'
-                          : 'All active ingredients with efficacy scores',
+                  FFLocalizations.of(context).getText('ic2_pro_actives'),
                   textAlign: TextAlign.start,
                   style: FlutterFlowTheme.of(context).bodyMedium.override(
                         fontFamily:
@@ -379,11 +363,7 @@ class _PremiumFeaturesListWidgetState extends State<PremiumFeaturesListWidget> {
               ),
               Expanded(
                 child: Text(
-                  FFLocalizations.of(context).languageCode == 'ru'
-                      ? 'Личные заметки к продукту'
-                      : FFLocalizations.of(context).languageCode == 'es'
-                          ? 'Notas personales del producto'
-                          : 'Personal notes for your product',
+                  FFLocalizations.of(context).getText('ic2_pro_notes'),
                   textAlign: TextAlign.start,
                   style: FlutterFlowTheme.of(context).bodyMedium.override(
                         fontFamily:

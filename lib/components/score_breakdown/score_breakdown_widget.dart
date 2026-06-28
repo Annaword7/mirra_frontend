@@ -1,86 +1,33 @@
 import 'dart:math';
 import 'dart:ui' as ui;
-import '/flutter_flow/flutter_flow_theme.dart';
+import '/backend/supabase/supabase.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'package:flutter/material.dart';
-import 'package:percent_indicator/percent_indicator.dart';
-
-Color _scoreColor(double score) {
-  if (score >= 75) return const Color(0xFF1B5E20);
-  if (score >= 65) return const Color(0xFF43A047);
-  if (score >= 55) return const Color(0xFFC0CA33);
-  if (score >= 45) return const Color(0xFFFFB300);
-  if (score >= 35) return const Color(0xFFFF7043);
-  return const Color(0xFFD32F2F);
-}
 
 // ─── Radar data models ────────────────────────────────────
 
+/// One ingredient plotted on an axis. INCI position drives the radius
+/// (edge = top of the list = high concentration; center = trace); colour
+/// and fill encode dose status (actives) or severity (issues).
 class _DotData {
   const _DotData({
     required this.pos,
-    required this.tier,
-    required this.isIssue,
+    required this.radius,
+    required this.color,
+    required this.filled,
   });
-  final int pos;   // position in INCI list (1 = first = high concentration)
-  final int tier;  // 1–5, drives dot radius
-  final bool isIssue; // false = efficacy active (green), true = safety issue (red)
+  final int pos; // INCI position (1 = first)
+  final double radius; // px
+  final Color color;
+  final bool filled; // false = hollow (decorative / trace amount)
 }
 
 class _AxisData {
-  const _AxisData({required this.label, required this.score, this.dots = const []});
+  const _AxisData(
+      {required this.label, required this.score, this.dots = const []});
   final String label;
   final double score; // 0–100
   final List<_DotData> dots;
-}
-
-// ─── Parsing helpers ──────────────────────────────────────
-
-List<_DotData> _parseEfficacyDots(dynamic section) {
-  if (section == null) return [];
-  final factors = section['key_factors'];
-  if (factors is! List) return [];
-
-  final posRe = RegExp(r'pos #(\d+)');
-  final tierRe = RegExp(r'(?:tier|strength) (\d+)');
-  final dots = <_DotData>[];
-
-  for (final f in factors) {
-    final s = f.toString();
-    final posM = posRe.firstMatch(s);
-    final tierM = tierRe.firstMatch(s);
-    if (posM != null && tierM != null) {
-      dots.add(_DotData(
-        pos: int.parse(posM.group(1)!),
-        tier: int.parse(tierM.group(1)!),
-        isIssue: false,
-      ));
-    }
-  }
-  return dots;
-}
-
-List<_DotData> _parseSafetyDots(dynamic section) {
-  if (section == null) return [];
-  final factors = section['key_factors'];
-  if (factors is! List) return [];
-
-  final posRe = RegExp(r'pos #(\d+)');
-  final dots = <_DotData>[];
-
-  for (final f in factors) {
-    final s = f.toString();
-    if (s.contains('(+')) continue; // positive factor, no dot
-    final posM = posRe.firstMatch(s);
-    if (posM != null) {
-      dots.add(_DotData(
-        pos: int.parse(posM.group(1)!),
-        tier: 3, // safety issues carry no tier metadata
-        isIssue: true,
-      ));
-    }
-  }
-  return dots;
 }
 
 double _axisScore(dynamic section) {
@@ -92,10 +39,17 @@ double _axisScore(dynamic section) {
 // ─── CustomPainter ────────────────────────────────────────
 
 class _RadarPainter extends CustomPainter {
-  const _RadarPainter(this.axes);
+  const _RadarPainter(this.axes, {this.onePercentPos, this.totalInci = 25});
   final List<_AxisData> axes; // exactly 5, clockwise from top
+  final int? onePercentPos; // INCI position where the ≤1% zone starts
+  final int totalInci; // total ingredient count (radial scale)
 
-  static const _maxPos = 25.0; // pos >= this → near center
+  // INCI position → radial fraction (edge 0.95 = pos 1; center 0.05 = last).
+  double _posToT(int pos) {
+    final n = totalInci < 2 ? 25 : totalInci;
+    final frac = ((pos - 1) / (n - 1)).clamp(0.0, 1.0);
+    return (0.95 - frac * 0.90).clamp(0.05, 0.95);
+  }
 
   // Polar → cartesian along axis i at fraction t (0 = center, 1 = edge)
   Offset _pt(Offset c, double r, List<double> angles, int i, double t) {
@@ -126,14 +80,7 @@ class _RadarPainter extends CustomPainter {
       canvas.drawPath(path, gridP);
     }
 
-    // ── 2. Ring % labels (on axis 0) ──────────────────────
-    final pctStyle = const TextStyle(fontSize: 7.5, color: Color(0x66000000));
-    for (final t in [0.25, 0.5, 0.75]) {
-      final p = ap(0, t) + const Offset(5, -8);
-      _drawText(canvas, '${(t * 100).round()}', pctStyle, p);
-    }
-
-    // ── 3. Axis lines ─────────────────────────────────────
+    // ── 2. Axis lines ─────────────────────────────────────
     final axisP = Paint()
       ..color = const Color(0x1A000000)
       ..strokeWidth = 0.8;
@@ -141,7 +88,7 @@ class _RadarPainter extends CustomPainter {
       canvas.drawLine(center, ap(i, 1.0), axisP);
     }
 
-    // ── 4. Score polygon ──────────────────────────────────
+    // ── 3. Score polygon ──────────────────────────────────
     final fillP = Paint()
       ..color = const Color(0x284E7FE8)
       ..style = PaintingStyle.fill;
@@ -161,32 +108,52 @@ class _RadarPainter extends CustomPainter {
     canvas.drawPath(poly, fillP);
     canvas.drawPath(poly, strokeP);
 
-    // score vertex dots
     final vtxP = Paint()..color = const Color(0xFF3B6FCC);
     for (int i = 0; i < n; i++) {
       final t = (axes[i].score / 100.0).clamp(0.0, 1.0);
       canvas.drawCircle(ap(i, t), 3.5, vtxP);
     }
 
+    // ── 4. 1% line ring (concentration threshold for the dots) ─────
+    if (onePercentPos != null) {
+      final rRing = radius * _posToT(onePercentPos!);
+      _drawDashedCircle(
+        canvas,
+        center,
+        rRing,
+        Paint()
+          ..color = const Color(0xCCF9A825)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.2,
+      );
+      _drawText(
+        canvas,
+        '1%',
+        const TextStyle(
+          fontSize: 8,
+          color: Color(0xFFB8860B),
+          fontWeight: FontWeight.w700,
+        ),
+        center + Offset(3, -rRing - 11),
+      );
+    }
+
     // ── 5. Ingredient dots ────────────────────────────────
     for (int i = 0; i < n; i++) {
       for (final dot in axes[i].dots) {
-        // pos 1 → t≈0.95 (far, high concentration)
-        // pos 25+ → t≈0.05 (near center, trace)
-        final t = ((_maxPos - dot.pos) / (_maxPos - 1)).clamp(0.05, 0.95);
-        final dc = ap(i, t);
-        final dr = (dot.tier * 2.8 + 2.5).clamp(5.0, 17.0);
-        final color = dot.isIssue ? const Color(0xFFE53935) : const Color(0xFF2E7D32);
-
-        canvas.drawCircle(dc, dr,
-            Paint()..color = color.withValues(alpha: 0.22));
+        final dc = ap(i, _posToT(dot.pos));
+        if (dot.filled) {
+          canvas.drawCircle(dc, dot.radius,
+              Paint()..color = dot.color.withValues(alpha: 0.22));
+        }
         canvas.drawCircle(
-            dc,
-            dr,
-            Paint()
-              ..color = color
-              ..style = PaintingStyle.stroke
-              ..strokeWidth = 1.6);
+          dc,
+          dot.radius,
+          Paint()
+            ..color = dot.color
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 1.6,
+        );
       }
     }
 
@@ -203,11 +170,48 @@ class _RadarPainter extends CustomPainter {
       fontWeight: FontWeight.w600,
     );
     for (int i = 0; i < n; i++) {
-      // Place label slightly beyond the axis tip
       final lp = ap(i, 1.22);
-      _drawCentered(canvas, axes[i].label, lblStyle, lp);
-      final sp = ap(i, 1.36);
-      _drawCentered(canvas, '${axes[i].score.round()}', scoreStyle, sp);
+      final cosA = cos(angles[i]);
+
+      final lblTp = TextPainter(
+        text: TextSpan(text: axes[i].label, style: lblStyle),
+        textDirection: ui.TextDirection.ltr,
+        textAlign: TextAlign.center,
+      )..layout();
+
+      final scoreTp = TextPainter(
+        text: TextSpan(text: '${axes[i].score.round()}', style: scoreStyle),
+        textDirection: ui.TextDirection.ltr,
+        textAlign: TextAlign.center,
+      )..layout();
+
+      // Horizontal alignment based on which side of the radar the axis is on:
+      //   right side (cosA > 0.3): left-align — text starts at lp.x
+      //   left side  (cosA < -0.3): right-align — text ends at lp.x
+      //   top/bottom (|cosA| ≤ 0.3): centered around lp.x
+      double xOff(double w) {
+        if (cosA > 0.3) return 0;
+        if (cosA < -0.3) return -w;
+        return -w / 2;
+      }
+
+      lblTp.paint(canvas, lp + Offset(xOff(lblTp.width), -lblTp.height / 2));
+
+      // Score directly below the label, same horizontal alignment
+      final scoreTop = lp.dy + lblTp.height / 2 + 2;
+      scoreTp.paint(canvas, Offset(lp.dx + xOff(scoreTp.width), scoreTop));
+    }
+  }
+
+  void _drawDashedCircle(Canvas canvas, Offset center, double r, Paint p) {
+    if (r <= 0) return;
+    const dash = 4.0, gap = 3.5;
+    final count = (2 * pi * r / (dash + gap)).floor().clamp(8, 240);
+    final step = 2 * pi / count;
+    final sweep = step * dash / (dash + gap);
+    final rect = Rect.fromCircle(center: center, radius: r);
+    for (int i = 0; i < count; i++) {
+      canvas.drawArc(rect, i * step, sweep, false, p);
     }
   }
 
@@ -229,73 +233,76 @@ class _RadarPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_RadarPainter old) => false;
+  bool shouldRepaint(_RadarPainter old) => true;
 }
 
 // ─── Radar legend ─────────────────────────────────────────
 
 class _RadarLegend extends StatelessWidget {
-  const _RadarLegend();
+  const _RadarLegend({required this.showOnePercent});
+  final bool showOnePercent;
 
   @override
   Widget build(BuildContext context) {
+    String t(String k) => FFLocalizations.of(context).getText(k);
     return Wrap(
       spacing: 12,
       runSpacing: 6,
       children: [
         _LegendItem(
           child: Container(
-            width: 24, height: 10,
+            width: 24,
+            height: 10,
             decoration: BoxDecoration(
               color: const Color(0x284E7FE8),
               border: Border.all(color: const Color(0xFF3B6FCC), width: 1.4),
               borderRadius: BorderRadius.circular(3),
             ),
           ),
-          label: 'Score',
+          label: t('radar_score'),
         ),
         _LegendItem(
-          child: _tierDots(const Color(0xFF2E7D32)),
-          label: 'Active (tier 3→5)',
+          child: _dot(12, const Color(0xFF2E7D32), true),
+          label: t('radar_working'),
         ),
         _LegendItem(
-          child: _tierDots(const Color(0xFFE53935)),
-          label: 'Issue',
+          child: _dot(12, const Color(0xFFF9A825), true),
+          label: t('radar_borderline'),
         ),
         _LegendItem(
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _dot(10, const Color(0xFF2E7D32)),
-              const SizedBox(width: 2),
-              const Text('←', style: TextStyle(fontSize: 8, color: Color(0xFF888888))),
-              const SizedBox(width: 2),
-              _dot(10, const Color(0xFF2E7D32)),
-            ],
+          child: _dot(12, const Color(0xFF9E9E9E), false),
+          label: t('radar_trace'),
+        ),
+        _LegendItem(
+          child: _dot(12, const Color(0xFFE53935), true),
+          label: t('radar_issue'),
+        ),
+        if (showOnePercent)
+          _LegendItem(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (int i = 0; i < 3; i++)
+                  Container(
+                    margin: const EdgeInsets.only(right: 2),
+                    width: 4,
+                    height: 1.8,
+                    color: const Color(0xFFB8860B),
+                  ),
+              ],
+            ),
+            label: t('radar_one_percent'),
           ),
-          label: 'Edge=top of formula',
-        ),
       ],
     );
   }
 
-  static Widget _tierDots(Color color) => Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _dot(11.3, color), // tier 3: 2.8*3+2.5=11.0
-          const SizedBox(width: 2),
-          _dot(13.7, color), // tier 4: 2.8*4+2.5=13.7
-          const SizedBox(width: 2),
-          _dot(16.5, color), // tier 5: 2.8*5+2.5=16.5
-        ],
-      );
-
-  static Widget _dot(double size, Color color) => Container(
+  static Widget _dot(double size, Color color, bool filled) => Container(
         width: size,
         height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: color.withValues(alpha: 0.22),
+          color: filled ? color.withValues(alpha: 0.22) : Colors.transparent,
           border: Border.all(color: color, width: 1.4),
         ),
       );
@@ -313,7 +320,8 @@ class _LegendItem extends StatelessWidget {
       children: [
         child,
         const SizedBox(width: 5),
-        Text(label, style: const TextStyle(fontSize: 9.5, color: Color(0xFF667799))),
+        Text(label,
+            style: const TextStyle(fontSize: 9.5, color: Color(0xFF667799))),
       ],
     );
   }
@@ -322,9 +330,20 @@ class _LegendItem extends StatelessWidget {
 // ─── Main widget ──────────────────────────────────────────
 
 class ScoreBreakdownWidget extends StatelessWidget {
-  const ScoreBreakdownWidget({super.key, required this.scoringLog});
+  const ScoreBreakdownWidget({
+    super.key,
+    required this.scoringLog,
+    this.topIngredients = const [],
+    this.ingredientIssues = const [],
+    this.inciList = const [],
+    this.onePercentLinePos,
+  });
 
   final dynamic scoringLog;
+  final List<ImageTopIngredientsRow> topIngredients;
+  final List<ImageIngredientIssuesRow> ingredientIssues;
+  final List<String> inciList; // INCI names in position order (issue lookup)
+  final int? onePercentLinePos;
 
   @override
   Widget build(BuildContext context) {
@@ -337,60 +356,80 @@ class ScoreBreakdownWidget extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    final lang = FFLocalizations.of(context).languageCode;
-    final theme = FlutterFlowTheme.of(context);
+    String tr(String k) => FFLocalizations.of(context).getText(k);
 
-    // Build the 5 radar axes in order: Safety, Efficacy, Stability, Non-Comed., UX
+    // Active dots (efficacy axis) — coloured by dose status, sized by contribution.
+    final activeDots = <_DotData>[];
+    for (final ing in topIngredients) {
+      final pos = ing.inciPosition;
+      if (pos == null) continue;
+      Color c;
+      bool filled;
+      switch (ing.status) {
+        case 'working':
+          c = const Color(0xFF2E7D32);
+          filled = true;
+          break;
+        case 'borderline':
+          c = const Color(0xFFF9A825);
+          filled = true;
+          break;
+        case 'decorative':
+          c = const Color(0xFF9E9E9E);
+          filled = false;
+          break;
+        default:
+          c = const Color(0xFF2E7D32);
+          filled = true;
+      }
+      final contrib = ing.efficacyContribution ?? 0;
+      activeDots.add(_DotData(
+        pos: pos,
+        radius: (6.0 + contrib / 100.0 * 10.0).clamp(6.0, 16.0),
+        color: c,
+        filled: filled,
+      ));
+    }
+
+    // Issue dots (safety axis) — position resolved via the INCI list, size by severity.
+    final issueDots = <_DotData>[];
+    for (final issue in ingredientIssues) {
+      final idx = inciList.indexWhere(
+          (nm) => nm.toLowerCase() == issue.ingredientName.toLowerCase());
+      if (idx < 0) continue;
+      final high = issue.severity == 'high';
+      issueDots.add(_DotData(
+        pos: idx + 1,
+        radius: high ? 14.0 : 10.0,
+        color: high ? const Color(0xFFC62828) : const Color(0xFFE53935),
+        filled: true,
+      ));
+    }
+
+    // 5 radar axes in order: Safety, Efficacy, Stability, Non-Comed., Experience.
+    // Labels reuse the localized dim_* keys (all 11 app languages).
     final axes = [
       _AxisData(
-        label: lang == 'ru' ? 'Безопас.' : lang == 'es' ? 'Seguridad' : 'Safety',
+        label: tr('dim_safety'),
         score: _axisScore(log['safety']),
-        dots: _parseSafetyDots(log['safety']),
+        dots: issueDots,
       ),
       _AxisData(
-        label: lang == 'ru' ? 'Эффект.' : lang == 'es' ? 'Eficacia' : 'Efficacy',
+        label: tr('dim_efficacy'),
         score: _axisScore(log['efficacy']),
-        dots: _parseEfficacyDots(log['efficacy']),
+        dots: activeDots,
       ),
       _AxisData(
-        label: lang == 'ru' ? 'Стабил.' : lang == 'es' ? 'Estabilidad' : 'Stability',
+        label: tr('dim_stability'),
         score: _axisScore(log['stability']),
       ),
       _AxisData(
-        label: lang == 'ru' ? 'Некомед.' : lang == 'es' ? 'No Comed.' : 'Non-Comed.',
+        label: tr('dim_pore_safety'),
         score: _axisScore(log['comedogenicity']),
       ),
       _AxisData(
-        label: 'UX',
+        label: tr('dim_experience'),
         score: _axisScore(log['user_experience']),
-      ),
-    ];
-
-    final sections = [
-      _SectionDef(
-        key: 'safety',
-        label: lang == 'ru' ? 'Безопасность' : lang == 'es' ? 'Seguridad' : 'Safety',
-        icon: Icons.shield_outlined,
-      ),
-      _SectionDef(
-        key: 'efficacy',
-        label: lang == 'ru' ? 'Эффективность' : lang == 'es' ? 'Eficacia' : 'Efficacy',
-        icon: Icons.science_outlined,
-      ),
-      _SectionDef(
-        key: 'stability',
-        label: lang == 'ru' ? 'Стабильность' : lang == 'es' ? 'Estabilidad' : 'Stability',
-        icon: Icons.thermostat_outlined,
-      ),
-      _SectionDef(
-        key: 'comedogenicity',
-        label: lang == 'ru' ? 'Некомедогенность' : lang == 'es' ? 'No Comedogénico' : 'Non-Comedogenic',
-        icon: Icons.face_retouching_natural_outlined,
-      ),
-      _SectionDef(
-        key: 'user_experience',
-        label: lang == 'ru' ? 'Опыт применения' : lang == 'es' ? 'Experiencia' : 'User Experience',
-        icon: Icons.spa_outlined,
       ),
     ];
 
@@ -406,183 +445,23 @@ class ScoreBreakdownWidget extends StatelessWidget {
           ),
         ],
       ),
-      padding: const EdgeInsets.all(20.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // ── Radar chart ───────────────────────────────
           SizedBox(
             height: 270,
             child: CustomPaint(
-              painter: _RadarPainter(axes),
+              painter: _RadarPainter(
+                axes,
+                onePercentPos: onePercentLinePos,
+                totalInci: inciList.length,
+              ),
               size: Size.infinite,
             ),
           ),
-          const _RadarLegend(),
-          const Divider(height: 28, thickness: 0.5),
-
-          // ── Детали анализа ────────────────────────────
-          Row(
-            children: [
-              Icon(Icons.analytics_outlined, color: theme.primary, size: 20),
-              const SizedBox(width: 8),
-              Text(
-                lang == 'ru'
-                    ? 'Детали анализа'
-                    : lang == 'es'
-                        ? 'Detalles del análisis'
-                        : 'Score Breakdown',
-                style: theme.titleSmall.override(
-                  fontFamily: theme.titleSmallFamily,
-                  color: theme.primaryText,
-                  fontWeight: FontWeight.w600,
-                  useGoogleFonts: !theme.titleSmallIsCustom,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          ...sections.map((s) => _buildSection(context, s, log[s.key])),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSection(BuildContext context, _SectionDef def, dynamic data) {
-    if (data == null) return const SizedBox.shrink();
-
-    final Map<String, dynamic> section;
-    try {
-      section = Map<String, dynamic>.from(data as Map);
-    } catch (_) {
-      return const SizedBox.shrink();
-    }
-
-    final rawScore = section['score'];
-    final double score = rawScore is num ? rawScore.toDouble() : 0.0;
-    final factors = section['key_factors'];
-    final List<String> keyFactors =
-        factors is List ? factors.map((e) => e.toString()).toList() : [];
-
-    final color = _scoreColor(score);
-    final theme = FlutterFlowTheme.of(context);
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            children: [
-              Icon(def.icon, size: 14, color: theme.secondaryText),
-              const SizedBox(width: 5),
-              Expanded(
-                child: Text(
-                  def.label,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: theme.secondaryText,
-                    letterSpacing: 0.2,
-                  ),
-                ),
-              ),
-              Text(
-                '${score.round()}',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: color,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          LinearPercentIndicator(
-            percent: (score / 100.0).clamp(0.0, 1.0),
-            lineHeight: 6.0,
-            backgroundColor: color.withValues(alpha: 0.12),
-            progressColor: color,
-            barRadius: const Radius.circular(4),
-            padding: EdgeInsets.zero,
-            animation: true,
-          ),
-          if (keyFactors.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 6,
-              runSpacing: 5,
-              children: keyFactors.map((f) => _FactorChip(text: f)).toList(),
-            ),
-          ],
-          const Divider(height: 24, thickness: 0.5),
-        ],
-      ),
-    );
-  }
-}
-
-// ─── Supporting widgets ───────────────────────────────────
-
-class _SectionDef {
-  const _SectionDef({required this.key, required this.label, required this.icon});
-  final String key;
-  final String label;
-  final IconData icon;
-}
-
-class _FactorChip extends StatelessWidget {
-  const _FactorChip({required this.text});
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    final bool positive = text.contains('(+');
-    final bool negative = text.contains('(-');
-
-    final bgColor = positive
-        ? const Color(0xFFE8F5E9)
-        : negative
-            ? const Color(0xFFFFEBEE)
-            : const Color(0xFFF0F4FF);
-    final textColor = positive
-        ? const Color(0xFF2E7D32)
-        : negative
-            ? const Color(0xFFC62828)
-            : const Color(0xFF445588);
-    final icon = positive
-        ? Icons.add_circle_outline
-        : negative
-            ? Icons.remove_circle_outline
-            : Icons.info_outline;
-
-    String label = text;
-    if (label.length > 48) label = '${label.substring(0, 46)}…';
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 11, color: textColor),
-          const SizedBox(width: 3),
-          Flexible(
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 10.5,
-                color: textColor,
-                fontWeight: FontWeight.w500,
-                height: 1.3,
-              ),
-            ),
-          ),
+          _RadarLegend(showOnePercent: onePercentLinePos != null),
         ],
       ),
     );

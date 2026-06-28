@@ -4,10 +4,8 @@ export '/pages/create_account_page/create_account_page_widget.dart'
 export '/pages/log_in_page/log_in_page_widget.dart' show LogInPageWidget;
 export '/pages/onboarding_profile/onboarding_profile_widget.dart'
     show OnboardingProfileWidget;
-export '/pages/onboarding_instructions/onboarding_instructions_widget.dart'
-    show OnboardingInstructionsWidget;
-export '/pages/onboarding_carousel/onboarding_carousel_widget.dart'
-    show OnboardingCarouselWidget;
+export '/pages/onboarding_quiz/onboarding_quiz_widget.dart'
+    show OnboardingQuizWidget;
 export '/boards/boards/boards_widget.dart' show BoardsWidget;
 export '/home/home/home_widget.dart' show HomeWidget;
 export '/pages/profile/profile_widget.dart' show ProfileWidget;
@@ -27,3 +25,4 @@ export '/settings/countries/countries_widget.dart' show CountriesWidget;
 export '/pages/newblank/newblank_widget.dart' show NewblankWidget;
 export '/itemcard2/itemcard2_widget.dart' show Itemcard2Widget;
 export '/shareproduct/shareproduct_widget.dart' show ShareproductWidget;
+export '/search/search_widget.dart' show SearchWidget;

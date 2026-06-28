@@ -34,6 +34,11 @@ class _OnboardingProfileWidgetState extends State<OnboardingProfileWidget>
   late OnboardingProfileModel _model;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
+
+  // Type scale — same 3 sizes as the quiz step.
+  static const double _fsTitle = 24;
+  static const double _fsBody = 16;
+  static const double _fsSub = 13;
   late StreamSubscription<bool> _keyboardVisibilitySubscription;
   bool _isKeyboardVisible = false;
 
@@ -171,7 +176,7 @@ class _OnboardingProfileWidgetState extends State<OnboardingProfileWidget>
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: FlutterFlowTheme.of(context).secondaryBackground,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
@@ -191,8 +196,8 @@ class _OnboardingProfileWidgetState extends State<OnboardingProfileWidget>
       text.toUpperCase(),
       style: FlutterFlowTheme.of(context).labelSmall.override(
             fontFamily: FlutterFlowTheme.of(context).labelSmallFamily,
-            color: FlutterFlowTheme.of(context).secondaryText,
-            fontSize: 11,
+            color: FlutterFlowTheme.of(context).primaryText,
+            fontSize: _fsSub,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.8,
             useGoogleFonts: !FlutterFlowTheme.of(context).labelSmallIsCustom,
@@ -206,12 +211,13 @@ class _OnboardingProfileWidgetState extends State<OnboardingProfileWidget>
       hintText: hint,
       hintStyle: theme.bodyMedium.override(
         fontFamily: theme.bodyMediumFamily,
-        color: theme.secondaryText,
+              fontSize: _fsBody,
+        color: theme.primaryText,
         letterSpacing: 0,
         useGoogleFonts: !theme.bodyMediumIsCustom,
       ),
       filled: true,
-      fillColor: theme.alternate,
+      fillColor: const Color(0xFFF3F4F6),
       contentPadding:
           const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       enabledBorder: OutlineInputBorder(
@@ -356,6 +362,7 @@ class _OnboardingProfileWidgetState extends State<OnboardingProfileWidget>
             _fieldDecoration(FFLocalizations.of(context).getText(hintKey)),
         style: theme.bodyMedium.override(
           fontFamily: theme.bodyMediumFamily,
+              fontSize: _fsBody,
           color: theme.primaryText,
           letterSpacing: 0,
           useGoogleFonts: !theme.bodyMediumIsCustom,
@@ -431,6 +438,7 @@ class _OnboardingProfileWidgetState extends State<OnboardingProfileWidget>
               _fieldDecoration(FFLocalizations.of(context).getText('r07lmjc9')),
           style: theme.bodyMedium.override(
             fontFamily: theme.bodyMediumFamily,
+              fontSize: _fsBody,
             color: theme.primaryText,
             letterSpacing: 0,
             useGoogleFonts: !theme.bodyMediumIsCustom,
@@ -462,7 +470,8 @@ class _OnboardingProfileWidgetState extends State<OnboardingProfileWidget>
             FFLocalizations.of(context).getText('razzzfb3'),
             style: theme.labelSmall.override(
               fontFamily: theme.labelSmallFamily,
-              color: theme.secondaryText,
+              fontSize: _fsSub,
+              color: theme.primaryText,
               letterSpacing: 0,
               useGoogleFonts: !theme.labelSmallIsCustom,
             ),
@@ -507,7 +516,8 @@ class _OnboardingProfileWidgetState extends State<OnboardingProfileWidget>
           username,
           style: theme.bodySmall.override(
             fontFamily: theme.bodySmallFamily,
-            color: selected ? theme.primary : theme.secondaryText,
+              fontSize: _fsSub,
+            color: selected ? theme.primary : theme.primaryText,
             fontWeight: FontWeight.w500,
             letterSpacing: 0,
             useGoogleFonts: !theme.bodySmallIsCustom,
@@ -530,12 +540,13 @@ class _OnboardingProfileWidgetState extends State<OnboardingProfileWidget>
           child: FlutterFlowLanguageSelector(
             width: double.infinity,
             height: 50,
-            backgroundColor: theme.alternate,
+            backgroundColor: const Color(0xFFF3F4F6),
             borderColor: Colors.transparent,
             dropdownIconColor: theme.secondaryText,
             borderRadius: 14,
             textStyle: theme.bodyMedium.override(
               fontFamily: theme.bodyMediumFamily,
+              fontSize: _fsBody,
               color: theme.primaryText,
               letterSpacing: 0,
               useGoogleFonts: !theme.bodyMediumIsCustom,
@@ -552,7 +563,7 @@ class _OnboardingProfileWidgetState extends State<OnboardingProfileWidget>
         wrapWithModel(
           model: _model.countryselectorModel,
           updateCallback: () => safeSetState(() {}),
-          child: CountryselectorWidget(),
+          child: CountryselectorWidget(textSize: 16),
         ),
       ],
     );
@@ -575,14 +586,14 @@ class _OnboardingProfileWidgetState extends State<OnboardingProfileWidget>
         canPop: false,
         child: Scaffold(
           key: scaffoldKey,
-          backgroundColor: theme.alternate,
+          backgroundColor: Colors.white,
           body: SafeArea(
             child: Column(
               children: [
                 // ── Scrollable content ──
                 Expanded(
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(20, 28, 20, 16),
+                    padding: const EdgeInsets.fromLTRB(16, 28, 16, 16),
                     child: Form(
                       key: _model.formKey,
                       autovalidateMode: AutovalidateMode.disabled,
@@ -594,6 +605,7 @@ class _OnboardingProfileWidgetState extends State<OnboardingProfileWidget>
                             FFLocalizations.of(context).getText('zte082q6'),
                             style: theme.headlineMedium.override(
                               fontFamily: theme.headlineMediumFamily,
+              fontSize: _fsTitle,
                               fontWeight: FontWeight.w700,
                               letterSpacing: -0.3,
                               useGoogleFonts: !theme.headlineMediumIsCustom,
@@ -604,7 +616,8 @@ class _OnboardingProfileWidgetState extends State<OnboardingProfileWidget>
                             FFLocalizations.of(context).getText('lf9tgr4o'),
                             style: theme.bodyMedium.override(
                               fontFamily: theme.bodyMediumFamily,
-                              color: theme.secondaryText,
+              fontSize: _fsBody,
+                              color: theme.primaryText,
                               letterSpacing: 0,
                               useGoogleFonts: !theme.bodyMediumIsCustom,
                             ),
@@ -635,7 +648,7 @@ class _OnboardingProfileWidgetState extends State<OnboardingProfileWidget>
                 // ── Continue button (outside scroll) ──
                 if (!keyboardVisible)
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                     child: FFButtonWidget(
                       onPressed: () async {
                         HapticFeedback.lightImpact();
@@ -662,6 +675,7 @@ class _OnboardingProfileWidgetState extends State<OnboardingProfileWidget>
                         color: theme.primary,
                         textStyle: theme.titleSmall.override(
                           fontFamily: theme.titleSmallFamily,
+              fontSize: _fsBody,
                           color: Colors.white,
                           fontWeight: FontWeight.w600,
                           letterSpacing: 0,

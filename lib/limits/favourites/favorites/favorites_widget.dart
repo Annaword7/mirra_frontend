@@ -96,7 +96,7 @@ class _FavoritesWidgetState extends State<FavoritesWidget> {
         // Customize what your widget looks like when it's loading.
         if (!snapshot.hasData) {
           return Scaffold(
-            backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+            backgroundColor: Colors.white,
             body: Center(
               child: SizedBox(
                 width: 50.0,
@@ -121,10 +121,10 @@ class _FavoritesWidgetState extends State<FavoritesWidget> {
             canPop: false,
             child: Scaffold(
               key: scaffoldKey,
-              backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+              backgroundColor: Colors.white,
               appBar: AppBar(
                 backgroundColor:
-                    FlutterFlowTheme.of(context).secondaryBackground,
+                    Colors.white,
                 automaticallyImplyLeading: false,
                 title: Column(
                   mainAxisSize: MainAxisSize.max,
@@ -157,6 +157,7 @@ class _FavoritesWidgetState extends State<FavoritesWidget> {
                               .override(
                                 fontFamily: FlutterFlowTheme.of(context)
                                     .titleLargeFamily,
+                                fontSize: 24.0,
                                 letterSpacing: 0.0,
                                 fontWeight: FontWeight.w600,
                                 useGoogleFonts: !FlutterFlowTheme.of(context)
@@ -223,7 +224,7 @@ class _FavoritesWidgetState extends State<FavoritesWidget> {
                                             fontFamily:
                                                 FlutterFlowTheme.of(context)
                                                     .bodyLargeFamily,
-                                            fontSize: 36.0,
+                                            fontSize: 24.0,
                                             letterSpacing: 0.0,
                                             useGoogleFonts:
                                                 !FlutterFlowTheme.of(context)
@@ -240,6 +241,7 @@ class _FavoritesWidgetState extends State<FavoritesWidget> {
                                             fontFamily:
                                                 FlutterFlowTheme.of(context)
                                                     .bodyMediumFamily,
+                                          fontSize: 13.0,
                                             letterSpacing: 0.0,
                                             useGoogleFonts:
                                                 !FlutterFlowTheme.of(context)

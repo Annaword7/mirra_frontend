@@ -6,14 +6,15 @@ import UserNotifications
 
 // MARK: - Shared store
 
-// Written by MirraSceneDelegate or ShareExtension, read by MirraSharePlugin (Flutter side).
-// Uses App Group container so ShareExtension (separate process) can pass data to the main app.
+// Written by MirraSceneDelegate (Open In / file URL), read by MirraSharePlugin (Flutter side).
+// Uses App Group container to pass data across the Flutter engine boundary.
 enum ShareStore {
-  static let appGroup     = "group.mirra.app"
-  static let pendingKey   = "mirra_pending_shared_image"
-  static let tempFilename = "mirra_shared_image"
+  static let appGroup      = "group.mirra.app"
+  static let pendingKey    = "mirra_pending_shared_image"
+  static let pendingUrlKey = "mirra_pending_shared_url"
+  static let tempFilename  = "mirra_shared_image"
 
-  /// Shared UserDefaults accessible by both main app and ShareExtension.
+  /// Shared UserDefaults backed by the App Group container.
   static var defaults: UserDefaults { UserDefaults(suiteName: appGroup) ?? .standard }
 
   /// Shared file container directory (App Group).
@@ -93,12 +94,6 @@ class MirraSceneDelegate: FlutterSceneDelegate {
     print("[Share] openURLContexts — count: \(URLContexts.count)")
     for ctx in URLContexts {
       let url = ctx.url
-      // ShareExtension already saved the image to App Group — just notify Flutter.
-      if url.scheme == "mirradev" && url.host == "share" {
-        print("[Share] opened by ShareExtension")
-        MirraSharePlugin.channel?.invokeMethod("sharedImage", arguments: nil)
-        break
-      }
       // "Open In" direct file URL (Photos app, Files app).
       if ShareStore.saveFile(url: url) {
         MirraSharePlugin.channel?.invokeMethod("sharedImage", arguments: nil)
@@ -127,9 +122,20 @@ class MirraSharePlugin: NSObject, FlutterPlugin {
     switch call.method {
     case "getPendingSharedImage":
       getPendingSharedImage(result: result)
+    case "getPendingSharedURL":
+      getPendingSharedURL(result: result)
     default:
       result(FlutterMethodNotImplemented)
     }
+  }
+
+  private func getPendingSharedURL(result: @escaping FlutterResult) {
+    guard let urlString = ShareStore.defaults.string(forKey: ShareStore.pendingUrlKey) else {
+      result(nil); return
+    }
+    ShareStore.defaults.removeObject(forKey: ShareStore.pendingUrlKey)
+    print("[Share] returning URL to Flutter: \(urlString)")
+    result(urlString)
   }
 
   private func getPendingSharedImage(result: @escaping FlutterResult) {
@@ -167,9 +173,13 @@ class MirraSharePlugin: NSObject, FlutterPlugin {
   // Fires after sceneWillEnterForeground, when GoRouter is ready to handle pushes.
   override func applicationDidBecomeActive(_ application: UIApplication) {
     super.applicationDidBecomeActive(application)
+    // Priority ordering: image takes precedence, only one event per activation cycle.
     if ShareStore.defaults.string(forKey: ShareStore.pendingKey) != nil {
       print("[Share] pending image found, app active → notifying Flutter")
       MirraSharePlugin.channel?.invokeMethod("sharedImage", arguments: nil)
+    } else if ShareStore.defaults.string(forKey: ShareStore.pendingUrlKey) != nil {
+      print("[Share] pending URL found, app active → notifying Flutter")
+      MirraSharePlugin.channel?.invokeMethod("sharedURL", arguments: nil)
     }
   }
 

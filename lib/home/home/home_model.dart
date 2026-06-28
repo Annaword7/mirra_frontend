@@ -24,6 +24,9 @@ class HomeModel extends FlutterFlowModel<HomeWidget> {
   // Cached future for images — store so FutureBuilder doesn't re-fetch on every rebuild,
   // but can be explicitly refreshed by reassigning.
   Future<List<ImagesRow>>? imagesFuture;
+  // Last successfully loaded images — shown while a refresh is in flight so the
+  // screen doesn't blank to a spinner on every return to Home.
+  List<ImagesRow>? loadedImages;
   // Currently selected filter category key ('all', 'serum', 'toner', etc.)
   String selectedCategory = 'all';
 

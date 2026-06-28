@@ -80,7 +80,7 @@ class _ImagesbyAlbumWidgetState extends State<ImagesbyAlbumWidget> {
       builder: (context, albumSnapshot) {
         if (!albumSnapshot.hasData) {
           return Scaffold(
-            backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+            backgroundColor: Colors.white,
             body: Center(
               child: SizedBox(
                 width: 50.0,
@@ -103,9 +103,9 @@ class _ImagesbyAlbumWidgetState extends State<ImagesbyAlbumWidget> {
           },
           child: Scaffold(
             key: scaffoldKey,
-            backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+            backgroundColor: Colors.white,
             appBar: AppBar(
-              backgroundColor: FlutterFlowTheme.of(context).primary,
+              backgroundColor: Colors.white,
               iconTheme: IconThemeData(
                   color: FlutterFlowTheme.of(context).primaryText),
               automaticallyImplyLeading: false,
@@ -243,10 +243,8 @@ class _ImagesbyAlbumWidgetState extends State<ImagesbyAlbumWidget> {
                               ),
                               const SizedBox(height: 16),
                               Text(
-                                FFLocalizations.of(context).getVariableText(
-                                  enText: 'No products yet',
-                                  ruText: 'Продуктов пока нет',
-                                  esText: 'Aún no hay productos',
+                                FFLocalizations.of(context).getText(
+                                  'iba_empty',
                                 ),
                                 style: FlutterFlowTheme.of(context)
                                     .bodyMedium

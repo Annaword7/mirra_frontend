@@ -20,36 +20,14 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 import '/flutter_flow/analytics_service.dart';
+import '/flutter_flow/internationalization.dart' show kTranslationsMap;
 
-// ── Localization maps ──────────────────────────────────────────────────────────
-
-const _l10n = {
-  'share': {'en': 'Download', 'ru': 'Загрузить', 'es': 'Descargar'},
-  'creating': {'en': 'Creating…', 'ru': 'Создаём…', 'es': 'Creando…'},
-  'shareText': {
-    'en': 'Analyzed with MiRRA',
-    'ru': 'Проверено с MiRRA',
-    'es': 'Analizado con MiRRA',
-  },
-  'tagPrompt': {
-    'en': 'Tag us when you share!',
-    'ru': 'Отметьте нас, когда делитесь!',
-    'es': '¡Etiquétanos cuando compartas!',
-  },
-  'copyTags': {
-    'en': 'Copy tags',
-    'ru': 'Скопировать теги',
-    'es': 'Copiar etiquetas',
-  },
-  'copied': {
-    'en': 'Copied!',
-    'ru': 'Скопировано!',
-    'es': '¡Copiado!',
-  },
-};
-
+// Localized strings live in kTranslationsMap as 'sc_<key>'. Keyed by the passed
+// `lang` so the rendered share image matches the requested language.
 String _t(String key, String lang) =>
-    _l10n[key]?[lang] ?? _l10n[key]?['en'] ?? key;
+    kTranslationsMap['sc_$key']?[lang] ??
+    kTranslationsMap['sc_$key']?['en'] ??
+    key;
 
 // ── Score helpers ──────────────────────────────────────────────────────────────
 
@@ -147,7 +125,8 @@ class _ShareCardWidgetState extends State<ShareCardWidget> {
       final bytes = byteData.buffer.asUint8List();
 
       Rect? shareOrigin;
-      final box = _shareButtonKey.currentContext?.findRenderObject() as RenderBox?;
+      final box =
+          _shareButtonKey.currentContext?.findRenderObject() as RenderBox?;
       if (box != null) {
         final position = box.localToGlobal(Offset.zero);
         shareOrigin = position & box.size;
@@ -245,8 +224,7 @@ class _ShareCardWidgetState extends State<ShareCardWidget> {
               _isCapturing
                   ? _t('creating', widget.lang)
                   : _t('share', widget.lang),
-              style:
-                  const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
             ),
           ),
         ),
@@ -258,14 +236,9 @@ class _ShareCardWidgetState extends State<ShareCardWidget> {
 // ── Axis labels ───────────────────────────────────────────────────────────────
 
 String _axisLabel(String lang, String axis) {
-  const labels = {
-    'efficacy':    {'en': 'Efficacy',        'ru': 'Эффективность',    'es': 'Eficacia'},
-    'safety':      {'en': 'Safety',          'ru': 'Безопасность',     'es': 'Seguridad'},
-    'stability':   {'en': 'Stability',       'ru': 'Стабильность',     'es': 'Estabilidad'},
-    'experience':  {'en': 'Experience',      'ru': 'Ощущения',         'es': 'Experiencia'},
-    'pore_safety': {'en': 'Non-Comedogenic', 'ru': 'Некомедоген.',     'es': 'No Comedogénico'},
-  };
-  return labels[axis]?[lang] ?? labels[axis]?['en'] ?? axis;
+  // Reuse shared dimension labels; pore_safety uses a shorter card-specific key.
+  final key = axis == 'pore_safety' ? 'sc_pore_safety' : 'dim_$axis';
+  return kTranslationsMap[key]?[lang] ?? kTranslationsMap[key]?['en'] ?? axis;
 }
 
 // ── Mini score bar ────────────────────────────────────────────────────────────
@@ -338,7 +311,8 @@ Widget _ingredientRichText(
   final greenSet = topIngredients.map((s) => s.toLowerCase().trim()).toSet();
   final redSet = issueIngredients.map((s) => s.toLowerCase().trim()).toSet();
 
-  final tokens = raw.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+  final tokens =
+      raw.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
   final spans = <InlineSpan>[];
   for (var i = 0; i < tokens.length; i++) {
     final token = tokens[i];
@@ -348,12 +322,18 @@ Widget _ingredientRichText(
     if (isGreen) {
       spans.add(TextSpan(
         text: token,
-        style: const TextStyle(color: greenText, backgroundColor: greenBg, fontWeight: FontWeight.bold),
+        style: const TextStyle(
+            color: greenText,
+            backgroundColor: greenBg,
+            fontWeight: FontWeight.bold),
       ));
     } else if (isRed) {
       spans.add(TextSpan(
         text: token,
-        style: const TextStyle(color: redText, backgroundColor: redBg, fontWeight: FontWeight.bold),
+        style: const TextStyle(
+            color: redText,
+            backgroundColor: redBg,
+            fontWeight: FontWeight.bold),
       ));
     } else {
       spans.add(TextSpan(text: token));
@@ -473,7 +453,8 @@ Widget _rightPanel({
         // Ingredients with highlights — fills remaining space
         if (ingredients.isNotEmpty)
           Expanded(
-            child: _ingredientRichText(ingredients, topIngredients, issueIngredients),
+            child: _ingredientRichText(
+                ingredients, topIngredients, issueIngredients),
           )
         else
           const Spacer(),
@@ -546,8 +527,8 @@ class _StoryCard extends StatelessWidget {
                   left: 10,
                   top: 16,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 7, vertical: 3),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                     decoration: BoxDecoration(
                       color: _primary.withOpacity(0.85),
                       borderRadius: BorderRadius.circular(10),
@@ -649,8 +630,8 @@ class _SquareCard extends StatelessWidget {
                   left: 10,
                   bottom: 10,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 3),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
                       color: _primary.withOpacity(0.85),
                       borderRadius: BorderRadius.circular(12),
@@ -800,8 +781,7 @@ class _TagsSectionState extends State<_TagsSection> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(Icons.copy_rounded,
-                                size: 14,
-                                color: _primary.withOpacity(0.7)),
+                                size: 14, color: _primary.withOpacity(0.7)),
                             const SizedBox(width: 4),
                             Text(
                               _t('copyTags', widget.lang),
@@ -828,8 +808,7 @@ class _TagsSectionState extends State<_TagsSection> {
                       decoration: BoxDecoration(
                         color: _primary.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                            color: _primary.withOpacity(0.25)),
+                        border: Border.all(color: _primary.withOpacity(0.25)),
                       ),
                       child: Text(
                         t,

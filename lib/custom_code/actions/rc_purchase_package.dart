@@ -29,6 +29,9 @@ Future<dynamic> rcPurchasePackage(
       if (current != appUserId) {
         await Purchases.logIn(appUserId);
       }
+      // Anchor identity so every webhook (incl. renewals with an anonymous
+      // app_user_id) carries the Supabase UUID for the backend to match.
+      await Purchases.setAttributes({'supabase_uid': appUserId});
     }
 
     // Получаем офферинг и пакет

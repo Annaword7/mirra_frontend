@@ -82,7 +82,7 @@ class _EmptyfavouriteNewWidgetState extends State<EmptyfavouriteNewWidget> {
               ),
               style: FlutterFlowTheme.of(context).titleLarge.override(
                     fontFamily: FlutterFlowTheme.of(context).titleLargeFamily,
-                    fontSize: 24.0,
+                    fontSize: 16.0,
                     letterSpacing: 0.0,
                     useGoogleFonts:
                         !FlutterFlowTheme.of(context).titleLargeIsCustom,
@@ -97,25 +97,28 @@ class _EmptyfavouriteNewWidgetState extends State<EmptyfavouriteNewWidget> {
               ),
               icon: Icon(
                 Icons.camera_alt,
-                size: 26.0,
+                size: 20.0,
               ),
               options: FFButtonOptions(
-                height: 60.0,
-                padding: EdgeInsets.all(15.0),
-                iconPadding: EdgeInsetsDirectional.fromSTEB(8.0, 0.0, 8.0, 0.0),
+                width: double.infinity,
+                height: 52.0,
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 24.0, vertical: 14.0),
+                iconPadding:
+                    const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 8.0, 0.0),
                 iconColor: FlutterFlowTheme.of(context).alternate,
                 color: FlutterFlowTheme.of(context).primary,
                 textStyle: FlutterFlowTheme.of(context).titleSmall.override(
                       fontFamily: FlutterFlowTheme.of(context).titleSmallFamily,
                       color: FlutterFlowTheme.of(context).alternate,
-                      fontSize: 20.0,
+                      fontSize: 16.0,
                       letterSpacing: 0.0,
                       fontWeight: FontWeight.w600,
                       useGoogleFonts:
                           !FlutterFlowTheme.of(context).titleSmallIsCustom,
                     ),
                 elevation: 0.0,
-                borderRadius: BorderRadius.circular(28.0),
+                borderRadius: BorderRadius.circular(14.0),
               ),
             ),
           ].divide(SizedBox(height: 15.0)),

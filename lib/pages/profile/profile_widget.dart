@@ -118,6 +118,28 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                       mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
+                        if (FFDevEnvironmentValues.isNonProd)
+                          Padding(
+                            padding: EdgeInsetsDirectional.fromSTEB(
+                                0.0, 0.0, 0.0, 12.0),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8.0, vertical: 3.0),
+                              decoration: BoxDecoration(
+                                color: const Color(0xCCFF6B00),
+                                borderRadius: BorderRadius.circular(6.0),
+                              ),
+                              child: Text(
+                                FFDevEnvironmentValues.envLabel,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 11.0,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ),
+                          ),
                         if (currentUserIsAnonymous)
                           _AnonHeader(context)
                         else ...[
@@ -349,7 +371,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                   ),
                                 ),
                               ),
-                              if (!currentUserIsAnonymous)
+                              if (!currentUserIsAnonymous && FFAppState().showLinkTelegram)
                                 InkWell(
                                   splashColor: Colors.transparent,
                                   focusColor: Colors.transparent,
@@ -804,7 +826,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(content: Text('Onboarding reset. Restarting flow.')),
                                 );
-                                context.goNamed(OnboardingCarouselWidget.routeName);
+                                context.goNamed(OnboardingQuizWidget.routeName);
                               },
                               child: Container(
                                 width: double.infinity,
@@ -1039,7 +1061,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                 GoRouter.of(context).prepareAuthEvent();
                                 await authManager.signOut();
                                 GoRouter.of(context).clearRedirectLocation();
-                                context.goNamed(OnboardingCarouselWidget.routeName);
+                                context.goNamed(OnboardingQuizWidget.routeName);
                               },
                               text: FFLocalizations.of(context)
                                   .getText('prof_end_session'),
@@ -1088,7 +1110,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                 GoRouter.of(context).prepareAuthEvent();
                                 await authManager.signOut();
                                 GoRouter.of(context).clearRedirectLocation();
-                                context.goNamed(OnboardingCarouselWidget.routeName);
+                                context.goNamed(OnboardingQuizWidget.routeName);
                               },
                               text: FFLocalizations.of(context).getText(
                                 '01vkpjw3' /* Log out */,
@@ -1244,7 +1266,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
             style: FlutterFlowTheme.of(context).bodyMedium.override(
                   fontFamily:
                       FlutterFlowTheme.of(context).bodyMediumFamily,
-                  color: FlutterFlowTheme.of(context).secondaryText,
+                  color: Colors.black,
                   letterSpacing: 0,
                   useGoogleFonts:
                       !FlutterFlowTheme.of(context).bodyMediumIsCustom,
