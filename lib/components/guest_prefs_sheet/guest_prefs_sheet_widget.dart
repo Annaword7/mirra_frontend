@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '/auth/supabase_auth/auth_util.dart';
 import '/backend/supabase/supabase.dart';
 import '/components/countryselector/countryselector_widget.dart';
+import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 
@@ -35,6 +37,12 @@ class _GuestPrefsSheetState extends State<GuestPrefsSheet> {
   Future<void> _save() async {
     setState(() => _saving = true);
     try {
+      // Create the anonymous user only now (on explicit "Continue" tap).
+      AppStateNotifier.instance.updateNotifyOnAuthChange(false);
+      final user = await authManager.signInAnonymously(context);
+      if (user == null) return; // sign-in failed — stay on sheet, show error
+      unawaited(AnalyticsService.instance.trackAnonSessionStarted());
+
       setAppLanguage(context, _lang);
       await UsersTable().update(
         data: {'language_code': _lang},

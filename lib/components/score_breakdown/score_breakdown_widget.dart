@@ -169,8 +169,11 @@ class _RadarPainter extends CustomPainter {
       color: Color(0xFF667799),
       fontWeight: FontWeight.w600,
     );
+    // Per-axis label distance (fraction of radius). Axis 0 = Safety (top).
+    const labelDist = [1.36, 1.22, 1.22, 1.22, 1.22];
+
     for (int i = 0; i < n; i++) {
-      final lp = ap(i, 1.22);
+      final lp = ap(i, labelDist[i]);
       final cosA = cos(angles[i]);
 
       final lblTp = TextPainter(

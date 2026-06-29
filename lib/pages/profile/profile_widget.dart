@@ -1219,6 +1219,12 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                     child: NavbarWidget(
                       activePage: 4,
                       analysesused: profileUsersRow?.monthlyAnalysesUsed,
+                      onScrollToTop: () {
+                        final sc = PrimaryScrollController.maybeOf(context);
+                        sc?.animateTo(0,
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeOut);
+                      },
                     ),
                   ),
                 ),

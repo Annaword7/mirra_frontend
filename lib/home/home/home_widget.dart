@@ -1161,6 +1161,15 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                     activePage: 2,
                     analysesused:
                         _model.usersanswer?.firstOrNull?.monthlyAnalysesUsed,
+                    onScrollToTop: () {
+                      if (_model.scrollController.hasClients) {
+                        _model.scrollController.animateTo(
+                          0,
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeOut,
+                        );
+                      }
+                    },
                   ),
                 ),
               ),

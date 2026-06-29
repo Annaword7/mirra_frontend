@@ -15,10 +15,13 @@ class NavbarWidget extends StatefulWidget {
     super.key,
     this.activePage,
     this.analysesused,
+    this.onScrollToTop,
   });
 
   final int? activePage;
   final int? analysesused;
+  /// Called when the user taps the navbar icon for the page they're already on.
+  final VoidCallback? onScrollToTop;
 
   @override
   State<NavbarWidget> createState() => _NavbarWidgetState();
@@ -97,7 +100,7 @@ class _NavbarWidgetState extends State<NavbarWidget>
     required int pageId,
     required Widget icon,
     required String label,
-    required VoidCallback onTap,
+    required String routeName,
   }) {
     final active = widget.activePage == pageId;
     final color = active
@@ -112,7 +115,11 @@ class _NavbarWidgetState extends State<NavbarWidget>
         highlightColor: Colors.transparent,
         onTap: () {
           HapticFeedback.lightImpact();
-          onTap();
+          if (active) {
+            widget.onScrollToTop?.call();
+          } else {
+            _goFade(routeName);
+          }
         },
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -206,14 +213,14 @@ class _NavbarWidgetState extends State<NavbarWidget>
                             icon: const Icon(Icons.home),
                             label: FFLocalizations.of(context)
                                 .getText('kndykt66' /* Home */),
-                            onTap: () => _goFade(HomeWidget.routeName),
+                            routeName: HomeWidget.routeName,
                           ),
                           _buildTab(
                             pageId: 1,
                             icon: const FaIcon(FontAwesomeIcons.search),
                             label: FFLocalizations.of(context)
                                 .getText('f0lv5sbb' /* Explore */),
-                            onTap: () => _goFade(TopratedWidget.routeName),
+                            routeName: TopratedWidget.routeName,
                           ),
                           // Center FAB placeholder
                           const Expanded(
@@ -224,14 +231,14 @@ class _NavbarWidgetState extends State<NavbarWidget>
                             icon: const Icon(Icons.space_dashboard),
                             label: FFLocalizations.of(context)
                                 .getText('5lvcbe4s' /* Boards */),
-                            onTap: () => _goFade(BoardsWidget.routeName),
+                            routeName: BoardsWidget.routeName,
                           ),
                           _buildTab(
                             pageId: 4,
                             icon: const Icon(Icons.person),
                             label: FFLocalizations.of(context)
                                 .getText('i0bb253q' /* Profile */),
-                            onTap: () => _goFade(ProfileWidget.routeName),
+                            routeName: ProfileWidget.routeName,
                           ),
                         ],
                       ),

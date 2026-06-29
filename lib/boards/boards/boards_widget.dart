@@ -232,6 +232,12 @@ class _BoardsWidgetState extends State<BoardsWidget> {
                     updateCallback: () => safeSetState(() {}),
                     child: NavbarWidget(
                       activePage: 3,
+                      onScrollToTop: () {
+                        final sc = PrimaryScrollController.maybeOf(context);
+                        sc?.animateTo(0,
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeOut);
+                      },
                     ),
                   ),
                 ),

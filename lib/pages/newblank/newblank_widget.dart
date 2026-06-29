@@ -1,8 +1,6 @@
 import 'dart:async';
 
-import '/auth/supabase_auth/auth_util.dart';
 import '/components/guest_prefs_sheet/guest_prefs_sheet_widget.dart';
-import '/flutter_flow/analytics_service.dart';
 
 import '/flutter_flow/flutter_flow_theme.dart';
 
@@ -39,7 +37,6 @@ class _NewblankWidgetState extends State<NewblankWidget> {
 
   late NewblankModel _model;
 
-  bool _loading = false;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -68,55 +65,32 @@ class _NewblankWidgetState extends State<NewblankWidget> {
 
     HapticFeedback.lightImpact();
 
-    if (mounted) {
+    if (!mounted) return;
 
-      setState(() => _loading = true);
+    // Show prefs sheet FIRST — user is created only on "Continue" inside it.
+    final saved = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const GuestPrefsSheet(),
+    );
 
-    }
+    // Tapping outside returns null — stay on page.
+    if (saved != true) return;
 
-    // Prevent GoRouter from auto-redirecting on auth change so we can show
-    // the prefs sheet before navigating manually.
-    AppStateNotifier.instance.updateNotifyOnAuthChange(false);
-    final user = await authManager.signInAnonymously(context);
-
-    if (mounted) {
-
-      setState(() => _loading = false);
-
-    }
-
-    if (user != null && mounted) {
-
-      unawaited(AnalyticsService.instance.trackAnonSessionStarted());
-
-      final saved = await showModalBottomSheet<bool>(
-        context: context,
-        isScrollControlled: true,
-        backgroundColor: Colors.transparent,
-        builder: (_) => const GuestPrefsSheet(),
-      );
-
-      // Only navigate when the user completed setup (saved == true).
-      // Tapping outside dismisses the sheet and returns null — stay on page.
-      if (saved != true) return;
-
-      // After the sheet, this widget may already be disposed — setAppLanguage
-      // inside GuestPrefsSheet triggers _MyAppState.setState which rebuilds
-      // GoRouter and replaces Newblank with Home (user is now logged in).
-      // Use the global navigator key to navigate regardless of mounted state.
-      final navCtx = appNavigatorKey.currentContext;
-      if (navCtx == null) return;
-      navCtx.goNamed(
-        TakeorUploadPageWidget.routeName,
-        extra: <String, dynamic>{
-          '__transition_info__': TransitionInfo(
-            hasTransition: true,
-            transitionType: PageTransitionType.fade,
-          ),
-        },
-      );
-
-    }
+    // GuestPrefsSheet.save() created the user and set the language.
+    // Navigate using the global key in case the widget was replaced.
+    final navCtx = appNavigatorKey.currentContext;
+    if (navCtx == null) return;
+    navCtx.goNamed(
+      TakeorUploadPageWidget.routeName,
+      extra: <String, dynamic>{
+        '__transition_info__': TransitionInfo(
+          hasTransition: true,
+          transitionType: PageTransitionType.fade,
+        ),
+      },
+    );
 
   }
 
@@ -266,7 +240,7 @@ class _NewblankWidgetState extends State<NewblankWidget> {
 
                   child: ElevatedButton(
 
-                    onPressed: _loading ? null : _tryAnonymously,
+                    onPressed: _tryAnonymously,
 
                     style: ElevatedButton.styleFrom(
 
@@ -288,25 +262,7 @@ class _NewblankWidgetState extends State<NewblankWidget> {
 
                     ),
 
-                    child: _loading
-
-                        ? const SizedBox(
-
-                            width: 22,
-
-                            height: 22,
-
-                            child: CircularProgressIndicator(
-
-                              strokeWidth: 2,
-
-                              color: Colors.white,
-
-                            ),
-
-                          )
-
-                        : Row(
+                    child: Row(
 
                             mainAxisAlignment: MainAxisAlignment.center,
 
@@ -380,7 +336,11 @@ class _NewblankWidgetState extends State<NewblankWidget> {
 
                     HapticFeedback.lightImpact();
 
-                    context.goNamed(
+                    // Use appNavigatorKey so navigation works even if this
+                    // widget's context was replaced after anonymous sign-in.
+                    final navCtx = appNavigatorKey.currentContext;
+                    if (navCtx == null) return;
+                    navCtx.goNamed(
 
                       LogInPageWidget.routeName,
 

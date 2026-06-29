@@ -577,6 +577,7 @@ class _TopratedWidgetState extends State<TopratedWidget> {
                                       )
                                     : ListView.builder(
                                         shrinkWrap: true,
+                                        padding: EdgeInsets.zero,
                                         physics: const NeverScrollableScrollPhysics(),
                                         itemCount: _searchResults!.length,
                                         itemBuilder: (context, i) {
@@ -595,7 +596,7 @@ class _TopratedWidgetState extends State<TopratedWidget> {
                                                 imageUrl:  r['image_url']    as String?,
                                                 brand:     r['brand']        as String?,
                                                 name:      r['product_name'] as String?,
-                                                score:     (r['fit_score'] as num?)?.toDouble(),
+                                                score:     ((r['sa_composite_score'] ?? r['fit_score']) as num?)?.toDouble(),
                                                 imageID:   imageId,
                                               ),
                                             ),
@@ -693,7 +694,14 @@ class _TopratedWidgetState extends State<TopratedWidget> {
                 child: wrapWithModel(
                   model: _model.navbarModel,
                   updateCallback: () => safeSetState(() {}),
-                  child: NavbarWidget(activePage: 1),
+                  child: NavbarWidget(
+                    activePage: 1,
+                    onScrollToTop: () => _model.listViewController?.animateTo(
+                      0,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeOut,
+                    ),
+                  ),
                 ),
               ),
             ],
