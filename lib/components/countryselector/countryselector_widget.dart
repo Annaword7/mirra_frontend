@@ -61,14 +61,17 @@ class _CountryselectorWidgetState extends State<CountryselectorWidget> {
   }
 
   Future<(List<CountriesRow>, int?)> _loadData() async {
-    final results = await Future.wait([
+    final uid = currentUserUid;
+    final futures = <Future>[
       CountriesTable().queryRows(queryFn: (q) => q),
-      UsersTable().queryRows(
-        queryFn: (q) => q.eqOrNull('id', currentUserUid),
-      ),
-    ]);
+      if (uid.isNotEmpty)
+        UsersTable().queryRows(
+          queryFn: (q) => q.eqOrNull('id', uid),
+        ),
+    ];
+    final results = await Future.wait(futures);
     final countries = results[0] as List<CountriesRow>;
-    final users = results[1] as List<UsersRow>;
+    final users = uid.isNotEmpty ? results[1] as List<UsersRow> : <UsersRow>[];
     return (countries, users.firstOrNull?.countryId);
   }
 
@@ -83,6 +86,27 @@ class _CountryselectorWidgetState extends State<CountryselectorWidget> {
     return FutureBuilder<(List<CountriesRow>, int?)>(
       future: _dataFuture,
       builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return GestureDetector(
+            onTap: () => safeSetState(() => _dataFuture = _loadData()),
+            child: Container(
+              height: 50.0,
+              alignment: Alignment.center,
+              child: Text(
+                'Tap to retry',
+                style: FlutterFlowTheme.of(context)
+                    .bodyMedium
+                    .override(
+                      fontFamily:
+                          FlutterFlowTheme.of(context).bodyMediumFamily,
+                      color: FlutterFlowTheme.of(context).error,
+                      useGoogleFonts:
+                          !FlutterFlowTheme.of(context).bodyMediumIsCustom,
+                    ),
+              ),
+            ),
+          );
+        }
         if (!snapshot.hasData) {
           return Center(
             child: SizedBox(
