@@ -21,6 +21,7 @@ class GuestPrefsSheet extends StatefulWidget {
 
 class _GuestPrefsSheetState extends State<GuestPrefsSheet> {
   String _lang = 'en';
+  int? _countryId;
   bool _saving = false;
 
   @override
@@ -45,7 +46,10 @@ class _GuestPrefsSheetState extends State<GuestPrefsSheet> {
 
       setAppLanguage(context, _lang);
       await UsersTable().update(
-        data: {'language_code': _lang},
+        data: {
+          'language_code': _lang,
+          if (_countryId != null) 'country_id': _countryId,
+        },
         matchingRows: (rows) => rows.eqOrNull('id', currentUserUid),
       );
     } finally {
@@ -188,6 +192,7 @@ class _GuestPrefsSheetState extends State<GuestPrefsSheet> {
             borderColor: const Color(0xFFE0E0E0),
             borderWidth: 1.5,
             elevation: 0,
+            onCountrySelected: (id) => _countryId = id,
           ),
           const SizedBox(height: 28),
           SizedBox(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 
 import '/backend/supabase/supabase.dart';
+import '/components/ingredient_bubbles/ingredient_bubbles_widget.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/index.dart';
@@ -153,6 +154,8 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
         _buildVerdict(theme),
         _buildMatrix(theme),
         if (widget.topIngredients.isNotEmpty) _buildActives(theme),
+        if (widget.topIngredients.isNotEmpty)
+          IngredientBubblesWidget(ingredients: widget.topIngredients),
         if (_visibleWarnings.isNotEmpty) _buildWarnings(theme),
         if (_claimAudit.isNotEmpty) _buildClaimAudit(theme),
         if (widget.isPro) _buildProLayer(theme),

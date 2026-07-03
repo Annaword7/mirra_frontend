@@ -21,6 +21,7 @@ class CountryselectorWidget extends StatefulWidget {
     this.borderColor,
     this.borderWidth,
     this.elevation,
+    this.onCountrySelected,
   });
 
   /// When provided, overrides the app locale for country name labels.
@@ -37,6 +38,11 @@ class CountryselectorWidget extends StatefulWidget {
   final Color? borderColor;
   final double? borderWidth;
   final double? elevation;
+
+  /// Called when the user picks a country. When provided and there is no
+  /// active auth session, the DB write is skipped — the caller is responsible
+  /// for persisting the value after sign-in.
+  final void Function(int?)? onCountrySelected;
 
   @override
   State<CountryselectorWidget> createState() => _CountryselectorWidgetState();
@@ -142,14 +148,12 @@ class _CountryselectorWidgetState extends State<CountryselectorWidget> {
           }(),
           onChanged: (val) async {
             safeSetState(() => _model.dropDownValue = val);
+            widget.onCountrySelected?.call(val);
+            final uid = currentUserUid;
+            if (uid.isEmpty) return;
             await UsersTable().update(
-              data: {
-                'country_id': _model.dropDownValue,
-              },
-              matchingRows: (rows) => rows.eqOrNull(
-                'id',
-                currentUserUid,
-              ),
+              data: {'country_id': _model.dropDownValue},
+              matchingRows: (rows) => rows.eqOrNull('id', uid),
             );
           },
           width: MediaQuery.sizeOf(context).width * 1.0,
