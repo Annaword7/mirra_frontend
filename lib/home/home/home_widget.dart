@@ -2,7 +2,6 @@ import '/app_state.dart';
 import '/auth/supabase_auth/auth_util.dart';
 import '/backend/supabase/database/tables/product_prices.dart';
 import '/backend/supabase/supabase.dart';
-import '/flutter_flow/revenue_cat_util.dart' as revenue_cat;
 import '/components/navbar/navbar_widget.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -234,19 +233,14 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
         }
         if (!mounted) return;
 
+        // Pro-статус берём строго из БД (subscription_plan) — это единственный
+        // per-account источник правды (обновляется покупкой и RC-webhook'ом).
+        // Раньше здесь был fallback на RevenueCat.isEntitled, но подписка Apple
+        // привязана к Apple ID устройства, а не к аккаунту: fallback выдавал pro
+        // ЛЮБОМУ профилю, вошедшему на устройстве с активной подпиской (в т.ч.
+        // после logout и входа в другой аккаунт).
         FFAppState().isprouser =
-            _model.usersanswer?.firstOrNull?.subscriptionPlan == 'premium'
-                ? true
-                : false;
-        // Fallback: verify with RevenueCat in case database update failed
-        // (e.g. after a successful purchase where the backend call timed out)
-        if (!FFAppState().isprouser) {
-          final isEntitled =
-              await revenue_cat.isEntitled('EntitlementMirra') ?? false;
-          if (isEntitled) {
-            FFAppState().isprouser = true;
-          }
-        }
+            _model.usersanswer?.firstOrNull?.subscriptionPlan == 'premium';
         final userRow = _model.usersanswer?.firstOrNull;
         final countryRow = _model.countrieshome?.firstOrNull;
 

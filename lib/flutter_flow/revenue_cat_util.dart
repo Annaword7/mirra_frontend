@@ -65,8 +65,15 @@ Future initialize(
 
     Purchases.addCustomerInfoUpdateListener((info) {
       customerInfo = info;
-      FFAppState().isprouser =
+      // Только СНИМАЕМ pro при потере entitlement (реал-тайм отмена/истечение).
+      // Grant pro здесь НЕ делаем: pro-статус выдаётся per-account из БД
+      // (после покупки и по RC-webhook). Иначе вход в другой профиль на том же
+      // Apple ID перенёс бы pro на чужой аккаунт — подписка привязана к Apple ID.
+      final active =
           info.entitlements.all['EntitlementMirra']?.isActive ?? false;
+      if (!active) {
+        FFAppState().isprouser = false;
+      }
     });
   } on Exception catch (e, s) {
     FirebaseCrashlytics.instance.recordError(e, s, fatal: false, reason: 'RevenueCat initialization failed');
