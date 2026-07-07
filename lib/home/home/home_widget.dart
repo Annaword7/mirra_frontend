@@ -3,12 +3,12 @@ import '/auth/supabase_auth/auth_util.dart';
 import '/backend/supabase/database/tables/product_prices.dart';
 import '/backend/supabase/supabase.dart';
 import '/components/navbar/navbar_widget.dart';
+import '/components/home_pipeline_widget.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/item_card/imagedetailed_main/imagedetailed_main_widget.dart';
 import 'dart:async';
-import '/environment_values.dart';
 import '/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -477,44 +477,6 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                           child: Row(
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
-                                              InkWell(
-                                                splashColor: Colors.transparent,
-                                                focusColor: Colors.transparent,
-                                                hoverColor: Colors.transparent,
-                                                highlightColor:
-                                                    Colors.transparent,
-                                                onTap: () async {
-                                                  context.pushNamed(
-                                                      ProfileWidget.routeName);
-                                                },
-                                                child: Container(
-                                                  width: 40.0,
-                                                  height: 40.0,
-                                                  decoration: BoxDecoration(
-                                                    shape: BoxShape.circle,
-                                                    color: FlutterFlowTheme.of(
-                                                            context)
-                                                        .primary,
-                                                    image: appState
-                                                            .userProfilePicture
-                                                            .isNotEmpty
-                                                        ? DecorationImage(
-                                                            fit: BoxFit.cover,
-                                                            image: NetworkImage(
-                                                                appState
-                                                                    .userProfilePicture),
-                                                          )
-                                                        : null,
-                                                  ),
-                                                  child: appState
-                                                          .userProfilePicture
-                                                          .isEmpty
-                                                      ? const Icon(Icons.person,
-                                                          color: Colors.white,
-                                                          size: 22)
-                                                      : null,
-                                                ),
-                                              ),
                                               if (!appState.isprouser)
                                                 Flexible(
                                                     child: FFButtonWidget(
@@ -571,70 +533,12 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                             ].divide(SizedBox(width: 16.0)),
                                           ),
                                         ),
-                                        if (FFDevEnvironmentValues.isNonProd)
-                                          GestureDetector(
-                                            onTap: _toggleAutoScroll,
-                                            child: Container(
-                                              width: 45.0,
-                                              height: 45.0,
-                                              decoration: BoxDecoration(
-                                                color: _model.autoScrollActive
-                                                    ? const Color(0xFFFF9800)
-                                                    : FlutterFlowTheme.of(
-                                                            context)
-                                                        .secondaryBackground,
-                                                shape: BoxShape.circle,
-                                                border: Border.all(
-                                                  color:
-                                                      const Color(0xFFFF9800),
-                                                  width: 1.5,
-                                                ),
-                                              ),
-                                              child: Icon(
-                                                _model.autoScrollActive
-                                                    ? Icons.pause_rounded
-                                                    : Icons.play_arrow_rounded,
-                                                color: _model.autoScrollActive
-                                                    ? Colors.white
-                                                    : const Color(0xFFFF9800),
-                                                size: 24.0,
-                                              ),
-                                            ),
-                                          ),
-                                        Container(
-                                          width: 45.0,
-                                          height: 45.0,
-                                          decoration: BoxDecoration(
-                                            color: FlutterFlowTheme.of(context)
-                                                .primary,
-                                            shape: BoxShape.circle,
-                                          ),
-                                          child: InkWell(
-                                            splashColor: Colors.transparent,
-                                            focusColor: Colors.transparent,
-                                            hoverColor: Colors.transparent,
-                                            highlightColor: Colors.transparent,
-                                            onTap: () async {
-                                              context.pushNamed(
-                                                  FavoritesWidget.routeName);
-                                            },
-                                            child: Icon(
-                                              Icons.favorite_sharp,
-                                              color:
-                                                  FlutterFlowTheme.of(context)
-                                                      .alternate,
-                                              size: 24.0,
-                                            ),
-                                          ),
-                                        ),
                                       ].divide(SizedBox(width: 16.0)),
                                     ),
                                   ),
                                 ),
                               ),
-                              if (_model.usersanswer != null &&
-                                  (_model.usersanswer)!.isNotEmpty)
-                                Align(
+                              Align(
                                   alignment: AlignmentDirectional(-1.0, 0.0),
                                   child: Padding(
                                     padding: EdgeInsetsDirectional.fromSTEB(
@@ -643,7 +547,13 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                       decoration: BoxDecoration(),
                                       child: Row(
                                         mainAxisSize: MainAxisSize.max,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
                                         children: [
+                                          Flexible(
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
                                           Text(
                                             FFLocalizations.of(context).getText(
                                               'pmne5rlo' /* Hello,  */,
@@ -699,14 +609,51 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                   ),
                                             ),
                                           ),
+                                              ],
+                                            ),
+                                          ),
+                                          InkWell(
+                                            splashColor: Colors.transparent,
+                                            focusColor: Colors.transparent,
+                                            hoverColor: Colors.transparent,
+                                            highlightColor: Colors.transparent,
+                                            onTap: () async {
+                                              context.pushNamed(
+                                                  ProfileWidget.routeName);
+                                            },
+                                            child: Container(
+                                              width: 45.0,
+                                              height: 45.0,
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color:
+                                                    FlutterFlowTheme.of(context)
+                                                        .primary,
+                                                image: appState
+                                                        .userProfilePicture
+                                                        .isNotEmpty
+                                                    ? DecorationImage(
+                                                        fit: BoxFit.cover,
+                                                        image: NetworkImage(
+                                                            appState
+                                                                .userProfilePicture),
+                                                      )
+                                                    : null,
+                                              ),
+                                              child: appState.userProfilePicture
+                                                      .isEmpty
+                                                  ? const Icon(Icons.person,
+                                                      color: Colors.white,
+                                                      size: 24)
+                                                  : null,
+                                            ),
+                                          ),
                                         ],
                                       ),
                                     ),
                                   ),
                                 ),
-                              _HomeProfileCard(
-                                profileRow: _model.usersanswer?.firstOrNull,
-                              ),
+                              const HomePipelineWidget(),
                               // ── Scan quota bar ─────────────────────────────
                               Padding(
                                 padding: EdgeInsetsDirectional.fromSTEB(
@@ -838,7 +785,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                 ),
                               Padding(
                                 padding: EdgeInsetsDirectional.fromSTEB(
-                                    16.0, 0.0, 16.0, 0.0),
+                                    20.0, 0.0, 20.0, 0.0),
                                 child: Container(
                                   decoration: BoxDecoration(),
                                   child: FutureBuilder<List<ImagesRow>>(
@@ -1206,14 +1153,13 @@ class _HomeQuotaBar extends StatelessWidget {
     if (isPro) {
       return Row(
         children: [
-          Icon(Icons.all_inclusive,
-              size: 14, color: FlutterFlowTheme.of(context).secondaryText),
+          Icon(Icons.all_inclusive, size: 14, color: Colors.black),
           const SizedBox(width: 6),
           Text(
             FFLocalizations.of(context).getText('home_pro_unlimited'),
             style: FlutterFlowTheme.of(context).bodySmall.override(
                   fontFamily: FlutterFlowTheme.of(context).bodySmallFamily,
-                  color: FlutterFlowTheme.of(context).secondaryText,
+                  color: Colors.black,
                   fontSize: 12.0,
                   letterSpacing: 0.0,
                   useGoogleFonts:
@@ -1284,191 +1230,3 @@ class _HomeQuotaBar extends StatelessWidget {
 }
 
 
-// Home entry to onboarding: invites personalization when no profile exists,
-// otherwise shows the saved profile at a glance. Tapping either opens the
-// onboarding quiz (prefilled for an existing profile) to review/edit.
-class _HomeProfileCard extends StatelessWidget {
-  const _HomeProfileCard({required this.profileRow});
-
-  final UsersRow? profileRow;
-
-  static const _typeKeys = {
-    'dry': 'obq_type_dry',
-    'oily': 'obq_type_oily',
-    'combination': 'obq_type_combo',
-    'normal': 'obq_type_normal',
-  };
-  static const _goalKeys = {
-    'hydration': 'obq_goal_hydration',
-    'barrier': 'obq_goal_barrier',
-    'anti_aging': 'obq_goal_anti_aging',
-    'pigmentation': 'obq_goal_pigmentation',
-    'acne': 'obq_goal_acne',
-    'pores': 'obq_goal_pores',
-  };
-
-  void _open(BuildContext context) =>
-      context.pushNamed(OnboardingQuizWidget.routeName);
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = FlutterFlowTheme.of(context);
-    final t = FFLocalizations.of(context);
-    final skinType = profileRow?.skinType;
-    final hasProfile = skinType != null && skinType.isNotEmpty;
-
-    return Padding(
-      padding: const EdgeInsetsDirectional.fromSTEB(16, 18, 16, 0),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(21),
-          onTap: () => _open(context),
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: hasProfile ? Colors.white : theme.primary.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(21),
-              border: Border.all(
-                color: hasProfile
-                    ? theme.primary.withOpacity(0.35)
-                    : theme.primary.withOpacity(0.20),
-              ),
-              boxShadow: hasProfile
-                  ? [
-                      BoxShadow(
-                        color: theme.primary.withOpacity(0.12),
-                        blurRadius: 12,
-                        offset: const Offset(0, 2),
-                      )
-                    ]
-                  : null,
-            ),
-            child: hasProfile
-                ? _profileView(context, theme, t, skinType)
-                : _ctaView(context, theme, t),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _ctaView(
-      BuildContext context, FlutterFlowTheme theme, FFLocalizations t) {
-    return Row(
-      children: [
-        Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            color: theme.primary.withOpacity(0.15),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(Icons.auto_awesome, color: theme.primary, size: 22),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                t.getText('home_profile_cta_title'),
-                style: theme.bodyLarge.override(
-                    color: theme.primaryText,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                t.getText('home_profile_cta_sub'),
-                style: theme.bodyMedium.override(
-                    color: theme.secondaryText, fontSize: 13, letterSpacing: 0),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 8),
-        Icon(Icons.arrow_forward_ios, color: theme.primary, size: 16),
-      ],
-    );
-  }
-
-  Widget _profileView(BuildContext context, FlutterFlowTheme theme,
-      FFLocalizations t, String skinType) {
-    final chips = <String>[
-      t.getText(_typeKeys[skinType] ?? 'obq_type_normal'),
-      if (profileRow?.skinSensitivity == true) t.getText('obq_flag_sensitive'),
-      if (profileRow?.acneProne == true) t.getText('obq_flag_acne'),
-    ];
-    final goals = (profileRow?.skinGoals ?? [])
-        .map((g) => t.getText(_goalKeys[g] ?? g))
-        .toList();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(Icons.face_retouching_natural,
-                color: theme.primary, size: 18),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                t.getText('home_profile_title'),
-                style: theme.bodyMedium.override(
-                    color: const Color(0xFF111111),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.6),
-              ),
-            ),
-            Text(
-              t.getText('home_profile_edit'),
-              style: theme.bodyMedium.override(
-                  color: theme.primary,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0),
-            ),
-            Icon(Icons.chevron_right, color: theme.primary, size: 18),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: chips
-              .map((c) => Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF2F2F2),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: const Color(0xFFE0E0E0)),
-                    ),
-                    child: Text(
-                      c,
-                      style: theme.bodyMedium.override(
-                          color: const Color(0xFF333333),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0),
-                    ),
-                  ))
-              .toList(),
-        ),
-        if (goals.isNotEmpty) ...[
-          const SizedBox(height: 10),
-          Text(
-            '${t.getText('obq_result_goals_prefix')} ${goals.join(', ')}',
-            style: theme.bodyMedium.override(
-                color: const Color(0xFF555555), fontSize: 13, letterSpacing: 0),
-          ),
-        ],
-      ],
-    );
-  }
-}

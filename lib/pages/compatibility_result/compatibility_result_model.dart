@@ -1,8 +1,9 @@
 import '/flutter_flow/flutter_flow_util.dart';
-import 'emptyfavourite_widget.dart' show EmptyfavouriteWidget;
+import 'compatibility_result_widget.dart' show CompatibilityResultWidget;
 import 'package:flutter/material.dart';
 
-class EmptyfavouriteModel extends FlutterFlowModel<EmptyfavouriteWidget> {
+class CompatibilityResultModel
+    extends FlutterFlowModel<CompatibilityResultWidget> {
   @override
   void initState(BuildContext context) {}
 

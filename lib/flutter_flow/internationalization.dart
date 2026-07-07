@@ -8436,5 +8436,192 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ko': '수정',
       'zh': '修改',
     },
+    // Косметичка (cosmetics bag) game-flow + compatibility
+    'cb_intro_title': {
+      'en': 'Build your cosmetics bag',
+      'ru': 'Собери свою косметичку',
+    },
+    'cb_intro_subtitle': {
+      'en': 'Scan 3 products and see how they work together',
+      'ru': 'Сделай 3 скана продуктов и посмотри, как они работают вместе',
+    },
+    'cb_slot_add': {
+      'en': 'Add',
+      'ru': 'Добавить',
+    },
+    'cb_scan_cta': {
+      'en': 'Scan a product',
+      'ru': 'Сканировать продукт',
+    },
+    'cb_see_together_cta': {
+      'en': 'See how they work together',
+      'ru': 'Посмотреть, как работают вместе',
+    },
+    'cb_compat_title': {
+      'en': 'Compatibility',
+      'ru': 'Совместимость',
+    },
+    'cb_compat_loading': {
+      'en': 'Analyzing compatibility…',
+      'ru': 'Анализируем совместимость…',
+    },
+    'cb_compat_conflicts': {
+      'en': 'Conflicts',
+      'ru': 'Конфликты',
+    },
+    'cb_compat_synergies': {
+      'en': 'Synergies',
+      'ru': 'Синергии',
+    },
+    'cb_compat_unlock': {
+      'en': 'Unlock full analysis in Pro',
+      'ru': 'Открыть полный разбор в Pro',
+    },
+    'cb_compat_recalc': {
+      'en': 'Recalculate',
+      'ru': 'Пересчитать',
+    },
+    'cb_bag_title': {
+      'en': 'Cosmetics bag',
+      'ru': 'Косметичка',
+    },
+    'cb_bag_empty': {
+      'en': 'Scan products to fill your bag',
+      'ru': 'Сканируй продукты, чтобы наполнить косметичку',
+    },
+    'cb_swap_pick': {
+      'en': 'Choose a product for this slot',
+      'ru': 'Выбери продукт для этого слота',
+    },
+    'cb_routine_title': {
+      'en': 'Routine',
+      'ru': 'Рутина',
+    },
+    'cb_routine_empty': {
+      'en': 'Add reminders for when to apply your products',
+      'ru': 'Добавь напоминания, когда наносить продукты',
+    },
+    'cb_routine_add': {
+      'en': 'Add reminder',
+      'ru': 'Добавить напоминание',
+    },
+    'cb_routine_time': {
+      'en': 'Time',
+      'ru': 'Время',
+    },
+    'cb_routine_save': {
+      'en': 'Save',
+      'ru': 'Сохранить',
+    },
+    'cb_routine_product': {
+      'en': 'Product',
+      'ru': 'Продукт',
+    },
+    'cb_routine_days': {
+      'en': 'Days',
+      'ru': 'Дни',
+    },
+    'cb_routine_reminder_body': {
+      'en': 'Time to apply',
+      'ru': 'Пора наносить',
+    },
+    'cb_add_choice_title': {
+      'en': 'Add to bag',
+      'ru': 'Добавить в косметичку',
+    },
+    'cb_add_from_products': {
+      'en': 'From my products',
+      'ru': 'Из моих продуктов',
+    },
+    'cb_add_new_scan': {
+      'en': 'New scan',
+      'ru': 'Новый скан',
+    },
+    'cb_compat_error': {
+      'en': "Couldn't analyze compatibility. Please try again.",
+      'ru': 'Не удалось проанализировать совместимость. Попробуй ещё раз.',
+    },
+    'cb_compat_need_more': {
+      'en': 'Add at least 2 products to see how they work together.',
+      'ru': 'Добавь минимум 2 продукта, чтобы посмотреть, как они работают вместе.',
+    },
+    'cb_retry': {
+      'en': 'Retry',
+      'ru': 'Повторить',
+    },
+    'cb_compat_no_inci': {
+      'en':
+          "Couldn't read these products' ingredients yet. Re-scan them so the full composition is recognised.",
+      'ru':
+          'Пока не удалось прочитать состав этих продуктов. Пересканируй их, чтобы распознался полный состав.',
+    },
+    'cb_sec_am': {
+      'en': 'Morning',
+      'ru': 'Утро',
+    },
+    'cb_sec_pm': {
+      'en': 'Evening',
+      'ru': 'Вечер',
+    },
+    'cb_sec_gaps': {
+      'en': "What's missing",
+      'ru': 'Чего не хватает',
+    },
+    'cb_sec_tips': {
+      'en': 'Tips',
+      'ru': 'Советы',
+    },
+    'cb_unlock_routine': {
+      'en': 'Unlock your full AM/PM routine, conflicts and gaps in Pro',
+      'ru': 'Открой полную рутину утро/вечер, конфликты и пробелы в Pro',
+    },
+    'cb_add_to_calendar': {
+      'en': 'Add routine to calendar',
+      'ru': 'Добавить рутину в календарь',
+    },
+    'cb_calendar_added': {
+      'en': 'Reminders added to your calendar',
+      'ru': 'Напоминания добавлены в календарь',
+    },
+    'cb_calendar_none': {
+      'en': 'No matching products to schedule',
+      'ru': 'Нет продуктов для расписания',
+    },
+    'cb_open_analysis': {
+      'en': 'View routine',
+      'ru': 'Смотреть разбор',
+    },
+    'cb_routine_day_empty': {
+      'en': 'Nothing for this time',
+      'ru': 'На это время пусто',
+    },
+    'cb_slot_replace': {
+      'en': 'Replace product',
+      'ru': 'Заменить продукт',
+    },
+    'cb_slot_remove': {
+      'en': 'Remove from bag',
+      'ru': 'Убрать из косметички',
+    },
+    'cb_slot_newscan': {
+      'en': 'Scan a new product',
+      'ru': 'Добавить новый скан',
+    },
+    'hp_title': {
+      'en': 'Try all the features',
+      'ru': 'Попробуй все возможности',
+    },
+    'hp_step1': {
+      'en': 'Find your skin type',
+      'ru': 'Определите тип кожи',
+    },
+    'hp_step2': {
+      'en': 'Add 3 products to your bag',
+      'ru': 'Добавьте 3 продукта в косметичку',
+    },
+    'hp_step3': {
+      'en': 'Add a routine to your calendar',
+      'ru': 'Добавьте рутину в календарь',
+    },
   },
 ].reduce((a, b) => a..addAll(b));

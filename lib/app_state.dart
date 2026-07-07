@@ -29,6 +29,24 @@ class FFAppState extends ChangeNotifier {
       _onboardingDone = prefs.getBool('ff_onboardingDone') ?? _onboardingDone;
     });
     _safeInit(() {
+      _homePipelineDone =
+          prefs.getBool('ff_homePipelineDone') ?? _homePipelineDone;
+    });
+    _safeInit(() {
+      _bagOnboardingDone =
+          prefs.getBool('ff_bagOnboardingDone') ?? _bagOnboardingDone;
+    });
+    _safeInit(() {
+      _bagScanCount = prefs.getInt('ff_bagScanCount') ?? _bagScanCount;
+    });
+    _safeInit(() {
+      _bagOnboardingActive =
+          prefs.getBool('ff_bagOnboardingActive') ?? _bagOnboardingActive;
+    });
+    _safeInit(() {
+      _pendingBagSlot = prefs.getInt('ff_pendingBagSlot') ?? _pendingBagSlot;
+    });
+    _safeInit(() {
       _feedbackCollectorEnabled = prefs.getBool('ff_feedbackCollectorEnabled') ?? _feedbackCollectorEnabled;
     });
     _safeInit(() {
@@ -94,6 +112,50 @@ class FFAppState extends ChangeNotifier {
   set onboardingDone(bool value) {
     _onboardingDone = value;
     prefs.setBool('ff_onboardingDone', value);
+  }
+
+  // Home 3-step "try all features" pipeline: hidden for good once completed.
+  bool _homePipelineDone = false;
+  bool get homePipelineDone => _homePipelineDone;
+  set homePipelineDone(bool value) {
+    _homePipelineDone = value;
+    prefs.setBool('ff_homePipelineDone', value);
+  }
+
+  // Косметичка game-flow: whether the user has finished the initial 3-scan
+  // intro. Separate from [onboardingDone] (the skin-type quiz) on purpose.
+  bool _bagOnboardingDone = false;
+  bool get bagOnboardingDone => _bagOnboardingDone;
+  set bagOnboardingDone(bool value) {
+    _bagOnboardingDone = value;
+    prefs.setBool('ff_bagOnboardingDone', value);
+  }
+
+  // True only while a NEW user is inside the 3-scan game-flow. Gates the
+  // scan-success reroute so existing users' scans are never hijacked.
+  bool _bagOnboardingActive = false;
+  bool get bagOnboardingActive => _bagOnboardingActive;
+  set bagOnboardingActive(bool value) {
+    _bagOnboardingActive = value;
+    prefs.setBool('ff_bagOnboardingActive', value);
+  }
+
+  // Slot index awaiting a fresh scan (persistent bag "new scan" flow), or -1.
+  // Persisted so it survives the scan round-trip even if the widget unmounts.
+  int _pendingBagSlot = -1;
+  int get pendingBagSlot => _pendingBagSlot;
+  set pendingBagSlot(int value) {
+    _pendingBagSlot = value;
+    prefs.setInt('ff_pendingBagSlot', value);
+  }
+
+  // How many of the first 3 onboarding scans are done (0..3). Distinct from
+  // [obStep] (the quiz resume point), which has its own lifecycle.
+  int _bagScanCount = 0;
+  int get bagScanCount => _bagScanCount;
+  set bagScanCount(int value) {
+    _bagScanCount = value;
+    prefs.setInt('ff_bagScanCount', value);
   }
 
   bool _darkModeSet = false;

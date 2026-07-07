@@ -370,6 +370,45 @@ class LinkitemtoalbumsCall {
   }
 }
 
+class AnalyzeCompatibilityCall {
+  static Future<ApiCallResponse> call({
+    String? token = '',
+    List<int>? imageIds,
+    String? languageCode = 'en',
+    String? userId = '',
+    Map<String, dynamic>? skinProfile,
+  }) async {
+    final ffApiRequestBody = json.encode({
+      'image_ids': imageIds ?? const <int>[],
+      'language_code': languageCode,
+      'user_id': userId,
+      'skin_profile': skinProfile ?? const <String, dynamic>{},
+    });
+    return ApiManager.instance.makeApiCall(
+      callName: 'analyzeCompatibility',
+      apiUrl:
+          'https://pjapsfbztorijypnldam.supabase.co/functions/v1/analyze-compatibility',
+      callType: ApiCallType.POST,
+      headers: {
+        'Authorization': 'Bearer ${token}',
+        'Content-Type': 'application/json',
+      },
+      params: {},
+      body: ffApiRequestBody,
+      bodyType: BodyType.JSON,
+      returnBody: true,
+      encodeBodyUtf8: false,
+      decodeUtf8: false,
+      cache: false,
+      isStreamingApi: false,
+      alwaysAllowBody: false,
+    );
+  }
+
+  static double? score(dynamic response) =>
+      castToType<double>(getJsonField(response, r'''$.score'''));
+}
+
 class AnalyzeingredientsCall {
   static Future<ApiCallResponse> call({
     String? inciString = '',

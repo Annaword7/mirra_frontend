@@ -335,6 +335,19 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
             ));
           }
           FFAppState().feedbackPendingScan = true;
+          if (await CosmeticBagIntroWidget.handleScanSuccess(
+            context,
+            ExtractproductinfoNEWBCNDCopyCall.iamgeID(
+              (_model.extractedproductGalary?.jsonBody ?? ''),
+            ),
+            mounted: mounted,
+          )) {
+            FFAppState().uploadedimageurl = '';
+            FFAppState().analysisloading = false;
+            FFAppState().Producanalysstate = 0;
+            if (mounted) safeSetState(() {});
+            return;
+          }
           if (!mounted) {
             FFAppState().uploadedimageurl = '';
             FFAppState().analysisloading = false;
@@ -638,6 +651,17 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
         ));
       }
       FFAppState().feedbackPendingScan = true;
+      if (await CosmeticBagIntroWidget.handleScanSuccess(
+        context,
+        imageId,
+        mounted: mounted,
+      )) {
+        FFAppState().uploadedimageurl = '';
+        FFAppState().analysisloading = false;
+        FFAppState().Producanalysstate = 0;
+        if (mounted) safeSetState(() {});
+        return;
+      }
       if (!mounted) {
         FFAppState().uploadedimageurl = '';
         FFAppState().analysisloading = false;
@@ -958,6 +982,19 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                   ));
                 }
                 FFAppState().feedbackPendingScan = true;
+                if (await CosmeticBagIntroWidget.handleScanSuccess(
+                  context,
+                  ExtractproductinfoNEWBCNDCopyCall.iamgeID(
+                    (_model.extractedproductcamera?.jsonBody ?? ''),
+                  ),
+                  mounted: mounted,
+                )) {
+                  FFAppState().uploadedimageurl = '';
+                  FFAppState().analysisloading = false;
+                  FFAppState().Producanalysstate = 0;
+                  if (mounted) safeSetState(() {});
+                  return;
+                }
                 if (!mounted) {
                   FFAppState().uploadedimageurl = '';
                   FFAppState().analysisloading = false;

@@ -82,8 +82,13 @@ class _NewblankWidgetState extends State<NewblankWidget> {
     // Navigate using the global key in case the widget was replaced.
     final navCtx = appNavigatorKey.currentContext;
     if (navCtx == null) return;
+    if (!FFAppState().bagOnboardingDone) {
+      FFAppState().bagOnboardingActive = true;
+    }
     navCtx.goNamed(
-      TakeorUploadPageWidget.routeName,
+      FFAppState().bagOnboardingDone
+          ? TakeorUploadPageWidget.routeName
+          : CosmeticBagIntroWidget.routeName,
       extra: <String, dynamic>{
         '__transition_info__': TransitionInfo(
           hasTransition: true,

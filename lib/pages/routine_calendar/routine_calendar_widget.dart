@@ -1,0 +1,517 @@
+import '/auth/supabase_auth/auth_util.dart';
+import '/backend/routine_service.dart';
+import '/backend/supabase/database/database.dart';
+import '/components/navbar/navbar_widget.dart';
+import '/flutter_flow/flutter_flow_theme.dart';
+import '/flutter_flow/flutter_flow_util.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'routine_calendar_model.dart';
+
+export 'routine_calendar_model.dart';
+
+/// Pro routine: a weekday slider (defaults to today) showing what to apply in
+/// the morning and in the evening, backed by device-local scheduled reminders.
+class RoutineCalendarWidget extends StatefulWidget {
+  const RoutineCalendarWidget({super.key});
+
+  static String routeName = 'RoutineCalendar';
+  static String routePath = '/routineCalendar';
+
+  @override
+  State<RoutineCalendarWidget> createState() => _RoutineCalendarWidgetState();
+}
+
+class _RoutineCalendarWidgetState extends State<RoutineCalendarWidget> {
+  late RoutineCalendarModel _model;
+
+  List<RoutineEventsRow> _events = [];
+  bool _loading = true;
+  int _selectedDay = DateTime.now().weekday; // 1=Mon..7=Sun
+
+  List<String> get _weekdayLabels =>
+      FFLocalizations.of(context).languageCode.startsWith('ru')
+          ? const ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
+          : const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+  @override
+  void initState() {
+    super.initState();
+    _model = createModel(context, () => RoutineCalendarModel());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _load();
+    });
+  }
+
+  @override
+  void dispose() {
+    _model.dispose();
+    super.dispose();
+  }
+
+  Future<void> _load() async {
+    await RoutineService.instance.reconcile(
+      FFLocalizations.of(context).getText('cb_routine_reminder_body'),
+    );
+    final events = await RoutineService.instance.getEvents();
+    if (!mounted) return;
+    setState(() {
+      _events = events;
+      _loading = false;
+    });
+  }
+
+  int _minutesOf(RoutineEventsRow e) {
+    final parts = (e.timeOfDay ?? '00:00').split(':');
+    final h = int.tryParse(parts.isNotEmpty ? parts[0] : '0') ?? 0;
+    final m = int.tryParse(parts.length > 1 ? parts[1] : '0') ?? 0;
+    return h * 60 + m;
+  }
+
+  List<RoutineEventsRow> _forDay(String part) {
+    final list = _events
+        .where((e) =>
+            e.weekdays.contains(_selectedDay) && (e.partOfDay ?? 'am') == part)
+        .toList();
+    list.sort((a, b) => _minutesOf(a).compareTo(_minutesOf(b)));
+    return list;
+  }
+
+  Future<void> _editTime(RoutineEventsRow e) async {
+    final parts = (e.timeOfDay ?? '08:00').split(':');
+    final initial = TimeOfDay(
+      hour: int.tryParse(parts.isNotEmpty ? parts[0] : '8') ?? 8,
+      minute: int.tryParse(parts.length > 1 ? parts[1] : '0') ?? 0,
+    );
+    final picked = await showTimePicker(context: context, initialTime: initial);
+    if (picked == null) return;
+    await RoutineService.instance.updateEventTime(
+      e,
+      picked.hour,
+      picked.minute,
+      FFLocalizations.of(context).getText('cb_routine_reminder_body'),
+    );
+    if (mounted) _load();
+  }
+
+  Future<void> _delete(RoutineEventsRow e) async {
+    await RoutineService.instance.deleteEvent(e);
+    if (mounted) _load();
+  }
+
+  Future<void> _addFlow() async {
+    HapticFeedback.lightImpact();
+    final scans = await ImagesTable().queryRows(
+      queryFn: (q) =>
+          q.eqOrNull('user', currentUserUid).order('id', ascending: false),
+      limit: 50,
+    );
+    if (!mounted) return;
+    final result = await showModalBottomSheet<_RoutineDraft>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => _AddReminderSheet(
+        scans: scans,
+        weekdayLabels: _weekdayLabels,
+        defaultDay: _selectedDay,
+      ),
+    );
+    if (result == null) return;
+    await RoutineService.instance.addEvent(
+      imageId: result.imageId,
+      title: result.title,
+      weekdays: result.weekdays,
+      hour: result.time.hour,
+      minute: result.time.minute,
+      reminderBody:
+          FFLocalizations.of(context).getText('cb_routine_reminder_body'),
+    );
+    if (mounted) _load();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+    return Scaffold(
+      backgroundColor: Colors.white,
+      extendBody: true,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.black),
+        title: Text(
+          FFLocalizations.of(context).getText('cb_routine_title'),
+          style: theme.headlineSmall.override(
+            fontFamily: theme.headlineSmallFamily,
+            color: Colors.black,
+            letterSpacing: 0,
+            useGoogleFonts: !theme.headlineSmallIsCustom,
+          ),
+        ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _addFlow,
+        backgroundColor: theme.primary,
+        foregroundColor: Colors.white,
+        icon: const Icon(Icons.add),
+        label: Text(FFLocalizations.of(context).getText('cb_routine_add')),
+      ),
+      bottomNavigationBar: wrapWithModel(
+        model: _model.navbarModel,
+        updateCallback: () => safeSetState(() {}),
+        child: const NavbarWidget(activePage: 4),
+      ),
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
+              children: [
+                _DaySelector(
+                  labels: _weekdayLabels,
+                  selected: _selectedDay,
+                  onSelect: (d) => setState(() => _selectedDay = d),
+                  primary: theme.primary,
+                ),
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 130),
+                    children: [
+                      _DaySection(
+                        title: FFLocalizations.of(context).getText('cb_sec_am'),
+                        icon: Icons.wb_sunny_rounded,
+                        events: _forDay('am'),
+                        onEdit: _editTime,
+                        onDelete: _delete,
+                        primary: theme.primary,
+                      ),
+                      const SizedBox(height: 20),
+                      _DaySection(
+                        title: FFLocalizations.of(context).getText('cb_sec_pm'),
+                        icon: Icons.nightlight_round,
+                        events: _forDay('pm'),
+                        onEdit: _editTime,
+                        onDelete: _delete,
+                        primary: theme.primary,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+    );
+  }
+}
+
+class _DaySelector extends StatelessWidget {
+  const _DaySelector({
+    required this.labels,
+    required this.selected,
+    required this.onSelect,
+    required this.primary,
+  });
+  final List<String> labels;
+  final int selected;
+  final ValueChanged<int> onSelect;
+  final Color primary;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          for (var d = 1; d <= 7; d++)
+            GestureDetector(
+              onTap: () => onSelect(d),
+              child: Container(
+                width: 40,
+                height: 48,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: selected == d ? primary : Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: selected == d ? primary : const Color(0xFFE6E6E6),
+                  ),
+                ),
+                child: Text(
+                  labels[d - 1],
+                  style: TextStyle(
+                    color: selected == d ? Colors.white : Colors.black,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DaySection extends StatelessWidget {
+  const _DaySection({
+    required this.title,
+    required this.icon,
+    required this.events,
+    required this.onEdit,
+    required this.onDelete,
+    required this.primary,
+  });
+  final String title;
+  final IconData icon;
+  final List<RoutineEventsRow> events;
+  final Future<void> Function(RoutineEventsRow) onEdit;
+  final Future<void> Function(RoutineEventsRow) onDelete;
+  final Color primary;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, color: primary, size: 20),
+            const SizedBox(width: 8),
+            Text(
+              title,
+              style: const TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.w700,
+                fontSize: 17,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        if (events.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Text(
+              FFLocalizations.of(context).getText('cb_routine_day_empty'),
+              style: const TextStyle(color: Colors.black54),
+            ),
+          )
+        else
+          ...events.map((e) {
+            final time = (e.timeOfDay ?? '').split(':');
+            final hhmm = time.length >= 2 ? '${time[0]}:${time[1]}' : '';
+            return Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFFE6E6E6)),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => onEdit(e),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        hhmm,
+                        style: TextStyle(
+                          color: primary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      e.title ?? '—',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon:
+                        const Icon(Icons.delete_outline, color: Colors.black54),
+                    onPressed: () => onDelete(e),
+                  ),
+                ],
+              ),
+            );
+          }),
+      ],
+    );
+  }
+}
+
+class _RoutineDraft {
+  _RoutineDraft(this.imageId, this.title, this.weekdays, this.time);
+  final int? imageId;
+  final String title;
+  final List<int> weekdays;
+  final TimeOfDay time;
+}
+
+class _AddReminderSheet extends StatefulWidget {
+  const _AddReminderSheet({
+    required this.scans,
+    required this.weekdayLabels,
+    required this.defaultDay,
+  });
+  final List<ImagesRow> scans;
+  final List<String> weekdayLabels;
+  final int defaultDay;
+
+  @override
+  State<_AddReminderSheet> createState() => _AddReminderSheetState();
+}
+
+class _AddReminderSheetState extends State<_AddReminderSheet> {
+  int? _imageId;
+  String _title = '';
+  late final Set<int> _days = {widget.defaultDay};
+  TimeOfDay _time = const TimeOfDay(hour: 21, minute: 0);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+    final canSave = _title.trim().isNotEmpty && _days.isNotEmpty;
+    const labelStyle = TextStyle(
+      color: Colors.black,
+      fontWeight: FontWeight.w600,
+    );
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: 20,
+          right: 20,
+          top: 20,
+          bottom: 20 + MediaQuery.viewInsetsOf(context).bottom,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(FFLocalizations.of(context).getText('cb_routine_product'),
+                style: labelStyle),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 76,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: widget.scans.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 10),
+                itemBuilder: (_, i) {
+                  final img = widget.scans[i];
+                  final selected = _imageId == img.id;
+                  return GestureDetector(
+                    onTap: () => setState(() {
+                      _imageId = img.id;
+                      _title = img.productName ?? img.brand ?? '';
+                    }),
+                    child: Container(
+                      width: 64,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: selected
+                              ? theme.primary
+                              : const Color(0xFFE6E6E6),
+                          width: selected ? 2 : 1,
+                        ),
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: img.imageUrl.isNotEmpty
+                          ? Image.network(img.imageUrl, fit: BoxFit.cover)
+                          : Container(color: Colors.white),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(FFLocalizations.of(context).getText('cb_routine_days'),
+                style: labelStyle),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              children: [
+                for (var d = 1; d <= 7; d++)
+                  ChoiceChip(
+                    label: Text(widget.weekdayLabels[d - 1]),
+                    selected: _days.contains(d),
+                    onSelected: (v) => setState(() {
+                      if (v) {
+                        _days.add(d);
+                      } else {
+                        _days.remove(d);
+                      }
+                    }),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Text(FFLocalizations.of(context).getText('cb_routine_time'),
+                    style: labelStyle),
+                const Spacer(),
+                TextButton(
+                  onPressed: () async {
+                    final picked = await showTimePicker(
+                        context: context, initialTime: _time);
+                    if (picked != null) setState(() => _time = picked);
+                  },
+                  child: Text(
+                    _time.format(context),
+                    style: TextStyle(
+                      color: theme.primary,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 52,
+              child: ElevatedButton(
+                onPressed: canSave
+                    ? () => Navigator.of(context).pop(_RoutineDraft(
+                        _imageId, _title.trim(), _days.toList(), _time))
+                    : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: theme.primary,
+                  foregroundColor: Colors.white,
+                  disabledBackgroundColor: const Color(0xFFE6E6E6),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(26),
+                  ),
+                ),
+                child: Text(
+                  FFLocalizations.of(context).getText('cb_routine_save'),
+                  style: const TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
