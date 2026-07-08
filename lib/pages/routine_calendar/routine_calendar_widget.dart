@@ -4,6 +4,7 @@ import '/backend/supabase/database/database.dart';
 import '/components/navbar/navbar_widget.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'routine_calendar_model.dart';
@@ -26,6 +27,7 @@ class _RoutineCalendarWidgetState extends State<RoutineCalendarWidget> {
   late RoutineCalendarModel _model;
 
   List<RoutineEventsRow> _events = [];
+  Map<int, ImagesRow> _images = {};
   bool _loading = true;
   int _selectedDay = DateTime.now().weekday; // 1=Mon..7=Sun
 
@@ -49,16 +51,55 @@ class _RoutineCalendarWidgetState extends State<RoutineCalendarWidget> {
     super.dispose();
   }
 
-  Future<void> _load() async {
-    await RoutineService.instance.reconcile(
-      FFLocalizations.of(context).getText('cb_routine_reminder_body'),
+  Future<void> _syncDigests() async {
+    final t = FFLocalizations.of(context);
+    await RoutineService.instance.syncDigests(
+      amTitle: t.getText('cb_push_am_title'),
+      amBody: t.getText('cb_push_am_body'),
+      pmTitle: t.getText('cb_push_pm_title'),
+      pmBody: t.getText('cb_push_pm_body'),
     );
+  }
+
+  Future<void> _load() async {
+    await _syncDigests();
     final events = await RoutineService.instance.getEvents();
+    final ids = events.map((e) => e.imageId).whereType<int>().toSet().toList();
+    var images = <int, ImagesRow>{};
+    if (ids.isNotEmpty) {
+      final rows = await ImagesTable().queryRows(
+        queryFn: (q) => q.inFilterOrNull('id', ids),
+      );
+      images = {for (final r in rows) r.id: r};
+    }
     if (!mounted) return;
     setState(() {
       _events = events;
+      _images = images;
       _loading = false;
     });
+  }
+
+  /// The single time for a part of day (from the earliest product), or null.
+  String? _partTime(String part) {
+    final list = _forDay(part);
+    if (list.isEmpty) return null;
+    final t = (list.first.timeOfDay ?? '').split(':');
+    return t.length >= 2 ? '${t[0]}:${t[1]}' : null;
+  }
+
+  Future<void> _editPartTime(String part) async {
+    HapticFeedback.lightImpact();
+    final current = _partTime(part);
+    final parts = (current ?? (part == 'am' ? '08:00' : '21:00')).split(':');
+    final initial = TimeOfDay(
+      hour: int.tryParse(parts[0]) ?? (part == 'am' ? 8 : 21),
+      minute: int.tryParse(parts.length > 1 ? parts[1] : '0') ?? 0,
+    );
+    final picked = await _pickTimeCupertino(context, initial);
+    if (picked == null) return;
+    await RoutineService.instance.setPartTime(part, picked.hour, picked.minute);
+    if (mounted) _load();
   }
 
   int _minutesOf(RoutineEventsRow e) {
@@ -75,23 +116,6 @@ class _RoutineCalendarWidgetState extends State<RoutineCalendarWidget> {
         .toList();
     list.sort((a, b) => _minutesOf(a).compareTo(_minutesOf(b)));
     return list;
-  }
-
-  Future<void> _editTime(RoutineEventsRow e) async {
-    final parts = (e.timeOfDay ?? '08:00').split(':');
-    final initial = TimeOfDay(
-      hour: int.tryParse(parts.isNotEmpty ? parts[0] : '8') ?? 8,
-      minute: int.tryParse(parts.length > 1 ? parts[1] : '0') ?? 0,
-    );
-    final picked = await showTimePicker(context: context, initialTime: initial);
-    if (picked == null) return;
-    await RoutineService.instance.updateEventTime(
-      e,
-      picked.hour,
-      picked.minute,
-      FFLocalizations.of(context).getText('cb_routine_reminder_body'),
-    );
-    if (mounted) _load();
   }
 
   Future<void> _delete(RoutineEventsRow e) async {
@@ -127,8 +151,6 @@ class _RoutineCalendarWidgetState extends State<RoutineCalendarWidget> {
       weekdays: result.weekdays,
       hour: result.time.hour,
       minute: result.time.minute,
-      reminderBody:
-          FFLocalizations.of(context).getText('cb_routine_reminder_body'),
     );
     if (mounted) _load();
   }
@@ -183,7 +205,9 @@ class _RoutineCalendarWidgetState extends State<RoutineCalendarWidget> {
                         title: FFLocalizations.of(context).getText('cb_sec_am'),
                         icon: Icons.wb_sunny_rounded,
                         events: _forDay('am'),
-                        onEdit: _editTime,
+                        images: _images,
+                        sectionTime: _partTime('am'),
+                        onEditTime: () => _editPartTime('am'),
                         onDelete: _delete,
                         primary: theme.primary,
                       ),
@@ -192,7 +216,9 @@ class _RoutineCalendarWidgetState extends State<RoutineCalendarWidget> {
                         title: FFLocalizations.of(context).getText('cb_sec_pm'),
                         icon: Icons.nightlight_round,
                         events: _forDay('pm'),
-                        onEdit: _editTime,
+                        images: _images,
+                        sectionTime: _partTime('pm'),
+                        onEditTime: () => _editPartTime('pm'),
                         onDelete: _delete,
                         primary: theme.primary,
                       ),
@@ -259,14 +285,18 @@ class _DaySection extends StatelessWidget {
     required this.title,
     required this.icon,
     required this.events,
-    required this.onEdit,
+    required this.images,
+    required this.sectionTime,
+    required this.onEditTime,
     required this.onDelete,
     required this.primary,
   });
   final String title;
   final IconData icon;
   final List<RoutineEventsRow> events;
-  final Future<void> Function(RoutineEventsRow) onEdit;
+  final Map<int, ImagesRow> images;
+  final String? sectionTime;
+  final VoidCallback onEditTime;
   final Future<void> Function(RoutineEventsRow) onDelete;
   final Color primary;
 
@@ -287,6 +317,33 @@ class _DaySection extends StatelessWidget {
                 fontSize: 17,
               ),
             ),
+            const Spacer(),
+            // One time for the whole part of day — tap opens the Apple picker.
+            if (sectionTime != null)
+              GestureDetector(
+                onTap: onEditTime,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.schedule_rounded, color: primary, size: 16),
+                      const SizedBox(width: 6),
+                      Text(
+                        sectionTime!,
+                        style: TextStyle(
+                          color: primary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
           ],
         ),
         const SizedBox(height: 10),
@@ -300,8 +357,7 @@ class _DaySection extends StatelessWidget {
           )
         else
           ...events.map((e) {
-            final time = (e.timeOfDay ?? '').split(':');
-            final hhmm = time.length >= 2 ? '${time[0]}:${time[1]}' : '';
+            final img = e.imageId != null ? images[e.imageId] : null;
             return Container(
               margin: const EdgeInsets.only(bottom: 10),
               decoration: BoxDecoration(
@@ -309,26 +365,21 @@ class _DaySection extends StatelessWidget {
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(color: const Color(0xFFE6E6E6)),
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               child: Row(
                 children: [
-                  GestureDetector(
-                    onTap: () => onEdit(e),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        hhmm,
-                        style: TextStyle(
-                          color: primary,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: (img != null && img.imageUrl.isNotEmpty)
+                        ? Image.network(img.imageUrl,
+                            width: 44, height: 44, fit: BoxFit.cover)
+                        : Container(
+                            width: 44,
+                            height: 44,
+                            color: const Color(0xFFF2F2F2),
+                            child: const Icon(Icons.spa_outlined,
+                                color: Colors.black38, size: 20),
+                          ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -354,6 +405,50 @@ class _DaySection extends StatelessWidget {
       ],
     );
   }
+}
+
+/// Native-style Apple (Cupertino) time picker in a bottom sheet.
+Future<TimeOfDay?> _pickTimeCupertino(
+    BuildContext context, TimeOfDay initial) {
+  var selected = initial;
+  final t = FFLocalizations.of(context);
+  return showCupertinoModalPopup<TimeOfDay>(
+    context: context,
+    builder: (ctx) => Container(
+      height: 300,
+      color: Colors.white,
+      child: SafeArea(
+        top: false,
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                CupertinoButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: Text(t.getText('cb_cancel')),
+                ),
+                CupertinoButton(
+                  onPressed: () => Navigator.pop(ctx, selected),
+                  child: Text(t.getText('cb_done')),
+                ),
+              ],
+            ),
+            Expanded(
+              child: CupertinoDatePicker(
+                mode: CupertinoDatePickerMode.time,
+                use24hFormat: true,
+                initialDateTime:
+                    DateTime(2020, 1, 1, initial.hour, initial.minute),
+                onDateTimeChanged: (dt) =>
+                    selected = TimeOfDay(hour: dt.hour, minute: dt.minute),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
 }
 
 class _RoutineDraft {
@@ -470,8 +565,7 @@ class _AddReminderSheetState extends State<_AddReminderSheet> {
                 const Spacer(),
                 TextButton(
                   onPressed: () async {
-                    final picked = await showTimePicker(
-                        context: context, initialTime: _time);
+                    final picked = await _pickTimeCupertino(context, _time);
                     if (picked != null) setState(() => _time = picked);
                   },
                   child: Text(

@@ -38,7 +38,7 @@ class CosmeticBagIntroWidget extends StatefulWidget {
   }) async {
     if (imageId == null) return false;
     // Persistent-bag "new scan into this slot": fill the target slot (or create
-    // a fresh slot for the "+" flow), then show the normal product card.
+    // a fresh slot for the "+" flow), then jump straight to the updated bag.
     final pending = FFAppState().pendingBagSlot;
     if (pending != -1) {
       FFAppState().pendingBagSlot = -1;
@@ -50,7 +50,9 @@ class CosmeticBagIntroWidget extends StatefulWidget {
       } else {
         await CosmeticBagService.instance.assignSlot(pending, imageId);
       }
-      return false;
+      final navCtx = mounted ? context : appNavigatorKey.currentContext;
+      navCtx?.goNamed(CosmeticBagWidget.routeName, extra: _fadeExtra);
+      return true;
     }
     // Only intercept while a new user is actively inside the game-flow —
     // existing users (or anyone past onboarding) scan normally.

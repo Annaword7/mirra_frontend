@@ -166,6 +166,10 @@ class _MyAppState extends State<MyApp> {
     // Push notifications
     NotificationService.instance.init(
       onTap: (data) {
+        if (data['route'] == 'routine') {
+          _router.go('/routineCalendar');
+          return;
+        }
         final imageId = data['image_id'];
         if (imageId != null) _router.go('/itemcard2?imageid=$imageId');
       },

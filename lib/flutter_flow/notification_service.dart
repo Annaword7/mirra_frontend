@@ -189,11 +189,30 @@ class NotificationService {
         android: AndroidInitializationSettings('@mipmap/ic_launcher'),
         iOS: DarwinInitializationSettings(),
       ),
-      onDidReceiveNotificationResponse: (response) {
-        final imageId = response.payload;
-        if (imageId != null) _onTap?.call({'image_id': imageId});
-      },
+      onDidReceiveNotificationResponse: (response) =>
+          _routeLocalPayload(response.payload),
     );
+
+    // App launched from a terminated state by tapping a local notification.
+    final launch =
+        await _localNotifications.getNotificationAppLaunchDetails();
+    if (launch?.didNotificationLaunchApp ?? false) {
+      final payload = launch!.notificationResponse?.payload;
+      if (payload != null) {
+        await Future.delayed(const Duration(milliseconds: 1200));
+        _routeLocalPayload(payload);
+      }
+    }
+  }
+
+  // 'routine' → open the routine calendar; otherwise it's an image id.
+  void _routeLocalPayload(String? payload) {
+    if (payload == null) return;
+    if (payload == 'routine') {
+      _onTap?.call({'route': 'routine'});
+    } else {
+      _onTap?.call({'image_id': payload});
+    }
   }
 
   // ── Routine reminders (local scheduled notifications) ──────────────────────
@@ -252,6 +271,7 @@ class NotificationService {
     required int minute,
     required String title,
     required String body,
+    String? payload,
   }) async {
     if (!_schedulingReady) return;
     for (final wd in weekdays) {
@@ -273,6 +293,7 @@ class NotificationService {
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
         matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
+        payload: payload,
       );
     }
   }

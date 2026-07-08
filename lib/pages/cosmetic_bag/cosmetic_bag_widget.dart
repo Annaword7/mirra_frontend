@@ -1,5 +1,6 @@
 import '/auth/supabase_auth/auth_util.dart';
 import '/backend/cosmetic_bag_service.dart';
+import '/backend/routine_service.dart';
 import '/backend/supabase/database/database.dart';
 import '/components/navbar/navbar_widget.dart';
 import '/components/profile_summary_card.dart';
@@ -33,6 +34,8 @@ class _CosmeticBagWidgetState extends State<CosmeticBagWidget> {
   Map<int, ImagesRow> _images = {};
   double? _cachedScore;
   UsersRow? _profileRow;
+  Set<int> _calendarIds = {}; // product ids that have a routine reminder
+  bool _compatStale = false; // bag changed since the last compatibility result
   bool _loading = true;
 
   /// How many of the 3 base placeholders (slot_index 0..2) are filled.
@@ -41,6 +44,9 @@ class _CosmeticBagWidgetState extends State<CosmeticBagWidget> {
           (s.slotIndex ?? kBagOnboardingSlots) < kBagOnboardingSlots &&
           s.imageId != null)
       .length;
+
+  /// Total filled slots (any index).
+  int get _filledCount => _slots.where((s) => s.imageId != null).length;
 
   @override
   void initState() {
@@ -75,28 +81,45 @@ class _CosmeticBagWidgetState extends State<CosmeticBagWidget> {
     final user = await UsersTable().querySingleRow(
       queryFn: (q) => q.eqOrNull('id', currentUserUid),
     );
+    final events = await RoutineService.instance.getEvents();
+    final calendarIds = events.map((e) => e.imageId).whereType<int>().toSet();
+
+    // Compatibility is stale if the set of products that would be analysed now
+    // differs from the set stored with the last result.
+    final filled = slots.map((s) => s.imageId).whereType<int>().toList();
+    final expected =
+        (FFAppState().isprouser ? filled : filled.take(3).toList()).toSet();
+    final lr = bag.isNotEmpty ? bag.first.lastResult : null;
+    Set<int>? analyzed;
+    if (lr is Map && lr['analyzed_image_ids'] is List) {
+      analyzed = (lr['analyzed_image_ids'] as List)
+          .whereType<num>()
+          .map((n) => n.toInt())
+          .toSet();
+    }
+    final stale = analyzed != null &&
+        !(analyzed.length == expected.length && analyzed.containsAll(expected));
+
     if (!mounted) return;
     setState(() {
       _slots = slots;
       _images = images;
       _cachedScore = bag.isNotEmpty ? bag.first.lastCompatibilityScore : null;
       _profileRow = user.isNotEmpty ? user.first : null;
+      _calendarIds = calendarIds;
+      _compatStale = stale;
       _loading = false;
     });
   }
 
-  Future<void> _onSlotTap(BagSlotsRow slot, bool isPro) async {
+  Future<void> _onSlotTap(BagSlotsRow slot) async {
     HapticFeedback.lightImpact();
     final filled = slot.imageId != null;
     if (!filled) {
       await _addToSlot(slot);
       return;
     }
-    if (!isPro) {
-      context.pushNamed(PaywallpageWidget.routeName);
-      return;
-    }
-    // Explicit replace / new scan / remove for a filled slot (Pro).
+    // Replace / new scan / remove is free for any existing product.
     final action = await showSlotActions(context);
     if (action == SlotAction.replace) {
       if (!mounted) return;
@@ -115,9 +138,15 @@ class _CosmeticBagWidgetState extends State<CosmeticBagWidget> {
   }
 
   /// "+" tile: create a new slot only once a product is actually chosen, so
-  /// dismissing the popup leaves no empty cell behind.
+  /// dismissing the popup leaves no empty cell behind. Free is capped at 4
+  /// products — adding a 5th requires Pro.
   Future<void> _addNewSlot() async {
     HapticFeedback.lightImpact();
+    final isPro = context.read<FFAppState>().isprouser;
+    if (!isPro && _filledCount >= 4) {
+      context.pushNamed(PaywallpageWidget.routeName);
+      return;
+    }
     final choice = await showAddChoice(context);
     if (choice == AddChoice.fromProducts) {
       if (!mounted) return;
@@ -155,7 +184,6 @@ class _CosmeticBagWidgetState extends State<CosmeticBagWidget> {
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
-    final isPro = context.watch<FFAppState>().isprouser;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -189,6 +217,7 @@ class _CosmeticBagWidgetState extends State<CosmeticBagWidget> {
                   ProfileSummaryCard(profileRow: _profileRow),
                   _ScoreHeader(
                     score: _cachedScore,
+                    stale: _compatStale,
                     onView: () async {
                       await context
                           .pushNamed(CompatibilityResultWidget.routeName);
@@ -211,11 +240,12 @@ class _CosmeticBagWidgetState extends State<CosmeticBagWidget> {
                         if (slot.imageId != null)
                           _BagTile(
                             image: _images[slot.imageId],
-                            proLock: !isPro,
-                            onTap: () => _onSlotTap(slot, isPro),
+                            missingCalendar: _calendarIds.isNotEmpty &&
+                                !_calendarIds.contains(slot.imageId),
+                            onTap: () => _onSlotTap(slot),
                           )
                         else
-                          _AddSlotTile(onTap: () => _onSlotTap(slot, isPro)),
+                          _AddSlotTile(onTap: () => _onSlotTap(slot)),
                       // The trailing "+" appears only once all 3 base
                       // placeholders are filled (to extend beyond 3).
                       if (_baseFilled >= kBagOnboardingSlots)
@@ -231,9 +261,14 @@ class _CosmeticBagWidgetState extends State<CosmeticBagWidget> {
 }
 
 class _ScoreHeader extends StatelessWidget {
-  const _ScoreHeader({required this.score, required this.onView});
+  const _ScoreHeader({
+    required this.score,
+    required this.onView,
+    this.stale = false,
+  });
   final double? score;
   final VoidCallback onView;
+  final bool stale;
 
   @override
   Widget build(BuildContext context) {
@@ -280,19 +315,41 @@ class _ScoreHeader extends StatelessWidget {
                       useGoogleFonts: !theme.bodyLargeIsCustom,
                     ),
                   ),
-                  Text(
-                    FFLocalizations.of(context).getText('cb_open_analysis'),
-                    style: theme.bodySmall.override(
-                      fontFamily: theme.bodySmallFamily,
-                      color: theme.primary,
-                      letterSpacing: 0,
-                      useGoogleFonts: !theme.bodySmallIsCustom,
+                  if (stale)
+                    Row(
+                      children: [
+                        const Icon(Icons.sync_problem_rounded,
+                            color: Color(0xFFE07A00), size: 14),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            FFLocalizations.of(context)
+                                .getText('cb_compat_stale'),
+                            style: const TextStyle(
+                                color: Color(0xFFE07A00),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ],
+                    )
+                  else
+                    Text(
+                      FFLocalizations.of(context).getText('cb_open_analysis'),
+                      style: theme.bodySmall.override(
+                        fontFamily: theme.bodySmallFamily,
+                        color: theme.primary,
+                        letterSpacing: 0,
+                        useGoogleFonts: !theme.bodySmallIsCustom,
+                      ),
                     ),
-                  ),
                 ],
               ),
             ),
-            Icon(Icons.chevron_right_rounded, color: Colors.black54),
+            Icon(
+              stale ? Icons.refresh_rounded : Icons.chevron_right_rounded,
+              color: stale ? const Color(0xFFE07A00) : Colors.black54,
+            ),
           ],
         ),
       ),
@@ -340,12 +397,12 @@ class _AddSlotTile extends StatelessWidget {
 class _BagTile extends StatelessWidget {
   const _BagTile({
     required this.image,
-    required this.proLock,
     required this.onTap,
+    this.missingCalendar = false,
   });
   final ImagesRow? image;
-  final bool proLock;
   final VoidCallback onTap;
+  final bool missingCalendar;
 
   @override
   Widget build(BuildContext context) {
@@ -393,12 +450,24 @@ class _BagTile extends StatelessWidget {
                     ),
                   ),
                 ),
-                if (proLock)
+                // "Not in your routine calendar" badge.
+                if (missingCalendar)
                   Positioned(
-                    top: 8,
-                    right: 8,
-                    child: Icon(Icons.lock_rounded,
-                        color: Colors.white, size: 18),
+                    top: 6,
+                    right: 6,
+                    child: Tooltip(
+                      message: FFLocalizations.of(context)
+                          .getText('cb_not_in_calendar'),
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFE07A00),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.event_busy_rounded,
+                            color: Colors.white, size: 14),
+                      ),
+                    ),
                   ),
               ],
             ),

@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import '/auth/supabase_auth/auth_util.dart';
 import '/backend/api_requests/api_calls.dart';
 import '/backend/cosmetic_bag_service.dart';
@@ -11,7 +9,6 @@ import '/index.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
 import 'compatibility_result_model.dart';
 
 export 'compatibility_result_model.dart';
@@ -36,6 +33,7 @@ class _CompatibilityResultWidgetState extends State<CompatibilityResultWidget> {
   bool _loading = true;
   bool _error = false;
   String? _errorMsg;
+  bool _capped = false; // free user has >3 products → analysed only 3
   Map<String, dynamic> _data = {};
 
   double? get _score => (_data['score'] as num?)?.toDouble();
@@ -55,8 +53,8 @@ class _CompatibilityResultWidgetState extends State<CompatibilityResultWidget> {
     });
   }
 
-  /// Show the cached routine instantly if we have one; only call the LLM when
-  /// there's nothing cached (the refresh button forces a fresh analysis).
+  /// Show the cached routine instantly if it still matches the current bag;
+  /// otherwise (nothing cached, or the bag changed) recompute.
   Future<void> _loadCachedOrAnalyze() async {
     try {
       final bag = await CosmeticBagTable().querySingleRow(
@@ -64,12 +62,26 @@ class _CompatibilityResultWidgetState extends State<CompatibilityResultWidget> {
       );
       final cached = bag.isNotEmpty ? bag.first.lastResult : null;
       if (cached is Map && cached['score'] != null) {
-        if (!mounted) return;
-        setState(() {
-          _loading = false;
-          _data = cached.cast<String, dynamic>();
-        });
-        return;
+        final slots = await CosmeticBagService.instance.getSlots();
+        final filled =
+            slots.map((s) => s.imageId).whereType<int>().toList();
+        final expected =
+            (FFAppState().isprouser ? filled : filled.take(3).toList()).toSet();
+        final analyzed = (cached['analyzed_image_ids'] as List?)
+                ?.whereType<num>()
+                .map((n) => n.toInt())
+                .toSet() ??
+            const <int>{};
+        final fresh = analyzed.length == expected.length &&
+            analyzed.containsAll(expected);
+        if (fresh) {
+          if (!mounted) return;
+          setState(() {
+            _loading = false;
+            _data = cached.cast<String, dynamic>();
+          });
+          return;
+        }
       }
     } catch (_) {}
     await _analyze();
@@ -99,9 +111,12 @@ class _CompatibilityResultWidgetState extends State<CompatibilityResultWidget> {
       _errorMsg = null;
     });
     final lang = FFLocalizations.of(context).languageCode;
+    // Compatibility is free but capped at 3 products; Pro analyses any number.
+    final isPro = FFAppState().isprouser;
     try {
       final slots = await CosmeticBagService.instance.getSlots();
-      final ids = slots.map((s) => s.imageId).whereType<int>().toList();
+      final allIds = slots.map((s) => s.imageId).whereType<int>().toList();
+      final ids = isPro ? allIds : allIds.take(3).toList();
       if (ids.length < 2) {
         _fail(FFLocalizations.of(context).getText('cb_compat_need_more'));
         return;
@@ -124,10 +139,14 @@ class _CompatibilityResultWidgetState extends State<CompatibilityResultWidget> {
         _fail(FFLocalizations.of(context).getText('cb_compat_no_inci'));
         return;
       }
+      // Remember exactly which products were analysed so the bag can flag when
+      // its contents drift from the last result.
+      map['analyzed_image_ids'] = ids;
       await _cache(map);
       if (!mounted) return;
       setState(() {
         _loading = false;
+        _capped = !isPro && allIds.length > 3;
         _data = map;
       });
     } catch (e, s) {
@@ -167,8 +186,6 @@ class _CompatibilityResultWidgetState extends State<CompatibilityResultWidget> {
     final created = await RoutineService.instance.generateFromRoutine(
       am: _am(),
       pm: _pm(),
-      reminderBody:
-          FFLocalizations.of(context).getText('cb_routine_reminder_body'),
     );
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -182,7 +199,6 @@ class _CompatibilityResultWidgetState extends State<CompatibilityResultWidget> {
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
-    final isPro = context.watch<FFAppState>().isprouser;
     final conflicts = _conflicts();
     final freeConflict = conflicts.isNotEmpty ? conflicts.first : null;
 
@@ -233,12 +249,13 @@ class _CompatibilityResultWidgetState extends State<CompatibilityResultWidget> {
                         ),
                       ),
                     const SizedBox(height: 24),
+                    if (_capped) ...[
+                      _CappedHint(theme: theme, onUpgrade: _openPaywall),
+                      const SizedBox(height: 16),
+                    ],
                     if (freeConflict != null) _ConflictTile(item: freeConflict),
                     const SizedBox(height: 16),
-                    if (isPro)
-                      ..._proSections(theme)
-                    else
-                      _LockedSection(onUnlock: _openPaywall),
+                    ..._proSections(theme),
                     const SizedBox(height: 32),
                   ],
                 ),
@@ -663,81 +680,40 @@ class _ScoreRing extends StatelessWidget {
   }
 }
 
-class _LockedSection extends StatelessWidget {
-  const _LockedSection({required this.onUnlock});
-  final VoidCallback onUnlock;
+/// Free users get compatibility for the first 3 products; this nudges them to
+/// Pro to include all of their products.
+class _CappedHint extends StatelessWidget {
+  const _CappedHint({required this.theme, required this.onUpgrade});
+  final FlutterFlowTheme theme;
+  final VoidCallback onUpgrade;
 
   @override
   Widget build(BuildContext context) {
-    final theme = FlutterFlowTheme.of(context);
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        ClipRRect(
+    return InkWell(
+      onTap: onUpgrade,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: theme.primary.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(14),
-          child: ImageFiltered(
-            imageFilter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-            child: Column(
-              children: [
-                for (var i = 0; i < 4; i++)
-                  Container(
-                    height: 46,
-                    margin: const EdgeInsets.only(bottom: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: const Color(0xFFE6E6E6)),
-                    ),
-                  ),
-              ],
-            ),
-          ),
+          border: Border.all(color: theme.primary.withValues(alpha: 0.30)),
         ),
-        Column(
-          mainAxisSize: MainAxisSize.min,
+        child: Row(
           children: [
-            Icon(Icons.lock_rounded, color: theme.primary, size: 28),
-            const SizedBox(height: 10),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
+            Icon(Icons.workspace_premium_rounded,
+                color: theme.primary, size: 20),
+            const SizedBox(width: 10),
+            Expanded(
               child: Text(
-                FFLocalizations.of(context).getText('cb_unlock_routine'),
-                textAlign: TextAlign.center,
-                style: theme.bodyMedium.override(
-                  fontFamily: theme.bodyMediumFamily,
-                  color: Colors.black,
-                  letterSpacing: 0,
-                  useGoogleFonts: !theme.bodyMediumIsCustom,
-                ),
+                FFLocalizations.of(context).getText('cb_compat_capped'),
+                style: const TextStyle(color: Colors.black, fontSize: 13),
               ),
             ),
-            const SizedBox(height: 12),
-            SizedBox(
-              height: 48,
-              child: ElevatedButton(
-                onPressed: onUnlock,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: theme.primary,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                ),
-                child: Text(
-                  FFLocalizations.of(context).getText('cb_compat_unlock'),
-                  style: theme.titleSmall.override(
-                    fontFamily: theme.titleSmallFamily,
-                    color: Colors.white,
-                    letterSpacing: 0,
-                    useGoogleFonts: !theme.titleSmallIsCustom,
-                  ),
-                ),
-              ),
-            ),
+            Icon(Icons.chevron_right_rounded, color: theme.primary),
           ],
         ),
-      ],
+      ),
     );
   }
 }

@@ -8591,6 +8591,22 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'View routine',
       'ru': 'Смотреть разбор',
     },
+    'cb_compat_stale': {
+      'en': 'Bag changed — tap to recalculate',
+      'ru': 'Косметичка изменилась — пересчитать',
+    },
+    'cb_not_in_calendar': {
+      'en': 'Not in calendar',
+      'ru': 'Не в календаре',
+    },
+    'cb_cancel': {
+      'en': 'Cancel',
+      'ru': 'Отмена',
+    },
+    'cb_done': {
+      'en': 'Done',
+      'ru': 'Готово',
+    },
     'cb_routine_day_empty': {
       'en': 'Nothing for this time',
       'ru': 'На это время пусто',
@@ -8606,6 +8622,26 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     'cb_slot_newscan': {
       'en': 'Scan a new product',
       'ru': 'Добавить новый скан',
+    },
+    'cb_compat_capped': {
+      'en': 'Analysed 3 products. Unlock all of them in Pro.',
+      'ru': 'Разбор по 3 продуктам. Открой все в Pro.',
+    },
+    'cb_push_am_title': {
+      'en': 'Good morning ☀️',
+      'ru': 'Доброе утро ☀️',
+    },
+    'cb_push_am_body': {
+      'en': 'Check your morning skincare routine',
+      'ru': 'Проверь свою утреннюю уходовую рутину',
+    },
+    'cb_push_pm_title': {
+      'en': 'Evening routine 🌙',
+      'ru': 'Вечерняя рутина 🌙',
+    },
+    'cb_push_pm_body': {
+      'en': 'Time to check what to apply tonight',
+      'ru': 'Пора проверить, что нанести вечером',
     },
     'hp_title': {
       'en': 'Try all the features',

@@ -2,13 +2,21 @@ import '/flutter_flow/notification_service.dart';
 import 'cosmetic_bag_service.dart';
 import 'supabase/database/database.dart';
 
-/// CRUD + local scheduling for routine reminders. Rows in `routine_events` are
-/// the source of truth; device-local notifications are (re)built from them.
+/// Routine reminders. Rows in `routine_events` are the source of truth. Instead
+/// of one push per product, we schedule TWO daily digest reminders (one AM, one
+/// PM) that deep-link to the routine calendar — rebuilt via [syncDigests].
 class RoutineService {
   RoutineService._();
   static final instance = RoutineService._();
 
+  // Fixed notification ids for the two daily digests (AM / PM).
+  static const int _amBase = 990001;
+  static const int _pmBase = 990002;
+
   String? get _userId => Supabase.instance.client.auth.currentUser?.id;
+
+  String _fmt(int h, int m) =>
+      '${h.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')}:00';
 
   Future<List<RoutineEventsRow>> getEvents() async {
     final userId = _userId;
@@ -25,41 +33,26 @@ class RoutineService {
     required List<int> weekdays,
     required int hour,
     required int minute,
-    required String reminderBody,
   }) async {
     final userId = _userId;
     if (userId == null || weekdays.isEmpty) return;
-    final baseId = DateTime.now().millisecondsSinceEpoch % 1000000;
-    final time =
-        '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}:00';
     await SupaFlow.client.from('routine_events').insert({
       'user_id': userId,
       'image_id': imageId,
       'title': title,
       'part_of_day': hour < 12 ? 'am' : 'pm',
       'weekdays': weekdays,
-      'time_of_day': time,
+      'time_of_day': _fmt(hour, minute),
       'enabled': true,
-      'local_notification_id': baseId,
     });
-    await NotificationService.instance.scheduleWeeklyReminders(
-      baseId: baseId,
-      weekdays: weekdays,
-      hour: hour,
-      minute: minute,
-      title: title,
-      body: reminderBody,
-    );
   }
 
-  /// Turn an LLM routine (am/pm step lists) into scheduled reminders for the
-  /// bag's products. Matches each step's `product` name to a scanned product,
-  /// skips generic steps and products that already have an event for that
-  /// part of day. Returns how many reminders were created.
+  /// Turn an LLM routine (am/pm step lists) into routine_events for the bag's
+  /// products. Matches each step's `product` to a scanned product; skips generic
+  /// steps and products that already have an event for that part of day.
   Future<int> generateFromRoutine({
     required List<dynamic> am,
     required List<dynamic> pm,
-    required String reminderBody,
     int amHour = 8,
     int amMinute = 0,
     int pmHour = 21,
@@ -68,7 +61,6 @@ class RoutineService {
     final userId = _userId;
     if (userId == null) return 0;
 
-    // Map product name -> image id from the current bag.
     final slots = await CosmeticBagService.instance.getSlots();
     final ids = slots.map((s) => s.imageId).whereType<int>().toList();
     if (ids.isEmpty) return 0;
@@ -101,7 +93,6 @@ class RoutineService {
           weekdays: const [1, 2, 3, 4, 5, 6, 7],
           hour: h,
           minute: m,
-          reminderBody: reminderBody,
         );
         created++;
       }
@@ -112,67 +103,93 @@ class RoutineService {
     return created;
   }
 
-  /// Change an event's time (and AM/PM), then reschedule its reminders.
-  Future<void> updateEventTime(
-    RoutineEventsRow row,
-    int hour,
-    int minute,
-    String reminderBody,
-  ) async {
-    if (row.id == null) return;
-    final time =
-        '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}:00';
-    await SupaFlow.client.from('routine_events').update({
-      'time_of_day': time,
-      'part_of_day': hour < 12 ? 'am' : 'pm',
-    }).eq('id', row.id!);
-    final baseId = row.localNotificationId;
-    if (baseId != null) {
-      await NotificationService.instance.cancelReminders(baseId);
-      if (row.enabled ?? true) {
-        await NotificationService.instance.scheduleWeeklyReminders(
-          baseId: baseId,
-          weekdays: row.weekdays,
-          hour: hour,
-          minute: minute,
-          title: row.title ?? '',
-          body: reminderBody,
-        );
-      }
-    }
-  }
-
   Future<void> deleteEvent(RoutineEventsRow row) async {
-    final baseId = row.localNotificationId;
-    if (baseId != null) {
-      await NotificationService.instance.cancelReminders(baseId);
-    }
     if (row.id != null) {
       await SupaFlow.client.from('routine_events').delete().eq('id', row.id!);
     }
   }
 
-  /// Cancel and re-schedule every enabled event. Call on launch — local
-  /// notifications do not survive reinstall / OS clears.
-  Future<void> reconcile(String reminderBody) async {
-    final events = await getEvents();
+  /// Set one reminder time for the whole part of day (am/pm) — every product in
+  /// that part shares it. part_of_day is kept as-is (the section identity).
+  Future<void> setPartTime(String part, int hour, int minute) async {
+    final userId = _userId;
+    if (userId == null) return;
+    await SupaFlow.client
+        .from('routine_events')
+        .update({'time_of_day': _fmt(hour, minute)})
+        .eq('user_id', userId)
+        .eq('part_of_day', part);
+  }
+
+  /// Rebuild the two daily digest reminders from all enabled events — a single
+  /// "check your routine" push per part of day, tapping opens the calendar.
+  /// Call after any change and on calendar open.
+  Future<void> syncDigests({
+    required String amTitle,
+    required String amBody,
+    required String pmTitle,
+    required String pmBody,
+    int defaultAmHour = 8,
+    int defaultPmHour = 21,
+  }) async {
+    await NotificationService.instance.cancelReminders(_amBase);
+    await NotificationService.instance.cancelReminders(_pmBase);
+
+    final events = (await getEvents())
+        .where((e) => (e.enabled ?? false) && e.weekdays.isNotEmpty)
+        .toList();
+
+    await _scheduleDigest(
+      events.where((e) => (e.partOfDay ?? 'am') == 'am').toList(),
+      _amBase,
+      defaultAmHour,
+      amTitle,
+      amBody,
+    );
+    await _scheduleDigest(
+      events.where((e) => (e.partOfDay ?? 'am') == 'pm').toList(),
+      _pmBase,
+      defaultPmHour,
+      pmTitle,
+      pmBody,
+    );
+  }
+
+  /// Schedule one weekly reminder per covered weekday, at the earliest product
+  /// time of that part of day (so the nudge lands before the routine starts).
+  Future<void> _scheduleDigest(
+    List<RoutineEventsRow> events,
+    int baseId,
+    int defaultHour,
+    String title,
+    String body,
+  ) async {
+    if (events.isEmpty) return;
+    final weekdays = <int>{};
+    var minMinutes = defaultHour * 60;
+    var haveTime = false;
     for (final e in events) {
-      final baseId = e.localNotificationId;
-      if (baseId == null) continue;
-      await NotificationService.instance.cancelReminders(baseId);
-      if ((e.enabled ?? false) && e.weekdays.isNotEmpty) {
-        final parts = (e.timeOfDay ?? '00:00:00').split(':');
-        final hour = int.tryParse(parts.isNotEmpty ? parts[0] : '0') ?? 0;
-        final minute = int.tryParse(parts.length > 1 ? parts[1] : '0') ?? 0;
-        await NotificationService.instance.scheduleWeeklyReminders(
-          baseId: baseId,
-          weekdays: e.weekdays,
-          hour: hour,
-          minute: minute,
-          title: e.title ?? '',
-          body: reminderBody,
-        );
+      weekdays.addAll(e.weekdays);
+      final parts = (e.timeOfDay ?? '').split(':');
+      final h = int.tryParse(parts.isNotEmpty ? parts[0] : '');
+      if (h != null) {
+        final m = int.tryParse(parts.length > 1 ? parts[1] : '') ?? 0;
+        final t = h * 60 + m;
+        if (!haveTime || t < minMinutes) {
+          minMinutes = t;
+          haveTime = true;
+        }
       }
     }
+    if (weekdays.isEmpty) return;
+    await NotificationService.instance.scheduleWeeklyReminders(
+      baseId: baseId,
+      weekdays: weekdays.toList()..sort(),
+      hour: minMinutes ~/ 60,
+      minute: minMinutes % 60,
+      title: title,
+      body: body,
+      payload: 'routine',
+    );
   }
 }

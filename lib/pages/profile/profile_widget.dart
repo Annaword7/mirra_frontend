@@ -1217,7 +1217,9 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                     model: _model.navbarModel,
                     updateCallback: () => safeSetState(() {}),
                     child: NavbarWidget(
-                      activePage: 4,
+                      // Profile is no longer a navbar tab — highlight nothing
+                      // (pageIds are 1..4; 0 matches none).
+                      activePage: 0,
                       analysesused: profileUsersRow?.monthlyAnalysesUsed,
                       onScrollToTop: () {
                         final sc = PrimaryScrollController.maybeOf(context);

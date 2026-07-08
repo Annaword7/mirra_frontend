@@ -201,6 +201,8 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
           _model.uploadedFileUrl_uploadImageSupabaseGallary;
       FFAppState().Producanalysstate = 1;
       safeSetState(() {});
+      debugPrint('[gallery] → extract-product-info '
+          'host=${FFDevEnvironmentValues().backendhost}');
       _model.extractedproductGalary =
           await ExtractproductinfoNEWBCNDCopyCall.call(
         host: FFDevEnvironmentValues().backendhost,
@@ -210,6 +212,10 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
         country: FFAppState().countrycode,
         token: currentJwtToken,
       );
+      debugPrint('[gallery] extract-product-info: '
+          'status=${_model.extractedproductGalary?.statusCode} '
+          'succeeded=${_model.extractedproductGalary?.succeeded} '
+          'body=${_model.extractedproductGalary?.jsonBody}');
 
       if ((_model.extractedproductGalary?.succeeded ?? true)) {
         FFAppState().Producanalysstate = 2;
@@ -245,8 +251,13 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
               ?.code,
           token: currentJwtToken,
         );
+        debugPrint('[gallery] search-ingredients: '
+            'status=${_model.analyseImageProductName?.statusCode} '
+            'succeeded=${_model.analyseImageProductName?.succeeded}');
       } else {
         // Gallery: extract-product-info failed.
+        debugPrint('[gallery] extract-product-info FAILED → '
+            'status=${_model.extractedproductGalary?.statusCode}');
         // Check for quota exhaustion before showing a generic error.
         if ((_model.extractedproductGalary?.statusCode ?? 0) == 429) {
           if (context.read<FFAppState>().isprouser) {
@@ -309,6 +320,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
       if ((_model.analyseImageProductName?.statusCode ?? 0) == 200) {
         FFAppState().Producanalysstate = 3;
         safeSetState(() {});
+        debugPrint('[gallery] → scientific-analysis');
         _model.scientificanalysresultcamara =
             await ScientificanalysisNEWBCNDCall.call(
           host: FFDevEnvironmentValues().backendhost,
@@ -321,6 +333,9 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
           ),
           token: currentJwtToken,
         );
+        debugPrint('[gallery] scientific-analysis: '
+            'status=${_model.scientificanalysresultcamara?.statusCode} '
+            'succeeded=${_model.scientificanalysresultcamara?.succeeded}');
 
         if ((_model.scientificanalysresultcamara?.succeeded ?? true)) {
           if ((_model.scientificanalysresultcamara?.statusCode ?? 200) == 202) {
@@ -1265,7 +1280,12 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
     return FFButtonWidget(
       onPressed: () async {
         final appState = context.read<FFAppState>();
+        debugPrint('[gallery] tap: analysesused=${appState.analysesused} '
+            'freeScanLimit=${appState.freeScanLimit} '
+            'host=${FFDevEnvironmentValues().backendhost} '
+            'tokenEmpty=${currentJwtToken.isEmpty}');
         if (appState.analysesused >= appState.freeScanLimit) {
+          debugPrint('[gallery] blocked by local quota gate → LimitOut');
           await _showLimitOut(context);
           return;
         }
@@ -1280,10 +1300,13 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
             multiImage: false,
           );
         } catch (e, s) {
+          debugPrint('[gallery] selectMedia threw: $e');
           FirebaseCrashlytics.instance.recordError(e, s, fatal: false, reason: 'selectMedia (gallery) failed');
           if (_shouldSetState) safeSetState(() {});
           return;
         }
+        debugPrint('[gallery] selectMedia returned: '
+            '${selectedMedia == null ? "null (cancelled)" : "${selectedMedia.length} file(s)"}');
         if (selectedMedia != null &&
             selectedMedia.every((m) =>
                 validateFileFormat(m.storagePath, context))) {
@@ -1309,12 +1332,16 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
               selectedFiles: selectedMedia,
             );
           } catch (e, s) {
+            debugPrint('[gallery] Supabase upload threw: $e');
             FirebaseCrashlytics.instance.recordError(e, s, fatal: false, reason: 'Supabase upload failed (gallery)');
             if (_shouldSetState) safeSetState(() {});
             return;
           } finally {
             _model.isDataUploading_uploadImageSupabaseGallary = false;
           }
+          debugPrint('[gallery] uploaded: files=${selectedUploadedFiles.length} '
+              'urls=${downloadUrls.length} firstUrl='
+              '${downloadUrls.isNotEmpty ? downloadUrls.first : "<none>"}');
           if (selectedUploadedFiles.length == selectedMedia.length &&
               downloadUrls.length == selectedMedia.length) {
             safeSetState(() {
@@ -1324,15 +1351,19 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                   downloadUrls.first;
             });
           } else {
+            debugPrint('[gallery] upload count mismatch → abort');
             safeSetState(() {});
             return;
           }
         } else {
           // User cancelled picker or invalid format — don't proceed
+          debugPrint('[gallery] no media / invalid format → abort');
           if (_shouldSetState) safeSetState(() {});
           return;
         }
 
+        debugPrint('[gallery] starting analysis chain, '
+            'url=${_model.uploadedFileUrl_uploadImageSupabaseGallary}');
         await _runGalleryAnalysisFromModel(context);
         if (_shouldSetState) safeSetState(() {});
         return;
