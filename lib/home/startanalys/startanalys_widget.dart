@@ -43,10 +43,12 @@ class _StartanalysWidgetState extends State<StartanalysWidget> {
   /// window start date stored in FFAppState.weekResetDate.
   String _resetLabel(BuildContext context, DateTime? resetStart) {
     if (resetStart == null) return '';
-    final resetAt = resetStart.add(const Duration(days: 7));
-    final diff = resetAt.difference(DateTime.now());
-    if (diff.isNegative) return '';
-    final days = diff.inDays;
+    final resetAt = resetStart.add(const Duration(days: 7)).toLocal();
+    final now = DateTime.now();
+    final resetDay = DateTime(resetAt.year, resetAt.month, resetAt.day);
+    final today = DateTime(now.year, now.month, now.day);
+    final days = (resetDay.difference(today).inHours / 24).round();
+    if (days < 0) return '';
     final loc = FFLocalizations.of(context);
     if (days == 0) return '· ${loc.getText('home_resets_today')}';
     if (days == 1) return '· ${loc.getText('home_resets_tomorrow')}';

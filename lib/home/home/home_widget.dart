@@ -1,5 +1,6 @@
 import '/app_state.dart';
 import '/auth/supabase_auth/auth_util.dart';
+import '/backend/api_requests/api_calls.dart';
 import '/backend/supabase/database/tables/product_prices.dart';
 import '/backend/supabase/supabase.dart';
 import '/components/navbar/navbar_widget.dart';
@@ -124,16 +125,27 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
   }
 
   Future<void> _refreshQuota() async {
-    final rows = await UsersTable().queryRows(
-      queryFn: (q) => q.eqOrNull('id', currentUserUid),
-    );
-    if (!mounted) return;
-    final userRow = rows.firstOrNull;
-    if (userRow == null) return;
-    FFAppState().analysesused = valueOrDefault<int>(
-        userRow.monthlyAnalysesUsed, FFAppState().analysesused);
-    FFAppState().weekResetDate = userRow.lastResetDate;
-    safeSetState(() {});
+    // Read quota from the server /quota endpoint, where the rolling 7-day
+    // reset is already applied. Reading users.monthly_analyses_used /
+    // last_reset_date directly shows a stale count until the next scan or cron.
+    try {
+      final resp = await GetScanQuotaCall.call(token: currentJwtToken);
+      if (!mounted || !resp.succeeded) return;
+      final body = resp.jsonBody;
+      final used = GetScanQuotaCall.quotaUsed(body);
+      final limit = GetScanQuotaCall.quotaLimit(body);
+      final resetAt = DateTime.tryParse(GetScanQuotaCall.resetAt(body) ?? '');
+      if (used != null) FFAppState().analysesused = used;
+      if (limit != null && limit > 0) FFAppState().freeScanLimit = limit;
+      // The quota widgets derive the reset moment as weekResetDate + 7 days,
+      // so store the window start (reset_at - 7d) to preserve that convention.
+      if (resetAt != null) {
+        FFAppState().weekResetDate = resetAt.subtract(const Duration(days: 7));
+      }
+      safeSetState(() {});
+    } catch (e) {
+      debugPrint('Home: quota refresh failed: $e');
+    }
   }
 
   void _onRouteChanged() {
@@ -263,11 +275,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
         }
         FFAppState().spamlist =
             (userRow?.spamImages ?? []).toList().cast<int>();
-        FFAppState().analysesused = valueOrDefault<int>(
-          userRow?.monthlyAnalysesUsed,
-          FFAppState().analysesused,
-        );
-        FFAppState().weekResetDate = userRow?.lastResetDate;
+        await _refreshQuota();
         safeSetState(() {});
       } else {
         if (!mounted) return;
@@ -1138,10 +1146,12 @@ class _HomeQuotaBar extends StatelessWidget {
 
   String _resetLabel(BuildContext context) {
     if (weekResetDate == null) return '';
-    final resetAt = weekResetDate!.add(const Duration(days: 7));
-    final diff = resetAt.difference(DateTime.now());
-    if (diff.isNegative) return '';
-    final days = diff.inDays;
+    final resetAt = weekResetDate!.add(const Duration(days: 7)).toLocal();
+    final now = DateTime.now();
+    final resetDay = DateTime(resetAt.year, resetAt.month, resetAt.day);
+    final today = DateTime(now.year, now.month, now.day);
+    final days = (resetDay.difference(today).inHours / 24).round();
+    if (days < 0) return '';
     final loc = FFLocalizations.of(context);
     if (days == 0) return loc.getText('home_resets_today');
     if (days == 1) return loc.getText('home_resets_tomorrow');
