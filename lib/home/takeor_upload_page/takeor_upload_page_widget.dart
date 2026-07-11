@@ -318,6 +318,12 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
       }
 
       if ((_model.analyseImageProductName?.statusCode ?? 0) == 200) {
+        await _maybeOfferIngredientsPhoto(
+          searchJsonBody: _model.analyseImageProductName?.jsonBody ?? '',
+          imageId: ExtractproductinfoNEWBCNDCopyCall.iamgeID(
+            (_model.extractedproductGalary?.jsonBody ?? ''),
+          ),
+        );
         FFAppState().Producanalysstate = 3;
         safeSetState(() {});
         debugPrint('[gallery] → scientific-analysis');
@@ -610,12 +616,100 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
     }
   }
 
+  /// Photograph the product's ingredient panel, upload it to Supabase Storage
+  /// and let the backend OCR it (POST /product/<id>/ingredients-photo).
+  /// Returns true when the backend saved an ingredient list from the photo.
+  Future<bool> _captureAndSubmitIngredientsPhoto(int imageId) async {
+    List<SelectedFile>? selectedMedia;
+    try {
+      selectedMedia = await selectMedia(
+        storageFolderPath: 'users_images',
+        multiImage: false,
+      );
+    } catch (e, s) {
+      FirebaseCrashlytics.instance.recordError(e, s,
+          fatal: false, reason: 'selectMedia (ingredients photo) failed');
+      return false;
+    }
+    if (selectedMedia == null ||
+        !selectedMedia
+            .every((m) => validateFileFormat(m.storagePath, context))) {
+      return false;
+    }
+
+    var downloadUrls = <String>[];
+    try {
+      downloadUrls = await uploadSupabaseStorageFiles(
+        bucketName: 'images',
+        selectedFiles: selectedMedia,
+      );
+    } catch (e, s) {
+      FirebaseCrashlytics.instance.recordError(e, s,
+          fatal: false, reason: 'Supabase upload failed (ingredients photo)');
+      return false;
+    }
+    if (downloadUrls.isEmpty) {
+      return false;
+    }
+
+    final ocrResult = await SubmitIngredientsPhotoCall.call(
+      imageId: imageId,
+      photoUrl: downloadUrls.first,
+      token: currentJwtToken,
+    );
+    debugPrint('[ingredients-photo] status=${ocrResult.statusCode} '
+        'succeeded=${ocrResult.succeeded}');
+    return ocrResult.succeeded;
+  }
+
+  /// Called after a search-ingredients 200: when the saved list is
+  /// low-confidence, offer to photograph the ingredient panel for a precise
+  /// analysis. Always proceeds to analysis afterwards — the low list is
+  /// already saved server-side, the OCR result replaces it when it succeeds.
+  Future<void> _maybeOfferIngredientsPhoto({
+    required dynamic searchJsonBody,
+    required int? imageId,
+  }) async {
+    if (imageId == null) return;
+    final status =
+        SearchingredientsNEWBCNDCall.ingredientsStatus(searchJsonBody);
+    if (status != 'low') return;
+
+    final action = await ErrorPopupWidget.showLowConfidenceChoice(context);
+    if (action != IngredientInputAction.photo) return;
+
+    final ok = await _captureAndSubmitIngredientsPhoto(imageId);
+    if (!ok && mounted) {
+      await ErrorPopupWidget.show(context, ErrorPopupType.ingredientsNotFound);
+    }
+  }
+
   Future<void> _handleIngredientsNotFound({
     required int imageId,
     required String? languageCode,
   }) async {
-    final ingredients = await ErrorPopupWidget.showIngredientInput(context);
-    if (ingredients == null || ingredients.trim().isEmpty) {
+    var result = await ErrorPopupWidget.showIngredientInput(context);
+
+    // Photo path: OCR the panel server-side; on failure fall back to the
+    // manual dialog once more, then give up via the cancel path below.
+    var savedViaPhoto = false;
+    if (result?.action == IngredientInputAction.photo) {
+      FFAppState().Producanalysstate = 3;
+      safeSetState(() {});
+      savedViaPhoto = await _captureAndSubmitIngredientsPhoto(imageId);
+      if (!savedViaPhoto) {
+        result = await ErrorPopupWidget.showIngredientInput(context);
+        if (result?.action == IngredientInputAction.photo) {
+          savedViaPhoto = await _captureAndSubmitIngredientsPhoto(imageId);
+        }
+      }
+    }
+
+    final manualText = result?.action == IngredientInputAction.manualText
+        ? (result?.text ?? '').trim()
+        : '';
+
+    if (!savedViaPhoto && manualText.isEmpty) {
       FFAppState().uploadedimageurl = '';
       FFAppState().analysisloading = false;
       FFAppState().Producanalysstate = 0;
@@ -629,22 +723,24 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
     FFAppState().Producanalysstate = 3;
     safeSetState(() {});
 
-    final setResult = await SetProductIngredientsCall.call(
-      imageId: imageId,
-      ingredients: ingredients.trim(),
-      token: currentJwtToken,
-    );
-
-    if (!setResult.succeeded) {
-      await ErrorPopupWidget.show(context, ErrorPopupType.generic);
-      FFAppState().uploadedimageurl = '';
-      FFAppState().analysisloading = false;
-      FFAppState().Producanalysstate = 0;
-      safeSetState(() {});
-      await ImagesTable().delete(
-        matchingRows: (rows) => rows.eqOrNull('id', imageId),
+    if (!savedViaPhoto) {
+      final setResult = await SetProductIngredientsCall.call(
+        imageId: imageId,
+        ingredients: manualText,
+        token: currentJwtToken,
       );
-      return;
+
+      if (!setResult.succeeded) {
+        await ErrorPopupWidget.show(context, ErrorPopupType.generic);
+        FFAppState().uploadedimageurl = '';
+        FFAppState().analysisloading = false;
+        FFAppState().Producanalysstate = 0;
+        safeSetState(() {});
+        await ImagesTable().delete(
+          matchingRows: (rows) => rows.eqOrNull('id', imageId),
+        );
+        return;
+      }
     }
 
     final analysisResult = await ScientificanalysisNEWBCNDCall.call(
@@ -967,6 +1063,13 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
             if ((_model.analyseImageProductNameCamera?.statusCode ??
                     0) ==
                 200) {
+              await _maybeOfferIngredientsPhoto(
+                searchJsonBody:
+                    _model.analyseImageProductNameCamera?.jsonBody ?? '',
+                imageId: ExtractproductinfoNEWBCNDCopyCall.iamgeID(
+                  (_model.extractedproductcamera?.jsonBody ?? ''),
+                ),
+              );
               FFAppState().Producanalysstate = 3;
               safeSetState(() {});
               _model.scientificanalysresultgalary =

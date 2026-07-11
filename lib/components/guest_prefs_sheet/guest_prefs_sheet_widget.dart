@@ -38,7 +38,8 @@ class _GuestPrefsSheetState extends State<GuestPrefsSheet> {
   Future<void> _save() async {
     setState(() => _saving = true);
     try {
-      // Create the anonymous user only now (on explicit "Continue" tap).
+      // Ensure a signed-in user (re-uses the existing anonymous session if the
+      // scan flow already created one — see supabase_auth_manager).
       AppStateNotifier.instance.updateNotifyOnAuthChange(false);
       final user = await authManager.signInAnonymously(context);
       if (user == null) return; // sign-in failed — stay on sheet, show error

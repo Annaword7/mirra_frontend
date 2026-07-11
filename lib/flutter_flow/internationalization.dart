@@ -5072,6 +5072,92 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ko': '성분을 직접 입력',
       'zh': '手动输入成分',
     },
+    'err_photograph_ingredients': {
+      'en': 'Photograph the ingredients list',
+      'es': 'Fotografiar la lista de ingredientes',
+      'ru': 'Сфотографировать состав',
+      'de': 'Zutatenliste fotografieren',
+      'fr': 'Photographier la liste des ingrédients',
+      'it': 'Fotografa la lista degli ingredienti',
+      'pt': 'Fotografar a lista de ingredientes',
+      'tr': 'İçerik listesinin fotoğrafını çek',
+      'ja': '成分表を撮影する',
+      'ko': '성분표 촬영하기',
+      'zh': '拍摄成分表',
+    },
+    'ing_low_confidence_title': {
+      'en': 'The ingredient list may be incomplete',
+      'es': 'La lista de ingredientes puede estar incompleta',
+      'ru': 'Список ингредиентов может быть неполным',
+      'de': 'Die Zutatenliste könnte unvollständig sein',
+      'fr': 'La liste des ingrédients peut être incomplète',
+      'it': 'La lista degli ingredienti potrebbe essere incompleta',
+      'pt': 'A lista de ingredientes pode estar incompleta',
+      'tr': 'İçerik listesi eksik olabilir',
+      'ja': '成分リストが不完全な可能性があります',
+      'ko': '성분 목록이 불완전할 수 있습니다',
+      'zh': '成分列表可能不完整',
+    },
+    'ing_low_confidence_body': {
+      'en':
+          'Photograph the ingredient panel on the packaging for a precise analysis, or continue with the list we found.',
+      'es':
+          'Fotografía el panel de ingredientes del envase para un análisis preciso, o continúa con la lista encontrada.',
+      'ru':
+          'Сфотографируйте состав на упаковке для точного анализа или продолжите с найденным списком.',
+      'de':
+          'Fotografiere die Zutatenliste auf der Verpackung für eine präzise Analyse oder fahre mit der gefundenen Liste fort.',
+      'fr':
+          'Photographiez la liste des ingrédients sur l’emballage pour une analyse précise, ou continuez avec la liste trouvée.',
+      'it':
+          'Fotografa la lista degli ingredienti sulla confezione per un\'analisi precisa, oppure continua con la lista trovata.',
+      'pt':
+          'Fotografe o painel de ingredientes na embalagem para uma análise precisa, ou continue com a lista encontrada.',
+      'tr':
+          'Kesin bir analiz için ambalajdaki içerik listesinin fotoğrafını çekin veya bulunan listeyle devam edin.',
+      'ja': '正確な分析のためにパッケージの成分表を撮影するか、見つかったリストで続行してください。',
+      'ko': '정확한 분석을 위해 포장의 성분표를 촬영하거나 찾은 목록으로 계속하세요.',
+      'zh': '拍摄包装上的成分表以获得精确分析，或使用已找到的列表继续。',
+    },
+    'ing_continue_anyway': {
+      'en': 'Continue anyway',
+      'es': 'Continuar de todos modos',
+      'ru': 'Продолжить так',
+      'de': 'Trotzdem fortfahren',
+      'fr': 'Continuer quand même',
+      'it': 'Continua comunque',
+      'pt': 'Continuar mesmo assim',
+      'tr': 'Yine de devam et',
+      'ja': 'このまま続行',
+      'ko': '그대로 계속',
+      'zh': '仍然继续',
+    },
+    'err_analyze_btn': {
+      'en': 'Analyze',
+      'es': 'Analizar',
+      'ru': 'Анализировать',
+      'de': 'Analysieren',
+      'fr': 'Analyser',
+      'it': 'Analizza',
+      'pt': 'Analisar',
+      'tr': 'Analiz et',
+      'ja': '分析する',
+      'ko': '분석하기',
+      'zh': '分析',
+    },
+    'err_close_btn': {
+      'en': 'Close',
+      'es': 'Cerrar',
+      'ru': 'Закрыть',
+      'de': 'Schließen',
+      'fr': 'Fermer',
+      'it': 'Chiudi',
+      'pt': 'Fechar',
+      'tr': 'Kapat',
+      'ja': '閉じる',
+      'ko': '닫기',
+      'zh': '关闭',
+    },
     'err_product_not_found_title': {
       'en': 'Product not recognized',
       'es': 'Producto no reconocido',
@@ -5454,7 +5540,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
   {
     'ic2_save_title': {
       'en': 'Save your analyses',
-      'ru': 'Сохраните свои анализы',
+      'ru': 'Сохраните свои сканы',
       'es': 'Guarda tus análisis',
       'de': 'Analysen speichern',
       'fr': 'Sauvegardez vos analyses',
@@ -5469,7 +5555,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en':
           'Create an account and all the products you\'ve already scanned will be saved to your history.',
       'ru':
-          'Создайте аккаунт — и все продукты, которые вы уже проанализировали, сохранятся в вашу историю.',
+          'Создайте аккаунт — и все продукты, которые вы уже просканировали, сохранятся в вашу историю.',
       'es':
           'Crea una cuenta y todos los productos que ya analizaste se guardarán en tu historial.',
       'de':
@@ -8606,6 +8692,10 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     'cb_done': {
       'en': 'Done',
       'ru': 'Готово',
+    },
+    'cb_skip': {
+      'en': 'Skip',
+      'ru': 'Пропустить',
     },
     'cb_routine_day_empty': {
       'en': 'Nothing for this time',

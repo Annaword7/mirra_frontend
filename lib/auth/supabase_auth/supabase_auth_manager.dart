@@ -207,6 +207,17 @@ class SupabaseAuthManager extends AuthManager
   @override
   Future<BaseAuthUser?> signInAnonymously(BuildContext context) async {
     try {
+      // Re-use the live session if there is one: supabase's signInAnonymously()
+      // ALWAYS mints a brand-new user, so calling it twice (e.g. scan flow's
+      // _ensureCountrySet followed by GuestPrefsSheet save) orphaned the first
+      // anonymous account on every guest onboarding.
+      final existing = SupaFlow.client.auth.currentUser;
+      if (existing != null) {
+        final authUser = MiRRADevSupabaseUser(existing);
+        currentUser = authUser;
+        AppStateNotifier.instance.update(authUser);
+        return authUser;
+      }
       final response = await SupaFlow.client.auth.signInAnonymously();
       final user = response.user;
       final authUser = user == null ? null : MiRRADevSupabaseUser(user);

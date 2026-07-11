@@ -4,6 +4,15 @@ import '/flutter_flow/flutter_flow_util.dart';
 
 enum ErrorPopupType { productNotFound, ingredientsNotFound, subscriptionSync, unsupported, generic }
 
+enum IngredientInputAction { cancelled, manualText, photo }
+
+class IngredientInputResult {
+  const IngredientInputResult(this.action, [this.text]);
+
+  final IngredientInputAction action;
+  final String? text;
+}
+
 class ErrorPopupWidget extends StatelessWidget {
   const ErrorPopupWidget({super.key, required this.type});
 
@@ -17,12 +26,22 @@ class ErrorPopupWidget extends StatelessWidget {
         builder: (ctx) => ErrorPopupWidget(type: type),
       );
 
-  static Future<String?> showIngredientInput(BuildContext context) =>
-      showDialog<String?>(
+  static Future<IngredientInputResult?> showIngredientInput(
+          BuildContext context) =>
+      showDialog<IngredientInputResult?>(
         context: context,
         barrierDismissible: true,
         barrierColor: Colors.black54,
         builder: (ctx) => const _IngredientsInputDialog(),
+      );
+
+  static Future<IngredientInputAction?> showLowConfidenceChoice(
+          BuildContext context) =>
+      showDialog<IngredientInputAction?>(
+        context: context,
+        barrierDismissible: true,
+        barrierColor: Colors.black54,
+        builder: (ctx) => const _LowConfidenceChoiceDialog(),
       );
 
   _PopupConfig _config(BuildContext context) {
@@ -255,7 +274,34 @@ class _IngredientsInputDialogState extends State<_IngredientsInputDialog> {
                   useGoogleFonts: !theme.bodyMediumIsCustom,
                 ),
               ),
-              const SizedBox(height: 12.0),
+              const SizedBox(height: 16.0),
+              SizedBox(
+                width: double.infinity,
+                height: 50.0,
+                child: ElevatedButton.icon(
+                  onPressed: () => Navigator.pop(
+                    context,
+                    const IngredientInputResult(IngredientInputAction.photo),
+                  ),
+                  icon: const Icon(Icons.photo_camera_rounded, size: 20.0),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: theme.primary,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14.0),
+                    ),
+                  ),
+                  label: Text(
+                    loc.getText('err_photograph_ingredients'),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15.0,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 4.0),
               InkWell(
                 onTap: () => setState(() => _expanded = !_expanded),
                 borderRadius: BorderRadius.circular(8.0),
@@ -318,8 +364,13 @@ class _IngredientsInputDialogState extends State<_IngredientsInputDialog> {
                     width: double.infinity,
                     height: 50.0,
                     child: ElevatedButton(
-                      onPressed: () =>
-                          Navigator.pop(context, _controller.text.trim()),
+                      onPressed: () => Navigator.pop(
+                        context,
+                        IngredientInputResult(
+                          IngredientInputAction.manualText,
+                          _controller.text.trim(),
+                        ),
+                      ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: theme.primary,
                         foregroundColor: Colors.white,
@@ -328,9 +379,9 @@ class _IngredientsInputDialogState extends State<_IngredientsInputDialog> {
                           borderRadius: BorderRadius.circular(14.0),
                         ),
                       ),
-                      child: const Text(
-                        'Анализировать',
-                        style: TextStyle(
+                      child: Text(
+                        loc.getText('err_analyze_btn'),
+                        style: const TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 15.0,
                         ),
@@ -344,11 +395,10 @@ class _IngredientsInputDialogState extends State<_IngredientsInputDialog> {
                 child: ElevatedButton(
                   onPressed: () => Navigator.pop(context, null),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        hasText && _expanded ? theme.alternate : theme.primary,
-                    foregroundColor: hasText && _expanded
-                        ? theme.primaryText
-                        : Colors.white,
+                    // Photo capture above is the primary action now — the
+                    // close/OK button is always secondary.
+                    backgroundColor: theme.alternate,
+                    foregroundColor: theme.primaryText,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14.0),
@@ -356,8 +406,129 @@ class _IngredientsInputDialogState extends State<_IngredientsInputDialog> {
                   ),
                   child: Text(
                     hasText && _expanded
-                        ? 'Закрыть'
+                        ? loc.getText('err_close_btn')
                         : loc.getText('err_ok_btn'),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15.0,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _LowConfidenceChoiceDialog extends StatelessWidget {
+  const _LowConfidenceChoiceDialog();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+    final loc = FFLocalizations.of(context);
+
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.all(24.0),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20.0),
+          boxShadow: const [
+            BoxShadow(
+              blurRadius: 24.0,
+              color: Color(0x1A000000),
+              offset: Offset(0.0, 8.0),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24.0, 28.0, 24.0, 24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 56.0,
+                height: 56.0,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFFFF3E0),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.fact_check_rounded,
+                  color: Color(0xFFE65100),
+                  size: 28.0,
+                ),
+              ),
+              const SizedBox(height: 16.0),
+              Text(
+                loc.getText('ing_low_confidence_title'),
+                textAlign: TextAlign.center,
+                style: theme.headlineSmall.override(
+                  fontFamily: theme.headlineSmallFamily,
+                  fontSize: 18.0,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.0,
+                  useGoogleFonts: !theme.headlineSmallIsCustom,
+                ),
+              ),
+              const SizedBox(height: 8.0),
+              Text(
+                loc.getText('ing_low_confidence_body'),
+                textAlign: TextAlign.center,
+                style: theme.bodyMedium.override(
+                  fontFamily: theme.bodyMediumFamily,
+                  color: theme.secondaryText,
+                  letterSpacing: 0.0,
+                  useGoogleFonts: !theme.bodyMediumIsCustom,
+                ),
+              ),
+              const SizedBox(height: 24.0),
+              SizedBox(
+                width: double.infinity,
+                height: 50.0,
+                child: ElevatedButton.icon(
+                  onPressed: () =>
+                      Navigator.pop(context, IngredientInputAction.photo),
+                  icon: const Icon(Icons.photo_camera_rounded, size: 20.0),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: theme.primary,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14.0),
+                    ),
+                  ),
+                  label: Text(
+                    loc.getText('err_photograph_ingredients'),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15.0,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8.0),
+              SizedBox(
+                width: double.infinity,
+                height: 50.0,
+                child: ElevatedButton(
+                  onPressed: () =>
+                      Navigator.pop(context, IngredientInputAction.cancelled),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: theme.alternate,
+                    foregroundColor: theme.primaryText,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14.0),
+                    ),
+                  ),
+                  child: Text(
+                    loc.getText('ing_continue_anyway'),
                     style: const TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 15.0,

@@ -688,6 +688,11 @@ class SearchingredientsNEWBCNDCall {
         response,
         r'''$.code''',
       ));
+  static String? ingredientsStatus(dynamic response) =>
+      castToType<String>(getJsonField(
+        response,
+        r'''$.ingredients_status''',
+      ));
 }
 
 class SetProductIngredientsCall {
@@ -723,6 +728,54 @@ class SetProductIngredientsCall {
       alwaysAllowBody: false,
     );
   }
+}
+
+class SubmitIngredientsPhotoCall {
+  static Future<ApiCallResponse> call({
+    String? host,
+    int? imageId,
+    String? photoUrl = '',
+    String? token = '',
+  }) async {
+    host ??= FFDevEnvironmentValues().backendhost;
+
+    final ffApiRequestBody = '''
+{
+  "photo_url": "${escapeStringForJson(photoUrl)}"
+}''';
+    return ApiManager.instance.makeApiCall(
+      callName: 'submit ingredients photo',
+      apiUrl: '${host}api/mirra/product/${imageId}/ingredients-photo',
+      callType: ApiCallType.POST,
+      headers: {
+        'Authorization': 'Bearer ${token}',
+        'Content-Type': 'application/json',
+      },
+      params: {},
+      body: ffApiRequestBody,
+      bodyType: BodyType.JSON,
+      returnBody: true,
+      encodeBodyUtf8: false,
+      decodeUtf8: false,
+      cache: false,
+      isStreamingApi: false,
+      alwaysAllowBody: false,
+    ).timeout(
+      // GPT-4o Vision OCR takes ~10-20s; bound the wait like the search call.
+      const Duration(seconds: 60),
+      onTimeout: () => ApiCallResponse(null, const <String, String>{}, -1),
+    );
+  }
+
+  static String? ingredients(dynamic response) =>
+      castToType<String>(getJsonField(
+        response,
+        r'''$.ingredients''',
+      ));
+  static String? code(dynamic response) => castToType<String>(getJsonField(
+        response,
+        r'''$.code''',
+      ));
 }
 
 class ScientificanalysisNEWBCNDCall {
