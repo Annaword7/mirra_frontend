@@ -162,6 +162,14 @@ class _CosmeticBagIntroWidgetState extends State<CosmeticBagIntroWidget> {
     context.pushNamed(CompatibilityResultWidget.routeName);
   }
 
+  /// Leave the onboarding game-flow for good and go to Home.
+  void _skip() {
+    HapticFeedback.lightImpact();
+    FFAppState().bagOnboardingDone = true;
+    FFAppState().bagOnboardingActive = false;
+    context.goNamed(HomeWidget.routeName);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
@@ -178,7 +186,20 @@ class _CosmeticBagIntroWidgetState extends State<CosmeticBagIntroWidget> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SizedBox(height: 24),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: _skip,
+                        child: Text(
+                          FFLocalizations.of(context).getText('cb_skip'),
+                          style: TextStyle(
+                            color: theme.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
                     Text(
                       FFLocalizations.of(context).getText('cb_intro_title'),
                       textAlign: TextAlign.center,
@@ -228,7 +249,13 @@ class _CosmeticBagIntroWidgetState extends State<CosmeticBagIntroWidget> {
                           final img = slot.imageId != null
                               ? _images[slot.imageId]
                               : null;
-                          return _SlotCard(index: i, image: img);
+                          // Empty placeholders launch the same scan flow as the
+                          // "Сканировать продукт" button.
+                          return _SlotCard(
+                            index: i,
+                            image: img,
+                            onTap: img == null ? _startScan : null,
+                          );
                         },
                       ),
                     ),
@@ -270,25 +297,29 @@ class _CosmeticBagIntroWidgetState extends State<CosmeticBagIntroWidget> {
 }
 
 class _SlotCard extends StatelessWidget {
-  const _SlotCard({required this.index, required this.image});
+  const _SlotCard({required this.index, required this.image, this.onTap});
 
   final int index;
   final ImagesRow? image;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
     final filled = image != null;
-    return Container(
-      height: 84,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: filled ? theme.primary : const Color(0xFFE6E6E6),
-          width: filled ? 1.5 : 1,
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        height: 84,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: filled ? theme.primary : const Color(0xFFE6E6E6),
+            width: filled ? 1.5 : 1,
+          ),
         ),
-      ),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Row(
@@ -343,6 +374,7 @@ class _SlotCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
       ),
     );
   }

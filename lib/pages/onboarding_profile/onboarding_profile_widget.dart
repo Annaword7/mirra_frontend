@@ -666,14 +666,7 @@ class _OnboardingProfileWidgetState extends State<OnboardingProfileWidget>
                           matchingRows: (rows) =>
                               rows.eqOrNull('id', currentUserUid),
                         );
-                        if (!FFAppState().bagOnboardingDone) {
-                          FFAppState().bagOnboardingActive = true;
-                        }
-                        context.goNamed(
-                          FFAppState().bagOnboardingDone
-                              ? TakeorUploadPageWidget.routeName
-                              : CosmeticBagIntroWidget.routeName,
-                        );
+                        context.goNamed(TakeorUploadPageWidget.routeName);
                       },
                       text: FFLocalizations.of(context).getText('spc42q3x'),
                       options: FFButtonOptions(

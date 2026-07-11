@@ -29,8 +29,9 @@ class FFAppState extends ChangeNotifier {
       _onboardingDone = prefs.getBool('ff_onboardingDone') ?? _onboardingDone;
     });
     _safeInit(() {
-      _homePipelineDone =
-          prefs.getBool('ff_homePipelineDone') ?? _homePipelineDone;
+      _homePipelineDoneUsers =
+          prefs.getStringList('ff_homePipelineDoneUsers') ??
+              _homePipelineDoneUsers;
     });
     _safeInit(() {
       _bagOnboardingDone =
@@ -114,12 +115,14 @@ class FFAppState extends ChangeNotifier {
     prefs.setBool('ff_onboardingDone', value);
   }
 
-  // Home 3-step "try all features" pipeline: hidden for good once completed.
-  bool _homePipelineDone = false;
-  bool get homePipelineDone => _homePipelineDone;
-  set homePipelineDone(bool value) {
-    _homePipelineDone = value;
-    prefs.setBool('ff_homePipelineDone', value);
+  // Home 3-step "try all features" pipeline: hidden for good once a user has
+  // completed all three steps at least once. Stored per user id, so it neither
+  // leaks across accounts on logout nor reappears if products are later removed.
+  List<String> _homePipelineDoneUsers = [];
+  List<String> get homePipelineDoneUsers => _homePipelineDoneUsers;
+  set homePipelineDoneUsers(List<String> value) {
+    _homePipelineDoneUsers = value;
+    prefs.setStringList('ff_homePipelineDoneUsers', value);
   }
 
   // Косметичка game-flow: whether the user has finished the initial 3-scan

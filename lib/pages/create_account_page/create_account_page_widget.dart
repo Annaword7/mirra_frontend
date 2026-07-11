@@ -233,7 +233,14 @@ class _CreateAccountPageWidgetState extends State<CreateAccountPageWidget>
                 size: 30.0,
               ),
               onPressed: () async {
-                context.pushNamed(NewblankWidget.routeName);
+                // Return to the previous screen (e.g. a scan result for an
+                // anonymous user) rather than always jumping to the welcome
+                // screen and stranding the user's accumulated scans.
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.goNamed(NewblankWidget.routeName);
+                }
               },
             ),
             actions: [],

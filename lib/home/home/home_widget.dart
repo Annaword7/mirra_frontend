@@ -637,23 +637,12 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                 color:
                                                     FlutterFlowTheme.of(context)
                                                         .primary,
-                                                image: appState
-                                                        .userProfilePicture
-                                                        .isNotEmpty
-                                                    ? DecorationImage(
-                                                        fit: BoxFit.cover,
-                                                        image: NetworkImage(
-                                                            appState
-                                                                .userProfilePicture),
-                                                      )
-                                                    : null,
                                               ),
-                                              child: appState.userProfilePicture
-                                                      .isEmpty
-                                                  ? const Icon(Icons.person,
-                                                      color: Colors.white,
-                                                      size: 24)
-                                                  : null,
+                                              child: const Icon(
+                                                Icons.person,
+                                                color: Colors.white,
+                                                size: 24,
+                                              ),
                                             ),
                                           ),
                                         ],

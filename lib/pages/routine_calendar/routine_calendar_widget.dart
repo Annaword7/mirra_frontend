@@ -141,7 +141,6 @@ class _RoutineCalendarWidgetState extends State<RoutineCalendarWidget> {
       builder: (_) => _AddReminderSheet(
         scans: scans,
         weekdayLabels: _weekdayLabels,
-        defaultDay: _selectedDay,
       ),
     );
     if (result == null) return;
@@ -275,6 +274,45 @@ class _DaySelector extends StatelessWidget {
               ),
             ),
         ],
+      ),
+    );
+  }
+}
+
+/// Multi-select weekday chip: high-contrast when selected, muted when not.
+class _DayChip extends StatelessWidget {
+  const _DayChip({
+    required this.label,
+    required this.selected,
+    required this.primary,
+    required this.onTap,
+  });
+  final String label;
+  final bool selected;
+  final Color primary;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 120),
+        width: 38,
+        height: 40,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: selected ? primary : const Color(0xFFF4F4F4),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: selected ? Colors.white : const Color(0xFFAEAEAE),
+            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+            fontSize: 13,
+          ),
+        ),
       ),
     );
   }
@@ -463,11 +501,9 @@ class _AddReminderSheet extends StatefulWidget {
   const _AddReminderSheet({
     required this.scans,
     required this.weekdayLabels,
-    required this.defaultDay,
   });
   final List<ImagesRow> scans;
   final List<String> weekdayLabels;
-  final int defaultDay;
 
   @override
   State<_AddReminderSheet> createState() => _AddReminderSheetState();
@@ -476,13 +512,14 @@ class _AddReminderSheet extends StatefulWidget {
 class _AddReminderSheetState extends State<_AddReminderSheet> {
   int? _imageId;
   String _title = '';
-  late final Set<int> _days = {widget.defaultDay};
+  final Set<int> _days = {1, 2, 3, 4, 5, 6, 7}; // all days selected by default
   TimeOfDay _time = const TimeOfDay(hour: 21, minute: 0);
 
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
     final canSave = _title.trim().isNotEmpty && _days.isNotEmpty;
+    final isRu = FFLocalizations.of(context).languageCode.startsWith('ru');
     const labelStyle = TextStyle(
       color: Colors.black,
       fontWeight: FontWeight.w600,
@@ -527,31 +564,61 @@ class _AddReminderSheetState extends State<_AddReminderSheet> {
                           width: selected ? 2 : 1,
                         ),
                       ),
-                      clipBehavior: Clip.antiAlias,
-                      child: img.imageUrl.isNotEmpty
-                          ? Image.network(img.imageUrl, fit: BoxFit.cover)
-                          : Container(color: Colors.white),
+                      // Clip the image with the inner radius (outer − border)
+                      // so square corners never sit over the rounded border.
+                      child: ClipRRect(
+                        borderRadius:
+                            BorderRadius.circular(selected ? 10 : 11),
+                        child: img.imageUrl.isNotEmpty
+                            ? Image.network(img.imageUrl,
+                                fit: BoxFit.cover, height: double.infinity)
+                            : Container(color: Colors.white),
+                      ),
                     ),
                   );
                 },
               ),
             ),
             const SizedBox(height: 16),
-            Text(FFLocalizations.of(context).getText('cb_routine_days'),
-                style: labelStyle),
+            Row(
+              children: [
+                Text(FFLocalizations.of(context).getText('cb_routine_days'),
+                    style: labelStyle),
+                const Spacer(),
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  splashRadius: 20,
+                  tooltip: isRu ? 'Все дни' : 'All days',
+                  icon: Icon(Icons.select_all_rounded,
+                      color: theme.primary, size: 22),
+                  onPressed: () => setState(() => _days
+                    ..clear()
+                    ..addAll(const [1, 2, 3, 4, 5, 6, 7])),
+                ),
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  splashRadius: 20,
+                  tooltip: isRu ? 'Снять все' : 'Clear all',
+                  icon: const Icon(Icons.deselect_rounded,
+                      color: Color(0xFF9E9E9E), size: 22),
+                  onPressed: () => setState(() => _days.clear()),
+                ),
+              ],
+            ),
             const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 for (var d = 1; d <= 7; d++)
-                  ChoiceChip(
-                    label: Text(widget.weekdayLabels[d - 1]),
+                  _DayChip(
+                    label: widget.weekdayLabels[d - 1],
                     selected: _days.contains(d),
-                    onSelected: (v) => setState(() {
-                      if (v) {
-                        _days.add(d);
-                      } else {
+                    primary: theme.primary,
+                    onTap: () => setState(() {
+                      if (_days.contains(d)) {
                         _days.remove(d);
+                      } else {
+                        _days.add(d);
                       }
                     }),
                   ),
@@ -590,7 +657,9 @@ class _AddReminderSheetState extends State<_AddReminderSheet> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: theme.primary,
                   foregroundColor: Colors.white,
-                  disabledBackgroundColor: const Color(0xFFE6E6E6),
+                  // Disabled: soft tinted fill + muted text (no white-on-grey).
+                  disabledBackgroundColor: theme.primary.withValues(alpha: 0.12),
+                  disabledForegroundColor: const Color(0xFFB0A6C9),
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(26),
@@ -598,8 +667,10 @@ class _AddReminderSheetState extends State<_AddReminderSheet> {
                 ),
                 child: Text(
                   FFLocalizations.of(context).getText('cb_routine_save'),
-                  style: const TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    color: canSave ? Colors.white : const Color(0xFF9A8FBF),
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),

@@ -48,15 +48,38 @@ class _CosmeticBagWidgetState extends State<CosmeticBagWidget> {
   /// Total filled slots (any index).
   int get _filledCount => _slots.where((s) => s.imageId != null).length;
 
+  GoRouter? _goRouter;
+  String _lastLocation = '';
+
   @override
   void initState() {
     super.initState();
     _model = createModel(context, () => CosmeticBagModel());
     _load();
+    // Reload whenever this tab becomes the active route (e.g. after a scan
+    // navigates back here) so newly added products show without pull-to-refresh.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _goRouter = GoRouter.of(context);
+      _lastLocation = _goRouter!.routeInformationProvider.value.uri.path;
+      _goRouter!.routerDelegate.addListener(_onRouteChanged);
+    });
+  }
+
+  void _onRouteChanged() {
+    if (!mounted) return;
+    final location =
+        _goRouter?.routeInformationProvider.value.uri.path ?? '';
+    if (_lastLocation != CosmeticBagWidget.routePath &&
+        location == CosmeticBagWidget.routePath) {
+      _load();
+    }
+    _lastLocation = location;
   }
 
   @override
   void dispose() {
+    _goRouter?.routerDelegate.removeListener(_onRouteChanged);
     _model.dispose();
     super.dispose();
   }
@@ -138,12 +161,12 @@ class _CosmeticBagWidgetState extends State<CosmeticBagWidget> {
   }
 
   /// "+" tile: create a new slot only once a product is actually chosen, so
-  /// dismissing the popup leaves no empty cell behind. Free is capped at 4
-  /// products — adding a 5th requires Pro.
+  /// dismissing the popup leaves no empty cell behind. Free (incl. anonymous)
+  /// is capped at 3 products — adding a 4th requires Pro.
   Future<void> _addNewSlot() async {
     HapticFeedback.lightImpact();
     final isPro = context.read<FFAppState>().isprouser;
-    if (!isPro && _filledCount >= 4) {
+    if (!isPro && _filledCount >= 3) {
       context.pushNamed(PaywallpageWidget.routeName);
       return;
     }

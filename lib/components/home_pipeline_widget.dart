@@ -1,11 +1,12 @@
+import '/auth/supabase_auth/auth_util.dart';
 import '/backend/cosmetic_bag_service.dart';
 import '/backend/routine_service.dart';
+import '/backend/supabase/database/database.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
 
 /// Home "try all features" checklist: 3 steps that light up as the user
 /// completes them. Hides for good once all three are done.
@@ -21,6 +22,7 @@ class _HomePipelineWidgetState extends State<HomePipelineWidget> {
   bool _step1 = false;
   bool _step2 = false;
   bool _step3 = false;
+  bool _dismissed = false; // this user already completed all 3 at least once
 
   @override
   void initState() {
@@ -31,23 +33,41 @@ class _HomePipelineWidgetState extends State<HomePipelineWidget> {
   }
 
   Future<void> _load() async {
-    final step1 = FFAppState().onboardingDone;
+    // Derive every step from per-user data (DB), not local flags that survive
+    // logout — otherwise a new/anonymous user inherits the previous "done".
+    var step1 = false;
     var step2 = false;
     var step3 = false;
     try {
+      final user = await UsersTable().querySingleRow(
+        queryFn: (q) => q.eqOrNull('id', currentUserUid),
+      );
+      final skinType = user.isNotEmpty ? user.first.skinType : null;
+      step1 = skinType != null && skinType.isNotEmpty;
       final slots = await CosmeticBagService.instance.getSlots();
       step2 = slots.where((s) => s.imageId != null).length >= 3;
       final events = await RoutineService.instance.getEvents();
       step3 = events.isNotEmpty;
     } catch (_) {}
-    if (step1 && step2 && step3) {
-      FFAppState().homePipelineDone = true;
+
+    // Once this user has completed all three steps, remember it per user id so
+    // the pipeline stays hidden even if they later remove products/routine.
+    final uid = currentUserUid;
+    var dismissed = FFAppState().homePipelineDoneUsers.contains(uid);
+    if (!dismissed && step1 && step2 && step3 && uid.isNotEmpty) {
+      FFAppState().homePipelineDoneUsers = [
+        ...FFAppState().homePipelineDoneUsers,
+        uid,
+      ];
+      dismissed = true;
     }
+
     if (!mounted) return;
     setState(() {
       _step1 = step1;
       _step2 = step2;
       _step3 = step3;
+      _dismissed = dismissed;
       _loading = false;
     });
   }
@@ -60,11 +80,12 @@ class _HomePipelineWidgetState extends State<HomePipelineWidget> {
 
   @override
   Widget build(BuildContext context) {
-    if (FFAppState().homePipelineDone || _loading) {
+    // Show only until this user completes all three steps the first time.
+    // After that (_dismissed) it stays hidden — even if products are removed.
+    if (_loading || _dismissed || (_step1 && _step2 && _step3)) {
       return const SizedBox.shrink();
     }
     final theme = FlutterFlowTheme.of(context);
-    final isPro = context.watch<FFAppState>().isprouser;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
@@ -108,9 +129,7 @@ class _HomePipelineWidgetState extends State<HomePipelineWidget> {
               done: _step3,
               label: FFLocalizations.of(context).getText('hp_step3'),
               primary: theme.primary,
-              onTap: () => _go(isPro
-                  ? RoutineCalendarWidget.routeName
-                  : PaywallpageWidget.routeName),
+              onTap: () => _go(RoutineCalendarWidget.routeName),
               last: true,
             ),
           ],

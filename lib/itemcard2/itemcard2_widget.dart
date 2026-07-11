@@ -1560,9 +1560,9 @@ class _AnonSaveSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        color: FlutterFlowTheme.of(context).primaryBackground,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: SafeArea(
         top: false,
@@ -1589,6 +1589,7 @@ class _AnonSaveSheet extends StatelessWidget {
                 style: FlutterFlowTheme.of(context).titleMedium.override(
                       fontFamily:
                           FlutterFlowTheme.of(context).titleMediumFamily,
+                      color: Colors.black,
                       letterSpacing: 0,
                       useGoogleFonts:
                           !FlutterFlowTheme.of(context).titleMediumIsCustom,

@@ -660,7 +660,14 @@ class _LogInPageWidgetState extends State<LogInPageWidget>
                 size: 30.0,
               ),
               onPressed: () async {
-                context.pushNamed(NewblankWidget.routeName);
+                // Return to wherever we came from (e.g. a scan result for an
+                // anonymous user) instead of always jumping to the welcome
+                // screen, which would strand the user's accumulated scans.
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.goNamed(NewblankWidget.routeName);
+                }
               },
             ),
             bottom: PreferredSize(
