@@ -230,7 +230,7 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
                         color: ringColor,
                         fontSize: 24,
                         letterSpacing: 0.0,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                         useGoogleFonts: !theme.headlineSmallIsCustom,
                       ),
                     ),

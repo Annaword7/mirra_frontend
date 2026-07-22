@@ -123,7 +123,7 @@ class _StartanalysWidgetState extends State<StartanalysWidget> {
                                 FlutterFlowTheme.of(context).displaySmallFamily,
                             color: Colors.white,
                             letterSpacing: 0.0,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w700,
                             useGoogleFonts: !FlutterFlowTheme.of(context)
                                 .displaySmallIsCustom,
                           ),

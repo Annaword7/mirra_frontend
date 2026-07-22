@@ -526,7 +526,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                           color: Colors.white,
                                                           letterSpacing: 0.0,
                                                           fontWeight:
-                                                              FontWeight.bold,
+                                                              FontWeight.w700,
                                                           useGoogleFonts:
                                                               !FlutterFlowTheme
                                                                       .of(context)
@@ -570,7 +570,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                 .bodyMedium
                                                 .override(
                                                   font: GoogleFonts.raleway(
-                                                    fontWeight: FontWeight.bold,
+                                                    fontWeight: FontWeight.w700,
                                                     fontStyle:
                                                         FlutterFlowTheme.of(
                                                                 context)
@@ -579,7 +579,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                   ),
                                                   fontSize: 28.0,
                                                   letterSpacing: 0.0,
-                                                  fontWeight: FontWeight.bold,
+                                                  fontWeight: FontWeight.w700,
                                                   fontStyle:
                                                       FlutterFlowTheme.of(
                                                               context)
@@ -599,7 +599,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                   .bodyMedium
                                                   .override(
                                                     font: GoogleFonts.raleway(
-                                                      fontWeight: FontWeight.bold,
+                                                      fontWeight: FontWeight.w700,
                                                       fontStyle:
                                                           FlutterFlowTheme.of(
                                                                   context)
@@ -608,7 +608,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                     ),
                                                     fontSize: 28.0,
                                                     letterSpacing: 0.0,
-                                                    fontWeight: FontWeight.bold,
+                                                    fontWeight: FontWeight.w700,
                                                     fontStyle:
                                                         FlutterFlowTheme.of(
                                                                 context)
@@ -679,7 +679,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                             .bodyMedium
                                             .override(
                                               font: GoogleFonts.raleway(
-                                                fontWeight: FontWeight.bold,
+                                                fontWeight: FontWeight.w700,
                                                 fontStyle:
                                                     FlutterFlowTheme.of(context)
                                                         .bodyMedium
@@ -687,7 +687,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                               ),
                                               fontSize: 21.0,
                                               letterSpacing: 0.0,
-                                              fontWeight: FontWeight.bold,
+                                              fontWeight: FontWeight.w700,
                                               fontStyle:
                                                   FlutterFlowTheme.of(context)
                                                       .bodyMedium

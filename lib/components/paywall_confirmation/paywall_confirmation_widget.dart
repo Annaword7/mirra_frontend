@@ -210,7 +210,7 @@ class _PaywallConfirmationWidgetState extends State<PaywallConfirmationWidget>
                                 .bodyMedium
                                 .override(
                                   font: GoogleFonts.plusJakartaSans(
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w700,
                                     fontStyle: FlutterFlowTheme.of(context)
                                         .bodyMedium
                                         .fontStyle,
@@ -218,7 +218,7 @@ class _PaywallConfirmationWidgetState extends State<PaywallConfirmationWidget>
                                   color: FlutterFlowTheme.of(context).info,
                                   fontSize: 14.0,
                                   letterSpacing: 0.0,
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w700,
                                   fontStyle: FlutterFlowTheme.of(context)
                                       .bodyMedium
                                       .fontStyle,
@@ -243,7 +243,7 @@ class _PaywallConfirmationWidgetState extends State<PaywallConfirmationWidget>
                             FlutterFlowTheme.of(context).headlineSmallFamily,
                         fontSize: 26.0,
                         letterSpacing: 0.0,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                         useGoogleFonts:
                             !FlutterFlowTheme.of(context).headlineSmallIsCustom,
                       ),

@@ -195,7 +195,7 @@ class _TopratedWidgetState extends State<TopratedWidget> {
                       Text(lang == 'ru' ? 'Фильтры' : 'Filters',
                           style: theme.titleMedium.override(
                             fontFamily: theme.titleMediumFamily,
-                            fontWeight: FontWeight.bold, letterSpacing: 0,
+                            fontWeight: FontWeight.w700, letterSpacing: 0,
                             useGoogleFonts: !theme.titleMediumIsCustom,
                           )),
                       const Spacer(),
@@ -491,7 +491,7 @@ class _TopratedWidgetState extends State<TopratedWidget> {
                                     FFLocalizations.of(context).getText('s0iman0p'),
                                     style: FlutterFlowTheme.of(context).titleLarge.override(
                                       fontFamily: FlutterFlowTheme.of(context).titleLargeFamily,
-                                      letterSpacing: 0, fontWeight: FontWeight.bold,
+                                      letterSpacing: 0, fontWeight: FontWeight.w700,
                                       useGoogleFonts: !FlutterFlowTheme.of(context).titleLargeIsCustom,
                                     ),
                                   ),

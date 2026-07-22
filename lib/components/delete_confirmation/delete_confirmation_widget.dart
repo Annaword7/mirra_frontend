@@ -84,7 +84,7 @@ class _DeleteConfirmationWidgetState extends State<DeleteConfirmationWidget> {
                             FlutterFlowTheme.of(context).headlineSmallFamily,
                         fontSize: 26.0,
                         letterSpacing: 0.0,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                         useGoogleFonts:
                             !FlutterFlowTheme.of(context).headlineSmallIsCustom,
                       ),

@@ -101,12 +101,12 @@ class _LimitOutWidgetState extends State<LimitOutWidget> {
                         TextSpan(text: loc.getText('5vf31bag' /* You've used  */)),
                         TextSpan(
                           text: widget.limit!.toString(),
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                          style: const TextStyle(fontWeight: FontWeight.w700),
                         ),
                         TextSpan(text: loc.getText('9iwfkse3')),
                         TextSpan(
                           text: widget.date!,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                          style: const TextStyle(fontWeight: FontWeight.w700),
                         ),
                       ],
                     ),

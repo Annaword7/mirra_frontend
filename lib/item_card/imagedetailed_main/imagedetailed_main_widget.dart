@@ -188,7 +188,7 @@ class _ImagedetailedMainWidgetState extends State<ImagedetailedMainWidget> {
                               'SPF',
                               style: TextStyle(
                                 fontSize: 11,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w700,
                                 color: Colors.white,
                                 letterSpacing: 0.5,
                               ),
@@ -218,7 +218,7 @@ class _ImagedetailedMainWidgetState extends State<ImagedetailedMainWidget> {
                           '~ ${_formatCardPrice(widget.avgPrice!, widget.priceCurrencyCode)}',
                           style: const TextStyle(
                             fontSize: 13,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w700,
                             color: Color(0xFF333333),
                             letterSpacing: 0.2,
                           ),
@@ -366,7 +366,7 @@ class _ScoreBadge extends StatelessWidget {
               '···',
               style: TextStyle(
                 fontSize: 13,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w700,
                 color: Colors.grey.shade400,
               ),
             ),
@@ -408,7 +408,7 @@ class _ScoreBadge extends StatelessWidget {
               _grade,
               style: TextStyle(
                 fontSize: 13,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w700,
                 color: sColor,
               ),
             ),
@@ -418,7 +418,7 @@ class _ScoreBadge extends StatelessWidget {
             '${score!.toStringAsFixed(0)}/100',
             style: TextStyle(
               fontSize: 13,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w700,
               color: sColor,
             ),
           ),

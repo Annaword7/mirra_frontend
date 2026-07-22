@@ -122,7 +122,7 @@ class FeedbackCollectorWidget extends StatelessWidget {
                         style: theme.headlineSmall.override(
                           fontFamily: theme.headlineSmallFamily,
                           fontSize: 22.0,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w700,
                           letterSpacing: 0.0,
                           useGoogleFonts: !theme.headlineSmallIsCustom,
                         ),

@@ -171,7 +171,7 @@ class _NewblankWidgetState extends State<NewblankWidget> {
 
                         letterSpacing: 0.0,
 
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
 
                         lineHeight: 1.2,
 

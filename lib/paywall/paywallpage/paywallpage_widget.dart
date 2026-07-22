@@ -140,12 +140,12 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                                 FFLocalizations.of(context).getText('7n2kv1iq' /* UPGRADE TO PRO */),
                                 style: FlutterFlowTheme.of(context).labelSmall.override(
                                       font: GoogleFonts.plusJakartaSans(
-                                        fontWeight: FontWeight.bold,
+                                        fontWeight: FontWeight.w700,
                                         fontStyle: FlutterFlowTheme.of(context).labelSmall.fontStyle,
                                       ),
                                       color: FlutterFlowTheme.of(context).alternate,
                                       letterSpacing: 1.0,
-                                      fontWeight: FontWeight.bold,
+                                      fontWeight: FontWeight.w700,
                                       fontStyle: FlutterFlowTheme.of(context).labelSmall.fontStyle,
                                     ),
                               ),
@@ -171,7 +171,7 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                                 color: Colors.white,
                                 fontSize: 22.0,
                                 letterSpacing: 0.0,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w700,
                                 useGoogleFonts: !FlutterFlowTheme.of(context)
                                     .headlineSmallIsCustom,
                               ),
@@ -586,7 +586,7 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                                                 color: FlutterFlowTheme.of(context).alternate,
                                                 fontSize: 11.0,
                                                 letterSpacing: 1.0,
-                                                fontWeight: FontWeight.bold,
+                                                fontWeight: FontWeight.w700,
                                                 useGoogleFonts: !FlutterFlowTheme.of(context).labelSmallIsCustom,
                                               ),
                                         ),
@@ -1074,7 +1074,7 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                                       .bodyMediumFamily,
                                   color: FlutterFlowTheme.of(context).primary,
                                   letterSpacing: 0.0,
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w700,
                                   useGoogleFonts: !FlutterFlowTheme.of(context)
                                       .bodyMediumIsCustom,
                                 ),
@@ -1131,7 +1131,7 @@ It is a sy... */,
                                       color:
                                           FlutterFlowTheme.of(context).primary,
                                       letterSpacing: 0.0,
-                                      fontWeight: FontWeight.bold,
+                                      fontWeight: FontWeight.w700,
                                       useGoogleFonts:
                                           !FlutterFlowTheme.of(context)
                                               .bodyMediumIsCustom,
@@ -1159,7 +1159,7 @@ It is a sy... */,
                                       color:
                                           FlutterFlowTheme.of(context).primary,
                                       letterSpacing: 0.0,
-                                      fontWeight: FontWeight.bold,
+                                      fontWeight: FontWeight.w700,
                                       useGoogleFonts:
                                           !FlutterFlowTheme.of(context)
                                               .bodyMediumIsCustom,

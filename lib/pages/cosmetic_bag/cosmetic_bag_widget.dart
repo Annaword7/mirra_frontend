@@ -317,7 +317,7 @@ class _ScoreHeader extends StatelessWidget {
                 style: theme.titleLarge.override(
                   fontFamily: theme.titleLargeFamily,
                   color: theme.primary,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                   letterSpacing: 0,
                   useGoogleFonts: !theme.titleLargeIsCustom,
                 ),

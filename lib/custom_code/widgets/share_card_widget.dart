@@ -286,7 +286,7 @@ Widget _miniBar(String label, double? value) {
             textAlign: TextAlign.right,
             style: TextStyle(
               fontSize: 7.5,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w700,
               color: value == null ? const Color(0x55000000) : color,
             ),
           ),
@@ -325,7 +325,7 @@ Widget _ingredientRichText(
         style: const TextStyle(
             color: greenText,
             backgroundColor: greenBg,
-            fontWeight: FontWeight.bold),
+            fontWeight: FontWeight.w700),
       ));
     } else if (isRed) {
       spans.add(TextSpan(
@@ -333,7 +333,7 @@ Widget _ingredientRichText(
         style: const TextStyle(
             color: redText,
             backgroundColor: redBg,
-            fontWeight: FontWeight.bold),
+            fontWeight: FontWeight.w700),
       ));
     } else {
       spans.add(TextSpan(text: token));
@@ -405,7 +405,7 @@ Widget _rightPanel({
           style: TextStyle(
             color: Colors.black,
             fontSize: nameFontSize,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w700,
             height: 1.2,
           ),
         ),
@@ -427,7 +427,7 @@ Widget _rightPanel({
                 style: TextStyle(
                   color: sColor,
                   fontSize: gradeFontSize,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ),
@@ -437,7 +437,7 @@ Widget _rightPanel({
               style: TextStyle(
                 color: sColor,
                 fontSize: scoreFontSize,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ],
@@ -538,7 +538,7 @@ class _StoryCard extends StatelessWidget {
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 9,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                         letterSpacing: 2,
                       ),
                     ),
@@ -641,7 +641,7 @@ class _SquareCard extends StatelessWidget {
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 9,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                         letterSpacing: 2,
                       ),
                     ),

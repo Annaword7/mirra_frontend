@@ -263,7 +263,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
             style: FlutterFlowTheme.of(context).titleMedium.override(
                   fontFamily: FlutterFlowTheme.of(context).titleMediumFamily,
                   color: FlutterFlowTheme.of(context).primaryText,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                   useGoogleFonts:
                       !FlutterFlowTheme.of(context).titleMediumIsCustom,
                 ),
@@ -820,7 +820,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                                         fontSize: 20.0,
                                                         letterSpacing: 0.0,
                                                         fontWeight:
-                                                            FontWeight.bold,
+                                                            FontWeight.w700,
                                                         useGoogleFonts:
                                                             !FlutterFlowTheme
                                                                     .of(context)
@@ -894,7 +894,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                                                 .alternate,
                                                             letterSpacing: 0.0,
                                                             fontWeight:
-                                                                FontWeight.bold,
+                                                                FontWeight.w700,
                                                             useGoogleFonts:
                                                                 !FlutterFlowTheme.of(
                                                                         context)
@@ -1066,7 +1066,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                                   'SPF',
                                                   style: TextStyle(
                                                     fontSize: 13,
-                                                    fontWeight: FontWeight.bold,
+                                                    fontWeight: FontWeight.w700,
                                                     color: Colors.white,
                                                     letterSpacing: 0.5,
                                                   ),
@@ -1086,7 +1086,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                                               context)
                                                           .bodyMediumFamily,
                                                   fontSize: 16.0,
-                                                  fontWeight: FontWeight.bold,
+                                                  fontWeight: FontWeight.w700,
                                                   letterSpacing: 0.0,
                                                   useGoogleFonts:
                                                       !FlutterFlowTheme.of(
@@ -1204,7 +1204,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                                   FlutterFlowTheme.of(context)
                                                       .bodyMediumFamily,
                                               fontSize: 22.0,
-                                              fontWeight: FontWeight.bold,
+                                              fontWeight: FontWeight.w700,
                                               letterSpacing: 0.0,
                                               useGoogleFonts:
                                                   !FlutterFlowTheme.of(context)
@@ -1362,7 +1362,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                                           .bodyMediumFamily,
                                                   fontSize: 18.0,
                                                   letterSpacing: 0.0,
-                                                  fontWeight: FontWeight.bold,
+                                                  fontWeight: FontWeight.w700,
                                                   useGoogleFonts:
                                                       !FlutterFlowTheme.of(
                                                               context)
@@ -1802,7 +1802,7 @@ class _LoginRequiredSheet extends StatelessWidget {
             style: FlutterFlowTheme.of(context).titleMedium.override(
                   fontFamily: FlutterFlowTheme.of(context).titleMediumFamily,
                   color: const Color(0xFF111111),
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                   letterSpacing: 0.0,
                   useGoogleFonts:
                       !FlutterFlowTheme.of(context).titleMediumIsCustom,

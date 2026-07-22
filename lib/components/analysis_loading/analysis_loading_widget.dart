@@ -147,7 +147,7 @@ class _AnalysisLoadingWidgetState extends State<AnalysisLoadingWidget> {
                                 fontFamily: FlutterFlowTheme.of(context)
                                     .titleMediumFamily,
                                 color: Colors.white,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w700,
                                 letterSpacing: 0,
                                 useGoogleFonts: !FlutterFlowTheme.of(context)
                                     .titleMediumIsCustom,

@@ -134,7 +134,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 11.0,
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w700,
                                   letterSpacing: 0.5,
                                 ),
                               ),

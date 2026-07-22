@@ -97,7 +97,7 @@ class _FeatureScoreCardState extends State<FeatureScoreCard>
                 'A',
                 style: TextStyle(
                   fontSize: 26,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                   color: _scoreColor,
                 ),
               ),

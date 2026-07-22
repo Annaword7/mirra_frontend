@@ -207,7 +207,7 @@ class _CosmeticBagIntroWidgetState extends State<CosmeticBagIntroWidget> {
                         fontFamily: theme.displaySmallFamily,
                         color: Colors.black,
                         fontSize: 24,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                         letterSpacing: 0,
                         useGoogleFonts: !theme.displaySmallIsCustom,
                       ),

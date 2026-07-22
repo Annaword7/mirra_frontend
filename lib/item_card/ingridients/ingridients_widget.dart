@@ -80,7 +80,7 @@ class _IngridientsWidgetState extends State<IngridientsWidget> {
           style: TextStyle(
             color: _greenText,
             backgroundColor: _greenBg,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w700,
             letterSpacing: 0.5,
           ),
         ));
@@ -90,7 +90,7 @@ class _IngridientsWidgetState extends State<IngridientsWidget> {
           style: TextStyle(
             color: _redText,
             backgroundColor: _redBg,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w700,
             letterSpacing: 0.5,
           ),
         ));
