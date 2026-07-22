@@ -41,7 +41,31 @@ abstract class FlutterFlowTheme {
   late Color error;
   late Color info;
 
+  // Additive design-system colour tokens (Phase 0). New fields only — no existing
+  // field is changed or removed. See design_system/DESIGN_SYSTEM.md for rationale.
+  late Color primaryVariant;
+  late Color surfaceMuted;
+  late Color border;
+  late Color divider;
+  late Color textTertiary;
+  late Color textDisabled;
+  late Color errorBg;
+  late Color successBg;
+  late Color warningBg;
+  late Color overlay08;
+  late Color overlay10;
+  late Color overlay20;
+  late Color overlay27;
+
   FFDesignTokens get designToken => FFDesignTokens(this);
+
+  // Additive scale accessors (Phase 0). `designToken` is retained unchanged for
+  // backward compatibility; these are shorter aliases used going forward.
+  FFSpacing get space => const FFSpacing();
+  FFRadius get radii => const FFRadius();
+  FFShadows get shadow => FFShadows(this);
+  FFOpacity get opacity => const FFOpacity();
+  FFSizing get size => const FFSizing();
 
   @Deprecated('Use displaySmallFamily instead')
   String get title1Family => displaySmallFamily;
@@ -160,6 +184,22 @@ class LightModeTheme extends FlutterFlowTheme {
   late Color warning = const Color(0xFFFCDC0C);
   late Color error = const Color(0xFFFF5963);
   late Color info = const Color(0xFFE7E8EB);
+
+  // Additive design-system colour tokens (Phase 0). Values lifted verbatim from
+  // existing UI (see DESIGN_AUDIT_EVIDENCE.md). No existing colour value changed.
+  late Color primaryVariant = const Color(0xFF3B6FCC);
+  late Color surfaceMuted = const Color(0xFFF3F4F6);
+  late Color border = const Color(0xFFE0E0E0);
+  late Color divider = const Color(0xFFE6E6E6);
+  late Color textTertiary = const Color(0xFF555555);
+  late Color textDisabled = const Color(0xFFAFAFB0);
+  late Color errorBg = const Color(0xFFFFEBEE);
+  late Color successBg = const Color(0xFFE8F5E9);
+  late Color warningBg = const Color(0xFFFFF3E0);
+  late Color overlay08 = const Color(0x14000000);
+  late Color overlay10 = const Color(0x1A000000);
+  late Color overlay20 = const Color(0x33000000);
+  late Color overlay27 = const Color(0x44000000);
 }
 
 abstract class Typography {
@@ -553,19 +593,79 @@ class FFDesignTokens {
 
 class FFSpacing {
   const FFSpacing();
+  // Existing tokens — unchanged for backward compatibility.
   double get xs => 4.0;
   double get sm => 8.0;
   double get md => 16.0;
   double get lg => 24.0;
   double get xl => 32.0;
+  // Canonical numeric scale (Phase 0, additive). Use these going forward.
+  double get s2 => 2.0;
+  double get s4 => 4.0;
+  double get s8 => 8.0;
+  double get s12 => 12.0;
+  double get s16 => 16.0;
+  double get s20 => 20.0;
+  double get s24 => 24.0;
+  double get s32 => 32.0;
+  double get s40 => 40.0;
+  double get s48 => 48.0;
+  double get s64 => 64.0;
 }
 
 class FFRadius {
   const FFRadius();
+  // Existing tokens — unchanged for backward compatibility.
   double get sm => 8.0;
   double get md => 16.0;
   double get lg => 24.0;
   double get full => 9999.0;
+  // Canonical numeric scale (Phase 0, additive). Use these going forward.
+  double get r4 => 4.0;
+  double get r8 => 8.0;
+  double get r12 => 12.0;
+  double get r16 => 16.0;
+  double get r24 => 24.0;
+  double get r32 => 32.0;
+}
+
+class FFOpacity {
+  const FFOpacity();
+  double get o04 => 0.04;
+  double get o08 => 0.08;
+  double get o12 => 0.12;
+  double get o16 => 0.16;
+  double get o24 => 0.24;
+  double get o32 => 0.32;
+  double get o48 => 0.48;
+  double get o64 => 0.64;
+  double get o80 => 0.80;
+  double get o92 => 0.92;
+}
+
+class FFSizing {
+  const FFSizing();
+  // Icons
+  double get iconXs => 16.0;
+  double get iconSm => 20.0;
+  double get iconMd => 24.0;
+  double get iconLg => 28.0;
+  double get iconXl => 32.0;
+  double get icon2xl => 48.0;
+  // Buttons / inputs
+  double get buttonSm => 36.0;
+  double get buttonMd => 44.0;
+  double get buttonLg => 52.0;
+  double get inputHeight => 52.0;
+  // Avatars
+  double get avatarXs => 24.0;
+  double get avatarSm => 32.0;
+  double get avatarMd => 40.0;
+  double get avatarLg => 56.0;
+  double get avatarXl => 80.0;
+  // Border widths
+  double get borderHairline => 1.0;
+  double get borderThick => 2.0;
 }
 
 class FFShadows {
