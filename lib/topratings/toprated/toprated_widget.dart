@@ -247,7 +247,7 @@ class _TopratedWidgetState extends State<TopratedWidget> {
                                 child: Text(_valueLabel(v),
                                     style: theme.bodySmall.override(
                                       fontFamily: theme.bodySmallFamily,
-                                      color: sel ? Colors.white : const Color(0xFF1A1A1A),
+                                      color: sel ? Colors.white : theme.primaryText,
                                       fontWeight: sel ? FontWeight.w600 : FontWeight.normal,
                                       letterSpacing: 0,
                                       useGoogleFonts: !theme.bodySmallIsCustom,
@@ -283,7 +283,7 @@ class _TopratedWidgetState extends State<TopratedWidget> {
                               child: Text(lang == 'ru' ? labelRu : labelEn,
                                   style: theme.bodySmall.override(
                                     fontFamily: theme.bodySmallFamily,
-                                    color: sel ? Colors.white : const Color(0xFF1A1A1A),
+                                    color: sel ? Colors.white : theme.primaryText,
                                     fontWeight: sel ? FontWeight.w600 : FontWeight.normal,
                                     letterSpacing: 0,
                                     useGoogleFonts: !theme.bodySmallIsCustom,

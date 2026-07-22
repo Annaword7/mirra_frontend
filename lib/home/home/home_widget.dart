@@ -762,7 +762,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                       fontSize: 13.0,
                                                       color: isSelected
                                                           ? Colors.white
-                                                          : const Color(0xFF1A1A1A),
+                                                          : FlutterFlowTheme.of(context).primaryText,
                                                       letterSpacing: 0.0,
                                                       fontWeight: isSelected
                                                           ? FontWeight.w600

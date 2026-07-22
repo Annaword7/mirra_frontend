@@ -88,7 +88,7 @@ class _CountriesWidgetState extends State<CountriesWidget> {
                 buttonSize: 40.0,
                 icon: Icon(
                   Icons.arrow_back_rounded,
-                  color: const Color(0xFF1A1A1A),
+                  color: FlutterFlowTheme.of(context).primaryText,
                   size: 24.0,
                 ),
                 onPressed: () async {
@@ -103,7 +103,7 @@ class _CountriesWidgetState extends State<CountriesWidget> {
                   ),
                   style: FlutterFlowTheme.of(context).titleLarge.override(
                         font: GoogleFonts.sora(fontWeight: FontWeight.w500),
-                        color: const Color(0xFF1A1A1A),
+                        color: FlutterFlowTheme.of(context).primaryText,
                         fontSize: 24.0,
                         letterSpacing: 0.0,
                         fontWeight: FontWeight.w500,
@@ -141,7 +141,7 @@ class _CountriesWidgetState extends State<CountriesWidget> {
                                       .bodyMediumFamily,
                                   fontSize: 16.0,
                                   color:
-                                      const Color(0xFF1A1A1A),
+                                      FlutterFlowTheme.of(context).primaryText,
                                   letterSpacing: 0.0,
                                   useGoogleFonts: !FlutterFlowTheme.of(context)
                                       .bodyMediumIsCustom,
@@ -238,7 +238,7 @@ class _CountriesWidgetState extends State<CountriesWidget> {
                                                                 .bodyMediumFamily,
                                   fontSize: 16.0,
                                                         color:
-                                                            const Color(0xFF1A1A1A),
+                                                            FlutterFlowTheme.of(context).primaryText,
                                                         letterSpacing: 0.0,
                                                         useGoogleFonts:
                                                             !FlutterFlowTheme
@@ -275,7 +275,7 @@ class _CountriesWidgetState extends State<CountriesWidget> {
                                                                 .bodyMediumFamily,
                                   fontSize: 16.0,
                                                         color:
-                                                            const Color(0xFF1A1A1A),
+                                                            FlutterFlowTheme.of(context).primaryText,
                                                         letterSpacing: 0.0,
                                                         useGoogleFonts:
                                                             !FlutterFlowTheme
