@@ -400,3 +400,19 @@ typo + `LinkText`.
   (top_raited) imports; the new component uses `withValues` (−7 deprecation infos). `flutter analyze`:
   **0 errors / 0 warnings**; tests `+9 -1`. **Resolved:** item_card Tiles·#1 (`_ScoreBadge`+`_grade`
   dup), #4 (shadow drift).
+
+### Initiative 7 — status (helpers extracted; visual merge deferred)
+**Delivered:** `formatPrice` util (3 copies → 1) + `ScoreBadge` component (2 `_ScoreBadge` → 1, glow
+variant), on top of I4.2's shared score ramp — this captures the bulk of the "tiles A & B are the same
+card" duplication (`_scoreColor`/`_grade`/`_formatCardPrice`/`_ScoreBadge`). **Findings resolved:**
+item_card Tiles #1 (helpers), #4 (shadow variant).
+**Deferred / not done (tracked):**
+- ⏸ **Full `ProductTile` merge** (tiles A+B → one `ProductTile(showStars, showSpf, variant)`, delete B;
+  also fixes #2 ListView→Column root) — a **blind visual refactor of the main product tile** (A is used
+  in home/search/toprated/imagesby_album); needs a **device-verified** session (same call as the paywall
+  PlanCard). Tiles #2,#3(SPF/price hex),#5(stars a11y),#6(radii) ride along with that merge.
+- **`MirraChip`/`MirraInfoCard`** — no clean cross-file duplication found (search `_chip` is local;
+  toprated `_chipLabel` is a string helper). Not extracted.
+- **INCI status palette** (ingridients `_greenText/_greenBg/_redText/_redBg`, review INCI #1) — belongs
+  to the **paused** color-tokenization track (needs `success/error(+Bg)` tokens).
+- **`ConfirmDialog`** (deleteitem/markasspam) → **I8** (confirmation consolidation).
