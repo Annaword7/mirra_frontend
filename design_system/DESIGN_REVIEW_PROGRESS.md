@@ -14,7 +14,7 @@ rejected (with justification)**, or **superseded by another implemented change**
 |---|---|---|---|---|---|
 | 1 | **Inputs** — `AppTextField` (visible focus, one fill/border/radius, password toggle) | B10 | **Completed** | High | S–M |
 | 2 | Button system — `AppButton` (primary/secondary/outline/text/destructive, pill) | B1 | **Completed** | High | L |
-| 3 | Accessibility pass — contrast, 12px floor, 44px targets, non-color cues | B3 | **In Progress** | High | M |
+| 3 | Accessibility pass — contrast, 12px floor, 44px targets, non-color cues | B3 | **Completed** | High | M |
 | 4 | Semantic color + score system — `semanticScoreColor()`/`statusColor()`/legend | B2 | Not Started | High | M |
 | 5 | Empty vs loading — `SkeletonGrid` + `MirraEmptyState` | B4 | Not Started | High | M |
 | 6 | Sheets & dialogs — `MirraBottomSheet`/`MirraDialogCard`/`MirraDragHandle` | B5 | Not Started | High | M |
@@ -136,7 +136,7 @@ Every remaining sheet/dialog/confirmation/limit **CTA** is now `AppButton` (pill
 
 ---
 
-## Initiative 3 — Accessibility  ·  Status: In Progress
+## Initiative 3 — Accessibility  ·  Status: ✅ Completed
 
 **Goal:** meet a baseline: AA text contrast, a ≥12px type floor, ≥44–48px tap targets, and
 non-color status cues. Source: DESIGN_REVIEW cluster **B3** + per-screen a11y rows.
@@ -180,3 +180,21 @@ share-card 7.5px mini-bars) → **I4** (painters rebuilt there); **untranslated 
   shareproduct/settings/albums back buttons·#450-type. **Excluded (verified):** share_card 45×45
   avatar is **non-interactive** (static share image — N/A); routine step rows → module deleted;
   navbar → team-modified (re-review); password toggles → already component-owned (Initiative 1).
+- ✅ **3.4** `fix(a11y): create_account autofocus email only` — the password field
+  (`AppTextField.password`) had `autofocus:true` alongside the email field's, so it silently won and
+  the screen opened focused on **password**. Set the password field to `autofocus:false`; email now
+  receives initial focus. `flutter analyze`: **0 errors / 0 warnings**. **Resolved:** Create
+  Account·#5 (double autofocus — the behavior finding deferred back in Initiative 1.2).
+
+### Initiative 3 — completion summary
+**Delivered a11y baseline:** (1) **contrast** — `secondaryText` #929292→#6B6B6B (AA) app-wide;
+(2) **12px floor** — 7 sub-12 leaf `Text` widgets bumped to 12; (3) **tap targets** — icon-button
+fleet 40→48, shareproduct/search/onboarding hit areas to ≥44–48; (4) **behavior** — create_account
+autofocus fixed. `flutter analyze` clean throughout; tests `+9 -1` (pre-existing boilerplate only).
+**Findings resolved:** B3 (contrast, 12px floor, min tap targets) + Create Account·#5.
+**Explicitly carried forward (tracked, not skipped):**
+- **Non-color status cues** (score rings / ingredient-highlight / status dots = color-only) → **I4**
+  (built with `statusColor`/`ScoreRing`/`StatusLegend`).
+- **Painter-embedded sub-12** (share_card 7.5/9px, score_breakdown 8/9/9.5px, radar) → **I4**.
+- **paywall** sub-12 → **I10**; **startanalys** sub-12 → **I12** (unrouted/dead).
+- **Untranslated a11y strings** (`'Retry'`, `'Delete'`, `'Active'/'Issues'`, forgot-pw feedback) → **I12**.

@@ -397,7 +397,7 @@ class _CreateAccountPageWidgetState extends State<CreateAccountPageWidget>
                                             controller:
                                                 _model.passwordTextController,
                                             focusNode: _model.passwordFocusNode,
-                                            autofocus: true,
+                                            autofocus: false,
                                             hintText:
                                                 FFLocalizations.of(context)
                                                     .getText(
