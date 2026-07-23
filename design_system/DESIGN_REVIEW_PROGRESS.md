@@ -15,7 +15,7 @@ rejected (with justification)**, or **superseded by another implemented change**
 | 1 | **Inputs** — `AppTextField` (visible focus, one fill/border/radius, password toggle) | B10 | **Completed** | High | S–M |
 | 2 | Button system — `AppButton` (primary/secondary/outline/text/destructive, pill) | B1 | **Completed** | High | L |
 | 3 | Accessibility pass — contrast, 12px floor, 44px targets, non-color cues | B3 | **Completed** | High | M |
-| 4 | Semantic color + score system — `semanticScoreColor()`/`statusColor()`/legend | B2 | **In Progress** | High | M |
+| 4 | Semantic color + score system — `semanticScoreColor()`/`statusColor()`/legend | B2 | **Completed** | High | M |
 | 5 | Empty vs loading — `SkeletonGrid` + `MirraEmptyState` | B4 | Not Started | High | M |
 | 6 | Sheets & dialogs — `MirraBottomSheet`/`MirraDialogCard`/`MirraDragHandle` | B5 | Not Started | High | M |
 | 7 | Product surfaces — `ProductTile`/`MirraInfoCard`/`MirraChip`/`ScoreBadge` | B6 | Not Started | High | L |
@@ -201,7 +201,7 @@ autofocus fixed. `flutter analyze` clean throughout; tests `+9 -1` (pre-existing
 
 ---
 
-## Initiative 4 — Semantic color + score system  ·  Status: In Progress
+## Initiative 4 — Semantic color + score system  ·  Status: ✅ Completed
 
 **Goal:** one score ramp + one status palette + non-color cues, replacing the copy-pasted and
 **contradictory** score/status logic. Source: DESIGN_REVIEW cluster **B2** + score/status a11y rows
@@ -273,3 +273,32 @@ palette (product_card_v2 + ingredient_bubbles) · 4.4 painters (score_breakdown 
   alignment; raising to 12 risks clipping/overlap of long localized labels (DE/RU). Flagged in B3/B2
   #400, to be done with a device check (not dropped). **share_card painter sub-12** (7.5/9px mini-bars)
   similarly deferred to a device-verified pass.
+- ✅ **4.5** `feat(a11y): non-color status cues (icon + ink label)` — status meaning no longer carried
+  by color alone. **product_card_v2**: the color-only compatibility **dot** → `Icon(statusIcon(status))`
+  (check/warning/dash shape + color); the meta line (`~conc · mechanism · statusLabel`) recolored from
+  status-color → **`secondaryText` ink** (fixes the amber-on-white legibility fail; the status **word**
+  is the non-color cue). **ingredient_bubbles** tooltip: dot → `Icon(statusIcon(bubble.status))`, label
+  text `bubble.color` → **ink `#444444`**. `flutter analyze`: **0 errors / 0 warnings**; tests `+9 -1`.
+  **Resolved:** B3 non-color-cue rows (deferred here from Initiative 3) — C·ingredient_bubbles·#411
+  (status + tooltip), product-card status dot/label. **Accepted limitation:** the radar **bubbles**
+  themselves stay color-coded, but each already draws the ingredient **name** and the legend + tooltip
+  now carry icon + word (per-bubble status icons would be visually noisy — out of scope).
+
+### Initiative 4 — completion summary
+**Delivered:** one foundation (`score_status.dart`) — `semanticScoreColor`/`scoreGrade` (5-tier ramp,
+A–F) + `statusColor`/`statusIcon` (working 🟢 / borderline 🟡 / decorative & unknown ⚪ + icon cue).
+The copy-pasted score ramp (3 files) and the 3 contradictory status palettes are gone; **share_card,
+imagedetailed_main, imagedetailed_top_raited, product_card_v2, ingredient_bubbles, score_breakdown**
+all route through it. Status meaning is now icon + word, not color-only.
+**Findings resolved:** B2 score-ramp duplication + status-palette contradiction (working=green
+everywhere); B3 non-color status cues (from I3).
+**Carried forward (tracked, not skipped):**
+- ⏸ **In-painter sub-12 text** (radar axis 9.5 / score 9 / '1%' 8; share_card mini-bars 7.5/9) —
+  needs on-device layout verification (risk of clipping long localized labels).
+- **Radar chrome** raw hex (grid / blue polygon / slate labels / 1%-gold) — belongs to the **paused**
+  color-tokenization track, not I4.
+- **Issue-severity reds** (`#C62828`/`#E53935`) — a separate severity axis; no status token (could get
+  a `severity*` token later).
+- **`_fitColor` 3-tier 75/60 cutoff** (product_card_v2) — score-scale reconciliation vs the 5-tier
+  ramp; left for a dedicated look.
+- **share_card `greenText #1B5E20`** const (positive-delta text) — share_card raw-hex cleanup.

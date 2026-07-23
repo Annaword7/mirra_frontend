@@ -370,20 +370,17 @@ class _Tooltip extends StatelessWidget {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: bubble.color,
-                          shape: BoxShape.circle,
-                        ),
+                      Icon(
+                        statusIcon(bubble.status),
+                        size: 14,
+                        color: bubble.color,
                       ),
                       const SizedBox(width: 5),
                       Text(
                         _statusLabel(context, bubble.status),
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 12,
-                          color: bubble.color,
+                          color: Color(0xFF444444),
                           fontWeight: FontWeight.w600,
                         ),
                       ),

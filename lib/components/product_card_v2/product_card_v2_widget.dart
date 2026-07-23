@@ -388,14 +388,11 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(top: 5),
-                  child: Container(
-                    width: 9,
-                    height: 9,
-                    decoration: BoxDecoration(
-                      color: statusColor(status),
-                      shape: BoxShape.circle,
-                    ),
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Icon(
+                    statusIcon(status),
+                    size: 16,
+                    color: statusColor(status),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -758,7 +755,7 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
                       ].join(' · '),
                       style: theme.bodySmall.override(
                         fontFamily: theme.bodySmallFamily,
-                        color: statusColor(ing.status),
+                        color: theme.secondaryText,
                         letterSpacing: 0.0,
                         useGoogleFonts: !theme.bodySmallIsCustom,
                       ),
