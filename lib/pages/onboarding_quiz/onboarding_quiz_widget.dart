@@ -2,8 +2,8 @@ import '/auth/supabase_auth/auth_util.dart';
 import '/backend/supabase/supabase.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
 import '/design_system/components/app_text_field.dart';
+import '/design_system/components/app_button.dart';
 import '/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -334,10 +334,9 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
                               .override(color: _ink, fontSize: _fsBody, letterSpacing: 0),
                         ),
                         const SizedBox(height: 24),
-                        FFButtonWidget(
+                        AppButton(
+                          label: _t('obq_skip_confirm_no'),
                           onPressed: () => Navigator.pop(ctx, false),
-                          text: _t('obq_skip_confirm_no'),
-                          options: _primaryBtn(theme, height: 52),
                         ),
                         const SizedBox(height: 4),
                         TextButton(
@@ -707,22 +706,23 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
                 Row(
                   children: [
                     Expanded(
-                      child: FFButtonWidget(
+                      child: AppButton(
+                        label: _t('obq_det_confirm'),
+                        size: AppButtonSize.md,
                         onPressed: () => _pickTap(() {
                           _skinType = result;
                           _typeViaDetermine = true;
                           _go(_Step.sensitivity);
                         }),
-                        text: _t('obq_det_confirm'),
-                        options: _primaryBtn(theme, height: 46),
                       ),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
-                      child: FFButtonWidget(
+                      child: AppButton(
+                        label: _t('obq_det_change'),
+                        variant: AppButtonVariant.outline,
+                        size: AppButtonSize.md,
                         onPressed: () => _go(_Step.type),
-                        text: _t('obq_det_change'),
-                        options: _secondaryBtn(theme, height: 46),
                       ),
                     ),
                   ],
@@ -1018,10 +1018,9 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
     final children = <Widget>[];
     switch (_step) {
       case _Step.welcome:
-        children.add(FFButtonWidget(
+        children.add(AppButton(
+          label: _t('obq_welcome_start'),
           onPressed: () => _go(_Step.type),
-          text: _t('obq_welcome_start'),
-          options: _primaryBtn(theme),
         ));
         children.add(const SizedBox(height: 8));
         children.add(TextButton(
@@ -1032,10 +1031,9 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
         ));
         break;
       case _Step.goals:
-        children.add(FFButtonWidget(
+        children.add(AppButton(
+          label: _t('obq_next'),
           onPressed: _goals.isEmpty ? null : () => _go(_Step.optional),
-          text: _t('obq_next'),
-          options: _primaryBtn(theme, disabled: _goals.isEmpty),
         ));
         children.add(const SizedBox(height: 8));
         children.add(TextButton(
@@ -1049,10 +1047,9 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
         ));
         break;
       case _Step.optional:
-        children.add(FFButtonWidget(
+        children.add(AppButton(
+          label: _t('obq_done'),
           onPressed: () => _go(_Step.result),
-          text: _t('obq_done'),
-          options: _primaryBtn(theme),
         ));
         children.add(const SizedBox(height: 8));
         children.add(TextButton(
@@ -1069,11 +1066,10 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
         ));
         break;
       case _Step.result:
-        children.add(FFButtonWidget(
+        children.add(AppButton(
+          label: _t('obq_result_scan'),
           onPressed: () =>
               _finish(save: true, dest: TakeorUploadPageWidget.routeName),
-          text: _t('obq_result_scan'),
-          options: _primaryBtn(theme),
         ));
         children.add(const SizedBox(height: 8));
         children.add(TextButton(
@@ -1093,36 +1089,4 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
     );
   }
 
-  FFButtonOptions _primaryBtn(FlutterFlowTheme theme,
-      {double height = 55, bool disabled = false}) {
-    return FFButtonOptions(
-      width: double.infinity,
-      height: height,
-      color: disabled ? _card : theme.primary,
-      textStyle: theme.titleSmall.override(
-          color: disabled ? _muted : Colors.white,
-          fontSize: _fsBody,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 0),
-      elevation: 0,
-      borderRadius: BorderRadius.circular(50),
-      borderSide: BorderSide.none,
-    );
-  }
-
-  FFButtonOptions _secondaryBtn(FlutterFlowTheme theme, {double height = 55}) {
-    return FFButtonOptions(
-      width: double.infinity,
-      height: height,
-      color: Colors.white,
-      textStyle: theme.titleSmall.override(
-          color: _ink,
-          fontSize: _fsBody,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 0),
-      elevation: 0,
-      borderRadius: BorderRadius.circular(50),
-      borderSide: BorderSide(color: _border, width: 1.5),
-    );
-  }
 }

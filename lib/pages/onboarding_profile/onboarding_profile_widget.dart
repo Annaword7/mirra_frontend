@@ -5,9 +5,9 @@ import '/flutter_flow/flutter_flow_animations.dart';
 import '/flutter_flow/flutter_flow_language_selector.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
 import '/flutter_flow/upload_data.dart';
 import '/design_system/components/app_text_field.dart';
+import '/design_system/components/app_button.dart';
 import 'dart:async';
 import '/flutter_flow/random_data_util.dart' as random_data;
 import '/index.dart';
@@ -589,7 +589,8 @@ class _OnboardingProfileWidgetState extends State<OnboardingProfileWidget>
                 if (!keyboardVisible)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                    child: FFButtonWidget(
+                    child: AppButton(
+                      label: FFLocalizations.of(context).getText('spc42q3x'),
                       onPressed: () async {
                         HapticFeedback.lightImpact();
                         if (_model.formKey.currentState == null ||
@@ -608,23 +609,6 @@ class _OnboardingProfileWidgetState extends State<OnboardingProfileWidget>
                         );
                         context.goNamed(TakeorUploadPageWidget.routeName);
                       },
-                      text: FFLocalizations.of(context).getText('spc42q3x'),
-                      options: FFButtonOptions(
-                        width: double.infinity,
-                        height: 55,
-                        color: theme.primary,
-                        textStyle: theme.titleSmall.override(
-                          fontFamily: theme.titleSmallFamily,
-              fontSize: _fsBody,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0,
-                          useGoogleFonts: !theme.titleSmallIsCustom,
-                        ),
-                        elevation: 0,
-                        borderRadius: BorderRadius.circular(50),
-                        borderSide: BorderSide.none,
-                      ),
                     ),
                   ),
               ],
