@@ -21,7 +21,7 @@ rejected (with justification)**, or **superseded by another implemented change**
 | 7 | Product surfaces — `ProductTile`/`MirraInfoCard`/`MirraChip`/`ScoreBadge` | B6 | Not Started | High | L |
 | 8 | Confirmation & limit consolidation — `ConfirmationSheet`/`ConfirmDialog`/`LimitReached`; delete `makepubluc` | B7 | **In Progress (buttons only)** | High | S |
 | 9 | Settings & rows — `SettingsRow`/`SelectableRow`/`SettingsList` | B8 | Not Started | Medium | M |
-| 10 | Paywall — `PlanCard`/`FeatureRow`/`ProPill`/dark palette | B9 | Not Started | Medium | M |
+| 10 | Paywall — `PlanCard`/`FeatureRow`/`ProPill`/dark palette | B9 | **In Progress** | Medium | M |
 | 11 | Typography hygiene — roles over raw TextStyle, `displayXS`, kill local scales | B11 | Not Started | Medium | M |
 | 12 | Localization & dead-code cleanup — inline strings→FFLocalizations, remove dead code | B12 | Not Started | Medium | S |
 | 13 | Layout constants — `kNavBarHeight`, spacing tokens for magic offsets | B13 | Not Started | Low | S |
@@ -302,3 +302,28 @@ everywhere); B3 non-color status cues (from I3).
 - **`_fitColor` 3-tier 75/60 cutoff** (product_card_v2) — score-scale reconciliation vs the 5-tier
   ramp; left for a dedicated look.
 - **share_card `greenText #1B5E20`** const (positive-delta text) — share_card raw-hex cleanup.
+
+---
+
+## Initiative 10 — Paywall  ·  Status: In Progress
+
+**Goal:** kill the paywall duplication — one `PlanCard`, one data-driven `FeatureRow`, one `ProPill`,
+a grouped dark palette. Source: DESIGN_REVIEW Cluster 7 (paywallpage 1184 lines; premium_features_list
+8 dup rows; paywall_confirmation dup rows + shell; 3 PRO-pill variants). **Note:** raw-hex→theme-token
+color work stays on the paused track — the paywall dark palette is grouped **locally** (`_PaywallDark`),
+not added to the global theme.
+
+**Commit plan:** 10.1 `FeatureRow` + premium_features_list · 10.1b paywall_confirmation rows ·
+10.2 `ProPill` · 10.3 `PlanCard` (weekly/annual → 1 + hoist purchase + fix selection-purchase UX #7)
+· 10.4 local dark palette + a11y (disclaimer opacity, badge 12) + `PriceApproxRow` + "Update a Pro"
+typo + `LinkText`.
+**Out of I10 (→ I8):** out_of_generations / limit_out → `LimitReached`.
+
+**Commits:**
+- ✅ **10.1** `refactor(paywall): data-drive premium features via FeatureRow` — new
+  `lib/design_system/components/feature_row.dart` (circular icon badge + label; Material/FaIcon;
+  configurable badge/icon/text colors for the dark paywall vs the confirmation sheet). Migrated
+  **premium_features_list**: 8 hand-repeated rows → a `_features` data list mapped to `FeatureRow`
+  (**390 → 74 lines**), preserving icons/keys/FaIcon(eyeSlash@18)/spacing (`.divide(8)` + 16 ends).
+  Removed orphaned `flutter_flow_theme` import. `flutter analyze`: **0 errors / 0 warnings**; tests
+  `+9 -1`. **Resolved:** C7·PremiumFeaturesList·#1,#4. **Next:** paywall_confirmation's 4 rows (10.1b).
