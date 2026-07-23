@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
+import '/design_system/components/app_button.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 
 enum ErrorPopupType { productNotFound, ingredientsNotFound, subscriptionSync, unsupported, generic }
@@ -148,27 +149,9 @@ class ErrorPopupWidget extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 24.0),
-              SizedBox(
-                width: double.infinity,
-                height: 50.0,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: theme.primary,
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14.0),
-                    ),
-                  ),
-                  child: Text(
-                    FFLocalizations.of(context).getText('err_ok_btn'),
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15.0,
-                    ),
-                  ),
-                ),
+              AppButton(
+                label: FFLocalizations.of(context).getText('err_ok_btn'),
+                onPressed: () => Navigator.pop(context),
               ),
             ],
           ),
@@ -360,60 +343,23 @@ class _IngredientsInputDialogState extends State<_IngredientsInputDialog> {
               if (hasText && _expanded)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8.0),
-                  child: SizedBox(
-                    width: double.infinity,
-                    height: 50.0,
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.pop(
-                        context,
-                        IngredientInputResult(
-                          IngredientInputAction.manualText,
-                          _controller.text.trim(),
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: theme.primary,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14.0),
-                        ),
-                      ),
-                      child: Text(
-                        loc.getText('err_analyze_btn'),
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 15.0,
-                        ),
+                  child: AppButton(
+                    label: loc.getText('err_analyze_btn'),
+                    onPressed: () => Navigator.pop(
+                      context,
+                      IngredientInputResult(
+                        IngredientInputAction.manualText,
+                        _controller.text.trim(),
                       ),
                     ),
                   ),
                 ),
-              SizedBox(
-                width: double.infinity,
-                height: 50.0,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context, null),
-                  style: ElevatedButton.styleFrom(
-                    // Photo capture above is the primary action now — the
-                    // close/OK button is always secondary.
-                    backgroundColor: theme.alternate,
-                    foregroundColor: theme.primaryText,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14.0),
-                    ),
-                  ),
-                  child: Text(
-                    hasText && _expanded
-                        ? loc.getText('err_close_btn')
-                        : loc.getText('err_ok_btn'),
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15.0,
-                    ),
-                  ),
-                ),
+              AppButton(
+                label: hasText && _expanded
+                    ? loc.getText('err_close_btn')
+                    : loc.getText('err_ok_btn'),
+                variant: AppButtonVariant.secondary,
+                onPressed: () => Navigator.pop(context, null),
               ),
             ],
           ),
@@ -513,28 +459,11 @@ class _LowConfidenceChoiceDialog extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8.0),
-              SizedBox(
-                width: double.infinity,
-                height: 50.0,
-                child: ElevatedButton(
-                  onPressed: () =>
-                      Navigator.pop(context, IngredientInputAction.cancelled),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: theme.alternate,
-                    foregroundColor: theme.primaryText,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14.0),
-                    ),
-                  ),
-                  child: Text(
-                    loc.getText('ing_continue_anyway'),
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15.0,
-                    ),
-                  ),
-                ),
+              AppButton(
+                label: loc.getText('ing_continue_anyway'),
+                variant: AppButtonVariant.secondary,
+                onPressed: () =>
+                    Navigator.pop(context, IngredientInputAction.cancelled),
               ),
             ],
           ),

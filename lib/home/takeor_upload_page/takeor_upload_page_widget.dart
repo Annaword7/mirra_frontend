@@ -156,27 +156,9 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                   ),
                 ),
                 const SizedBox(height: 24.0),
-                SizedBox(
-                  width: double.infinity,
-                  height: 50.0,
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.pop(ctx),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: theme.primary,
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14.0),
-                      ),
-                    ),
-                    child: Text(
-                      t('button'),
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 15.0,
-                      ),
-                    ),
-                  ),
+                AppButton(
+                  label: t('button'),
+                  onPressed: () => Navigator.pop(ctx),
                 ),
               ],
             ),
