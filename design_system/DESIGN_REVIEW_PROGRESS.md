@@ -228,3 +228,8 @@ paywall_confirmation, share_card_sheet. Dialogs: error_popup (3 hand-rolled dial
   handle + standard `fromLTRB(24,16,24,32)` padding + keyboard-inset add; params for surface/padding/
   handle/alignment). Modeled on the clean link_telegram shell. No migration yet. `flutter analyze`:
   **No issues found**.
+- ✅ **6.2** `feat(ds): add MirraDialogCard + MirraDialogIcon` — new `mirra_dialog_card.dart`:
+  `MirraDialogIcon` (56×56 circle, `color.withValues(alpha:.12)` tint + full-color icon) +
+  `MirraDialogCard` (transparent `Dialog`, inset 24, r20 `secondaryBackground` surface + soft shadow,
+  padding `fromLTRB(24,28,24,24)`, optional top icon). Modeled on error_popup's shell. No migration
+  yet. `flutter analyze`: **No issues found**.
