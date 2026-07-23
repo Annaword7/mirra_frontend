@@ -15,6 +15,7 @@ import '/components/new_album/new_album_widget.dart';
 import '/flutter_flow/flutter_flow_animations.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
+import '/design_system/components/app_button.dart';
 import '/item_card/deleteitem/deleteitem_widget.dart';
 import '/item_card/ingridients/ingridients_widget.dart';
 import '/components/product_card_v2/product_card_v2_widget.dart';
@@ -1611,62 +1612,25 @@ class _AnonSaveSheet extends StatelessWidget {
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton(
+                child: AppButton(
+                  label:
+                      FFLocalizations.of(context).getText('cm_create_account'),
                   onPressed: () {
                     Navigator.pop(context);
                     context.pushNamed(CreateAccountPageWidget.routeName);
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: FlutterFlowTheme.of(context).primary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                    elevation: 0,
-                  ),
-                  child: Text(
-                    FFLocalizations.of(context).getText('cm_create_account'),
-                    style: FlutterFlowTheme.of(context).bodyMedium.override(
-                          fontFamily:
-                              FlutterFlowTheme.of(context).bodyMediumFamily,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0,
-                          useGoogleFonts:
-                              !FlutterFlowTheme.of(context).bodyMediumIsCustom,
-                        ),
-                  ),
                 ),
               ),
               const SizedBox(height: 10),
               SizedBox(
                 width: double.infinity,
-                child: OutlinedButton(
+                child: AppButton(
+                  label: FFLocalizations.of(context).getText('ic2_sign_in'),
+                  variant: AppButtonVariant.outline,
                   onPressed: () {
                     Navigator.pop(context);
                     context.pushNamed(LogInPageWidget.routeName);
                   },
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: FlutterFlowTheme.of(context).primary,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    side: BorderSide(
-                        color: FlutterFlowTheme.of(context).primary,
-                        width: 1.5),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: Text(
-                    FFLocalizations.of(context).getText('ic2_sign_in'),
-                    style: FlutterFlowTheme.of(context).bodyMedium.override(
-                          fontFamily:
-                              FlutterFlowTheme.of(context).bodyMediumFamily,
-                          color: FlutterFlowTheme.of(context).primary,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0,
-                          useGoogleFonts:
-                              !FlutterFlowTheme.of(context).bodyMediumIsCustom,
-                        ),
-                  ),
                 ),
               ),
               const SizedBox(height: 10),
@@ -1824,31 +1788,13 @@ class _LoginRequiredSheet extends StatelessWidget {
           const SizedBox(height: 24),
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton(
+            child: AppButton(
+              label: FFLocalizations.of(context)
+                  .getText('copy_login_btn' /* Sign in */),
               onPressed: () {
                 Navigator.pop(context);
                 context.pushNamed(LogInPageWidget.routeName);
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: FlutterFlowTheme.of(context).primary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                elevation: 0,
-              ),
-              child: Text(
-                FFLocalizations.of(context)
-                    .getText('copy_login_btn' /* Sign in */),
-                style: FlutterFlowTheme.of(context).titleSmall.override(
-                      fontFamily: FlutterFlowTheme.of(context).titleSmallFamily,
-                      color: Colors.white,
-                      letterSpacing: 0.0,
-                      useGoogleFonts:
-                          !FlutterFlowTheme.of(context).titleSmallIsCustom,
-                    ),
-              ),
             ),
           ),
           const SizedBox(height: 4),

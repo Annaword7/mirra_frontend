@@ -6,6 +6,7 @@ import '/backend/supabase/supabase.dart';
 import '/components/navbar/navbar_widget.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
+import '/design_system/components/app_button.dart';
 import '/item_card/imagedetailed_main/imagedetailed_main_widget.dart';
 import '/item_card/imagedetailed_top_raited/imagedetailed_top_raited_widget.dart';
 import '/index.dart';
@@ -300,22 +301,12 @@ class _TopratedWidgetState extends State<TopratedWidget> {
                   padding: EdgeInsets.fromLTRB(20, 12, 20, MediaQuery.of(ctx).viewInsets.bottom + 24),
                   child: SizedBox(
                     width: double.infinity, height: 52,
-                    child: ElevatedButton(
+                    child: AppButton(
+                      label: lang == 'ru' ? 'Применить' : 'Apply',
                       onPressed: () {
                         Navigator.of(ctx).pop();
                         _applyFilters(tempFacets, tempSort);
                       },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: theme.primary,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                        elevation: 0,
-                      ),
-                      child: Text(lang == 'ru' ? 'Применить' : 'Apply',
-                          style: theme.titleSmall.override(
-                            fontFamily: theme.titleSmallFamily,
-                            color: Colors.white, letterSpacing: 0,
-                            useGoogleFonts: !theme.titleSmallIsCustom,
-                          )),
                     ),
                   ),
                 ),
