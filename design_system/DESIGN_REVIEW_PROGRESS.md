@@ -14,7 +14,7 @@ rejected (with justification)**, or **superseded by another implemented change**
 |---|---|---|---|---|---|
 | 1 | **Inputs** — `AppTextField` (visible focus, one fill/border/radius, password toggle) | B10 | **Completed** | High | S–M |
 | 2 | Button system — `AppButton` (primary/secondary/outline/text/destructive, pill) | B1 | **Completed** | High | L |
-| 3 | Accessibility pass — contrast, 12px floor, 44px targets, non-color cues | B3 | Not Started | High | M |
+| 3 | Accessibility pass — contrast, 12px floor, 44px targets, non-color cues | B3 | **In Progress** | High | M |
 | 4 | Semantic color + score system — `semanticScoreColor()`/`statusColor()`/legend | B2 | Not Started | High | M |
 | 5 | Empty vs loading — `SkeletonGrid` + `MirraEmptyState` | B4 | Not Started | High | M |
 | 6 | Sheets & dialogs — `MirraBottomSheet`/`MirraDialogCard`/`MirraDragHandle` | B5 | Not Started | High | M |
@@ -133,3 +133,29 @@ active area. Layout is preserved; only the button widgets change.
 
 ### I6/I8 button-only pass — summary
 Every remaining sheet/dialog/confirmation/limit **CTA** is now `AppButton` (pill): confirm dialogs, topratings visibility sheets, limits, error_popup, info-dialog, + the 2.10 sheet CTAs. **No old-styled buttons remain** except the intentional exclusions: **paywall** (→ I10 `PlanCard`/`ProPill`), **startanalys** print()-stub (→ I12), **Apple** sign-in (branded), **navbar FAB** (bespoke). Structural work still owed by I6 (shells) and I8 (consolidation + delete `makepubluc`).
+
+---
+
+## Initiative 3 — Accessibility  ·  Status: In Progress
+
+**Goal:** meet a baseline: AA text contrast, a ≥12px type floor, ≥44–48px tap targets, and
+non-color status cues. Source: DESIGN_REVIEW cluster **B3** + per-screen a11y rows.
+
+**Scope boundaries (agreed):** pure-a11y only. **Deferred to owning initiatives** (tracked, not
+skipped): **non-color status cues** (score rings / ingredient highlights / status dots) → **I4**
+(built with `statusColor`/`ScoreRing`/`StatusLegend`); **painter-embedded sub-12** (radar 9.5/9/8,
+share-card 7.5px mini-bars) → **I4** (painters rebuilt there); **untranslated strings** → I12; field
+**focus states** → already delivered in Initiative 1.
+
+**Commit plan:** 3.1 contrast (secondaryText token) · 3.2 12px floor (simple `Text`) ·
+3.3 min tap targets (44–48px) · 3.4 behavior a11y (autofocus).
+
+**Commits:**
+- ✅ **3.1** `fix(a11y): secondaryText #929292 → #6B6B6B (WCAG AA)` — darkened the single
+  `secondaryText` token in `LightModeTheme` from `#929292` (~2.8:1 on white, **fails AA**) to
+  **`#6B6B6B`** (~4.9:1, **passes AA** for normal text). One-line token change; all ~70
+  `.secondaryText` sites (body copy, hints, chevrons, and `secondaryText.withOpacity(0.5)`
+  placeholders) inherit the fix. `flutter analyze`: **0 errors / 0 warnings**. **Resolved:** B3
+  contrast; C1·Log In (helper #6), Search·#301 (faded placeholder), Profile/settings chevron-label
+  rows, forgot-password body #6 — the app-wide body-copy contrast failure. **Note:** this is an
+  intentional global visual change (all secondary text darkens) — approved.
