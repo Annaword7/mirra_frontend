@@ -26,6 +26,18 @@ rejected (with justification)**, or **superseded by another implemented change**
 | 12 | Localization & dead-code cleanup — inline strings→FFLocalizations, remove dead code | B12 | Not Started | Medium | S |
 | 13 | Layout constants — `kNavBarHeight`, spacing tokens for magic offsets | B13 | Not Started | Low | S |
 
+## ⚠ Repo change — modules deleted (commit `12de10f`, 2026-07-23)
+Four experimental modules were removed by the team mid-Track-2. Their Design Review findings are
+**OBSOLETE (module deleted)** — not to be implemented:
+- **`compatibility_result`** → Cluster 4 findings #1–#7 obsolete (score ring, conflict severity, etc.).
+- **`cosmetic_bag`** + **`cosmetic_bag_intro`** → Cluster 6 findings for those two screens obsolete.
+- **`routine_calendar`** → Cluster 5 routine findings obsolete.
+- **`home_pipeline_widget`** → Cluster 2 pipeline findings obsolete.
+- `navbar_widget` was also heavily modified by the team — re-review before touching (Cluster 2 navbar findings may be stale).
+
+Also: commit `5f59d40` landed the previously-uncommitted in-flight work (search / guest_prefs /
+ingredient_bubbles), so those files are now **unblocked** for migration.
+
 ## Coverage note
 Each initiative's detail section (added as it starts) enumerates the exact findings it resolves.
 A finding touched by an earlier initiative is marked **superseded** in the later one rather than
