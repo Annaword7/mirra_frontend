@@ -1,4 +1,3 @@
-import '/auth/supabase_auth/auth_util.dart';
 import '/backend/supabase/database/database.dart';
 import '/design_system/components/app_button.dart';
 import '/domain/care_planning/care_planning_service.dart';
@@ -40,41 +39,45 @@ class _CareReviewWidgetState extends State<CareReviewWidget> {
 
   String _t(String key) => FFLocalizations.of(context).getText(key);
 
-  /// Набор = все проанализированные сканы пользователя (как у дерматолога:
-  /// «покажите всё, чем пользуетесь»).
+  /// Набор = содержимое Косметички (курируемое «чем я пользуюсь») —
+  /// image_ids не передаём, сервер берёт bag_items сам.
   Future<void> _compose() async {
     setState(() {
       _loading = true;
       _error = null;
     });
     try {
-      final scans = await ImagesTable().queryRows(
-        queryFn: (q) => q
-            .eqOrNull('user', currentUserUid)
-            .not('sa_analyzed_at', 'is', null)
-            .order('id', ascending: false),
-        limit: 50,
-      );
-      final ids = scans.map((r) => r.id).toList();
-      if (ids.isEmpty) {
+      final resp = await CarePlanningService.instance.compose(null);
+      if (resp.statusCode == 422) {
         setState(() {
           _loading = false;
-          _error = _t('care_empty');
+          _error = _t('care_empty_bag');
         });
         return;
       }
-      _images = {for (final r in scans) r.id: r};
-
-      final resp = await CarePlanningService.instance.compose(ids);
       if (!resp.succeeded) {
         throw Exception('compose failed: ${resp.statusCode}');
       }
       final map = (resp.jsonBody as Map).cast<String, dynamic>();
+      final prescriptions = (map['prescriptions'] as List?) ?? [];
+      final ids = prescriptions
+          .map((p) => p['image_id'])
+          .whereType<int>()
+          .toSet()
+          .toList();
+      var images = <int, ImagesRow>{};
+      if (ids.isNotEmpty) {
+        final rows = await ImagesTable().queryRows(
+          queryFn: (q) => q.inFilterOrNull('id', ids),
+        );
+        images = {for (final r in rows) r.id: r};
+      }
       if (!mounted) return;
       setState(() {
+        _images = images;
         _regimenId = map['regimen_id'] as String?;
         _regimenStatus = 'proposed';
-        _prescriptions = (map['prescriptions'] as List?) ?? [];
+        _prescriptions = prescriptions;
         _warnings = (map['warnings'] as List?) ?? [];
         _loading = false;
       });

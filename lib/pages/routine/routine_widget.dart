@@ -4,6 +4,7 @@ import '/domain/care_planning/care_planning_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/notification_service.dart';
+import '/pages/bag/bag_widget.dart';
 import '/pages/care_review/care_review_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -219,7 +220,7 @@ class _RoutineWidgetState extends State<RoutineWidget> {
                   body: _t('care_routine_empty_body'),
                   cta: _t('care_routine_empty_cta'),
                   onTap: () async {
-                    await context.pushNamed(CareReviewWidget.routeName);
+                    await context.pushNamed(BagWidget.routeName);
                     if (mounted) _load();
                   },
                 )

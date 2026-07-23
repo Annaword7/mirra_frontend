@@ -38,12 +38,12 @@ class CarePlanningService {
     );
   }
 
-  /// Команда СоставитьРежим.
-  Future<ApiCallResponse> compose(List<int> imageIds) => _call(
+  /// Команда СоставитьРежим. Без [imageIds] сервер берёт Косметичку.
+  Future<ApiCallResponse> compose(List<int>? imageIds) => _call(
         'careRegimenCompose',
         'care/regimen/compose',
         ApiCallType.POST,
-        body: {'image_ids': imageIds},
+        body: {if (imageIds != null) 'image_ids': imageIds},
       );
 
   /// Команда ПринятьРежим.

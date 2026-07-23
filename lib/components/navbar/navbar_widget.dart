@@ -228,17 +228,17 @@ class _NavbarWidgetState extends State<NavbarWidget>
                           ),
                           _buildTab(
                             pageId: 3,
-                            icon: const Icon(Icons.space_dashboard),
+                            icon: const Icon(Icons.cases_outlined),
                             label: FFLocalizations.of(context)
-                                .getText('5lvcbe4s' /* Boards */),
-                            routeName: BoardsWidget.routeName,
+                                .getText('cb_bag_title' /* Косметичка */),
+                            routeName: BagWidget.routeName,
                           ),
                           _buildTab(
                             pageId: 4,
-                            icon: const Icon(Icons.person),
+                            icon: const Icon(Icons.calendar_today_outlined),
                             label: FFLocalizations.of(context)
-                                .getText('i0bb253q' /* Profile */),
-                            routeName: ProfileWidget.routeName,
+                                .getText('care_routine_title' /* Рутина */),
+                            routeName: RoutineWidget.routeName,
                           ),
                         ],
                       ),

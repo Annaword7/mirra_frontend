@@ -215,6 +215,12 @@ GoRouter createRouter(AppStateNotifier appStateNotifier, [Widget? entryPage]) =>
           builder: (context, params) => NewblankWidget(),
         ),
         FFRoute(
+          name: BagWidget.routeName,
+          path: BagWidget.routePath,
+          requireAuth: true,
+          builder: (context, params) => BagWidget(),
+        ),
+        FFRoute(
           name: RoutineWidget.routeName,
           path: RoutineWidget.routePath,
           requireAuth: true,
