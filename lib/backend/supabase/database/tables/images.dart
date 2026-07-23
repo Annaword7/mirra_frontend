@@ -167,6 +167,11 @@ class ImagesRow extends SupabaseDataRow {
   String? get productType => getField<String>('product_type');
   set productType(String? value) => setField<String>('product_type', value);
 
+  /// M0 «Понимание продукта»: факты о продукте (активы + свойства состава),
+  /// формат см. mirra/product_facts.py в бэкенде.
+  dynamic get pfFacts => getField<dynamic>('pf_facts');
+  set pfFacts(dynamic value) => setField<dynamic>('pf_facts', value);
+
   /// True when the product contains UV filters (read from sa_scoring_log.spf_info.has_spf).
   bool get saHasSpf {
     final log = saScoringLog;
