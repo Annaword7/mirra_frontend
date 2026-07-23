@@ -127,7 +127,7 @@ class _ShareCardSheetWidgetState extends State<ShareCardSheetWidget> {
                             color: valueOrDefault<Color>(
                               _model.isStory
                                   ? Color(0xFF1A1A1D)
-                                  : Color(0xFFAFAFB0),
+                                  : FlutterFlowTheme.of(context).textDisabled,
                               Color(0xFF1A1A1D),
                             ),
                             borderRadius: BorderRadius.circular(16.0),
@@ -135,7 +135,7 @@ class _ShareCardSheetWidgetState extends State<ShareCardSheetWidget> {
                               color: valueOrDefault<Color>(
                                 _model.isStory
                                     ? Color(0xFF1A1A1D)
-                                    : Color(0xFFAFAFB0),
+                                    : FlutterFlowTheme.of(context).textDisabled,
                                 Color(0xFF1A1A1D),
                               ),
                             ),
@@ -176,17 +176,17 @@ class _ShareCardSheetWidgetState extends State<ShareCardSheetWidget> {
                           decoration: BoxDecoration(
                             color: valueOrDefault<Color>(
                               _model.isStory
-                                  ? Color(0xFFAFAFB0)
+                                  ? FlutterFlowTheme.of(context).textDisabled
                                   : Color(0xFF1A1A1D),
-                              Color(0xFFAFAFB0),
+                              FlutterFlowTheme.of(context).textDisabled,
                             ),
                             borderRadius: BorderRadius.circular(16.0),
                             border: Border.all(
                               color: valueOrDefault<Color>(
                                 _model.isStory
-                                    ? Color(0xFFAFAFB0)
+                                    ? FlutterFlowTheme.of(context).textDisabled
                                     : Color(0xFF1A1A1D),
-                                Color(0xFFAFAFB0),
+                                FlutterFlowTheme.of(context).textDisabled,
                               ),
                             ),
                           ),
