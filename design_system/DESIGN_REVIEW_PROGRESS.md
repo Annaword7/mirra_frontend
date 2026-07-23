@@ -244,3 +244,16 @@ palette (product_card_v2 + ingredient_bubbles) · 4.4 painters (score_breakdown 
   **0 errors / 0 warnings**; tests `+9 -1` (pre-existing only). **Resolved:** B2 score-ramp
   duplication (3 sites → 1). **Note:** a separate `greenText #1B5E20` const in share_card (positive-delta
   text, not the ramp) is left untouched — belongs to the later share_card raw-hex cleanup.
+- ✅ **4.3** `refactor(status): reconcile status palette via score_status` — routed both status
+  surfaces through the shared `statusColor()`, resolving the 3-way contradiction. **ingredient_bubbles**:
+  deleted local `_kWorking/_kBorderline/_kDecorative/_kUnknown` + `_statusColor` → bubbles now
+  **working green (was amber), borderline amber (was steel), decorative grey** (intentional recolor per
+  the approved decision). **product_card_v2**: deleted local `_statusColor`; dropped the dead
+  brightness-aware branches (`_isDark` + dark variants — app has no dark mode), `_goodColor/_warnColor/
+  _badColor` now light-only `static const` (value-identical, still feed `_fitColor` + severity), ring
+  shadow opacity `_isDark?0.22:0.28 → 0.28`. Status dot (396) + label (761) call `statusColor()`.
+  `flutter analyze`: **0 errors / 0 warnings**; tests `+9 -1`. **Resolved:** B2 status-palette
+  contradiction (working=green everywhere). **Deferred to 4.5:** status **label text** is still colored
+  by status (pre-existing amber-on-white + the decorative grey shifted #6B6B6B→#9E9E9E) — 4.5 switches
+  status labels to legible ink + an icon cue, removing color-from-text. **Note:** `_fitColor`'s 3-tier
+  75/60 cutoff is untouched (score-scale reconciliation, not status) — tracked for a later look.

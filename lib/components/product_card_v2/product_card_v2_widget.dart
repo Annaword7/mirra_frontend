@@ -5,6 +5,7 @@ import '/backend/supabase/supabase.dart';
 import '/components/ingredient_bubbles/ingredient_bubbles_widget.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
+import '/design_system/foundations/score_status.dart';
 import '/index.dart';
 
 /// Product card v2: answer-first layout.
@@ -92,33 +93,18 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
     return label.isEmpty ? skinType : label;
   }
 
-  // ── Severity / status palette (brightness-aware: the dark 0xFF1B5E20 green
-  // is unreadable on a dark surface, so swap in lighter variants) ───────────
-  bool get _isDark => Theme.of(context).brightness == Brightness.dark;
-  Color get _goodColor =>
-      _isDark ? const Color(0xFF66BB6A) : const Color(0xFF1B5E20);
-  Color get _warnColor =>
-      _isDark ? const Color(0xFFFFCA28) : const Color(0xFFFFB300);
-  Color get _badColor =>
-      _isDark ? const Color(0xFFEF5350) : const Color(0xFFD32F2F);
+  // ── Severity / fit palette (single light theme; the app has no dark mode) ──
+  static const Color _goodColor = Color(0xFF1B5E20); // green
+  static const Color _warnColor = Color(0xFFFFB300); // amber
+  static const Color _badColor = Color(0xFFD32F2F); // red
 
   Color _fitColor(int score) {
     if (score >= 75) return _goodColor;
     if (score >= 60) return _warnColor;
     return _badColor;
   }
-
-  Color _statusColor(String? status) {
-    switch (status) {
-      case 'working':
-        return _goodColor;
-      case 'borderline':
-        return _warnColor;
-      case 'decorative':
-      default:
-        return FlutterFlowTheme.of(context).secondaryText;
-    }
-  }
+  // Ingredient status colors come from statusColor() in the score_status
+  // foundation (working green / borderline amber / decorative & unknown grey).
 
   ImageSkinCompatibilityRow? get _selectedRow {
     if (_selectedSkinType == null) return null;
@@ -184,7 +170,7 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
           boxShadow: [
             BoxShadow(
               blurRadius: 24,
-              color: ringColor.withOpacity(_isDark ? 0.22 : 0.28),
+              color: ringColor.withOpacity(0.28),
               offset: const Offset(0, 6),
             ),
             BoxShadow(
@@ -407,7 +393,7 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
                     width: 9,
                     height: 9,
                     decoration: BoxDecoration(
-                      color: _statusColor(status),
+                      color: statusColor(status),
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -772,7 +758,7 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
                       ].join(' · '),
                       style: theme.bodySmall.override(
                         fontFamily: theme.bodySmallFamily,
-                        color: _statusColor(ing.status),
+                        color: statusColor(ing.status),
                         letterSpacing: 0.0,
                         useGoogleFonts: !theme.bodySmallIsCustom,
                       ),

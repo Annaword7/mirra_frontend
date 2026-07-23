@@ -2,19 +2,10 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import '/backend/supabase/database/tables/image_top_ingredients.dart';
 import '/flutter_flow/internationalization.dart';
+import '/design_system/foundations/score_status.dart';
 
-// ── Colour palette by dose-status ─────────────────────────────────────────
-const _kWorking = Color(0xFFFFB300);    // amber  — активно работает
-const _kBorderline = Color(0xFF78909C); // steel  — на грани
-const _kDecorative = Color(0xFF90A4AE); // muted  — декоративный
-const _kUnknown = Color(0xFFBDBDBD);    // grey   — статус неизвестен
-
-Color _statusColor(String? status) => switch (status) {
-      'working' => _kWorking,
-      'borderline' => _kBorderline,
-      'decorative' => _kDecorative,
-      _ => _kUnknown,
-    };
+// Dose-status colors come from statusColor() in the score_status foundation
+// (working green / borderline amber / decorative & unknown grey).
 
 String _statusLabel(BuildContext context, String? status) {
   final loc = FFLocalizations.of(context);
@@ -153,7 +144,7 @@ class _IngredientBubblesWidgetState extends State<IngredientBubblesWidget>
         status: ing.status,
         conc: _parseConc(ing.estimatedConcentration),
         radius: r,
-        color: _statusColor(ing.status),
+        color: statusColor(ing.status),
         phase: rng.nextDouble() * pi * 2,
         freqX: 0.24 + rng.nextDouble() * 0.14,
         freqY: 0.20 + rng.nextDouble() * 0.14,
