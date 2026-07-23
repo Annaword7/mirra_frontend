@@ -150,3 +150,11 @@ text-less gallery empties).
   matching originals). **1207 → 69 lines.** Dropped `flutter_flow_animations`/`flutter_animate` +
   `TickerProviderStateMixin`. `flutter analyze`: **No issues found**; tests `+9 -1`. **Resolved:**
   B4/C8·#32 (the 1,200-line monster), #31/#34 for album_list.
+- ✅ **5.4** `refactor(loaders): loading_styles dedup (440→114)` — the horizontal style-picker loader
+  (4 identical cards = image tile + label pill) rebuilt with `List.generate(4)` + a local staggered
+  `_pulse` (flutter_animate), dropping the 8 hand-written `AnimationInfo` + `flutter_flow_animations` +
+  `TickerProviderStateMixin`. Exact shapes/radii/spacing preserved (`.divide(12)` + start/end 16).
+  **440 → 114 lines.** `flutter analyze`: **No issues found**; tests `+9 -1`. **Note:** `SkeletonTile`
+  wasn't a fit here (custom asymmetric radii + pill, not uniform tiles) — deduped internally instead.
+  All 5 grid/list loaders now done; **analysis_loading kept** (unique step-icon + rotating-facts UI per
+  review #36).
