@@ -7,6 +7,7 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/flutter_flow/upload_data.dart';
+import '/design_system/components/app_text_field.dart';
 import 'dart:async';
 import '/flutter_flow/random_data_util.dart' as random_data;
 import '/index.dart';
@@ -205,40 +206,6 @@ class _OnboardingProfileWidgetState extends State<OnboardingProfileWidget>
     );
   }
 
-  InputDecoration _fieldDecoration(String hint) {
-    final theme = FlutterFlowTheme.of(context);
-    return InputDecoration(
-      hintText: hint,
-      hintStyle: theme.bodyMedium.override(
-        fontFamily: theme.bodyMediumFamily,
-              fontSize: _fsBody,
-        color: theme.primaryText,
-        letterSpacing: 0,
-        useGoogleFonts: !theme.bodyMediumIsCustom,
-      ),
-      filled: true,
-      fillColor: theme.surfaceMuted,
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      enabledBorder: OutlineInputBorder(
-        borderSide: const BorderSide(color: Colors.transparent),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderSide: BorderSide(color: theme.primary, width: 1.5),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderSide: BorderSide(color: theme.error),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      focusedErrorBorder: OutlineInputBorder(
-        borderSide: BorderSide(color: theme.error, width: 1.5),
-        borderRadius: BorderRadius.circular(14),
-      ),
-    );
-  }
-
   // ─────────────────────────────────────────────
   // Section builders
   // ─────────────────────────────────────────────
@@ -342,32 +309,20 @@ class _OnboardingProfileWidgetState extends State<OnboardingProfileWidget>
   }
 
   Widget _buildNameSection() {
-    final theme = FlutterFlowTheme.of(context);
-
-    TextFormField nameField({
+    Widget nameField({
       required TextEditingController? controller,
       required FocusNode focusNode,
       required String hintKey,
       required String autofill,
       required FormFieldValidator<String>? validator,
     }) {
-      return TextFormField(
+      return AppTextField(
         controller: controller,
         focusNode: focusNode,
-        autofocus: false,
-        autofillHints: [autofill],
+        hintText: FFLocalizations.of(context).getText(hintKey),
         textCapitalization: TextCapitalization.words,
         textInputAction: TextInputAction.next,
-        decoration:
-            _fieldDecoration(FFLocalizations.of(context).getText(hintKey)),
-        style: theme.bodyMedium.override(
-          fontFamily: theme.bodyMediumFamily,
-              fontSize: _fsBody,
-          color: theme.primaryText,
-          letterSpacing: 0,
-          useGoogleFonts: !theme.bodyMediumIsCustom,
-        ),
-        cursorColor: theme.primary,
+        autofillHints: [autofill],
         validator: validator,
         inputFormatters: [
           if (!isAndroid && !isiOS)
@@ -423,7 +378,7 @@ class _OnboardingProfileWidgetState extends State<OnboardingProfileWidget>
       children: [
         _sectionLabel('Username'),
         const SizedBox(height: 10),
-        TextFormField(
+        AppTextField(
           controller: _model.nicknameTextController,
           focusNode: _model.nicknameFocusNode,
           onChanged: (_) => EasyDebounce.debounce(
@@ -431,26 +386,11 @@ class _OnboardingProfileWidgetState extends State<OnboardingProfileWidget>
             const Duration(milliseconds: 400),
             () => safeSetState(() {}),
           ),
-          autofocus: false,
-          textCapitalization: TextCapitalization.none,
           textInputAction: TextInputAction.next,
-          decoration:
-              _fieldDecoration(FFLocalizations.of(context).getText('r07lmjc9')),
-          style: theme.bodyMedium.override(
-            fontFamily: theme.bodyMediumFamily,
-              fontSize: _fsBody,
-            color: theme.primaryText,
-            letterSpacing: 0,
-            useGoogleFonts: !theme.bodyMediumIsCustom,
-          ),
+          hintText: FFLocalizations.of(context).getText('r07lmjc9'),
           maxLength: 20,
           maxLengthEnforcement: MaxLengthEnforcement.enforced,
-          buildCounter: (context,
-                  {required currentLength,
-                  required isFocused,
-                  maxLength}) =>
-              null,
-          cursorColor: theme.primary,
+          showCounter: false,
           validator:
               _model.nicknameTextControllerValidator.asValidator(context),
           inputFormatters: [

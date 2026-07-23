@@ -33,6 +33,8 @@ class AppTextField extends StatefulWidget {
     this.maxLines = 1,
     this.minLines,
     this.maxLength,
+    this.maxLengthEnforcement,
+    this.showCounter = true,
     this.autofocus = false,
     this.obscureText = false,
     this.showObscureToggle = false,
@@ -91,6 +93,10 @@ class AppTextField extends StatefulWidget {
   final int maxLines;
   final int? minLines;
   final int? maxLength;
+  final MaxLengthEnforcement? maxLengthEnforcement;
+
+  /// When false and [maxLength] is set, hides the character counter.
+  final bool showCounter;
   final bool autofocus;
   final bool obscureText;
   final bool showObscureToggle;
@@ -146,16 +152,24 @@ class _AppTextFieldState extends State<AppTextField> {
       maxLines: widget.obscureText ? 1 : widget.maxLines,
       minLines: widget.minLines,
       maxLength: widget.maxLength,
+      maxLengthEnforcement: widget.maxLengthEnforcement,
+      buildCounter: (!widget.showCounter && widget.maxLength != null)
+          ? (context,
+                  {required int currentLength,
+                  required bool isFocused,
+                  int? maxLength}) =>
+              null
+          : null,
       autofocus: widget.autofocus,
       obscureText: _obscured,
       textCapitalization: widget.textCapitalization,
       inputFormatters: widget.inputFormatters,
       onTap: widget.onTap,
       cursorColor: theme.primary,
-      style: theme.bodyMedium.override(color: theme.primaryText),
+      style: theme.bodyLarge.override(color: theme.primaryText),
       decoration: InputDecoration(
         hintText: widget.hintText,
-        hintStyle: theme.bodyMedium.override(color: theme.secondaryText),
+        hintStyle: theme.bodyLarge.override(color: theme.secondaryText),
         filled: true,
         fillColor: theme.surfaceMuted,
         isDense: true,

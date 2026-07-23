@@ -3,6 +3,7 @@ import '/backend/supabase/supabase.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
+import '/design_system/components/app_text_field.dart';
 import '/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -918,24 +919,13 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
           onSelected: _addBrand,
           fieldViewBuilder:
               (context, controller, focusNode, onFieldSubmitted) {
-            return TextField(
+            return AppTextField(
               controller: controller,
               focusNode: focusNode,
-              style: theme.bodyMedium.override(color: _ink, fontSize: _fsBody, letterSpacing: 0),
+              hintText: _t('obq_opt_brands_hint'),
               textInputAction: TextInputAction.done,
-              onSubmitted: (val) => _addBrand(val),
-              decoration: InputDecoration(
-                hintText: _t('obq_opt_brands_hint'),
-                hintStyle:
-                    theme.bodyMedium.override(color: _ink, fontSize: _fsBody, letterSpacing: 0),
-                filled: true,
-                fillColor: _card,
-                suffixIcon: Icon(Icons.add, color: _muted, size: 20),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-              ),
+              onFieldSubmitted: (val) => _addBrand(val),
+              suffixIcon: Icon(Icons.add, color: _muted, size: 20),
             );
           },
           optionsViewBuilder: (context, onSelected, options) {
