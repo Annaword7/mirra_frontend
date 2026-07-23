@@ -4,6 +4,7 @@ import '/auth/supabase_auth/auth_util.dart';
 import '/backend/api_requests/api_calls.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
+import '/design_system/components/mirra_bottom_sheet.dart';
 import '/design_system/components/app_text_field.dart';
 import '/design_system/components/app_button.dart';
 
@@ -139,29 +140,12 @@ class _LinkTelegramSheetState extends State<LinkTelegramSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
-    final bottomPad = MediaQuery.of(context).viewInsets.bottom;
 
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      padding: EdgeInsets.fromLTRB(24, 16, 24, 32 + bottomPad),
+    return MirraBottomSheet(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: FlutterFlowTheme.of(context).border,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
           Text(
             FFLocalizations.of(context).getText('cm_link_telegram'),
             style: theme.headlineMedium.override(

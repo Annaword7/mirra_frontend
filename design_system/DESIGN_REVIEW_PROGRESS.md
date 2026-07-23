@@ -493,3 +493,8 @@ optional icon / cancel / loading / scrim-dismiss); **out_of_generations → Mirr
 **Findings resolved:** B7 (delete makepubluc ✔, ConfirmDialog ✔, ConfirmationSheet folded into
 ConfirmDialog ✔, LimitReached **rejected-with-justification**); item_card ConfirmDialogs #1–#4;
 out_of_generations #2. Net across 8.5–8.8: **~800 lines removed**, 8 surfaces → 2 components.
+- ✅ **6.3** `refactor(sheets): Group A → MirraBottomSheet` — link_telegram (210→194) + guest_prefs
+  (233→217) migrated onto `MirraBottomSheet` (dropped their inline white/r24 shell + 40×4 handle +
+  manual `bottomPad`). Handle unified (guest_prefs `#E0E0E0` → canonical `border`); surface white →
+  `secondaryBackground`. Content/behaviour unchanged. `flutter analyze`: **0 errors / 0 warnings**;
+  tests `+9 -1`. **Resolved:** C8·Group A·#1 (shared shell), #2 (handle → border).
