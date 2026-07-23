@@ -17,7 +17,7 @@ rejected (with justification)**, or **superseded by another implemented change**
 | 3 | Accessibility pass — contrast, 12px floor, 44px targets, non-color cues | B3 | Not Started | High | M |
 | 4 | Semantic color + score system — `semanticScoreColor()`/`statusColor()`/legend | B2 | Not Started | High | M |
 | 5 | Empty vs loading — `SkeletonGrid` + `MirraEmptyState` | B4 | **Completed** | High | M |
-| 6 | Sheets & dialogs — `MirraBottomSheet`/`MirraDialogCard`/`MirraDragHandle` | B5 | Not Started | High | M |
+| 6 | Sheets & dialogs — `MirraBottomSheet`/`MirraDialogCard`/`MirraDragHandle` | B5 | **In Progress** | High | M |
 | 7 | Product surfaces — `ProductTile`/`MirraInfoCard`/`MirraChip`/`ScoreBadge` | B6 | Not Started | High | L |
 | 8 | Confirmation & limit consolidation — `ConfirmationSheet`/`ConfirmDialog`/`LimitReached`; delete `makepubluc` | B7 | Not Started | High | S |
 | 9 | Settings & rows — `SettingsRow`/`SelectableRow`/`SettingsList` | B8 | Not Started | Medium | M |
@@ -201,3 +201,30 @@ newboardempty → MirraEmptyState (**164→78**, CTA now AppButton pill). **anal
 skeleton vs empty) — the offending widgets were vestigial. **Findings resolved:** B4 (SkeletonGrid +
 MirraEmptyState delivered; loaders deduped; empties consolidated/deleted); C8 #26,#27,#28,#31,#32,#33,#34;
 C6 #581,#599,#608,#626. **Carried forward:** unused i18n keys for deleted widgets → **I12**.
+
+---
+
+## Initiative 6 — Sheets & dialogs  ·  Status: In Progress
+
+**Goal:** one bottom-sheet scaffold (`MirraBottomSheet`), one canonical drag handle
+(`MirraDragHandle`), one dialog shell (`MirraDialogCard`/`MirraDialogIcon`), replacing the 2 divergent
+sheet shells + 3 handle designs + hand-rolled dialog cards. Source: DESIGN_REVIEW **B5** + Cluster 8
+Group A/B + Cluster 6 sheet rows.
+
+**Inventory (~11 live sheets, all verified live):** Group A (white / 40×4 `border` handle):
+link_telegram_sheet, guest_prefs_sheet; Group B (`alternate` / 100×5 `info` handle): new_album,
+edit_album, albumslist, delete_confirmation, leave_review, negative_feedback, out_of_generations,
+paywall_confirmation, share_card_sheet. Dialogs: error_popup (3 hand-rolled dialog cards).
+
+**Decision (approved):** canonical handle = **40×4, grey `border`, fully rounded** (the wide blue
+100×5 `info` bars become this). Sheet surface unified to `secondaryBackground`.
+
+**Commit plan:** 6.1 `MirraDragHandle` + `MirraBottomSheet` · 6.2 `MirraDialogCard`/`MirraDialogIcon`
+· 6.3 migrate Group A sheets · 6.4 migrate Group B sheets · 6.5 error_popup → `MirraDialogCard`.
+
+**Commits:**
+- ✅ **6.1** `feat(ds): add MirraDragHandle + MirraBottomSheet` — new `mirra_drag_handle.dart` (canonical
+  40×4 `border` handle) + `mirra_bottom_sheet.dart` (top-r24 `secondaryBackground` surface + centered
+  handle + standard `fromLTRB(24,16,24,32)` padding + keyboard-inset add; params for surface/padding/
+  handle/alignment). Modeled on the clean link_telegram shell. No migration yet. `flutter analyze`:
+  **No issues found**.
