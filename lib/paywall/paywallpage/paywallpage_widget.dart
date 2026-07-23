@@ -563,7 +563,7 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                                           style: FlutterFlowTheme.of(context).labelSmall.override(
                                                 fontFamily: FlutterFlowTheme.of(context).labelSmallFamily,
                                                 color: FlutterFlowTheme.of(context).alternate,
-                                                fontSize: 11.0,
+                                                fontSize: 12.0,
                                                 letterSpacing: 1.0,
                                                 fontWeight: FontWeight.w700,
                                                 useGoogleFonts: !FlutterFlowTheme.of(context).labelSmallIsCustom,
@@ -914,7 +914,7 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                           textAlign: TextAlign.center,
                           style: FlutterFlowTheme.of(context).bodySmall.override(
                                 fontFamily: FlutterFlowTheme.of(context).bodySmallFamily,
-                                color: Colors.white.withOpacity(0.45),
+                                color: Colors.white.withOpacity(0.6),
                                 fontSize: 12.0,
                                 letterSpacing: 0.0,
                                 useGoogleFonts: !FlutterFlowTheme.of(context).bodySmallIsCustom,
@@ -1010,7 +1010,7 @@ It is a sy... */,
                               .override(
                                 fontFamily: FlutterFlowTheme.of(context)
                                     .bodyMediumFamily,
-                                color: Colors.white.withOpacity(0.35),
+                                color: Colors.white.withOpacity(0.6),
                                 fontSize: 12.0,
                                 letterSpacing: 0.0,
                                 fontWeight: FontWeight.w500,

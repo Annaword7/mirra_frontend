@@ -351,3 +351,22 @@ typo + `LinkText`.
   purchase). **⏸ Deferred (approved):** the visual `PlanCard` extraction (weekly/annual ~340 lines
   each) — blind refactor of a purchase-critical screen; do in a **device-verified** session.
   **Note:** #7 (selection-purchase bug) is **N/A** — cards are direct tap-to-buy, no selection state.
+- ✅ **10.4** `fix(paywall a11y): disclaimer opacity + sub-12 badge` — disclaimer text
+  `white.withOpacity(0.45/0.35) → 0.6` (2 texts, better legibility on dark; the `0.3` at line 502 is a
+  **shimmer** effect, left as-is), annual badge `fontSize 11 → 12`. `flutter analyze`: **0 errors / 0
+  warnings**; tests `+9 -1`. **Resolved:** C7·PaywallPage·#4 (disclaimer contrast), #5 (sub-12 badge).
+
+### Initiative 10 — status (largely done; visual PlanCard deferred)
+**Delivered:** `FeatureRow` (premium_features_list 390→74 + paywall_confirmation 467→348), `ProPill`
+(2 badges unified), one `_purchasePlan` method (2 copy-pasted RC handlers → 1), paywall a11y
+(disclaimer opacity, badge 12). **Findings resolved:** C7 PremiumFeaturesList #1,#2,#4; PaywallPage
+#1(logic),#4,#5,#6; PaywallConfirmation #2,#5.
+**Deferred / not done (tracked):**
+- ⏸ **Visual `PlanCard`** extraction (weekly/annual ~340 lines each) — blind refactor of a
+  purchase-critical screen; needs a **device-verified** session. #7 selection bug N/A (tap-to-buy).
+- **`PriceApproxRow`** (#2, 3× "≈/month" row), **`LinkText`** (#8 Privacy/Terms/Restore) — Medium/Low
+  dedup, not yet done.
+- **`_PaywallDark` local palette grouping** (#3 inline darks) — deferred (adjacent to the paused
+  color-tokenization track).
+- **"Update a Pro" → "Upgrade to Pro"** (upgrade #1) — localized key `rl28xdip` → **I12** (i18n edit).
+- **upgrade_widget 55-high "pill"** is a CTA → AppButton/I2 (Low).
