@@ -19,7 +19,7 @@ rejected (with justification)**, or **superseded by another implemented change**
 | 5 | Empty vs loading — `SkeletonGrid` + `MirraEmptyState` | B4 | Not Started | High | M |
 | 6 | Sheets & dialogs — `MirraBottomSheet`/`MirraDialogCard`/`MirraDragHandle` | B5 | Not Started | High | M |
 | 7 | Product surfaces — `ProductTile`/`MirraInfoCard`/`MirraChip`/`ScoreBadge` | B6 | Not Started | High | L |
-| 8 | Confirmation & limit consolidation — `ConfirmationSheet`/`ConfirmDialog`/`LimitReached`; delete `makepubluc` | B7 | Not Started | High | S |
+| 8 | Confirmation & limit consolidation — `ConfirmationSheet`/`ConfirmDialog`/`LimitReached`; delete `makepubluc` | B7 | **In Progress (buttons only)** | High | S |
 | 9 | Settings & rows — `SettingsRow`/`SelectableRow`/`SettingsList` | B8 | Not Started | Medium | M |
 | 10 | Paywall — `PlanCard`/`FeatureRow`/`ProPill`/dark palette | B9 | Not Started | Medium | M |
 | 11 | Typography hygiene — roles over raw TextStyle, `displayXS`, kill local scales | B11 | Not Started | Medium | M |
@@ -114,3 +114,16 @@ Group B #11 · dialogs #21 · newblank #40.
 **Excluded (owned by later initiatives, will consume AppButton):** Apple sign-in buttons (branded) · paywall PlanCard/ProPill → I10 · confirmation/limit surfaces (limit_out, out_of_generations, make*/copyitem/hidenavailability, deleteitem, markasspam, delete_confirmation, edit_album AlertDialog) → I8 · error_popup + takeor_upload info-dialog → I6 · navbar FAB stays bespoke · startanalys print() stub → I12 · TextButton link-style actions left as-is.
 
 - ✅ **2.10** `refactor(sheets): migrate simple sheet CTAs to AppButton` — follow-up after a review noted the `link_telegram` "Привязать" button still looked different (rounded-rect r14 among pills). Pulled the button-part of the simple sheet CTAs forward from I6: **link_telegram** (Привязать, `loading:_submitting`), **guest_prefs** (Continue, `loading:_saving`) — both were `ElevatedButton` r14 rectangles; **leave_review** (Send) + **negative_feedback** (submit) — `FFButtonWidget` r50. All → `AppButton` primary pill. Removed 2 orphaned `flutter_flow_widgets` imports. `flutter analyze`: **0 errors**. **Resolved:** C8·Group A·#1 (button part), Group B·#11 (button-shape r14/r50 → unified pill). The **sheet shells** (radius/handle/padding/dialog structure) still land in I6.
+
+---
+
+## Initiative 8 — Confirmation & limits  ·  Status: In Progress (button-only pass)
+
+**Scope decision (approved):** **button-only** — migrate the remaining CTAs in confirmation
+dialogs / visibility sheets / limit surfaces to `AppButton` to finish the button consistency.
+**Consolidation is deferred** (one `ConfirmationSheet`/`ConfirmDialog`/`LimitReached`, deleting
+`makepubluc`, rewriting call-sites) — a separate dedicated effort, since `topratings` is the team's
+active area. Layout is preserved; only the button widgets change.
+
+**Commits:**
+- ✅ **8.1** `refactor(dialogs): confirm-dialog buttons → AppButton` — deleteitem (Delete → **destructive**, Cancel → text), markasspam (Cancel → secondary, Hide `#1976D2` → **primary**; both wrapped in `Expanded` to fix the fixed-140 overflow), delete_confirmation (Delete `tertiary` → **destructive**, Cancel `info` → secondary; nested error `AlertDialog` preserved). Removed 2 orphaned `flutter_flow_widgets` imports. `flutter analyze`: **0 errors**. **Resolved (button parts):** C3·deleteitem·#2,#4; markasspam·#1 (blue→primary),#4 (Expanded); delete_confirmation·#15 (destructive now red). **Not done (button-only scope):** dialog **consolidation** (deleteitem+markasspam+delete_confirmation → one `ConfirmDialog`); markasspam·#5 copy comment; delete_confirmation·#14 (null-success bug → UX/I12).

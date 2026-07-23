@@ -2,7 +2,7 @@ import '/auth/supabase_auth/auth_util.dart';
 import '/backend/supabase/supabase.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
+import '/design_system/components/app_button.dart';
 import '/index.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -116,78 +116,37 @@ class _MarkasspamWidgetState extends State<MarkasspamWidget> {
                     mainAxisSize: MainAxisSize.max,
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      FFButtonWidget(
-                        onPressed: () async {
-                          Navigator.pop(context);
-                        },
-                        text: FFLocalizations.of(context).getText(
-                          'h4qorptg' /* Cancel */,
-                        ),
-                        options: FFButtonOptions(
-                          width: 140.0,
-                          height: 44.0,
-                          padding: EdgeInsets.all(8.0),
-                          iconPadding: EdgeInsetsDirectional.fromSTEB(
-                              0.0, 0.0, 0.0, 0.0),
-                          color: FlutterFlowTheme.of(context).border,
-                          textStyle: FlutterFlowTheme.of(context)
-                              .titleSmall
-                              .override(
-                                fontFamily: FlutterFlowTheme.of(context)
-                                    .titleSmallFamily,
-                                color: const Color(0xFF757575),
-                                letterSpacing: 0.0,
-                                useGoogleFonts: !FlutterFlowTheme.of(context)
-                                    .titleSmallIsCustom,
-                              ),
-                          elevation: 0.0,
-                          borderSide: BorderSide(
-                            color: FlutterFlowTheme.of(context).border,
-                            width: 1.0,
+                      Expanded(
+                        child: AppButton(
+                          label: FFLocalizations.of(context).getText(
+                            'h4qorptg' /* Cancel */,
                           ),
-                          borderRadius: BorderRadius.circular(8.0),
+                          variant: AppButtonVariant.secondary,
+                          size: AppButtonSize.md,
+                          onPressed: () async {
+                            Navigator.pop(context);
+                          },
                         ),
                       ),
-                      FFButtonWidget(
-                        onPressed: () async {
-                          FFAppState().addToSpamlist(widget.imageid!);
-                          await UsersTable().update(
-                            data: {
-                              'spam_images': FFAppState().spamlist,
-                            },
-                            matchingRows: (rows) =>
-                                rows.eqOrNull('id', currentUserUid),
-                          );
-                          if (context.mounted) {
-                            Navigator.pop(context, true);
-                          }
-                        },
-                        text: FFLocalizations.of(context).getText(
-                          '899uf23u' /* Hide */,
-                        ),
-                        options: FFButtonOptions(
-                          width: 140.0,
-                          height: 44.0,
-                          padding: EdgeInsets.all(8.0),
-                          iconPadding: EdgeInsetsDirectional.fromSTEB(
-                              0.0, 0.0, 0.0, 0.0),
-                          color: const Color(0xFF1976D2),
-                          textStyle: FlutterFlowTheme.of(context)
-                              .titleSmall
-                              .override(
-                                fontFamily: FlutterFlowTheme.of(context)
-                                    .titleSmallFamily,
-                                color: FlutterFlowTheme.of(context).info,
-                                letterSpacing: 0.0,
-                                useGoogleFonts: !FlutterFlowTheme.of(context)
-                                    .titleSmallIsCustom,
-                              ),
-                          elevation: 0.0,
-                          borderSide: BorderSide(
-                            color: Colors.transparent,
-                            width: 1.0,
+                      Expanded(
+                        child: AppButton(
+                          label: FFLocalizations.of(context).getText(
+                            '899uf23u' /* Hide */,
                           ),
-                          borderRadius: BorderRadius.circular(8.0),
+                          size: AppButtonSize.md,
+                          onPressed: () async {
+                            FFAppState().addToSpamlist(widget.imageid!);
+                            await UsersTable().update(
+                              data: {
+                                'spam_images': FFAppState().spamlist,
+                              },
+                              matchingRows: (rows) =>
+                                  rows.eqOrNull('id', currentUserUid),
+                            );
+                            if (context.mounted) {
+                              Navigator.pop(context, true);
+                            }
+                          },
                         ),
                       ),
                     ].divide(SizedBox(width: 12.0)),

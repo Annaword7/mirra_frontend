@@ -1,6 +1,7 @@
 import '/backend/supabase/supabase.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
+import '/design_system/components/app_button.dart';
 import '/index.dart';
 import 'package:flutter/material.dart';
 import 'deleteitem_model.dart';
@@ -114,61 +115,28 @@ class _DeleteitemWidgetState extends State<DeleteitemWidget> {
                   const SizedBox(height: 24.0),
 
                   // Delete button (primary destructive)
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50.0,
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        await ImagesTable().delete(
-                          matchingRows: (rows) => rows.eqOrNull(
-                            'id',
-                            widget.imageid,
-                          ),
-                        );
-                        if (context.mounted) {
-                          context.go(HomeWidget.routePath);
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFD32F2F),
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14.0),
+                  AppButton(
+                    label: FFLocalizations.of(context).getText('y814btsy'),
+                    variant: AppButtonVariant.destructive,
+                    onPressed: () async {
+                      await ImagesTable().delete(
+                        matchingRows: (rows) => rows.eqOrNull(
+                          'id',
+                          widget.imageid,
                         ),
-                      ),
-                      child: Text(
-                        FFLocalizations.of(context).getText('y814btsy'),
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 15.0,
-                        ),
-                      ),
-                    ),
+                      );
+                      if (context.mounted) {
+                        context.go(HomeWidget.routePath);
+                      }
+                    },
                   ),
                   const SizedBox(height: 10.0),
 
                   // Cancel button (ghost)
-                  SizedBox(
-                    width: double.infinity,
-                    height: 44.0,
-                    child: TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: TextButton.styleFrom(
-                        foregroundColor:
-                            FlutterFlowTheme.of(context).secondaryText,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14.0),
-                        ),
-                      ),
-                      child: Text(
-                        FFLocalizations.of(context).getText('ood20cri'),
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 15.0,
-                        ),
-                      ),
-                    ),
+                  AppButton(
+                    label: FFLocalizations.of(context).getText('ood20cri'),
+                    variant: AppButtonVariant.text,
+                    onPressed: () => Navigator.pop(context),
                   ),
                 ],
               ),
