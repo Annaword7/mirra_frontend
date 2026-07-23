@@ -16,7 +16,7 @@ rejected (with justification)**, or **superseded by another implemented change**
 | 2 | Button system — `AppButton` (primary/secondary/outline/text/destructive, pill) | B1 | **In Progress** | High | L |
 | 3 | Accessibility pass — contrast, 12px floor, 44px targets, non-color cues | B3 | Not Started | High | M |
 | 4 | Semantic color + score system — `semanticScoreColor()`/`statusColor()`/legend | B2 | Not Started | High | M |
-| 5 | Empty vs loading — `SkeletonGrid` + `MirraEmptyState` | B4 | **In Progress** | High | M |
+| 5 | Empty vs loading — `SkeletonGrid` + `MirraEmptyState` | B4 | **Completed** | High | M |
 | 6 | Sheets & dialogs — `MirraBottomSheet`/`MirraDialogCard`/`MirraDragHandle` | B5 | Not Started | High | M |
 | 7 | Product surfaces — `ProductTile`/`MirraInfoCard`/`MirraChip`/`ScoreBadge` | B6 | Not Started | High | L |
 | 8 | Confirmation & limit consolidation — `ConfirmationSheet`/`ConfirmDialog`/`LimitReached`; delete `makepubluc` | B7 | Not Started | High | S |
@@ -105,7 +105,7 @@ Group B #11 · dialogs #21 · newblank #40.
 
 ---
 
-## Initiative 5 — Empty vs loading  ·  Status: In Progress
+## Initiative 5 — Empty vs loading  ·  Status: ✅ Completed
 
 **Goal:** one loading primitive (`SkeletonGrid`/`SkeletonTile`) + one empty primitive
 (`MirraEmptyState`, icon+copy+CTA), fixing the core bug that **empty galleries render the same gray
@@ -183,3 +183,21 @@ empty, then delete the 9 dead widgets now.
   modal + `onBoardCreated`. CTA `FFButtonWidget` r24 → standardized **`AppButton` pill** (I2 gain).
   `flutter analyze`: **No issues found**; tests `+9 -1`. **Resolved:** B4/C6·#581 (newboardempty is now
   the canonical `MirraEmptyState`); C8·#27 fix (real empty vs loading) — confirmed already correct live.
+- ✅ **5.7** `chore: delete 9 orphaned empty/loading widgets` — removed the provably-dead widgets +
+  models (18 files): loaders **gallery_loading**, **gallery_image_loading**, **loading_recent**,
+  **loading_styles**; empties **empty_gallery**, **empty_gallery_with_animation**, **no_images**,
+  **nounsorteditems**, **blank_album**. Verified 0 external references before deletion (the only hits
+  were a substring false-positive and an i18n comment). `flutter analyze`: **0 errors / 0 warnings**;
+  tests `+9 -1`. **Resolved:** B4/C8·#26,#28,#33 + C6·#599,#608,#626 (the duplicate empty/loading
+  variants) — by deletion (dead) rather than migration. **Note:** unused i18n keys for the deleted
+  widgets (e.g. `gzohwfxg`) remain in `internationalization.dart` → **I12** string cleanup.
+
+### Initiative 5 — completion summary
+**Delivered:** `SkeletonGrid`/`SkeletonTile` (loading) + `MirraEmptyState` (empty, modeled on the
+collections empty). **Live** surfaces: album_list_loading → SkeletonGrid mosaic (**1207→69**);
+newboardempty → MirraEmptyState (**164→78**, CTA now AppButton pill). **analysis_loading** kept
+(unique). **Dead code removed:** 9 orphaned widgets (18 files). Net: **~2,700 lines deleted/collapsed**.
+**Key finding:** the B4 "empty-reads-as-loading" bug was already fixed in the live app (boards branches
+skeleton vs empty) — the offending widgets were vestigial. **Findings resolved:** B4 (SkeletonGrid +
+MirraEmptyState delivered; loaders deduped; empties consolidated/deleted); C8 #26,#27,#28,#31,#32,#33,#34;
+C6 #581,#599,#608,#626. **Carried forward:** unused i18n keys for deleted widgets → **I12**.
