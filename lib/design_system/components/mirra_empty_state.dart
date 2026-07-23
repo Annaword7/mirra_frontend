@@ -3,10 +3,10 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/design_system/components/app_button.dart';
 
 /// The single empty-state primitive (Design Review Initiative 5): a centered
-/// icon + headline + optional body + optional CTA. Replaces the message-less
-/// gray skeleton "empty gallery" widgets that read as perpetual loading, plus
-/// the several bespoke empty cards. **Loading** grids use `SkeletonGrid`;
-/// **empty** screens use this.
+/// icon + headline + optional body + optional CTA. Modeled on the app's best
+/// existing empty state (the collections empty), so it can replace the
+/// message-less gray "empty gallery" skeletons and standardize future empties.
+/// **Loading** grids use `SkeletonGrid`; **empty** screens use this.
 class MirraEmptyState extends StatelessWidget {
   const MirraEmptyState({
     super.key,
@@ -15,7 +15,11 @@ class MirraEmptyState extends StatelessWidget {
     this.body,
     this.ctaLabel,
     this.onCta,
-    this.padding = const EdgeInsets.all(32.0),
+    this.ctaIcon,
+    this.ctaFullWidth = true,
+    this.iconColor,
+    this.tintedBadge = true,
+    this.padding = const EdgeInsets.symmetric(horizontal: 32.0),
   });
 
   final IconData icon;
@@ -26,31 +30,74 @@ class MirraEmptyState extends StatelessWidget {
   /// and [onCta] are provided.
   final String? ctaLabel;
   final VoidCallback? onCta;
+  final IconData? ctaIcon;
+  final bool ctaFullWidth;
+
+  /// Accent for the icon / badge. Defaults to `primary`.
+  final Color? iconColor;
+
+  /// When true, the icon sits in a layered tinted circular badge; otherwise a
+  /// plain 56px icon.
+  final bool tintedBadge;
 
   final EdgeInsetsGeometry padding;
+
+  Widget _leading(FlutterFlowTheme theme) {
+    final color = iconColor ?? theme.primary;
+    if (!tintedBadge) {
+      return Icon(icon, size: 56.0, color: color);
+    }
+    return SizedBox(
+      width: 140.0,
+      height: 140.0,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Container(
+            width: 140.0,
+            height: 140.0,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: color.withValues(alpha: 0.06),
+            ),
+          ),
+          Container(
+            width: 96.0,
+            height: 96.0,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: color.withValues(alpha: 0.11),
+            ),
+          ),
+          Icon(icon, size: 48.0, color: color),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
     final hasCta = ctaLabel != null && onCta != null;
 
-    return Padding(
-      padding: padding,
-      child: Center(
+    return Center(
+      child: Padding(
+        padding: padding,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Icon(icon, size: 56.0, color: theme.secondaryText),
-            const SizedBox(height: 16.0),
+            _leading(theme),
+            const SizedBox(height: 24.0),
             Text(
               headline,
               textAlign: TextAlign.center,
-              style: theme.titleMedium.override(
-                fontFamily: theme.titleMediumFamily,
+              style: theme.headlineMedium.override(
+                fontFamily: theme.headlineMediumFamily,
+                color: theme.primaryText,
                 letterSpacing: 0.0,
                 fontWeight: FontWeight.w600,
-                useGoogleFonts: !theme.titleMediumIsCustom,
+                useGoogleFonts: !theme.headlineMediumIsCustom,
               ),
             ),
             if (body != null) ...[
@@ -62,17 +109,17 @@ class MirraEmptyState extends StatelessWidget {
                   fontFamily: theme.bodyMediumFamily,
                   color: theme.secondaryText,
                   letterSpacing: 0.0,
-                  lineHeight: 1.4,
                   useGoogleFonts: !theme.bodyMediumIsCustom,
                 ),
               ),
             ],
             if (hasCta) ...[
-              const SizedBox(height: 24.0),
+              const SizedBox(height: 32.0),
               AppButton(
                 label: ctaLabel!,
                 onPressed: onCta!,
-                fullWidth: false,
+                icon: ctaIcon,
+                fullWidth: ctaFullWidth,
               ),
             ],
           ],

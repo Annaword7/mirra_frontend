@@ -164,3 +164,22 @@ text-less gallery empties).
   empty-state primitive that fixes the "empty reads as loading" bug — loading grids use `SkeletonGrid`,
   empty screens use this. No migration yet (6 empties wired in 5.6+, with copy/CTA/icons). `flutter
   analyze`: **No issues found**.
+
+### ⚠ Scope correction (liveness check) — most empty/loading widgets are dead code
+Reference-checking the current tree (the Design Review predates the team's refactor) found only **3
+live** widgets: `album_list_loading` (boards, loading — done 5.3), `analysis_loading` (takeor, kept),
+`newboardempty` (boards, empty). The **core B4 bug is already fixed live**: boards_widget branches
+`!hasData → SkeletonGrid` vs `isEmpty → newboardempty` (lines 193/199). **Orphaned/dead (0 external
+refs):** loaders `gallery_loading`, `gallery_image_loading`, `loading_recent`, `loading_styles`
+(thin-wrappered in 5.2/5.4 before liveness was confirmed — now tiny, but dead) + empties `empty_gallery`,
+`empty_gallery_with_animation`, `no_images`, `nounsorteditems`, `blank_album`. → The 5 text-less-empty
+migrations + ×11 i18n strings are **moot** (dead code). **Decision (approved):** migrate the one live
+empty, then delete the 9 dead widgets now.
+- ✅ **5.6** `refactor(empty): newboardempty → MirraEmptyState` — reshaped `MirraEmptyState` to faithfully
+  match the app's best empty state (the collections empty): layered **tinted icon badge**
+  (`iconColor`/`tintedBadge`), `headlineMedium` headline, `bodyMedium` body, optional CTA with
+  `ctaIcon`/`ctaFullWidth`. Then migrated **newboardempty** to consume it (164→78 lines) — reuses its
+  existing keys `95giorwg`/`d37etdgk`/`o1bipgy8` (**no new i18n**), preserves the create-collection
+  modal + `onBoardCreated`. CTA `FFButtonWidget` r24 → standardized **`AppButton` pill** (I2 gain).
+  `flutter analyze`: **No issues found**; tests `+9 -1`. **Resolved:** B4/C6·#581 (newboardempty is now
+  the canonical `MirraEmptyState`); C8·#27 fix (real empty vs loading) — confirmed already correct live.
