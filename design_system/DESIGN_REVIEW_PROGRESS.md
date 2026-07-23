@@ -16,7 +16,7 @@ rejected (with justification)**, or **superseded by another implemented change**
 | 2 | Button system — `AppButton` (primary/secondary/outline/text/destructive, pill) | B1 | **In Progress** | High | L |
 | 3 | Accessibility pass — contrast, 12px floor, 44px targets, non-color cues | B3 | Not Started | High | M |
 | 4 | Semantic color + score system — `semanticScoreColor()`/`statusColor()`/legend | B2 | Not Started | High | M |
-| 5 | Empty vs loading — `SkeletonGrid` + `MirraEmptyState` | B4 | Not Started | High | M |
+| 5 | Empty vs loading — `SkeletonGrid` + `MirraEmptyState` | B4 | **In Progress** | High | M |
 | 6 | Sheets & dialogs — `MirraBottomSheet`/`MirraDialogCard`/`MirraDragHandle` | B5 | Not Started | High | M |
 | 7 | Product surfaces — `ProductTile`/`MirraInfoCard`/`MirraChip`/`ScoreBadge` | B6 | Not Started | High | L |
 | 8 | Confirmation & limit consolidation — `ConfirmationSheet`/`ConfirmDialog`/`LimitReached`; delete `makepubluc` | B7 | Not Started | High | S |
@@ -102,3 +102,34 @@ Group B #11 · dialogs #21 · newblank #40.
 - ✅ **2.2** `refactor(auth): migrate auth CTAs to AppButton` — log_in (Log in + Create account), create_account (Create account), forgot_password (Send reset). 4 primary CTAs: height 55 → lg (52), radius 50 → pill token; async `onPressed` + loading preserved (`FFButtonWidget` default `showLoadingIndicator: true` ≙ AppButton spinner). Removed the orphaned `flutter_flow_widgets` import in forgot_password. `flutter analyze`: 0 new issues (2 pre-existing `dart:math` untouched). **Resolved (button parts):** C1·Log In·#8 (height 55) and #7 (button radius 50 → pill; the tab-pill/icon-button radii remain — not button-family); Forgot Password·#5 (the 55/50 CTA part; back button remains for an icon-button pass). **Excluded:** Apple sign-in buttons (branded).
 - ✅ **2.3** `refactor(onboarding): migrate onboarding buttons to AppButton` — onboarding_quiz (7 buttons: consolidated the `_primaryBtn`/`_secondaryBtn` FFButtonOptions builders — heights 52/46/55 → lg/md, `_secondaryBtn` → outline variant, disabled-goals via null onPressed) + onboarding_profile (Continue). Removed both builders and the orphaned `flutter_flow_widgets` imports. `flutter analyze`: 0 new issues (1 pre-existing `withOpacity` info). **Resolved:** C1·Onboarding Quiz·#4 (button-height proliferation → lg/md). **Left as-is:** the step "skip/none/change" `TextButton`s are link-style secondary actions (not FFButtonWidget, not a specific finding) — a future `AppButton.text` pass could adopt them.
 - ✅ **2.4** `refactor(home+capture): migrate CTAs to AppButton` — home (PRO chip: 35/18 → `sm` pill w/ crown icon, `fullWidth:false`; empty-state CTA: 50/50 → pill, nav via void onPressed to avoid a spinner-during-navigation regression), takeor_upload (Take a photo + Choose from gallery capture CTAs: 65/36 → pill lg, dropping the alpha-baked `0xD25C85D9` fill → solid `primary`). `flutter analyze`: **0 errors** project-wide (isolated-file analysis shows false package-import errors — verified against full analyze). **Resolved:** C2·Home·#7 (button heights/radii), capture·#4 (capture CTAs) + #2 (alpha-baked primary → token). **Excluded/deferred:** `search_widget` (still your uncommitted in-flight work — deferred until it lands); `startanalys` (print() stub, likely orphaned → I12 dead-code); takeor_upload's info-dialog `ElevatedButton` → I6 (dialog shell); home `TextButton` links left as-is.
+
+---
+
+## Initiative 5 — Empty vs loading  ·  Status: In Progress
+
+**Goal:** one loading primitive (`SkeletonGrid`/`SkeletonTile`) + one empty primitive
+(`MirraEmptyState`, icon+copy+CTA), fixing the core bug that **empty galleries render the same gray
+skeleton as loaders** (so an empty screen reads as perpetual loading with no action). Source:
+DESIGN_REVIEW **B4** + Cluster 8 rows 26–36 + Cluster 6 empty-state rows.
+
+**Inventory (all 12 still exist, ~3,655 lines):** loaders — analysis_loading (335, *kept*: unique
+step/facts UI), loading_recent (237), loading_styles (440), gallery_loading (193), gallery_image_loading
+(179), **album_list_loading (1207 — 32 hand `AnimationInfo`)**; empties — empty_gallery (132),
+empty_gallery_with_animation (202), no_images (337), nounsorteditems (78), newboardempty (164),
+blank_album (351). Call sites: **1–2 each** → migrate by **thin-wrappering** (rewrite each widget's
+`build()` to delegate; class/constructor unchanged, screens untouched).
+
+**Decisions (approved):** scope = **everything now** (loaders + empty-state UX); skeleton animation =
+**generated stagger** (loop-reverse fade, delay = index×100ms) replacing the hand-unrolled
+`AnimationInfo` — static look identical, timing uniform.
+
+**Commit plan:** 5.1 `SkeletonGrid`/`SkeletonTile` · 5.2 wrapper the 5 loaders · 5.3 `MirraEmptyState`
+· 5.4–5.5 wrapper the 6 empty states (draft copy/CTA/icons → approve → add ×11 strings for the 3
+text-less gallery empties).
+
+**Commits:**
+- ✅ **5.1** `feat(ds): add SkeletonGrid/SkeletonTile` — new
+  `lib/design_system/components/skeleton_grid.dart`: parameterized loading grid (count, columns,
+  aspectRatio, spacing, tileRadius, tileColor, padding, shrinkWrap, physics, animate) with the
+  index-staggered loop-reverse fade generated via `GridView.builder`. Defaults match the common gallery
+  loader (2 cols, square, 8px, `alternate`). No migration yet. `flutter analyze`: **No issues found**.
