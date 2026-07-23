@@ -1,6 +1,6 @@
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
+import '/design_system/components/app_button.dart';
 import '/index.dart';
 import 'package:flutter/material.dart';
 import 'limit_out_model.dart';
@@ -113,56 +113,20 @@ class _LimitOutWidgetState extends State<LimitOutWidget> {
                   ),
                   const SizedBox(height: 24.0),
                   if (widget.isPro ?? false)
-                    FFButtonWidget(
+                    AppButton(
+                      label: loc.getText('e12wjrgi' /* Got it */),
                       onPressed: () async {
                         Navigator.pop(context);
                         context.pushNamed(HomeWidget.routeName);
                       },
-                      text: loc.getText('e12wjrgi' /* Got it */),
-                      options: FFButtonOptions(
-                        width: double.infinity,
-                        height: 52.0,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 24.0, vertical: 14.0),
-                        iconPadding: EdgeInsetsDirectional.zero,
-                        color: theme.primary,
-                        textStyle: theme.titleSmall.override(
-                          fontFamily: theme.titleSmallFamily,
-                          color: Colors.white,
-                          fontSize: 16.0,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.0,
-                          useGoogleFonts: !theme.titleSmallIsCustom,
-                        ),
-                        elevation: 0.0,
-                        borderRadius: BorderRadius.circular(14.0),
-                      ),
                     ),
                   if (!(widget.isPro ?? false))
-                    FFButtonWidget(
+                    AppButton(
+                      label: loc.getText('cscoyn8e' /* Upgrade to Pro */),
                       onPressed: () async {
                         Navigator.pop(context);
                         context.pushNamed(PaywallpageWidget.routeName);
                       },
-                      text: loc.getText('cscoyn8e' /* Upgrade to Pro */),
-                      options: FFButtonOptions(
-                        width: double.infinity,
-                        height: 52.0,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 24.0, vertical: 14.0),
-                        iconPadding: EdgeInsetsDirectional.zero,
-                        color: theme.primary,
-                        textStyle: theme.titleSmall.override(
-                          fontFamily: theme.titleSmallFamily,
-                          color: Colors.white,
-                          fontSize: 16.0,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.0,
-                          useGoogleFonts: !theme.titleSmallIsCustom,
-                        ),
-                        elevation: 0.0,
-                        borderRadius: BorderRadius.circular(14.0),
-                      ),
                     ),
                 ],
               ),

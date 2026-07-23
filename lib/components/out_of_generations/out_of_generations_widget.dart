@@ -1,7 +1,7 @@
 import '/flutter_flow/flutter_flow_animations.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
+import '/design_system/components/app_button.dart';
 import '/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -151,7 +151,10 @@ class _OutOfGenerationsWidgetState extends State<OutOfGenerationsWidget>
               ),
               Padding(
                 padding: EdgeInsetsDirectional.fromSTEB(0.0, 32.0, 0.0, 0.0),
-                child: FFButtonWidget(
+                child: AppButton(
+                  label: FFLocalizations.of(context).getText(
+                    'enziwu64' /* Got it */,
+                  ),
                   onPressed: () async {
                     HapticFeedback.lightImpact();
 
@@ -159,32 +162,6 @@ class _OutOfGenerationsWidgetState extends State<OutOfGenerationsWidget>
 
                     Navigator.pop(context);
                   },
-                  text: FFLocalizations.of(context).getText(
-                    'enziwu64' /* Got it */,
-                  ),
-                  options: FFButtonOptions(
-                    width: double.infinity,
-                    height: 55.0,
-                    padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                    iconPadding:
-                        EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                    color: FlutterFlowTheme.of(context).primary,
-                    textStyle: FlutterFlowTheme.of(context).titleSmall.override(
-                          fontFamily:
-                              FlutterFlowTheme.of(context).titleSmallFamily,
-                          color: Colors.white,
-                          letterSpacing: 0.0,
-                          fontWeight: FontWeight.w600,
-                          useGoogleFonts:
-                              !FlutterFlowTheme.of(context).titleSmallIsCustom,
-                        ),
-                    elevation: 0.0,
-                    borderSide: BorderSide(
-                      color: Colors.transparent,
-                      width: 1.0,
-                    ),
-                    borderRadius: BorderRadius.circular(50.0),
-                  ),
                 ).animateOnPageLoad(
                     animationsMap['buttonOnPageLoadAnimation']!),
               ),
