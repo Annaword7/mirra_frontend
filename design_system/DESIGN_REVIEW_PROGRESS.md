@@ -391,3 +391,12 @@ typo + `LinkText`.
   byte-identical `_formatCardPrice` in both tiles and itemcard2's `_currencySymbol`+`_formatPrice`
   (same symbol table) — 3 copies → 1. `flutter analyze`: **0 errors / 0 warnings** (full project);
   tests `+9 -1`. **Resolved (part of):** item_card Tiles·#1 (`_formatCardPrice` dup).
+- ✅ **7.2** `feat(product): shared ScoreBadge component` — new
+  `lib/design_system/components/score_badge.dart` (white pill, circular grade ring + "N/100" via
+  `semanticScoreColor`/`scoreGrade`; null → "···" placeholder). The two near-identical `_ScoreBadge`
+  widgets differed only by tile A's extra score-colored **glow** shadow → now the `glow` flag
+  (review #4 shadow-drift becomes a deliberate variant). Deleted both local classes; main passes
+  `glow: true`, top_raited default. Removed orphaned `percent_indicator` (both) + `score_status`
+  (top_raited) imports; the new component uses `withValues` (−7 deprecation infos). `flutter analyze`:
+  **0 errors / 0 warnings**; tests `+9 -1`. **Resolved:** item_card Tiles·#1 (`_ScoreBadge`+`_grade`
+  dup), #4 (shadow drift).

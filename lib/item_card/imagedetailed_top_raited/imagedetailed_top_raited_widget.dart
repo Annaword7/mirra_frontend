@@ -1,11 +1,10 @@
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/design_system/foundations/score_status.dart';
 import '/design_system/foundations/format_price.dart';
+import '/design_system/components/score_badge.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blurhash/flutter_blurhash.dart';
 import 'package:octo_image/octo_image.dart';
-import 'package:percent_indicator/percent_indicator.dart';
 import 'imagedetailed_top_raited_model.dart';
 export 'imagedetailed_top_raited_model.dart';
 
@@ -121,7 +120,7 @@ class _ImagedetailedTopRaitedWidgetState
                   ),
                   Padding(
                     padding: EdgeInsetsDirectional.fromSTEB(8.0, 8.0, 0.0, 0.0),
-                    child: _ScoreBadge(score: widget.score),
+                    child: ScoreBadge(score: widget.score),
                   ),
                   if (widget.avgPrice != null)
                     Positioned(
@@ -202,97 +201,3 @@ class _ImagedetailedTopRaitedWidgetState
   }
 }
 
-class _ScoreBadge extends StatelessWidget {
-  const _ScoreBadge({required this.score});
-  final double? score;
-
-  Color get _color => semanticScoreColor(score!);
-
-  String get _grade => scoreGrade(score!);
-
-  @override
-  Widget build(BuildContext context) {
-    if (score == null) {
-      return Container(
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.92),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: const [
-            BoxShadow(
-              blurRadius: 8,
-              color: Color(0x33000000),
-              offset: Offset(0, 2),
-            )
-          ],
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.science_outlined, size: 18, color: Colors.grey.shade400),
-            const SizedBox(width: 6),
-            Text(
-              '···',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: Colors.grey.shade400,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.92),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: const [
-          BoxShadow(
-            blurRadius: 8,
-            color: Color(0x33000000),
-            offset: Offset(0, 2),
-          )
-        ],
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          CircularPercentIndicator(
-            radius: 20.0,
-            lineWidth: 3.5,
-            percent: (score! / 100.0).clamp(0.0, 1.0),
-            backgroundColor: _color.withOpacity(0.15),
-            progressColor: _color,
-            circularStrokeCap: CircularStrokeCap.round,
-            animation: true,
-            center: Text(
-              _grade,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: _color,
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                '${score!.toStringAsFixed(0)}/100',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: _color,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
