@@ -819,13 +819,18 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
   Widget _buildPrefs(FlutterFlowTheme theme) {
     Widget stepChip(int? value, String label) {
       final selected = _prefMaxSteps == value;
+      // «Без лимита» шире цифр (flex 2); FittedBox гарантирует вмещение
+      // на любом языке; постоянный вес шрифта — текст не расширяется
+      // при выборе.
       return Expanded(
+        flex: value == null ? 2 : 1,
         child: GestureDetector(
           onTap: () => safeSetState(() => _prefMaxSteps = value),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 120),
             height: 44,
             alignment: Alignment.center,
+            padding: const EdgeInsets.symmetric(horizontal: 8),
             decoration: BoxDecoration(
               color: selected ? theme.primary : _card,
               borderRadius: BorderRadius.circular(12),
@@ -833,12 +838,16 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
                   color: selected ? theme.primary : _border,
                   width: selected ? 2 : 1),
             ),
-            child: Text(
-              label,
-              style: TextStyle(
-                color: selected ? Colors.white : _ink,
-                fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-                fontSize: _fsBody - 1,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                label,
+                maxLines: 1,
+                style: TextStyle(
+                  color: selected ? Colors.white : _ink,
+                  fontWeight: FontWeight.w600,
+                  fontSize: _fsBody - 1,
+                ),
               ),
             ),
           ),

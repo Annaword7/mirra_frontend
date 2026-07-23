@@ -119,26 +119,33 @@ class _CarePreferencesSheetState extends State<CarePreferencesSheet> {
                     children: [
                       for (final opt in _stepOptions) ...[
                         Expanded(
+                          flex: opt == null ? 2 : 1,
                           child: GestureDetector(
                             onTap: () => setState(() => _maxSteps = opt),
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 120),
                               height: 42,
                               alignment: Alignment.center,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8),
                               decoration: BoxDecoration(
                                 color: _maxSteps == opt
                                     ? theme.primary
                                     : const Color(0xFFF4F4F4),
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: Text(
-                                opt == null ? _t('prefs_no_limit') : '$opt',
-                                style: TextStyle(
-                                  color: _maxSteps == opt
-                                      ? Colors.white
-                                      : Colors.black54,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 13,
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  opt == null ? _t('prefs_no_limit') : '$opt',
+                                  maxLines: 1,
+                                  style: TextStyle(
+                                    color: _maxSteps == opt
+                                        ? Colors.white
+                                        : Colors.black54,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 13,
+                                  ),
                                 ),
                               ),
                             ),
