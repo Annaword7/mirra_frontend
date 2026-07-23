@@ -19,7 +19,7 @@ rejected (with justification)**, or **superseded by another implemented change**
 | 5 | Empty vs loading — `SkeletonGrid` + `MirraEmptyState` | B4 | Not Started | High | M |
 | 6 | Sheets & dialogs — `MirraBottomSheet`/`MirraDialogCard`/`MirraDragHandle` | B5 | Not Started | High | M |
 | 7 | Product surfaces — `ProductTile`/`MirraInfoCard`/`MirraChip`/`ScoreBadge` | B6 | **In Progress** | High | L |
-| 8 | Confirmation & limit consolidation — `ConfirmationSheet`/`ConfirmDialog`/`LimitReached`; delete `makepubluc` | B7 | **In Progress (buttons only)** | High | S |
+| 8 | Confirmation & limit consolidation — `ConfirmationSheet`/`ConfirmDialog`/`LimitReached`; delete `makepubluc` | B7 | **In Progress** | High | S |
 | 9 | Settings & rows — `SettingsRow`/`SelectableRow`/`SettingsList` | B8 | Not Started | Medium | M |
 | 10 | Paywall — `PlanCard`/`FeatureRow`/`ProPill`/dark palette | B9 | **In Progress** | Medium | M |
 | 11 | Typography hygiene — roles over raw TextStyle, `displayXS`, kill local scales | B11 | Not Started | Medium | M |
@@ -416,3 +416,15 @@ item_card Tiles #1 (helpers), #4 (shadow variant).
 - **INCI status palette** (ingridients `_greenText/_greenBg/_redText/_redBg`, review INCI #1) — belongs
   to the **paused** color-tokenization track (needs `success/error(+Bg)` tokens).
 - **`ConfirmDialog`** (deleteitem/markasspam) → **I8** (confirmation consolidation).
+
+---
+
+## Initiative 8 — Confirmation & limit consolidation (structural)  ·  Status: In Progress
+Buttons-only pass done earlier (8.1–8.4, all AppButton on `track2-design`). Structural consolidation:
+- ✅ **8.5** `chore: delete makepubluc twin` — the misspelled `makepubluc` visibility sheet was
+  **orphaned** (0 external refs; only an i18n comment) — deleted widget + model. `flutter analyze`:
+  **0 errors / 0 warnings**. **Resolved:** B7 "delete `makepubluc`". The live visibility sheets
+  (makepublic / makeprivate / hidenavailability / copyitem) are all shown from itemcard2.
+- ⏸ **ConfirmationSheet / ConfirmDialog / LimitReached** — the fuller consolidation naturally builds on
+  the **I6 shells** (`MirraBottomSheet`/`MirraDialogCard`), which are currently stranded on
+  `rewrite/care-domain`. Doing it standalone now would duplicate I6. **Blocked on the branch move.**
