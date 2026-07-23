@@ -120,6 +120,12 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
     _model = createModel(context, () => OnboardingQuizModel());
     _model.brandsTextController ??= TextEditingController();
     _model.brandsFocusNode ??= FocusNode();
+    // Повторное прохождение: welcome-шаг («настроим под тебя») не нужен —
+    // стартуем сразу с первого вопроса, синхронно, без мигания welcome
+    // на время асинхронного префилла.
+    if (FFAppState().onboardingDone && currentUserUid.isNotEmpty) {
+      _step = _Step.type;
+    }
     if (currentUserUid.isNotEmpty) _loadExistingProfile();
   }
 
