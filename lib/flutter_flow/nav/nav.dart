@@ -434,7 +434,11 @@ class FFRoute {
 
           if (requireAuth && !appStateNotifier.loggedIn) {
             appStateNotifier.setRedirectLocationIfUnset(state.uri.toString());
-            return '/Splash';
+            // '/' is the real splash/initialize route. Once auth restores,
+            // the saved redirectLocation forwards to the requested screen
+            // (e.g. a routine-reminder deep link). '/Splash' isn't a route —
+            // returning it rendered a blank/grey screen.
+            return '/';
           }
           return null;
         },

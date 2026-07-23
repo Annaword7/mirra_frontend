@@ -58,12 +58,7 @@ class _GuestPrefsSheetState extends State<GuestPrefsSheet> {
     }
   }
 
-  String _t(String en, String ru, String es, [String? de]) {
-    if (_lang == 'ru') return ru;
-    if (_lang == 'es') return es;
-    if (_lang == 'de') return de ?? en;
-    return en;
-  }
+  String _t(Map<String, String> m) => m[_lang] ?? m['en'] ?? '';
 
   @override
   Widget build(BuildContext context) {
@@ -92,8 +87,13 @@ class _GuestPrefsSheetState extends State<GuestPrefsSheet> {
           ),
           const SizedBox(height: 20),
           Text(
-            _t('Quick setup', 'Быстрая настройка', 'Configuración rápida',
-                'Schnelle Einrichtung'),
+            _t(const {
+              'en': 'Quick setup', 'ru': 'Быстрая настройка',
+              'es': 'Configuración rápida', 'de': 'Schnelle Einrichtung',
+              'fr': 'Configuration rapide', 'it': 'Configurazione rapida',
+              'pt': 'Configuração rápida', 'tr': 'Hızlı kurulum',
+              'ja': 'かんたん設定', 'ko': '빠른 설정', 'zh': '快速设置',
+            }),
             style: theme.headlineMedium.override(
               fontFamily: theme.headlineMediumFamily,
               color: Colors.black,
@@ -105,12 +105,19 @@ class _GuestPrefsSheetState extends State<GuestPrefsSheet> {
           ),
           const SizedBox(height: 4),
           Text(
-            _t(
-              'Help us personalize your results',
-              'Поможем персонализировать результаты',
-              'Personalicemos tus resultados',
-              'Hilf uns, deine Ergebnisse zu personalisieren',
-            ),
+            _t(const {
+              'en': 'Help us personalize your results',
+              'ru': 'Поможем персонализировать результаты',
+              'es': 'Personalicemos tus resultados',
+              'de': 'Hilf uns, deine Ergebnisse zu personalisieren',
+              'fr': 'Aidez-nous à personnaliser vos résultats',
+              'it': 'Aiutaci a personalizzare i tuoi risultati',
+              'pt': 'Ajude-nos a personalizar os seus resultados',
+              'tr': 'Sonuçlarını kişiselleştirmemize yardımcı ol',
+              'ja': '結果をパーソナライズしましょう',
+              'ko': '결과를 맞춤화할 수 있게 도와주세요',
+              'zh': '帮助我们个性化你的结果',
+            }),
             style: theme.bodySmall.override(
               fontFamily: theme.bodySmallFamily,
               color: Colors.black,
@@ -121,8 +128,13 @@ class _GuestPrefsSheetState extends State<GuestPrefsSheet> {
           ),
           const SizedBox(height: 24),
           Text(
-            _t('Interface language', 'Язык интерфейса', 'Idioma de interfaz',
-                'Sprache der Benutzeroberfläche'),
+            _t(const {
+              'en': 'Interface language', 'ru': 'Язык интерфейса',
+              'es': 'Idioma de interfaz', 'de': 'Sprache der Benutzeroberfläche',
+              'fr': 'Langue de l’interface', 'it': 'Lingua dell’interfaccia',
+              'pt': 'Idioma da interface', 'tr': 'Arayüz dili',
+              'ja': '表示言語', 'ko': '인터페이스 언어', 'zh': '界面语言',
+            }),
             style: theme.labelLarge.override(
               fontFamily: theme.labelLargeFamily,
               color: Colors.black,
@@ -172,7 +184,12 @@ class _GuestPrefsSheetState extends State<GuestPrefsSheet> {
           ),
           const SizedBox(height: 20),
           Text(
-            _t('Your region', 'Ваш регион', 'Tu región', 'Deine Region'),
+            _t(const {
+              'en': 'Your region', 'ru': 'Ваш регион', 'es': 'Tu región',
+              'de': 'Deine Region', 'fr': 'Ta région', 'it': 'La tua regione',
+              'pt': 'A sua região', 'tr': 'Bölgen', 'ja': '地域',
+              'ko': '지역', 'zh': '你的地区',
+            }),
             style: theme.labelLarge.override(
               fontFamily: theme.labelLargeFamily,
               color: Colors.black,
@@ -219,7 +236,12 @@ class _GuestPrefsSheetState extends State<GuestPrefsSheet> {
                       ),
                     )
                   : Text(
-                      _t('Continue', 'Продолжить', 'Continuar', 'Weiter'),
+                      _t(const {
+                        'en': 'Continue', 'ru': 'Продолжить',
+                        'es': 'Continuar', 'de': 'Weiter', 'fr': 'Continuer',
+                        'it': 'Continua', 'pt': 'Continuar', 'tr': 'Devam et',
+                        'ja': '続ける', 'ko': '계속', 'zh': '继续',
+                      }),
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w600,
