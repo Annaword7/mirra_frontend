@@ -217,7 +217,7 @@ class _OnboardingProfileWidgetState extends State<OnboardingProfileWidget>
         useGoogleFonts: !theme.bodyMediumIsCustom,
       ),
       filled: true,
-      fillColor: const Color(0xFFF3F4F6),
+      fillColor: theme.surfaceMuted,
       contentPadding:
           const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       enabledBorder: OutlineInputBorder(
@@ -540,7 +540,7 @@ class _OnboardingProfileWidgetState extends State<OnboardingProfileWidget>
           child: FlutterFlowLanguageSelector(
             width: double.infinity,
             height: 50,
-            backgroundColor: const Color(0xFFF3F4F6),
+            backgroundColor: theme.surfaceMuted,
             borderColor: Colors.transparent,
             dropdownIconColor: theme.secondaryText,
             borderRadius: 14,

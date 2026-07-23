@@ -200,7 +200,7 @@ class _CountriesWidgetState extends State<CountriesWidget> {
                                     child: Container(
                                       width: double.infinity,
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFFF3F4F6),
+                                        color: FlutterFlowTheme.of(context).surfaceMuted,
                                         borderRadius:
                                             BorderRadius.circular(12.0),
                                         border: Border.all(

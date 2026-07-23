@@ -32,7 +32,7 @@ class _BotNameChipState extends State<_BotNameChip> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: const Color(0xFFF3F4F6),
+          color: FlutterFlowTheme.of(context).surfaceMuted,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: const Color(0xFFE0E0E0)),
         ),
@@ -194,7 +194,7 @@ class _LinkTelegramSheetState extends State<LinkTelegramSheet> {
             decoration: InputDecoration(
               hintText: FFLocalizations.of(context).getText('lt_code_or_link'),
               filled: true,
-              fillColor: const Color(0xFFF3F4F6),
+              fillColor: FlutterFlowTheme.of(context).surfaceMuted,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none,

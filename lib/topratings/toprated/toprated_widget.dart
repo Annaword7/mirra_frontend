@@ -241,7 +241,7 @@ class _TopratedWidgetState extends State<TopratedWidget> {
                                 duration: const Duration(milliseconds: 120),
                                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                                 decoration: BoxDecoration(
-                                  color: sel ? theme.primary : const Color(0xFFF3F4F6),
+                                  color: sel ? theme.primary : theme.surfaceMuted,
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Text(_valueLabel(v),
@@ -277,7 +277,7 @@ class _TopratedWidgetState extends State<TopratedWidget> {
                               duration: const Duration(milliseconds: 120),
                               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                               decoration: BoxDecoration(
-                                color: sel ? theme.primary : const Color(0xFFF3F4F6),
+                                color: sel ? theme.primary : theme.surfaceMuted,
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(lang == 'ru' ? labelRu : labelEn,
@@ -517,7 +517,7 @@ class _TopratedWidgetState extends State<TopratedWidget> {
                                     decoration: BoxDecoration(
                                       color: _hasFilters
                                           ? FlutterFlowTheme.of(context).primary.withOpacity(0.12)
-                                          : const Color(0xFFF3F4F6),
+                                          : FlutterFlowTheme.of(context).surfaceMuted,
                                       shape: BoxShape.circle,
                                     ),
                                     child: Icon(

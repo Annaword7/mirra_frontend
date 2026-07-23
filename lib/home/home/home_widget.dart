@@ -734,7 +734,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                     ? FlutterFlowTheme.of(
                                                             context)
                                                         .primary
-                                                    : const Color(0xFFF3F4F6),
+                                                    : FlutterFlowTheme.of(context).surfaceMuted,
                                                 borderRadius:
                                                     BorderRadius.circular(20.0),
                                                 border: Border.all(
