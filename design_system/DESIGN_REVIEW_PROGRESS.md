@@ -341,3 +341,13 @@ typo + `LinkText`.
   **0 errors / 0 warnings**; tests `+9 -1`. **Resolved:** C7·PaywallPage·#6, PaywallConfirmation·#5
   (unified PRO badge). **Not done:** upgrade_widget's 55-high "pill" is really a **CTA button**
   (→ AppButton/I2, not a badge) — left with a note; it's Low-priority (#3).
+- ✅ **10.3** `refactor(paywall): hoist purchase into one _purchasePlan method` — the two copy-pasted
+  ~67-line RevenueCat handlers (weekly/annual `Continue` buttons) → one
+  `_purchasePlan({isMonth, package, durationDays, telegramForm, telegramMessage})`. Verified the only
+  differences were those 5 params + the per-plan model fields (`rCPayment`/`rCPayment2` etc.), which are
+  **paywall-local & write-only-ish** (0 external reads) → safely folded to locals; `FFAppState()`
+  flags (`subscriptionmonth`, `isprouser`) preserved exactly. `flutter analyze`: **0 errors / 0
+  warnings** (full project); tests `+9 -1`. **Resolved (logic part of):** C7·PaywallPage·#1 (hoist
+  purchase). **⏸ Deferred (approved):** the visual `PlanCard` extraction (weekly/annual ~340 lines
+  each) — blind refactor of a purchase-critical screen; do in a **device-verified** session.
+  **Note:** #7 (selection-purchase bug) is **N/A** — cards are direct tap-to-buy, no selection state.

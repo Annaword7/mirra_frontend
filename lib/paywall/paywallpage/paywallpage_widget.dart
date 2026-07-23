@@ -67,6 +67,61 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
       revenue_cat.offerings?.current?.weekly != null &&
       revenue_cat.offerings?.current?.annual != null;
 
+  // Single RevenueCat purchase flow for both plans (was copy-pasted per card).
+  Future<void> _purchasePlan({
+    required bool isMonth,
+    required String package,
+    required int durationDays,
+    required String telegramForm,
+    required String telegramMessage,
+  }) async {
+    FFAppState().subscriptionmonth = isMonth;
+    safeSetState(() {});
+    await actions.rcEnsureLogin(context, currentUserUid);
+    final payment = await actions.rcPurchasePackage(
+      context,
+      'defaultmirra',
+      package,
+      currentUserUid,
+    );
+    if (MessegefrompaymentStruct.maybeFromMap(payment)?.hasOk() == true) {
+      final refreshed =
+          await actions.rcRefreshEntitlement(context, 'EntitlementMirra');
+      if (refreshed!) {
+        FFAppState().isprouser = true;
+        safeSetState(() {});
+        await SubscriptionupgradeNEWBCNDCall.call(
+          host: FFDevEnvironmentValues().backendhost,
+          durationDays: durationDays,
+          userId: currentUserUid,
+        );
+        await TelegrammessegeCall.call(
+          email: currentUserEmail,
+          form: telegramForm,
+          messega: telegramMessage,
+        );
+      }
+    }
+    {
+      final _r = MessegefrompaymentStruct.maybeFromMap(payment!);
+      if (_r != null && !_r.ok) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _r.cancelled
+                  ? FFLocalizations.of(context).getText('pu7x1ck3')
+                  : FFLocalizations.of(context).getText('pe2n5jf8'),
+              style: TextStyle(color: FlutterFlowTheme.of(context).primaryText),
+            ),
+            duration: const Duration(milliseconds: 4000),
+            backgroundColor: FlutterFlowTheme.of(context).secondary,
+          ),
+        );
+      }
+    }
+    safeSetState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     context.watch<FFAppState>();
@@ -390,73 +445,14 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                                       padding: EdgeInsetsDirectional.fromSTEB(
                                           0.0, 12.0, 0.0, 0.0),
                                       child: FFButtonWidget(
-                                        onPressed: () async {
-                                          FFAppState().subscriptionmonth = true;
-                                          safeSetState(() {});
-                                          _model.rCUserID =
-                                              await actions.rcEnsureLogin(
-                                            context,
-                                            currentUserUid,
-                                          );
-                                          _model.rCPayment =
-                                              await actions.rcPurchasePackage(
-                                            context,
-                                            'defaultmirra',
-                                            '\$rc_weekly',
-                                            currentUserUid,
-                                          );
-                                          if (MessegefrompaymentStruct
-                                                      .maybeFromMap(
-                                                          _model.rCPayment)
-                                                  ?.hasOk() ==
-                                              true) {
-                                            _model.rcRefreshEntitlement =
-                                                await actions
-                                                    .rcRefreshEntitlement(
-                                              context,
-                                              'EntitlementMirra',
-                                            );
-                                            if (_model.rcRefreshEntitlement!) {
-                                              FFAppState().isprouser = true;
-                                              safeSetState(() {});
-                                              await SubscriptionupgradeNEWBCNDCall
-                                                  .call(
-                                                host: FFDevEnvironmentValues()
-                                                    .backendhost,
-                                                durationDays: 7,
-                                                userId: currentUserUid,
-                                              );
-
-                                              _model.subscriptionmonth =
-                                                  await TelegrammessegeCall
-                                                      .call(
-                                                email: currentUserEmail,
-                                                form: 'Monthpayment',
-                                                messega:
-                                                    'Wow! You have a new month subscription!',
-                                              );
-                                            }
-                                          }
-                                          {
-                                            final _r = MessegefrompaymentStruct.maybeFromMap(_model.rCPayment!);
-                                            if (_r != null && !_r.ok) {
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                SnackBar(
-                                                  content: Text(
-                                                    _r.cancelled
-                                                        ? FFLocalizations.of(context).getText('pu7x1ck3')
-                                                        : FFLocalizations.of(context).getText('pe2n5jf8'),
-                                                    style: TextStyle(color: FlutterFlowTheme.of(context).primaryText),
-                                                  ),
-                                                  duration: const Duration(milliseconds: 4000),
-                                                  backgroundColor: FlutterFlowTheme.of(context).secondary,
-                                                ),
-                                              );
-                                            }
-                                          }
-
-                                          safeSetState(() {});
-                                        },
+                                        onPressed: () => _purchasePlan(
+                                          isMonth: true,
+                                          package: '\$rc_weekly',
+                                          durationDays: 7,
+                                          telegramForm: 'Monthpayment',
+                                          telegramMessage:
+                                              'Wow! You have a new month subscription!',
+                                        ),
                                         text:
                                             FFLocalizations.of(context).getText(
                                           '1g94zlat' /* Continue */,
@@ -839,78 +835,14 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                                                 EdgeInsetsDirectional.fromSTEB(
                                                     0.0, 12.0, 0.0, 0.0),
                                             child: FFButtonWidget(
-                                              onPressed: () async {
-                                                FFAppState().subscriptionmonth =
-                                                    false;
-                                                safeSetState(() {});
-                                                _model.rCUserID2 =
-                                                    await actions.rcEnsureLogin(
-                                                  context,
-                                                  currentUserUid,
-                                                );
-                                                _model.rCPayment2 =
-                                                    await actions
-                                                        .rcPurchasePackage(
-                                                  context,
-                                                  'defaultmirra',
-                                                  '\$rc_annual',
-                                                  currentUserUid,
-                                                );
-                                                if (MessegefrompaymentStruct
-                                                            .maybeFromMap(_model
-                                                                .rCPayment2)
-                                                        ?.hasOk() ==
-                                                    true) {
-                                                  _model.rcRefreshEntitlement2 =
-                                                      await actions
-                                                          .rcRefreshEntitlement(
-                                                    context,
-                                                    'EntitlementMirra',
-                                                  );
-                                                  if (_model
-                                                      .rcRefreshEntitlement2!) {
-                                                    FFAppState().isprouser =
-                                                        true;
-                                                    safeSetState(() {});
-                                                    await SubscriptionupgradeNEWBCNDCall
-                                                        .call(
-                                                      host:
-                                                          FFDevEnvironmentValues()
-                                                              .backendhost,
-                                                      durationDays: 365,
-                                                      userId: currentUserUid,
-                                                    );
-
-                                                    _model.yearsubscription =
-                                                        await TelegrammessegeCall
-                                                            .call(
-                                                      email: currentUserEmail,
-                                                      form: 'subscription year',
-                                                      messega:
-                                                          'Wow! You have a new YEAR subscription!',
-                                                    );
-                                                  }
-                                                }
-                                                {
-                                                  final _r = MessegefrompaymentStruct.maybeFromMap(_model.rCPayment2!);
-                                                  if (_r != null && !_r.ok) {
-                                                    ScaffoldMessenger.of(context).showSnackBar(
-                                                      SnackBar(
-                                                        content: Text(
-                                                          _r.cancelled
-                                                              ? FFLocalizations.of(context).getText('pu7x1ck3')
-                                                              : FFLocalizations.of(context).getText('pe2n5jf8'),
-                                                          style: TextStyle(color: FlutterFlowTheme.of(context).primaryText),
-                                                        ),
-                                                        duration: const Duration(milliseconds: 4000),
-                                                        backgroundColor: FlutterFlowTheme.of(context).secondary,
-                                                      ),
-                                                    );
-                                                  }
-                                                }
-
-                                                safeSetState(() {});
-                                              },
+                                              onPressed: () => _purchasePlan(
+                                                isMonth: false,
+                                                package: '\$rc_annual',
+                                                durationDays: 365,
+                                                telegramForm: 'subscription year',
+                                                telegramMessage:
+                                                    'Wow! You have a new YEAR subscription!',
+                                              ),
                                               text: FFLocalizations.of(context)
                                                   .getText(
                                                 'ps8msu6e' /* Continue */,
