@@ -133,3 +133,13 @@ text-less gallery empties).
   aspectRatio, spacing, tileRadius, tileColor, padding, shrinkWrap, physics, animate) with the
   index-staggered loop-reverse fade generated via `GridView.builder`. Defaults match the common gallery
   loader (2 cols, square, 8px, `alternate`). No migration yet. `flutter analyze`: **No issues found**.
+- ✅ **5.2** `refactor(loaders): flat-grid loaders → SkeletonGrid` — thin-wrappered the 3 flat-grid
+  loaders to delegate to `SkeletonGrid` (class/constructor unchanged, call sites untouched; dropped the
+  hand-written `AnimationInfo` + `flutter_flow_animations`/`flutter_animate` imports + unused
+  `TickerProviderStateMixin`): **gallery_image_loading** (4 tiles, 2col, r16, `alternate`),
+  **gallery_loading** (outer `secondaryBackground` r12 card + 4 tiles, 2col, r8), **loading_recent**
+  (6 tiles, 3col spacing10, r8, `secondaryBackground` fill). Static look preserved per-site via params;
+  pulse timing now the generated stagger. **−479/+26 lines** (3 files). `flutter analyze`: my files
+  **No issues found** (0 errors/warnings project-wide); tests `+9 -1`. **Resolved (partial):** B4/C8·#31,#34
+  for these 3. **Remaining loaders:** album_list_loading (mosaic list → 5.3), loading_styles (avatar-row
+  skeleton, different shape → 5.4); analysis_loading kept (unique step/facts UI).
