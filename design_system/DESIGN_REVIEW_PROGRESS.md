@@ -143,3 +143,10 @@ text-less gallery empties).
   **No issues found** (0 errors/warnings project-wide); tests `+9 -1`. **Resolved (partial):** B4/C8·#31,#34
   for these 3. **Remaining loaders:** album_list_loading (mosaic list → 5.3), loading_styles (avatar-row
   skeleton, different shape → 5.4); analysis_loading kept (unique step/facts UI).
+- ✅ **5.3** `refactor(loaders): album_list_loading → SkeletonGrid mosaic (1207→69)` — the worst
+  offender: **32 hand-written `AnimationInfo` + an 8×-unrolled grid** rebuilt as
+  `GridView.builder(itemCount: 8)` where each album-cover card = `secondaryBackground` r12 container +
+  a `SkeletonGrid(count:4, columns:2, spacing:8, tileRadius:8)` 2×2 mosaic (outer grid 2col/spacing12,
+  matching originals). **1207 → 69 lines.** Dropped `flutter_flow_animations`/`flutter_animate` +
+  `TickerProviderStateMixin`. `flutter analyze`: **No issues found**; tests `+9 -1`. **Resolved:**
+  B4/C8·#32 (the 1,200-line monster), #31/#34 for album_list.
