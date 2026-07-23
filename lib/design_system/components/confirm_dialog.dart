@@ -4,33 +4,42 @@ import '/design_system/components/app_button.dart';
 import '/design_system/components/mirra_dialog_card.dart';
 
 /// The single confirm dialog (Design Review Initiative 8): a centered card with
-/// an optional icon badge, title, body, and a **side-by-side** Cancel / Confirm
-/// pair (Cancel first, so a destructive action isn't the most prominent — review
-/// deleteitem #3). Unifies the two incompatible confirm modals (deleteitem
-/// stacked-destructive + markasspam side-by-side). Shown inside
-/// `showModalBottomSheet(backgroundColor: transparent, ...)`; it self-centers.
+/// an optional icon badge, title, body, and action buttons. With [cancelLabel]
+/// it's a **side-by-side** Cancel / Confirm pair (Cancel first, so a destructive
+/// action isn't the most prominent — review deleteitem #3); without it, a single
+/// centered confirm button. Unifies the confirm modals (deleteitem, markasspam)
+/// and the visibility sheets (makepublic / makeprivate / hidenavailability /
+/// copyitem). Shown inside `showModalBottomSheet(backgroundColor: transparent,
+/// ...)`; it self-centers.
 class ConfirmDialog extends StatelessWidget {
   const ConfirmDialog({
     super.key,
     required this.title,
     required this.confirmLabel,
     required this.onConfirm,
-    required this.cancelLabel,
+    this.cancelLabel,
     this.onCancel,
     this.body,
     this.destructive = false,
+    this.confirmLoading = false,
     this.icon,
     this.iconColor,
+    this.onBackgroundTap,
   });
 
   final String title;
   final String? body;
   final String confirmLabel;
   final VoidCallback onConfirm;
-  final String cancelLabel;
+
+  /// When null, only the confirm button is shown (centered).
+  final String? cancelLabel;
 
   /// Defaults to popping the sheet.
   final VoidCallback? onCancel;
+
+  /// Shows a spinner on the confirm button.
+  final bool confirmLoading;
 
   /// Confirm button is `destructive` when true, else `primary`.
   final bool destructive;
@@ -39,13 +48,14 @@ class ConfirmDialog extends StatelessWidget {
   final IconData? icon;
   final Color? iconColor;
 
+  /// When set, tapping the scrim (outside the card) runs this (tap-to-dismiss).
+  final VoidCallback? onBackgroundTap;
+
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
 
-    return Container(
-      color: Colors.transparent,
-      child: Align(
+    final card = Align(
         alignment: Alignment.center,
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -100,33 +110,53 @@ class ConfirmDialog extends StatelessWidget {
                     ),
                   ],
                   const SizedBox(height: 24.0),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: AppButton(
-                          label: cancelLabel,
-                          variant: AppButtonVariant.secondary,
-                          onPressed: onCancel ?? () => Navigator.pop(context),
+                  if (cancelLabel != null)
+                    Row(
+                      children: [
+                        Expanded(
+                          child: AppButton(
+                            label: cancelLabel!,
+                            variant: AppButtonVariant.secondary,
+                            onPressed: onCancel ?? () => Navigator.pop(context),
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 12.0),
-                      Expanded(
-                        child: AppButton(
-                          label: confirmLabel,
-                          variant: destructive
-                              ? AppButtonVariant.destructive
-                              : AppButtonVariant.primary,
-                          onPressed: onConfirm,
+                        const SizedBox(width: 12.0),
+                        Expanded(
+                          child: AppButton(
+                            label: confirmLabel,
+                            variant: destructive
+                                ? AppButtonVariant.destructive
+                                : AppButtonVariant.primary,
+                            loading: confirmLoading,
+                            onPressed: onConfirm,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    )
+                  else
+                    AppButton(
+                      label: confirmLabel,
+                      variant: destructive
+                          ? AppButtonVariant.destructive
+                          : AppButtonVariant.primary,
+                      loading: confirmLoading,
+                      fullWidth: false,
+                      onPressed: onConfirm,
+                    ),
                 ],
               ),
             ),
           ),
         ),
-      ),
+      );
+
+    if (onBackgroundTap == null) {
+      return Container(color: Colors.transparent, child: card);
+    }
+    return GestureDetector(
+      onTap: onBackgroundTap,
+      behavior: HitTestBehavior.opaque,
+      child: GestureDetector(onTap: () {}, child: card),
     );
   }
 }

@@ -466,3 +466,12 @@ warnings**; tests `+9 -1`.
   **Resolved:** item_card ConfirmDialogs·#1 (unify), #3 (deleteitem stacked→side-by-side, Cancel first),
   #4 (markasspam Expanded — already), #2 (destructive/primary via AppButton variants). **Note:**
   markasspam shell unified to r20/blur24/secondaryBackground (was r16/blur12/white); body → secondaryText.
+- ✅ **8.7** `refactor(topratings): visibility sheets → ConfirmDialog` — extended `ConfirmDialog` with
+  optional `cancelLabel` (null → single centered confirm button), `confirmLoading`, and `onBackgroundTap`
+  (scrim tap-to-dismiss). Migrated the 4 live visibility sheets (all shown from itemcard2):
+  **makepublic** (108→46), **makeprivate** (134→51), **hidenavailability** (145→57, Go PRO → paywall +
+  scrim dismiss), **copyitem** (188→99, Cancel + Copy with `confirmLoading`, copy action preserved).
+  One `ConfirmDialog` now backs all 6 confirm/visibility surfaces. `flutter analyze`: **0 errors / 0
+  warnings**; tests `+9 -1`. **Resolved:** B7 ConfirmationSheet (folded into ConfirmDialog — no separate
+  component needed; the sheets are centered cards, not drag-handle sheets). Shell unified to
+  r20/blur24/secondaryBackground.
