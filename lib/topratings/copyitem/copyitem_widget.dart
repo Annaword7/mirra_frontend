@@ -2,7 +2,7 @@ import '/auth/supabase_auth/auth_util.dart';
 import '/backend/api_requests/api_calls.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
+import '/design_system/components/app_button.dart';
 import '/index.dart';
 import 'package:flutter/material.dart';
 import 'copyitem_model.dart';
@@ -115,40 +115,25 @@ class _CopyitemWidgetState extends State<CopyitemWidget> {
                     mainAxisSize: MainAxisSize.max,
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      FFButtonWidget(
+                      AppButton(
+                        label: FFLocalizations.of(context).getText(
+                          '5gas3j6n' /* Cancel */,
+                        ),
+                        variant: AppButtonVariant.secondary,
+                        size: AppButtonSize.md,
+                        fullWidth: false,
                         onPressed: () async {
                           Navigator.pop(context);
                         },
-                        text: FFLocalizations.of(context).getText(
-                          '5gas3j6n' /* Cancel */,
-                        ),
-                        options: FFButtonOptions(
-                          width: 140.0,
-                          height: 44.0,
-                          padding: EdgeInsets.all(8.0),
-                          iconPadding: EdgeInsetsDirectional.fromSTEB(
-                              0.0, 0.0, 0.0, 0.0),
-                          color: FlutterFlowTheme.of(context).border,
-                          textStyle: FlutterFlowTheme.of(context)
-                              .titleSmall
-                              .override(
-                                fontFamily: FlutterFlowTheme.of(context)
-                                    .titleSmallFamily,
-                                color: const Color(0xFF757575),
-                                letterSpacing: 0.0,
-                                useGoogleFonts: !FlutterFlowTheme.of(context)
-                                    .titleSmallIsCustom,
-                              ),
-                          elevation: 0.0,
-                          borderSide: BorderSide(
-                            color: FlutterFlowTheme.of(context).border,
-                            width: 1.0,
-                          ),
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
                       ),
-                      FFButtonWidget(
-                        onPressed: _isLoading ? null : () async {
+                      AppButton(
+                        label: FFLocalizations.of(context).getText(
+                          'noj51h6l' /* Copy */,
+                        ),
+                        size: AppButtonSize.md,
+                        fullWidth: false,
+                        loading: _isLoading,
+                        onPressed: () async {
                           safeSetState(() => _isLoading = true);
                           try {
                             _model.copiedimage =
@@ -189,33 +174,6 @@ class _CopyitemWidgetState extends State<CopyitemWidget> {
                             if (mounted) safeSetState(() => _isLoading = false);
                           }
                         },
-                        text: _isLoading ? '...' : FFLocalizations.of(context).getText(
-                          'noj51h6l' /* Copy */,
-                        ),
-                        options: FFButtonOptions(
-                          width: 140.0,
-                          height: 44.0,
-                          padding: EdgeInsets.all(8.0),
-                          iconPadding: EdgeInsetsDirectional.fromSTEB(
-                              0.0, 0.0, 0.0, 0.0),
-                          color: FlutterFlowTheme.of(context).primary,
-                          textStyle: FlutterFlowTheme.of(context)
-                              .titleSmall
-                              .override(
-                                fontFamily: FlutterFlowTheme.of(context)
-                                    .titleSmallFamily,
-                                color: FlutterFlowTheme.of(context).info,
-                                letterSpacing: 0.0,
-                                useGoogleFonts: !FlutterFlowTheme.of(context)
-                                    .titleSmallIsCustom,
-                              ),
-                          elevation: 0.0,
-                          borderSide: BorderSide(
-                            color: Colors.transparent,
-                            width: 1.0,
-                          ),
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
                       ),
                     ].divide(SizedBox(width: 12.0)),
                   ),

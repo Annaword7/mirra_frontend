@@ -1,6 +1,6 @@
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
+import '/design_system/components/app_button.dart';
 import '/index.dart';
 import 'package:flutter/material.dart';
 import 'hidenavailability_model.dart';
@@ -118,39 +118,17 @@ class _HidenavailabilityWidgetState extends State<HidenavailabilityWidget> {
                     mainAxisSize: MainAxisSize.max,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      FFButtonWidget(
+                      AppButton(
+                        label: FFLocalizations.of(context).getText(
+                          '02k9xvmr' /* Go PRO */,
+                        ),
+                        size: AppButtonSize.md,
+                        fullWidth: false,
                         onPressed: () async {
                           Navigator.pop(context);
 
                           context.pushNamed(PaywallpageWidget.routeName);
                         },
-                        text: FFLocalizations.of(context).getText(
-                          '02k9xvmr' /* Go PRO */,
-                        ),
-                        options: FFButtonOptions(
-                          width: 140.0,
-                          height: 44.0,
-                          padding: EdgeInsets.all(8.0),
-                          iconPadding: EdgeInsetsDirectional.fromSTEB(
-                              0.0, 0.0, 0.0, 0.0),
-                          color: FlutterFlowTheme.of(context).primary,
-                          textStyle: FlutterFlowTheme.of(context)
-                              .titleSmall
-                              .override(
-                                fontFamily: FlutterFlowTheme.of(context)
-                                    .titleSmallFamily,
-                                color: FlutterFlowTheme.of(context).info,
-                                letterSpacing: 0.0,
-                                useGoogleFonts: !FlutterFlowTheme.of(context)
-                                    .titleSmallIsCustom,
-                              ),
-                          elevation: 0.0,
-                          borderSide: BorderSide(
-                            color: Colors.transparent,
-                            width: 1.0,
-                          ),
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
                       ),
                     ].divide(SizedBox(width: 12.0)),
                   ),
