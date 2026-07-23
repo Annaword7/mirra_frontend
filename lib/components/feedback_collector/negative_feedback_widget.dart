@@ -2,7 +2,7 @@ import '/auth/supabase_auth/auth_util.dart';
 import '/backend/api_requests/api_calls.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
+import '/design_system/components/app_button.dart';
 import 'dart:async';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
@@ -223,7 +223,8 @@ class _NegativeFeedbackWidgetState extends State<NegativeFeedbackWidget> {
                   if (!(isWeb
                       ? MediaQuery.viewInsetsOf(context).bottom > 0
                       : _isKeyboardVisible))
-                    FFButtonWidget(
+                    AppButton(
+                      label: FFLocalizations.of(context).getText('fc_neg_submit'),
                       onPressed: () async {
                         HapticFeedback.lightImpact();
                         if (_formKey.currentState == null || !_formKey.currentState!.validate()) {
@@ -239,24 +240,6 @@ class _NegativeFeedbackWidgetState extends State<NegativeFeedbackWidget> {
                         await FirebaseAnalytics.instance.logEvent(name: 'feedback_submitted');
                         if (context.mounted) Navigator.pop(context);
                       },
-                      text: FFLocalizations.of(context).getText('fc_neg_submit'),
-                      options: FFButtonOptions(
-                        width: double.infinity,
-                        height: 55.0,
-                        padding: const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                        iconPadding: const EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                        color: FlutterFlowTheme.of(context).primary,
-                        textStyle: FlutterFlowTheme.of(context).titleSmall.override(
-                              fontFamily: FlutterFlowTheme.of(context).titleSmallFamily,
-                              color: Colors.white,
-                              letterSpacing: 0.0,
-                              fontWeight: FontWeight.w600,
-                              useGoogleFonts: !FlutterFlowTheme.of(context).titleSmallIsCustom,
-                            ),
-                        elevation: 0.0,
-                        borderSide: const BorderSide(color: Colors.transparent, width: 1.0),
-                        borderRadius: BorderRadius.circular(50.0),
-                      ),
                     ),
                 ].divide(const SizedBox(height: 15.0)),
               ),

@@ -5,6 +5,7 @@ import '/backend/supabase/supabase.dart';
 import '/components/countryselector/countryselector_widget.dart';
 import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
+import '/design_system/components/app_button.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 
 /// Bottom sheet shown right after anonymous sign-in to collect country and
@@ -213,42 +214,17 @@ class _GuestPrefsSheetState extends State<GuestPrefsSheet> {
             onCountrySelected: (id) => _countryId = id,
           ),
           const SizedBox(height: 28),
-          SizedBox(
-            width: double.infinity,
-            height: 52,
-            child: ElevatedButton(
-              onPressed: _saving ? null : _save,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: theme.primary,
-                disabledBackgroundColor: theme.primary.withValues(alpha: 0.6),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                elevation: 0,
-              ),
-              child: _saving
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      ),
-                    )
-                  : Text(
-                      _t(const {
-                        'en': 'Continue', 'ru': 'Продолжить',
-                        'es': 'Continuar', 'de': 'Weiter', 'fr': 'Continuer',
-                        'it': 'Continua', 'pt': 'Continuar', 'tr': 'Devam et',
-                        'ja': '続ける', 'ko': '계속', 'zh': '继续',
-                      }),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                      ),
-                    ),
-            ),
+          AppButton(
+            label: _t(const {
+              'en': 'Continue', 'ru': 'Продолжить',
+              'es': 'Continuar', 'de': 'Weiter', 'fr': 'Continuer',
+              'it': 'Continua', 'pt': 'Continuar', 'tr': 'Devam et',
+              'ja': '続ける', 'ko': '계속', 'zh': '继续',
+            }),
+            loading: _saving,
+            onPressed: () {
+              _save();
+            },
           ),
         ],
       ),

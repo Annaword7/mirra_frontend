@@ -5,6 +5,7 @@ import '/backend/api_requests/api_calls.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/design_system/components/app_text_field.dart';
+import '/design_system/components/app_button.dart';
 
 const _botName = '@Mirra_app_bot';
 
@@ -195,37 +196,12 @@ class _LinkTelegramSheetState extends State<LinkTelegramSheet> {
             onFieldSubmitted: (_) => _submit(),
           ),
           const SizedBox(height: 24),
-          SizedBox(
-            width: double.infinity,
-            height: 52,
-            child: ElevatedButton(
-              onPressed: _submitting ? null : _submit,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: theme.primary,
-                disabledBackgroundColor: theme.primary.withValues(alpha: 0.6),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                elevation: 0,
-              ),
-              child: _submitting
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      ),
-                    )
-                  : Text(
-                      FFLocalizations.of(context).getText('lt_link_btn'),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                      ),
-                    ),
-            ),
+          AppButton(
+            label: FFLocalizations.of(context).getText('lt_link_btn'),
+            loading: _submitting,
+            onPressed: () {
+              _submit();
+            },
           ),
         ],
       ),
