@@ -33,10 +33,16 @@ enum _Step {
   determine,
   sensitivity,
   acne,
+  pregnancy,
   goals,
   optional,
   result,
 }
+
+// Карта клиента (M1): значения pregnancy_status в users.
+const kPregnancyPregnantOrNursing = 'pregnant_or_nursing';
+const kPregnancyNone = 'none';
+const kPregnancyUndisclosed = 'undisclosed';
 
 // Goal chips → backend goal keys (mirra _VALID_SKIN_GOALS, the shipped 6).
 const _goalKeys = <List<String>>[
@@ -90,6 +96,7 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
   String? _skinType;
   bool? _sensitive;
   bool? _acneProne;
+  String? _pregnancy;
   final List<String> _goals = [];
   String? _ageRange;
   String? _budgetRange;
@@ -128,6 +135,7 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
         _skinType = st;
         _sensitive = row.skinSensitivity;
         _acneProne = row.acneProne;
+        _pregnancy = row.pregnancyStatus;
         _goals
           ..clear()
           ..addAll(row.skinGoals);
@@ -180,8 +188,11 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
       case _Step.acne:
         _go(_Step.sensitivity);
         break;
-      case _Step.goals:
+      case _Step.pregnancy:
         _go(_Step.acne);
+        break;
+      case _Step.goals:
+        _go(_Step.pregnancy);
         break;
       case _Step.optional:
         _go(_Step.goals);
@@ -246,6 +257,7 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
             'skin_type': _skinType,
             'skin_sensitivity': _sensitive,
             'acne_prone': _acneProne,
+            'pregnancy_status': _pregnancy,
             'skin_goals': _goals,
             'age_range': _ageRange,
             'budget_range': _budgetRange,
@@ -261,6 +273,7 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
           app.obSkinType = _skinType;
           app.obSensitive = _sensitive;
           app.obAcneProne = _acneProne;
+          app.obPregnancy = _pregnancy;
           app.obGoals = List<String>.from(_goals);
           app.obAgeRange = _ageRange;
           app.obBudgetRange = _budgetRange;
@@ -373,8 +386,10 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
         return 2;
       case _Step.acne:
         return 3;
-      case _Step.goals:
+      case _Step.pregnancy:
         return 4;
+      case _Step.goals:
+        return 5;
       default:
         return 0;
     }
@@ -426,7 +441,7 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
             child: _progressActive == 0
                 ? const SizedBox.shrink()
                 : Row(
-                    children: List.generate(4, (i) {
+                    children: List.generate(5, (i) {
                       final active = i < _progressActive;
                       return Expanded(
                         child: Container(
@@ -465,6 +480,8 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
         return _buildSensitivity(theme);
       case _Step.acne:
         return _buildAcne(theme);
+      case _Step.pregnancy:
+        return _buildPregnancy(theme);
       case _Step.goals:
         return _buildGoals(theme);
       case _Step.optional:
@@ -755,10 +772,35 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
     );
   }
 
+  Widget _buildPregnancy(FlutterFlowTheme theme) {
+    void pick(String v) => _pickTap(() {
+          _pregnancy = v;
+          _go(_Step.goals);
+        });
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _heading(theme, 'obq_preg_title', 'obq_preg_why'),
+        _optionCard(theme,
+            title: _t('obq_preg_yes'),
+            selected: _pregnancy == kPregnancyPregnantOrNursing,
+            onTap: () => pick(kPregnancyPregnantOrNursing)),
+        _optionCard(theme,
+            title: _t('obq_preg_no'),
+            selected: _pregnancy == kPregnancyNone,
+            onTap: () => pick(kPregnancyNone)),
+        _optionCard(theme,
+            title: _t('obq_preg_skip'),
+            selected: _pregnancy == kPregnancyUndisclosed,
+            onTap: () => pick(kPregnancyUndisclosed)),
+      ],
+    );
+  }
+
   Widget _buildAcne(FlutterFlowTheme theme) {
     void pick(bool v) => _pickTap(() {
           _acneProne = v;
-          _go(_Step.goals);
+          _go(_Step.pregnancy);
         });
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

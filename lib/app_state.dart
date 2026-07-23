@@ -77,6 +77,9 @@ class FFAppState extends ChangeNotifier {
       }
     });
     _safeInit(() {
+      _obPregnancy = prefs.getString('ff_obPregnancy') ?? _obPregnancy;
+    });
+    _safeInit(() {
       if (prefs.containsKey('ff_obAcneProne')) {
         _obAcneProne = prefs.getBool('ff_obAcneProne');
       }
@@ -376,6 +379,16 @@ class FFAppState extends ChangeNotifier {
         : prefs.setBool('ff_obAcneProne', value);
   }
 
+  // Карта клиента (M1): pregnancy_status из квиза (буфер до логина).
+  String? _obPregnancy;
+  String? get obPregnancy => _obPregnancy;
+  set obPregnancy(String? value) {
+    _obPregnancy = value;
+    value == null
+        ? prefs.remove('ff_obPregnancy')
+        : prefs.setString('ff_obPregnancy', value);
+  }
+
   List<String> _obGoals = [];
   List<String> get obGoals => _obGoals;
   set obGoals(List<String> value) {
@@ -429,6 +442,7 @@ class FFAppState extends ChangeNotifier {
     obSkinType = null;
     obSensitive = null;
     obAcneProne = null;
+    obPregnancy = null;
     obGoals = [];
     obAgeRange = null;
     obBudgetRange = null;
