@@ -13,7 +13,7 @@ rejected (with justification)**, or **superseded by another implemented change**
 | # | Initiative | Backlog | Status | Priority | Est. effort |
 |---|---|---|---|---|---|
 | 1 | **Inputs** — `AppTextField` (visible focus, one fill/border/radius, password toggle) | B10 | **Completed** | High | S–M |
-| 2 | Button system — `AppButton` (primary/secondary/outline/text/destructive, pill) | B1 | **In Progress** | High | L |
+| 2 | Button system — `AppButton` (primary/secondary/outline/text/destructive, pill) | B1 | **Completed** | High | L |
 | 3 | Accessibility pass — contrast, 12px floor, 44px targets, non-color cues | B3 | Not Started | High | M |
 | 4 | Semantic color + score system — `semanticScoreColor()`/`statusColor()`/legend | B2 | Not Started | High | M |
 | 5 | Empty vs loading — `SkeletonGrid` + `MirraEmptyState` | B4 | Not Started | High | M |
@@ -75,7 +75,7 @@ edit_album, new_album) · 1.5 sheet field (link_telegram).
 
 ---
 
-## Initiative 2 — Button system (`AppButton`)  ·  Status: In Progress
+## Initiative 2 — Button system (`AppButton`)  ·  Status: ✅ Completed
 
 **Decision (approved):** canonical shape = **Pill (radius full / StadiumBorder)**. Variants
 primary/secondary/outline/text/destructive; sizes sm 36 / md 44 / lg 52; built-in loading spinner;
@@ -106,4 +106,9 @@ Group B #11 · dialogs #21 · newblank #40.
 - ✅ **2.6** `refactor(boards): migrate boards buttons to AppButton` — boards New board (40/24 → primary md, icon, `fullWidth:false`), albumslist Apply (55/30 → primary), newboardempty Create collection (52/24 → primary, icon), edit_album Save (→ primary) + **Delete (`tertiary`/peach → destructive/error)**, new_album Create (→ primary) + Cancel (`info` fill → secondary). 7 buttons; removed 5 orphaned `flutter_flow_widgets` imports. `flutter analyze`: **0 errors** project-wide. **Resolved:** C6·boards·#3, newboardempty·#3, new_album·#3 + #5 (Cancel `info` overload), edit_album·#3 (delete `tertiary`→destructive) + #4, albumslist·#4. **Left for I8:** edit_album's AlertDialog `TextButton`s (Cancel/Delete, hardcoded 'Delete' string + `#D32F2F`).
 - ✅ **2.7** `refactor(search): migrate search buttons to AppButton` — the "AI" parse button (`ElevatedButton` r12/44, isParsing spinner → `AppButton` md pill, `loading:`, `fullWidth:false`) and the Search button (`ElevatedButton` r14/52, isSearching spinner → `AppButton` lg pill, `loading:`). Both loading states map to AppButton's `loading` param. `flutter analyze`: **0 errors** project-wide. **Resolved:** C3·Search·#7 (AI 44 / Search 52 button heights → pill). **Remains:** Search·#8 (two overlapping search triggers) is a UX-flow finding, not a button-style one.
 - ✅ **2.8** `refactor(itemcard2+toprated): migrate anon-prompt + filter buttons to AppButton` — itemcard2 ×3 (anon-gate Create account → primary, Sign in `OutlinedButton` → outline, copy-login Sign in → primary), toprated filter-sheet Apply (`ElevatedButton` r14/52 → primary pill). `flutter analyze`: **0 errors** project-wide (pre-existing unused_element/null-aware warnings untouched). **Resolved:** C3·toprated·#3 (Apply button 52 → pill); itemcard2 anon-prompt CTAs consolidated. TextButton links in both left as-is.
-- ⏳ **2.9** (planned) — newblank CTA. Needs a small `AppButton.trailingIcon` extension (its CTA has a trailing arrow) + `dart format` for the FlutterFlow blank-line formatting (C8·newblank·#40, #42). Final button in Initiative 2.
+- ✅ **2.9** `refactor(newblank): migrate CTA to AppButton + reformat` — added `AppButton.trailingIcon` (leading-icon sibling, for CTA arrows); newblank "Try free" CTA (`ElevatedButton` r30 + trailing arrow) → AppButton primary pill with `trailingIcon`. `dart format`ed the file (545 → 331 lines). Void `onPressed` so the guest-prefs sheet doesn't trigger the button spinner. `flutter analyze`: **No issues found**. **Resolved:** C8·newblank·#40 (button radius 30 → pill), #42 (FlutterFlow blank-line formatting). **Remains:** newblank·#39 (silent return on null context — UX/I3) and #41 (raw `Colors.black/white` — color/I4).
+
+### Initiative 2 — completion summary
+**Delivered:** `AppButton` (pill; 5 variants, 3 sizes, loading spinner, leading + `trailingIcon`) + `onPrimary` token, consumed by **~30 buttons across 15 screens** (auth ×4, onboarding ×8, home/capture ×4, profile+edit ×6, boards ×7, search ×2, itemcard2 ×3, toprated, newblank).
+**Findings resolved:** Log In #7,#8 · Forgot Password #5(CTA) · Onboarding Quiz #4 · Home #7 · capture #4,#2 · Search #7 · Profile #8,#4(btn) · Edit Profile #8 · boards #3 · newboardempty #3 · new_album #3,#5 · edit_album #3,#4 · albumslist #4 · toprated #3 · newblank #40,#42.
+**Excluded (owned by later initiatives, will consume AppButton):** Apple sign-in buttons (branded) · paywall PlanCard/ProPill → I10 · confirmation/limit surfaces (limit_out, out_of_generations, make*/copyitem/hidenavailability, deleteitem, markasspam, delete_confirmation, edit_album AlertDialog) → I8 · sheet/dialog CTAs (error_popup, guest_prefs, link_telegram, leave_review, negative_feedback, feedback_collector, takeor_upload info-dialog) → I6 · navbar FAB stays bespoke · startanalys print() stub → I12 · TextButton link-style actions left as-is.

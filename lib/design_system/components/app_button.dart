@@ -31,6 +31,7 @@ class AppButton extends StatefulWidget {
     this.variant = AppButtonVariant.primary,
     this.size = AppButtonSize.lg,
     this.icon,
+    this.trailingIcon,
     this.fullWidth = true,
     this.loading = false,
     this.enabled = true,
@@ -40,7 +41,12 @@ class AppButton extends StatefulWidget {
   final FutureOr<void> Function()? onPressed;
   final AppButtonVariant variant;
   final AppButtonSize size;
+
+  /// Optional leading icon.
   final IconData? icon;
+
+  /// Optional trailing icon (e.g. a forward arrow on a CTA).
+  final IconData? trailingIcon;
   final bool fullWidth;
 
   /// External loading state. Independent of the auto-spinner for async onPressed.
@@ -155,6 +161,10 @@ class _AppButtonState extends State<AppButton> {
               style: labelStyle,
             ),
           ),
+          if (widget.trailingIcon != null) ...[
+            const SizedBox(width: 8.0),
+            Icon(widget.trailingIcon, size: 20.0, color: fg),
+          ],
         ],
       );
     }
