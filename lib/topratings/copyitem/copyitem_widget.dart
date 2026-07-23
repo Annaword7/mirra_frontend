@@ -128,7 +128,7 @@ class _CopyitemWidgetState extends State<CopyitemWidget> {
                           padding: EdgeInsets.all(8.0),
                           iconPadding: EdgeInsetsDirectional.fromSTEB(
                               0.0, 0.0, 0.0, 0.0),
-                          color: const Color(0xFFE0E0E0),
+                          color: FlutterFlowTheme.of(context).border,
                           textStyle: FlutterFlowTheme.of(context)
                               .titleSmall
                               .override(
@@ -141,7 +141,7 @@ class _CopyitemWidgetState extends State<CopyitemWidget> {
                               ),
                           elevation: 0.0,
                           borderSide: BorderSide(
-                            color: const Color(0xFFE0E0E0),
+                            color: FlutterFlowTheme.of(context).border,
                             width: 1.0,
                           ),
                           borderRadius: BorderRadius.circular(8.0),

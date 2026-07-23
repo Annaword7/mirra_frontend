@@ -34,7 +34,7 @@ class _BotNameChipState extends State<_BotNameChip> {
         decoration: BoxDecoration(
           color: FlutterFlowTheme.of(context).surfaceMuted,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFE0E0E0)),
+          border: Border.all(color: FlutterFlowTheme.of(context).border),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -154,7 +154,7 @@ class _LinkTelegramSheetState extends State<LinkTelegramSheet> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: const Color(0xFFE0E0E0),
+                color: FlutterFlowTheme.of(context).border,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),

@@ -165,7 +165,7 @@ class ProfileSummaryCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: const Color(0xFFF2F2F2),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: const Color(0xFFE0E0E0)),
+                      border: Border.all(color: theme.border),
                     ),
                     child: Text(
                       c,
