@@ -3,6 +3,7 @@ import '/backend/api_requests/api_calls.dart';
 import '/backend/supabase/database/tables/users.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
+import '/design_system/components/app_button.dart';
 import '/index.dart';
 import '/item_card/imagedetailed_main/imagedetailed_main_widget.dart';
 import 'search_model.dart';
@@ -381,21 +382,13 @@ class _SearchWidgetState extends State<SearchWidget> {
               ),
             ),
             const SizedBox(width: 8),
-            _model.isParsing
-                ? const SizedBox(
-                    width: 44, height: 44,
-                    child: Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))),
-                  )
-                : ElevatedButton(
-                    onPressed: _parsePhrase,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: theme.primary,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      minimumSize: const Size(0, 44),
-                    ),
-                    child: Text('AI', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
-                  ),
+            AppButton(
+              label: 'AI',
+              loading: _model.isParsing,
+              size: AppButtonSize.md,
+              fullWidth: false,
+              onPressed: () => _parsePhrase(),
+            ),
           ],
         ),
         if (_model.unparsed.isNotEmpty)
@@ -556,33 +549,10 @@ class _SearchWidgetState extends State<SearchWidget> {
 
   Widget _buildSearchButton(FlutterFlowTheme theme, String lang) {
     final label = lang == 'ru' ? 'Найти' : lang == 'es' ? 'Buscar' : 'Search';
-    return SizedBox(
-      width: double.infinity,
-      height: 52,
-      child: ElevatedButton(
-        onPressed: _model.isSearching ? null : () => _search(),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: theme.primary,
-          disabledBackgroundColor: theme.primary.withOpacity(0.5),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-          elevation: 0,
-        ),
-        child: _model.isSearching
-            ? const SizedBox(
-                width: 22, height: 22,
-                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-              )
-            : Text(
-                label,
-                style: theme.titleSmall.override(
-                  fontFamily: theme.titleSmallFamily,
-                  color: Colors.white,
-                  fontSize: 16,
-                  letterSpacing: 0,
-                  useGoogleFonts: !theme.titleSmallIsCustom,
-                ),
-              ),
-      ),
+    return AppButton(
+      label: label,
+      loading: _model.isSearching,
+      onPressed: () => _search(),
     );
   }
 
