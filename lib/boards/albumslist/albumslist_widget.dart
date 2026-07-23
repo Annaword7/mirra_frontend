@@ -5,7 +5,7 @@ import '/backend/supabase/supabase.dart';
 import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
+import '/design_system/components/app_button.dart';
 import '/flutter_flow/custom_functions.dart' as functions;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -179,7 +179,8 @@ class _AlbumslistWidgetState extends State<AlbumslistWidget> {
             ),
             const SizedBox(height: 16),
             // Apply button
-            FFButtonWidget(
+            AppButton(
+              label: FFLocalizations.of(context).getText('n2ylozbe'),
               onPressed: () async {
                 await LinkitemtoalbumsCall.call(
                   token: currentJwtToken,
@@ -191,25 +192,6 @@ class _AlbumslistWidgetState extends State<AlbumslistWidget> {
                 HapticFeedback.vibrate();
                 if (context.mounted) Navigator.pop(context);
               },
-              text: FFLocalizations.of(context).getText('n2ylozbe'),
-              options: FFButtonOptions(
-                width: double.infinity,
-                height: 55.0,
-                padding: const EdgeInsetsDirectional.fromSTEB(0, 0, 0, 0),
-                iconPadding: const EdgeInsetsDirectional.fromSTEB(0, 0, 0, 0),
-                color: FlutterFlowTheme.of(context).primary,
-                textStyle: FlutterFlowTheme.of(context).titleSmall.override(
-                      fontFamily:
-                          FlutterFlowTheme.of(context).titleSmallFamily,
-                      color: Colors.white,
-                      letterSpacing: 0.0,
-                      fontWeight: FontWeight.w600,
-                      useGoogleFonts:
-                          !FlutterFlowTheme.of(context).titleSmallIsCustom,
-                    ),
-                elevation: 0.0,
-                borderRadius: BorderRadius.circular(30.0),
-              ),
             ),
           ],
         ),

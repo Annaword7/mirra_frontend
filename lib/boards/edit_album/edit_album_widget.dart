@@ -1,8 +1,8 @@
 import '/backend/supabase/supabase.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
 import '/design_system/components/app_text_field.dart';
+import '/design_system/components/app_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'edit_album_model.dart';
@@ -203,7 +203,9 @@ class _EditAlbumWidgetState extends State<EditAlbumWidget> {
               const SizedBox(height: 10.0),
 
               // Save button — always visible
-              FFButtonWidget(
+              AppButton(
+                label: FFLocalizations.of(context)
+                    .getText('ifhesf3b' /* Save Changes */),
                 onPressed: () async {
                   HapticFeedback.lightImpact();
                   FocusScope.of(context).unfocus();
@@ -218,57 +220,17 @@ class _EditAlbumWidgetState extends State<EditAlbumWidget> {
                   );
                   Navigator.pop(context);
                 },
-                text: FFLocalizations.of(context)
-                    .getText('ifhesf3b' /* Save Changes */),
-                options: FFButtonOptions(
-                  width: double.infinity,
-                  height: 55.0,
-                  padding: EdgeInsets.zero,
-                  iconPadding: EdgeInsets.zero,
-                  color: FlutterFlowTheme.of(context).primary,
-                  textStyle:
-                      FlutterFlowTheme.of(context).titleSmall.override(
-                            fontFamily: FlutterFlowTheme.of(context)
-                                .titleSmallFamily,
-                            color: Colors.white,
-                            letterSpacing: 0.0,
-                            fontWeight: FontWeight.w600,
-                            useGoogleFonts: !FlutterFlowTheme.of(context)
-                                .titleSmallIsCustom,
-                          ),
-                  elevation: 0.0,
-                  borderSide: const BorderSide(color: Colors.transparent),
-                  borderRadius: BorderRadius.circular(50.0),
-                ),
               ),
 
               // Delete button
-              FFButtonWidget(
+              AppButton(
+                label: FFLocalizations.of(context)
+                    .getText('aqmuxxl3' /* Delete */),
+                variant: AppButtonVariant.destructive,
                 onPressed: () async {
                   HapticFeedback.lightImpact();
                   await _confirmDeleteAlbum();
                 },
-                text: FFLocalizations.of(context).getText('aqmuxxl3' /* Delete */),
-                options: FFButtonOptions(
-                  width: double.infinity,
-                  height: 55.0,
-                  padding: EdgeInsets.zero,
-                  iconPadding: EdgeInsets.zero,
-                  color: FlutterFlowTheme.of(context).tertiary,
-                  textStyle:
-                      FlutterFlowTheme.of(context).titleSmall.override(
-                            fontFamily: FlutterFlowTheme.of(context)
-                                .titleSmallFamily,
-                            color: Colors.white,
-                            letterSpacing: 0.0,
-                            fontWeight: FontWeight.w600,
-                            useGoogleFonts: !FlutterFlowTheme.of(context)
-                                .titleSmallIsCustom,
-                          ),
-                  elevation: 0.0,
-                  borderSide: const BorderSide(color: Colors.transparent),
-                  borderRadius: BorderRadius.circular(50.0),
-                ),
               ),
             ].divide(const SizedBox(height: 10.0)),
           ),

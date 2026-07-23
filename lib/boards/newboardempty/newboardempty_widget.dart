@@ -1,7 +1,7 @@
 import '/components/new_album/new_album_widget.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
+import '/design_system/components/app_button.dart';
 import 'package:flutter/material.dart';
 import 'newboardempty_model.dart';
 export 'newboardempty_model.dart';
@@ -111,7 +111,11 @@ class _NewboardemptyWidgetState extends State<NewboardemptyWidget> {
                   ),
             ),
             const SizedBox(height: 32),
-            FFButtonWidget(
+            AppButton(
+              label: FFLocalizations.of(context).getText(
+                'o1bipgy8' /* Create collection */,
+              ),
+              icon: Icons.add,
               onPressed: () async {
                 await showModalBottomSheet(
                   isScrollControlled: true,
@@ -129,32 +133,6 @@ class _NewboardemptyWidgetState extends State<NewboardemptyWidget> {
                   widget.onBoardCreated?.call();
                 });
               },
-              text: FFLocalizations.of(context).getText(
-                'o1bipgy8' /* Create collection */,
-              ),
-              icon: Icon(
-                Icons.add,
-                size: 20.0,
-              ),
-              options: FFButtonOptions(
-                width: double.infinity,
-                height: 52.0,
-                padding: const EdgeInsets.all(8.0),
-                iconPadding: EdgeInsetsDirectional.zero,
-                iconColor: Colors.white,
-                color: FlutterFlowTheme.of(context).primary,
-                textStyle: FlutterFlowTheme.of(context).titleSmall.override(
-                      fontFamily:
-                          FlutterFlowTheme.of(context).titleSmallFamily,
-                      color: Colors.white,
-                      letterSpacing: 0.0,
-                      fontWeight: FontWeight.w500,
-                      useGoogleFonts:
-                          !FlutterFlowTheme.of(context).titleSmallIsCustom,
-                    ),
-                elevation: 0.0,
-                borderRadius: BorderRadius.circular(24.0),
-              ),
             ),
           ],
         ),

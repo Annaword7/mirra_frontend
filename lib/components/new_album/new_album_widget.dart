@@ -4,8 +4,8 @@ import '/backend/supabase/supabase.dart';
 import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
 import '/design_system/components/app_text_field.dart';
+import '/design_system/components/app_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'new_album_model.dart';
@@ -140,7 +140,10 @@ class _NewAlbumWidgetState extends State<NewAlbumWidget> {
                   ],
                 ),
               ),
-              FFButtonWidget(
+              AppButton(
+                label: FFLocalizations.of(context).getText(
+                  'h68noqox' /* Create */,
+                ),
                 onPressed: () async {
                   HapticFeedback.lightImpact();
                   if (_model.formKey.currentState == null ||
@@ -158,64 +161,16 @@ class _NewAlbumWidgetState extends State<NewAlbumWidget> {
 
                   safeSetState(() {});
                 },
-                text: FFLocalizations.of(context).getText(
-                  'h68noqox' /* Create */,
-                ),
-                options: FFButtonOptions(
-                  width: double.infinity,
-                  height: 55.0,
-                  padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                  iconPadding:
-                      EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                  color: FlutterFlowTheme.of(context).primary,
-                  textStyle: FlutterFlowTheme.of(context).titleSmall.override(
-                        fontFamily:
-                            FlutterFlowTheme.of(context).titleSmallFamily,
-                        color: Colors.white,
-                        letterSpacing: 0.0,
-                        fontWeight: FontWeight.w600,
-                        useGoogleFonts:
-                            !FlutterFlowTheme.of(context).titleSmallIsCustom,
-                      ),
-                  elevation: 0.0,
-                  borderSide: BorderSide(
-                    color: Colors.transparent,
-                    width: 1.0,
-                  ),
-                  borderRadius: BorderRadius.circular(50.0),
-                ),
               ),
-              FFButtonWidget(
+              AppButton(
+                label: FFLocalizations.of(context).getText(
+                  'sw4zsxbk' /* Cancel */,
+                ),
+                variant: AppButtonVariant.secondary,
                 onPressed: () async {
                   HapticFeedback.lightImpact();
                   Navigator.pop(context);
                 },
-                text: FFLocalizations.of(context).getText(
-                  'sw4zsxbk' /* Cancel */,
-                ),
-                options: FFButtonOptions(
-                  width: double.infinity,
-                  height: 55.0,
-                  padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                  iconPadding:
-                      EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                  color: FlutterFlowTheme.of(context).info,
-                  textStyle: FlutterFlowTheme.of(context).titleSmall.override(
-                        fontFamily:
-                            FlutterFlowTheme.of(context).titleSmallFamily,
-                        color: FlutterFlowTheme.of(context).primaryText,
-                        letterSpacing: 0.0,
-                        fontWeight: FontWeight.w600,
-                        useGoogleFonts:
-                            !FlutterFlowTheme.of(context).titleSmallIsCustom,
-                      ),
-                  elevation: 0.0,
-                  borderSide: BorderSide(
-                    color: FlutterFlowTheme.of(context).info,
-                    width: 1.0,
-                  ),
-                  borderRadius: BorderRadius.circular(50.0),
-                ),
               ),
             ].divide(SizedBox(height: 12.0)),
           ),

@@ -6,7 +6,7 @@ import '/components/navbar/navbar_widget.dart';
 import '/components/new_album/new_album_widget.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
+import '/design_system/components/app_button.dart';
 import '/index.dart';
 import 'package:flutter/material.dart';
 import 'boards_model.dart';
@@ -129,7 +129,13 @@ class _BoardsWidgetState extends State<BoardsWidget> {
                                             .titleLargeIsCustom,
                                   ),
                             ),
-                            FFButtonWidget(
+                            AppButton(
+                              label: FFLocalizations.of(context).getText(
+                                'lkfbdixo' /* New board */,
+                              ),
+                              icon: Icons.add,
+                              size: AppButtonSize.md,
+                              fullWidth: false,
                               onPressed: () async {
                                 await showModalBottomSheet(
                                   isScrollControlled: true,
@@ -152,34 +158,6 @@ class _BoardsWidgetState extends State<BoardsWidget> {
                                   },
                                 ).then((value) => _refresh());
                               },
-                              text: FFLocalizations.of(context).getText(
-                                'lkfbdixo' /* New board */,
-                              ),
-                              icon: Icon(
-                                Icons.add,
-                                size: 15.0,
-                              ),
-                              options: FFButtonOptions(
-                                height: 40.0,
-                                padding: EdgeInsetsDirectional.fromSTEB(
-                                    16.0, 0.0, 16.0, 0.0),
-                                iconPadding: EdgeInsetsDirectional.fromSTEB(
-                                    0.0, 0.0, 0.0, 0.0),
-                                color: FlutterFlowTheme.of(context).primary,
-                                textStyle: FlutterFlowTheme.of(context)
-                                    .titleSmall
-                                    .override(
-                                      fontFamily: FlutterFlowTheme.of(context)
-                                          .titleSmallFamily,
-                                      color: Colors.white,
-                                      letterSpacing: 0.0,
-                                      useGoogleFonts:
-                                          !FlutterFlowTheme.of(context)
-                                              .titleSmallIsCustom,
-                                    ),
-                                elevation: 0.0,
-                                borderRadius: BorderRadius.circular(24.0),
-                              ),
                             ),
                           ],
                         ),
