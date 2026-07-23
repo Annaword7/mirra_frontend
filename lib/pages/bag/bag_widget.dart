@@ -1,6 +1,7 @@
 import '/auth/supabase_auth/auth_util.dart';
 import '/backend/supabase/database/database.dart';
 import '/components/navbar/navbar_widget.dart';
+import '/components/profile_summary_card.dart';
 import '/design_system/components/app_button.dart';
 import '/domain/cosmetic_bag/cosmetic_bag_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -29,6 +30,7 @@ class _BagWidgetState extends State<BagWidget> {
   bool _loading = true;
   List<BagItemsRow> _items = [];
   Map<int, ImagesRow> _images = {};
+  UsersRow? _profile;
 
   @override
   void initState() {
@@ -51,10 +53,18 @@ class _BagWidgetState extends State<BagWidget> {
         );
         images = {for (final r in rows) r.id: r};
       }
+      UsersRow? profile;
+      if (currentUserUid.isNotEmpty) {
+        final rows = await UsersTable().queryRows(
+          queryFn: (q) => q.eqOrNull('id', currentUserUid),
+        );
+        profile = rows.isEmpty ? null : rows.first;
+      }
       if (!mounted) return;
       setState(() {
         _items = items;
         _images = images;
+        _profile = profile;
         _loading = false;
       });
     } catch (e) {
@@ -138,6 +148,8 @@ class _BagWidgetState extends State<BagWidget> {
           : ListView(
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 130),
               children: [
+                // «Твой профиль»: саммари онбординга, тап → квиз (изменить).
+                ProfileSummaryCard(profileRow: _profile),
                 Text(
                   _t('bag_subtitle'),
                   style: const TextStyle(color: Colors.black54, fontSize: 13.5),

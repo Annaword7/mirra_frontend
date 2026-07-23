@@ -9595,6 +9595,12 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ko': '항상 지킬게요. 조건 밖 제품은 대기열에서 기다려요.',
       'zh': '我会始终遵守——不符合的产品将进入等待队列。',
     },
+    'prof_skin_profile': {
+      'en': 'My skin profile', 'ru': 'Мой профиль кожи', 'es': 'Mi perfil de piel',
+      'de': 'Mein Hautprofil', 'fr': 'Mon profil de peau', 'it': 'Il mio profilo pelle',
+      'pt': 'Meu perfil de pele', 'tr': 'Cilt profilim', 'ja': '肌プロフィール',
+      'ko': '내 피부 프로필', 'zh': '我的肤质档案',
+    },
     'prefs_title': {
       'en': 'Care preferences', 'ru': 'Предпочтения ухода', 'es': 'Preferencias de cuidado',
       'de': 'Pflege-Präferenzen', 'fr': 'Préférences de soin', 'it': 'Preferenze di cura',
