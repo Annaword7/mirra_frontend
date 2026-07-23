@@ -391,7 +391,7 @@ class _Tooltip extends StatelessWidget {
                       Text(
                         _statusLabel(context, bubble.status),
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: 12,
                           color: bubble.color,
                           fontWeight: FontWeight.w600,
                         ),
@@ -401,7 +401,7 @@ class _Tooltip extends StatelessWidget {
                         Text(
                           '~${bubble.conc.toStringAsFixed(bubble.conc < 1 ? 1 : 0)}%',
                           style: const TextStyle(
-                            fontSize: 11,
+                            fontSize: 12,
                             color: Color(0xFF888888),
                           ),
                         ),

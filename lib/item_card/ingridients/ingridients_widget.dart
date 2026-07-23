@@ -190,7 +190,7 @@ class _LegendDot extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            fontSize: 11,
+            fontSize: 12,
             color: textColor,
             fontWeight: FontWeight.w600,
           ),

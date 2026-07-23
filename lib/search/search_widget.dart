@@ -484,7 +484,7 @@ class _SearchWidgetState extends State<SearchWidget> {
                   ),
                   child: Text(
                     '${selected.length}',
-                    style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+                    style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
                   ),
                 ),
               ],

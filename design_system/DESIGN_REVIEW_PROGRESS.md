@@ -159,3 +159,13 @@ share-card 7.5px mini-bars) → **I4** (painters rebuilt there); **untranslated 
   contrast; C1·Log In (helper #6), Search·#301 (faded placeholder), Profile/settings chevron-label
   rows, forgot-password body #6 — the app-wide body-copy contrast failure. **Note:** this is an
   intentional global visual change (all secondary text darkens) — approved.
+- ✅ **3.2** `fix(a11y): raise sub-12 Text to 12px floor` — bumped `fontSize:11 → 12` on 7 plain leaf
+  `Text` widgets: search selection-count chip (487), imagedetailed SPF badge (190), ingridients
+  status label (193), login_feature_cards score `94/100` (120) + scan subtitle (265) + pill label
+  (373), profile env badge (136), ingredient_bubbles legend status-label (394) + concentration (404).
+  1px bumps, no layout risk. `flutter analyze`: **0 errors / 0 warnings**. **Resolved (font-size
+  part):** C·ingredient_bubbles legend, feature-card sub-12, search count. **Excluded/deferred:**
+  **paywall** 587 → I10; **startanalys** 253 → **I12** (widget is unrouted/dead — no route or
+  external instantiation); **share_card** (7.5/9) + **score_breakdown** (8/9/9.5) → **I4** (text
+  inside `CustomPaint`/`TextPainter` — rebuilt with the score system, changing size now risks
+  painter layout). Non-color status cue on the ingredient_bubbles label stays for **I4**.

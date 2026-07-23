@@ -133,7 +133,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                 FFDevEnvironmentValues.envLabel,
                                 style: const TextStyle(
                                   color: Colors.white,
-                                  fontSize: 11.0,
+                                  fontSize: 12.0,
                                   fontWeight: FontWeight.w700,
                                   letterSpacing: 0.5,
                                 ),

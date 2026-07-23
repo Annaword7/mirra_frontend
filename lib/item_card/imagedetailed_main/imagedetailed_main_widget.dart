@@ -187,7 +187,7 @@ class _ImagedetailedMainWidgetState extends State<ImagedetailedMainWidget> {
                             Text(
                               'SPF',
                               style: TextStyle(
-                                fontSize: 11,
+                                fontSize: 12,
                                 fontWeight: FontWeight.w700,
                                 color: Colors.white,
                                 letterSpacing: 0.5,
