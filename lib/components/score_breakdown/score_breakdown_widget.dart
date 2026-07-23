@@ -2,6 +2,7 @@ import 'dart:math';
 import 'dart:ui' as ui;
 import '/backend/supabase/supabase.dart';
 import '/flutter_flow/flutter_flow_util.dart';
+import '/design_system/foundations/score_status.dart';
 import 'package:flutter/material.dart';
 
 // ─── Radar data models ────────────────────────────────────
@@ -265,15 +266,15 @@ class _RadarLegend extends StatelessWidget {
           label: t('radar_score'),
         ),
         _LegendItem(
-          child: _dot(12, const Color(0xFF2E7D32), true),
+          child: _dot(12, kStatusWorking, true),
           label: t('radar_working'),
         ),
         _LegendItem(
-          child: _dot(12, const Color(0xFFF9A825), true),
+          child: _dot(12, kStatusBorderline, true),
           label: t('radar_borderline'),
         ),
         _LegendItem(
-          child: _dot(12, const Color(0xFF9E9E9E), false),
+          child: _dot(12, kStatusDecorative, false),
           label: t('radar_trace'),
         ),
         _LegendItem(
@@ -324,7 +325,7 @@ class _LegendItem extends StatelessWidget {
         child,
         const SizedBox(width: 5),
         Text(label,
-            style: const TextStyle(fontSize: 9.5, color: Color(0xFF667799))),
+            style: const TextStyle(fontSize: 12, color: Color(0xFF667799))),
       ],
     );
   }
@@ -366,25 +367,10 @@ class ScoreBreakdownWidget extends StatelessWidget {
     for (final ing in topIngredients) {
       final pos = ing.inciPosition;
       if (pos == null) continue;
-      Color c;
-      bool filled;
-      switch (ing.status) {
-        case 'working':
-          c = const Color(0xFF2E7D32);
-          filled = true;
-          break;
-        case 'borderline':
-          c = const Color(0xFFF9A825);
-          filled = true;
-          break;
-        case 'decorative':
-          c = const Color(0xFF9E9E9E);
-          filled = false;
-          break;
-        default:
-          c = const Color(0xFF2E7D32);
-          filled = true;
-      }
+      // Dose-status colors from the shared foundation (working green /
+      // borderline amber / decorative & unknown grey); decorative is hollow.
+      final c = statusColor(ing.status);
+      final filled = ing.status != 'decorative';
       final contrib = ing.efficacyContribution ?? 0;
       activeDots.add(_DotData(
         pos: pos,

@@ -257,3 +257,19 @@ palette (product_card_v2 + ingredient_bubbles) · 4.4 painters (score_breakdown 
   by status (pre-existing amber-on-white + the decorative grey shifted #6B6B6B→#9E9E9E) — 4.5 switches
   status labels to legible ink + an icon cue, removing color-from-text. **Note:** `_fitColor`'s 3-tier
   75/60 cutoff is untouched (score-scale reconciliation, not status) — tracked for a later look.
+- ✅ **4.4** `refactor(radar): unify score_breakdown status colors + legend text` — the radar
+  (`_RadarPainter` + `_RadarLegend` in score_breakdown) now draws **dose-status dots** via the shared
+  `statusColor()` (active-dots switch collapsed to `statusColor(ing.status)` + `filled = status !=
+  'decorative'`; legend dots use `kStatusWorking/kStatusBorderline/kStatusDecorative`) — working green
+  #2E7D32→#1B5E20, borderline #F9A825→#FFB300, decorative #9E9E9E (unchanged), unknown default
+  green→grey. Legend widget-text 9.5→**12** (reflowing `Wrap`, safe). `flutter analyze`: **0 errors /
+  0 warnings**; tests `+9 -1`. **Resolved:** B2 status colors in the radar (now unified with
+  product_card_v2 + ingredient_bubbles). **Intentionally left (per paused color-tokenization track +
+  not-status):** radar **chrome** — grid `#14/1A000000`, score polygon `#3B6FCC`/`#4E7FE8`, slate-blue
+  axis labels `#445588`/`#667799`, 1%-line gold `#B8860B`/`#CCF9A825`; and **issue-severity reds**
+  `#C62828`/`#E53935` (a separate severity axis, no status token).
+  **⏸ Deferred (needs on-device radar-layout verification):** the **in-painter** sub-12 text — axis
+  label 9.5, per-axis score 9, '1%' 8 — sit at computed polar positions with left/right/center
+  alignment; raising to 12 risks clipping/overlap of long localized labels (DE/RU). Flagged in B3/B2
+  #400, to be done with a device check (not dropped). **share_card painter sub-12** (7.5/9px mini-bars)
+  similarly deferred to a device-verified pass.
