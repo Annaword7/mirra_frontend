@@ -2,6 +2,7 @@ import '/flutter_flow/flutter_flow_animations.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
+import '/design_system/components/feature_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -250,176 +251,56 @@ class _PaywallConfirmationWidgetState extends State<PaywallConfirmationWidget>
                 ).animateOnPageLoad(animationsMap['textOnPageLoadAnimation']!),
               ),
               Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(16.0, 16.0, 16.0, 0.0),
-                child: Row(
-                  mainAxisSize: MainAxisSize.max,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 40.0,
-                      height: 40.0,
-                      decoration: BoxDecoration(
-                        color: FlutterFlowTheme.of(context).primary,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Align(
-                        alignment: AlignmentDirectional(0.0, 0.0),
-                        child: Icon(
-                          Icons.auto_awesome_outlined,
-                          color: FlutterFlowTheme.of(context).alternate,
-                          size: 20.0,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                        FFLocalizations.of(context).getText(
-                          'l13naqtt' /* 200 analytics requests per mon... */,
-                        ),
-                        textAlign: TextAlign.start,
-                        style: FlutterFlowTheme.of(context).bodyMedium.override(
-                              fontFamily:
-                                  FlutterFlowTheme.of(context).bodyMediumFamily,
-                              color: FlutterFlowTheme.of(context).secondaryText,
-                              fontSize: 16.0,
-                              letterSpacing: 0.0,
-                              fontWeight: FontWeight.w500,
-                              lineHeight: 1.1,
-                              useGoogleFonts: !FlutterFlowTheme.of(context)
-                                  .bodyMediumIsCustom,
-                            ),
-                      ),
-                    ),
-                  ].divide(SizedBox(width: 12.0)),
+                padding:
+                    const EdgeInsetsDirectional.fromSTEB(16.0, 16.0, 16.0, 0.0),
+                child: FeatureRow(
+                  icon: Icons.auto_awesome_outlined,
+                  label: FFLocalizations.of(context).getText(
+                    'l13naqtt' /* 200 analytics requests per mon... */,
+                  ),
+                  textColor: FlutterFlowTheme.of(context).secondaryText,
+                  fontSize: 16.0,
+                  lineHeight: 1.1,
                 ).animateOnPageLoad(animationsMap['rowOnPageLoadAnimation1']!),
               ),
               Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(16.0, 8.0, 16.0, 0.0),
-                child: Row(
-                  mainAxisSize: MainAxisSize.max,
-                  children: [
-                    Container(
-                      width: 40.0,
-                      height: 40.0,
-                      decoration: BoxDecoration(
-                        color: FlutterFlowTheme.of(context).primary,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Align(
-                        alignment: AlignmentDirectional(0.0, 0.0),
-                        child: Icon(
-                          Icons.download_outlined,
-                          color: FlutterFlowTheme.of(context).alternate,
-                          size: 22.0,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                        FFLocalizations.of(context).getText(
-                          '8slgbpit' /* Save to collections */,
-                        ),
-                        textAlign: TextAlign.start,
-                        style: FlutterFlowTheme.of(context).bodyMedium.override(
-                              fontFamily:
-                                  FlutterFlowTheme.of(context).bodyMediumFamily,
-                              color: FlutterFlowTheme.of(context).secondaryText,
-                              fontSize: 16.0,
-                              letterSpacing: 0.0,
-                              fontWeight: FontWeight.w500,
-                              lineHeight: 1.1,
-                              useGoogleFonts: !FlutterFlowTheme.of(context)
-                                  .bodyMediumIsCustom,
-                            ),
-                      ),
-                    ),
-                  ].divide(SizedBox(width: 12.0)),
+                padding:
+                    const EdgeInsetsDirectional.fromSTEB(16.0, 8.0, 16.0, 0.0),
+                child: FeatureRow(
+                  icon: Icons.download_outlined,
+                  iconSize: 22.0,
+                  label: FFLocalizations.of(context).getText(
+                    '8slgbpit' /* Save to collections */,
+                  ),
+                  textColor: FlutterFlowTheme.of(context).secondaryText,
+                  fontSize: 16.0,
+                  lineHeight: 1.1,
                 ).animateOnPageLoad(animationsMap['rowOnPageLoadAnimation2']!),
               ),
               Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(16.0, 8.0, 16.0, 0.0),
-                child: Row(
-                  mainAxisSize: MainAxisSize.max,
-                  children: [
-                    Container(
-                      width: 40.0,
-                      height: 40.0,
-                      decoration: BoxDecoration(
-                        color: FlutterFlowTheme.of(context).primary,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Align(
-                        alignment: AlignmentDirectional(0.0, 0.0),
-                        child: Icon(
-                          Icons.share,
-                          color: FlutterFlowTheme.of(context).alternate,
-                          size: 20.0,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                        FFLocalizations.of(context).getText(
-                          'nyi1gh42' /* Share your finds */,
-                        ),
-                        textAlign: TextAlign.start,
-                        style: FlutterFlowTheme.of(context).bodyMedium.override(
-                              fontFamily:
-                                  FlutterFlowTheme.of(context).bodyMediumFamily,
-                              color: FlutterFlowTheme.of(context).secondaryText,
-                              fontSize: 16.0,
-                              letterSpacing: 0.0,
-                              fontWeight: FontWeight.w500,
-                              lineHeight: 1.1,
-                              useGoogleFonts: !FlutterFlowTheme.of(context)
-                                  .bodyMediumIsCustom,
-                            ),
-                      ),
-                    ),
-                  ].divide(SizedBox(width: 12.0)),
+                padding:
+                    const EdgeInsetsDirectional.fromSTEB(16.0, 8.0, 16.0, 0.0),
+                child: FeatureRow(
+                  icon: Icons.share,
+                  label: FFLocalizations.of(context).getText(
+                    'nyi1gh42' /* Share your finds */,
+                  ),
+                  textColor: FlutterFlowTheme.of(context).secondaryText,
+                  fontSize: 16.0,
+                  lineHeight: 1.1,
                 ).animateOnPageLoad(animationsMap['rowOnPageLoadAnimation3']!),
               ),
               Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(16.0, 8.0, 16.0, 0.0),
-                child: Row(
-                  mainAxisSize: MainAxisSize.max,
-                  children: [
-                    Container(
-                      width: 40.0,
-                      height: 40.0,
-                      decoration: BoxDecoration(
-                        color: FlutterFlowTheme.of(context).primary,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Align(
-                        alignment: AlignmentDirectional(0.0, 0.0),
-                        child: Icon(
-                          Icons.stars_rounded,
-                          color: FlutterFlowTheme.of(context).alternate,
-                          size: 20.0,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                        FFLocalizations.of(context).getText(
-                          'nzvzb6kk' /* High-rated formulas */,
-                        ),
-                        textAlign: TextAlign.start,
-                        style: FlutterFlowTheme.of(context).bodyMedium.override(
-                              fontFamily:
-                                  FlutterFlowTheme.of(context).bodyMediumFamily,
-                              color: FlutterFlowTheme.of(context).secondaryText,
-                              fontSize: 16.0,
-                              letterSpacing: 0.0,
-                              fontWeight: FontWeight.w500,
-                              lineHeight: 1.1,
-                              useGoogleFonts: !FlutterFlowTheme.of(context)
-                                  .bodyMediumIsCustom,
-                            ),
-                      ),
-                    ),
-                  ].divide(SizedBox(width: 12.0)),
+                padding:
+                    const EdgeInsetsDirectional.fromSTEB(16.0, 8.0, 16.0, 0.0),
+                child: FeatureRow(
+                  icon: Icons.stars_rounded,
+                  label: FFLocalizations.of(context).getText(
+                    'nzvzb6kk' /* High-rated formulas */,
+                  ),
+                  textColor: FlutterFlowTheme.of(context).secondaryText,
+                  fontSize: 16.0,
+                  lineHeight: 1.1,
                 ).animateOnPageLoad(animationsMap['rowOnPageLoadAnimation4']!),
               ),
               Padding(

@@ -327,3 +327,9 @@ typo + `LinkText`.
   (**390 → 74 lines**), preserving icons/keys/FaIcon(eyeSlash@18)/spacing (`.divide(8)` + 16 ends).
   Removed orphaned `flutter_flow_theme` import. `flutter analyze`: **0 errors / 0 warnings**; tests
   `+9 -1`. **Resolved:** C7·PremiumFeaturesList·#1,#4. **Next:** paywall_confirmation's 4 rows (10.1b).
+- ✅ **10.1b** `refactor(paywall): confirmation feature rows → FeatureRow` — migrated
+  paywall_confirmation's 4 rows to `FeatureRow` (extended with `fontSize`/`lineHeight` params, defaults
+  15/1.3; confirmation uses `secondaryText` + 16/1.1, download icon 22), preserving the per-row
+  `animateOnPageLoad` + paddings. **467 → 348 lines.** `flutter analyze`: **0 errors / 0 warnings**;
+  tests `+9 -1`. **Resolved:** C7·PremiumFeaturesList·#2 (shared FeatureRow), PaywallConfirmation·#2.
+  **Note:** paywall_confirmation's sheet **shell** (100×5 handle, r24) + PRO pill remain for I6/10.2.

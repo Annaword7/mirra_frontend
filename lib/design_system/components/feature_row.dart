@@ -17,6 +17,8 @@ class FeatureRow extends StatelessWidget {
     this.badgeColor,
     this.iconColor,
     this.textColor,
+    this.fontSize = 15.0,
+    this.lineHeight = 1.3,
   });
 
   final IconData icon;
@@ -34,6 +36,9 @@ class FeatureRow extends StatelessWidget {
 
   /// Label color. Defaults to white (dark paywall surface).
   final Color? textColor;
+
+  final double fontSize;
+  final double lineHeight;
 
   @override
   Widget build(BuildContext context) {
@@ -66,10 +71,10 @@ class FeatureRow extends StatelessWidget {
             style: theme.bodyMedium.override(
               fontFamily: theme.bodyMediumFamily,
               color: textColor ?? Colors.white,
-              fontSize: 15.0,
+              fontSize: fontSize,
               letterSpacing: 0.0,
               fontWeight: FontWeight.w500,
-              lineHeight: 1.3,
+              lineHeight: lineHeight,
               useGoogleFonts: !theme.bodyMediumIsCustom,
             ),
           ),
