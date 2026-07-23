@@ -43,6 +43,9 @@ class RoutineEventsRow extends SupabaseDataRow {
   set localNotificationId(int? value) =>
       setField<int>('local_notification_id', value);
 
+  int? get sortOrder => getField<int>('sort_order');
+  set sortOrder(int? value) => setField<int>('sort_order', value);
+
   DateTime? get createdAt => getField<DateTime>('created_at');
   set createdAt(DateTime? value) => setField<DateTime>('created_at', value);
 }

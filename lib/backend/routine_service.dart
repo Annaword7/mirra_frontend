@@ -33,6 +33,8 @@ class RoutineService {
     required List<int> weekdays,
     required int hour,
     required int minute,
+    String? partOfDay,
+    int? sortOrder,
   }) async {
     final userId = _userId;
     if (userId == null || weekdays.isEmpty) return;
@@ -40,10 +42,11 @@ class RoutineService {
       'user_id': userId,
       'image_id': imageId,
       'title': title,
-      'part_of_day': hour < 12 ? 'am' : 'pm',
+      'part_of_day': partOfDay ?? (hour < 12 ? 'am' : 'pm'),
       'weekdays': weekdays,
       'time_of_day': _fmt(hour, minute),
       'enabled': true,
+      'sort_order': sortOrder,
     });
   }
 
@@ -68,39 +71,122 @@ class RoutineService {
       queryFn: (q) => q.inFilterOrNull('id', ids),
     );
     final byName = <String, int>{};
+    final nameById = <int, String>{};
     for (final r in rows) {
-      final n = (r.productName ?? '').trim().toLowerCase();
-      if (n.isNotEmpty) byName[n] = r.id;
+      final n = (r.productName ?? '').trim();
+      if (n.isNotEmpty) byName[n.toLowerCase()] = r.id;
+      nameById[r.id] = n;
     }
 
     final existing = await getEvents();
-    final have = existing.map((e) => '${e.imageId}_${e.partOfDay}').toSet();
-    var created = 0;
 
-    Future<void> gen(List<dynamic> steps, String part, int h, int m) async {
+    // Keep the user's section times: earliest existing time per part of day.
+    (int, int) partTime(String part, int defH, int defM) {
+      var best = -1;
+      for (final e in existing.where((e) => (e.partOfDay ?? 'am') == part)) {
+        final p = (e.timeOfDay ?? '').split(':');
+        final h = int.tryParse(p.isNotEmpty ? p[0] : '');
+        if (h == null) continue;
+        final m = int.tryParse(p.length > 1 ? p[1] : '') ?? 0;
+        final t = h * 60 + m;
+        if (best < 0 || t < best) best = t;
+      }
+      return best < 0 ? (defH, defM) : (best ~/ 60, best % 60);
+    }
+
+    // Desired schedule: key `imageId_part` -> step data.
+    final desired =
+        <String, ({int imageId, String title, List<int> weekdays, int? sortOrder, String part})>{};
+    void collect(List<dynamic> steps, String part) {
       for (final step in steps) {
         if (step is! Map) continue;
         final name = (step['product'] ?? '').toString().trim();
-        if (name.isEmpty) continue;
-        final imageId = byName[name.toLowerCase()];
+        // Prefer the scheduler's explicit image id; fall back to name match.
+        // Either way the product must still be in the bag (nameById keys).
+        final rawId = step['image_id'];
+        final imageId = (rawId is int && nameById.containsKey(rawId))
+            ? rawId
+            : (name.isEmpty ? null : byName[name.toLowerCase()]);
         if (imageId == null) continue;
-        final key = '${imageId}_$part';
-        if (have.contains(key)) continue;
-        have.add(key);
-        await addEvent(
+        final title = name.isNotEmpty ? name : (nameById[imageId] ?? '');
+        if (title.isEmpty) continue;
+        // Weekly schedule from the deterministic scheduler; older cached
+        // results have no `days` -> every day.
+        final days = (step['days'] is List)
+            ? (step['days'] as List)
+                .map((d) => int.tryParse(d.toString()))
+                .whereType<int>()
+                .where((d) => d >= 1 && d <= 7)
+                .toSet()
+                .toList()
+            : <int>[];
+        desired['${imageId}_$part'] = (
           imageId: imageId,
-          title: name,
-          weekdays: const [1, 2, 3, 4, 5, 6, 7],
-          hour: h,
-          minute: m,
+          title: title,
+          weekdays:
+              days.isEmpty ? const [1, 2, 3, 4, 5, 6, 7] : (days..sort()),
+          sortOrder: int.tryParse((step['step'] ?? '').toString()),
+          part: part,
         );
-        created++;
       }
     }
 
-    await gen(am, 'am', amHour, amMinute);
-    await gen(pm, 'pm', pmHour, pmMinute);
-    return created;
+    collect(am, 'am');
+    collect(pm, 'pm');
+
+    // Reconcile. Scheduler-created events (sort_order set) are owned by the
+    // schedule: update them in place, delete the ones no longer scheduled
+    // (e.g. a retinoid that used to sit in the AM section). Manual events
+    // (sort_order null) are never touched.
+    var changes = 0;
+    final manualKeys = <String>{};
+    for (final e in existing) {
+      final key = '${e.imageId}_${e.partOfDay}';
+      if (e.sortOrder == null) {
+        manualKeys.add(key);
+        continue;
+      }
+      if (e.id == null) continue;
+      final want = desired.remove(key);
+      if (want == null) {
+        await deleteEvent(e);
+        changes++;
+      } else {
+        await SupaFlow.client.from('routine_events').update({
+          'title': want.title,
+          'weekdays': want.weekdays,
+          'sort_order': want.sortOrder,
+        }).eq('id', e.id!);
+        changes++;
+      }
+    }
+    for (final want in desired.values) {
+      // A manual event already covers this product+part — leave it alone.
+      if (manualKeys.contains('${want.imageId}_${want.part}')) continue;
+      final (h, m) = want.part == 'am'
+          ? partTime('am', amHour, amMinute)
+          : partTime('pm', pmHour, pmMinute);
+      await addEvent(
+        imageId: want.imageId,
+        title: want.title,
+        weekdays: want.weekdays,
+        hour: h,
+        minute: m,
+        partOfDay: want.part,
+        sortOrder: want.sortOrder,
+      );
+      changes++;
+    }
+    return changes;
+  }
+
+  /// Update the weekdays a product is applied on. Time stays per part of day
+  /// (the section chip), reminders stay the two shared AM/PM digests.
+  Future<void> updateEventDays(RoutineEventsRow row, List<int> weekdays) async {
+    if (row.id == null || weekdays.isEmpty) return;
+    await SupaFlow.client
+        .from('routine_events')
+        .update({'weekdays': weekdays}).eq('id', row.id!);
   }
 
   Future<void> deleteEvent(RoutineEventsRow row) async {
@@ -117,6 +203,18 @@ class RoutineService {
     await SupaFlow.client
         .from('routine_events')
         .update({'time_of_day': _fmt(hour, minute)})
+        .eq('user_id', userId)
+        .eq('part_of_day', part);
+  }
+
+  /// Turn the shared AM/PM digest push on/off for a part of day (bulk update
+  /// on its events; syncDigests skips disabled ones).
+  Future<void> setPartEnabled(String part, bool enabled) async {
+    final userId = _userId;
+    if (userId == null) return;
+    await SupaFlow.client
+        .from('routine_events')
+        .update({'enabled': enabled})
         .eq('user_id', userId)
         .eq('part_of_day', part);
   }

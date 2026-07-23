@@ -377,7 +377,9 @@ class AnalyzeCompatibilityCall {
     String? languageCode = 'en',
     String? userId = '',
     Map<String, dynamic>? skinProfile,
+    String? host,
   }) async {
+    host ??= FFDevEnvironmentValues().backendhost;
     final ffApiRequestBody = json.encode({
       'image_ids': imageIds ?? const <int>[],
       'language_code': languageCode,
@@ -386,8 +388,7 @@ class AnalyzeCompatibilityCall {
     });
     return ApiManager.instance.makeApiCall(
       callName: 'analyzeCompatibility',
-      apiUrl:
-          'https://pjapsfbztorijypnldam.supabase.co/functions/v1/analyze-compatibility',
+      apiUrl: '${host}api/mirra/analyze-compatibility',
       callType: ApiCallType.POST,
       headers: {
         'Authorization': 'Bearer ${token}',

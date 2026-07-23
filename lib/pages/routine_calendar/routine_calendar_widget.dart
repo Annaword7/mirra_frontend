@@ -1,9 +1,10 @@
-import '/auth/supabase_auth/auth_util.dart';
+import '/backend/cosmetic_bag_service.dart';
 import '/backend/routine_service.dart';
 import '/backend/supabase/database/database.dart';
 import '/components/navbar/navbar_widget.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
+import '/pages/cosmetic_bag/cosmetic_bag_widget.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -84,7 +85,9 @@ class _RoutineCalendarWidgetState extends State<RoutineCalendarWidget> {
   String? _partTime(String part) {
     final list = _forDay(part);
     if (list.isEmpty) return null;
-    final t = (list.first.timeOfDay ?? '').split(':');
+    final earliest =
+        list.reduce((a, b) => _minutesOf(a) <= _minutesOf(b) ? a : b);
+    final t = (earliest.timeOfDay ?? '').split(':');
     return t.length >= 2 ? '${t[0]}:${t[1]}' : null;
   }
 
@@ -114,49 +117,133 @@ class _RoutineCalendarWidgetState extends State<RoutineCalendarWidget> {
         .where((e) =>
             e.weekdays.contains(_selectedDay) && (e.partOfDay ?? 'am') == part)
         .toList();
-    list.sort((a, b) => _minutesOf(a).compareTo(_minutesOf(b)));
+    // LLM step order first (manual events without one go last), then time,
+    // then creation order.
+    list.sort((a, b) {
+      final ao = a.sortOrder;
+      final bo = b.sortOrder;
+      if (ao != bo) {
+        if (ao == null) return 1;
+        if (bo == null) return -1;
+        return ao.compareTo(bo);
+      }
+      final t = _minutesOf(a).compareTo(_minutesOf(b));
+      if (t != 0) return t;
+      return (a.createdAt ?? DateTime(2000))
+          .compareTo(b.createdAt ?? DateTime(2000));
+    });
     return list;
   }
 
-  Future<void> _delete(RoutineEventsRow e) async {
-    await RoutineService.instance.deleteEvent(e);
-    if (mounted) _load();
-  }
-
-  Future<void> _addFlow() async {
+  Future<void> _editEvent(RoutineEventsRow e) async {
     HapticFeedback.lightImpact();
-    final scans = await ImagesTable().queryRows(
-      queryFn: (q) =>
-          q.eqOrNull('user', currentUserUid).order('id', ascending: false),
-      limit: 50,
-    );
-    if (!mounted) return;
-    final result = await showModalBottomSheet<_RoutineDraft>(
+    final result = await showModalBottomSheet<_EditResult>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (_) => _AddReminderSheet(
-        scans: scans,
+      builder: (_) => _EditReminderSheet(
+        event: e,
+        image: e.imageId != null ? _images[e.imageId] : null,
         weekdayLabels: _weekdayLabels,
       ),
     );
     if (result == null) return;
-    await RoutineService.instance.addEvent(
-      imageId: result.imageId,
-      title: result.title,
-      weekdays: result.weekdays,
-      hour: result.time.hour,
-      minute: result.time.minute,
+    if (result.delete) {
+      await RoutineService.instance.deleteEvent(e);
+    } else {
+      await RoutineService.instance.updateEventDays(e, result.weekdays);
+    }
+    if (mounted) _load();
+  }
+
+  /// The digest push toggle is part-wide: on if any event of the part is
+  /// enabled.
+  bool _partEnabled(String part) =>
+      _events.any((e) => (e.partOfDay ?? 'am') == part && (e.enabled ?? false));
+
+  /// The shared time of a part of day across all events (they share one time),
+  /// or the AM/PM default when the part is empty.
+  TimeOfDay _partTimeOrDefault(String part) {
+    final ev =
+        _events.where((e) => (e.partOfDay ?? 'am') == part).toList();
+    if (ev.isEmpty) {
+      return part == 'am'
+          ? const TimeOfDay(hour: 8, minute: 0)
+          : const TimeOfDay(hour: 21, minute: 0);
+    }
+    final earliest =
+        ev.reduce((a, b) => _minutesOf(a) <= _minutesOf(b) ? a : b);
+    final parts = (earliest.timeOfDay ?? '').split(':');
+    return TimeOfDay(
+      hour: int.tryParse(parts.isNotEmpty ? parts[0] : '') ??
+          (part == 'am' ? 8 : 21),
+      minute: int.tryParse(parts.length > 1 ? parts[1] : '') ?? 0,
     );
+  }
+
+  /// Pick a product from the cosmetic bag and add it to the AM and/or PM
+  /// routine for the chosen weekdays.
+  Future<void> _addFromBagFlow() async {
+    HapticFeedback.lightImpact();
+    final slots = await CosmeticBagService.instance.getSlots();
+    final ids =
+        slots.map((s) => s.imageId).whereType<int>().toSet().toList();
+    if (!mounted) return;
+    if (ids.isEmpty) {
+      // Nothing in the bag yet — send the user there.
+      context.pushNamed(CosmeticBagWidget.routeName);
+      return;
+    }
+    final rows = await ImagesTable().queryRows(
+      queryFn: (q) => q.inFilterOrNull('id', ids),
+    );
+    if (!mounted) return;
+    final result = await showModalBottomSheet<_BagDraft>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => _AddFromBagSheet(
+        products: rows,
+        weekdayLabels: _weekdayLabels,
+      ),
+    );
+    if (result == null) return;
+    final have = _events.map((e) => '${e.imageId}_${e.partOfDay}').toSet();
+    for (final part in [
+      if (result.am) 'am',
+      if (result.pm) 'pm',
+    ]) {
+      // Skip parts where this product is already scheduled.
+      if (have.contains('${result.imageId}_$part')) continue;
+      final time = _partTimeOrDefault(part);
+      await RoutineService.instance.addEvent(
+        imageId: result.imageId,
+        title: result.title,
+        weekdays: result.weekdays,
+        hour: time.hour,
+        minute: time.minute,
+        partOfDay: part,
+      );
+    }
+    if (mounted) _load();
+  }
+
+  Future<void> _togglePartPush(String part, bool value) async {
+    HapticFeedback.lightImpact();
+    await RoutineService.instance.setPartEnabled(part, value);
     if (mounted) _load();
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
+    final showEmpty = !_loading && _events.isEmpty;
     return Scaffold(
       backgroundColor: Colors.white,
       extendBody: true,
@@ -174,13 +261,16 @@ class _RoutineCalendarWidgetState extends State<RoutineCalendarWidget> {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _addFlow,
-        backgroundColor: theme.primary,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.add),
-        label: Text(FFLocalizations.of(context).getText('cb_routine_add')),
-      ),
+      floatingActionButton: showEmpty
+          ? null
+          : FloatingActionButton.extended(
+              onPressed: _addFromBagFlow,
+              backgroundColor: theme.primary,
+              foregroundColor: Colors.white,
+              icon: const Icon(Icons.add),
+              label: Text(FFLocalizations.of(context)
+                  .getText('cb_routine_add_from_bag')),
+            ),
       bottomNavigationBar: wrapWithModel(
         model: _model.navbarModel,
         updateCallback: () => safeSetState(() {}),
@@ -188,44 +278,56 @@ class _RoutineCalendarWidgetState extends State<RoutineCalendarWidget> {
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                _DaySelector(
-                  labels: _weekdayLabels,
-                  selected: _selectedDay,
-                  onSelect: (d) => setState(() => _selectedDay = d),
+          : showEmpty
+              ? _EmptyRoutineState(
                   primary: theme.primary,
-                ),
-                Expanded(
-                  child: ListView(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 130),
-                    children: [
-                      _DaySection(
-                        title: FFLocalizations.of(context).getText('cb_sec_am'),
-                        icon: Icons.wb_sunny_rounded,
-                        events: _forDay('am'),
-                        images: _images,
-                        sectionTime: _partTime('am'),
-                        onEditTime: () => _editPartTime('am'),
-                        onDelete: _delete,
-                        primary: theme.primary,
+                  onGoToBag: () =>
+                      context.pushNamed(CosmeticBagWidget.routeName),
+                )
+              : Column(
+                  children: [
+                    _DaySelector(
+                      labels: _weekdayLabels,
+                      selected: _selectedDay,
+                      onSelect: (d) => setState(() => _selectedDay = d),
+                      primary: theme.primary,
+                    ),
+                    Expanded(
+                      child: ListView(
+                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 130),
+                        children: [
+                          _DaySection(
+                            title: FFLocalizations.of(context)
+                                .getText('cb_sec_am'),
+                            icon: Icons.wb_sunny_rounded,
+                            events: _forDay('am'),
+                            images: _images,
+                            sectionTime: _partTime('am'),
+                            onEditTime: () => _editPartTime('am'),
+                            onEdit: _editEvent,
+                            pushEnabled: _partEnabled('am'),
+                            onTogglePush: (v) => _togglePartPush('am', v),
+                            primary: theme.primary,
+                          ),
+                          const SizedBox(height: 20),
+                          _DaySection(
+                            title: FFLocalizations.of(context)
+                                .getText('cb_sec_pm'),
+                            icon: Icons.nightlight_round,
+                            events: _forDay('pm'),
+                            images: _images,
+                            sectionTime: _partTime('pm'),
+                            onEditTime: () => _editPartTime('pm'),
+                            onEdit: _editEvent,
+                            pushEnabled: _partEnabled('pm'),
+                            onTogglePush: (v) => _togglePartPush('pm', v),
+                            primary: theme.primary,
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 20),
-                      _DaySection(
-                        title: FFLocalizations.of(context).getText('cb_sec_pm'),
-                        icon: Icons.nightlight_round,
-                        events: _forDay('pm'),
-                        images: _images,
-                        sectionTime: _partTime('pm'),
-                        onEditTime: () => _editPartTime('pm'),
-                        onDelete: _delete,
-                        primary: theme.primary,
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
     );
   }
 }
@@ -326,7 +428,9 @@ class _DaySection extends StatelessWidget {
     required this.images,
     required this.sectionTime,
     required this.onEditTime,
-    required this.onDelete,
+    required this.onEdit,
+    required this.pushEnabled,
+    required this.onTogglePush,
     required this.primary,
   });
   final String title;
@@ -335,7 +439,9 @@ class _DaySection extends StatelessWidget {
   final Map<int, ImagesRow> images;
   final String? sectionTime;
   final VoidCallback onEditTime;
-  final Future<void> Function(RoutineEventsRow) onDelete;
+  final Future<void> Function(RoutineEventsRow) onEdit;
+  final bool pushEnabled;
+  final ValueChanged<bool> onTogglePush;
   final Color primary;
 
   @override
@@ -384,6 +490,40 @@ class _DaySection extends StatelessWidget {
               ),
           ],
         ),
+        // Push digest on/off for this part of day — one shared reminder, not
+        // per product.
+        if (sectionTime != null)
+          Align(
+            alignment: Alignment.centerRight,
+            child: GestureDetector(
+              onTap: () => onTogglePush(!pushEnabled),
+              behavior: HitTestBehavior.opaque,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      pushEnabled
+                          ? Icons.check_box_rounded
+                          : Icons.check_box_outline_blank_rounded,
+                      color: pushEnabled ? primary : const Color(0xFFAEAEAE),
+                      size: 20,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      FFLocalizations.of(context)
+                          .getText('cb_routine_push_toggle'),
+                      style: const TextStyle(
+                        color: Colors.black54,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         const SizedBox(height: 10),
         if (events.isEmpty)
           Padding(
@@ -396,47 +536,93 @@ class _DaySection extends StatelessWidget {
         else
           ...events.map((e) {
             final img = e.imageId != null ? images[e.imageId] : null;
-            return Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFFE6E6E6)),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              child: Row(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: (img != null && img.imageUrl.isNotEmpty)
-                        ? Image.network(img.imageUrl,
-                            width: 44, height: 44, fit: BoxFit.cover)
-                        : Container(
-                            width: 44,
-                            height: 44,
-                            color: const Color(0xFFF2F2F2),
-                            child: const Icon(Icons.spa_outlined,
-                                color: Colors.black38, size: 20),
+            // How-to-apply text comes from the product's own analysis
+            // (gpt-4.1), not from the routine LLM.
+            final howTo = (img?.saHowToUse ?? '').trim();
+            return GestureDetector(
+              onTap: () => onEdit(e),
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFFE6E6E6)),
+                ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                child: Row(
+                  children: [
+                    // LLM step order badge — manual events have none.
+                    if (e.sortOrder != null) ...[
+                      Container(
+                        width: 26,
+                        height: 26,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: primary.withValues(alpha: 0.12),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Text(
+                          '${e.sortOrder}',
+                          style: TextStyle(
+                            color: primary,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13,
                           ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      e.title ?? '—',
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                    ],
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: (img != null && img.imageUrl.isNotEmpty)
+                          ? Image.network(img.imageUrl,
+                              width: 44, height: 44, fit: BoxFit.cover)
+                          : Container(
+                              width: 44,
+                              height: 44,
+                              color: const Color(0xFFF2F2F2),
+                              child: const Icon(Icons.spa_outlined,
+                                  color: Colors.black38, size: 20),
+                            ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            e.title ?? '—',
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          if (howTo.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 2),
+                              child: Text(
+                                howTo,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: Colors.black54,
+                                  fontSize: 12.5,
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     ),
-                  ),
-                  IconButton(
-                    icon:
-                        const Icon(Icons.delete_outline, color: Colors.black54),
-                    onPressed: () => onDelete(e),
-                  ),
-                ],
+                    const Padding(
+                      padding: EdgeInsets.only(left: 4),
+                      child: Icon(Icons.chevron_right_rounded,
+                          color: Colors.black26),
+                    ),
+                  ],
+                ),
               ),
             );
           }),
@@ -489,37 +675,41 @@ Future<TimeOfDay?> _pickTimeCupertino(
   );
 }
 
-class _RoutineDraft {
-  _RoutineDraft(this.imageId, this.title, this.weekdays, this.time);
-  final int? imageId;
-  final String title;
+class _EditResult {
+  _EditResult(this.weekdays, {this.delete = false});
   final List<int> weekdays;
-  final TimeOfDay time;
+  final bool delete;
 }
 
-class _AddReminderSheet extends StatefulWidget {
-  const _AddReminderSheet({
-    required this.scans,
+/// Edit an existing routine event: application weekdays + delete. Shows the
+/// LLM how-to-apply text (action/note) when present.
+class _EditReminderSheet extends StatefulWidget {
+  const _EditReminderSheet({
+    required this.event,
+    required this.image,
     required this.weekdayLabels,
   });
-  final List<ImagesRow> scans;
+  final RoutineEventsRow event;
+  final ImagesRow? image;
   final List<String> weekdayLabels;
 
   @override
-  State<_AddReminderSheet> createState() => _AddReminderSheetState();
+  State<_EditReminderSheet> createState() => _EditReminderSheetState();
 }
 
-class _AddReminderSheetState extends State<_AddReminderSheet> {
-  int? _imageId;
-  String _title = '';
-  final Set<int> _days = {1, 2, 3, 4, 5, 6, 7}; // all days selected by default
-  TimeOfDay _time = const TimeOfDay(hour: 21, minute: 0);
+class _EditReminderSheetState extends State<_EditReminderSheet> {
+  late final Set<int> _days = {...widget.event.weekdays};
 
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
-    final canSave = _title.trim().isNotEmpty && _days.isNotEmpty;
-    final isRu = FFLocalizations.of(context).languageCode.startsWith('ru');
+    final t = FFLocalizations.of(context);
+    final e = widget.event;
+    final img = widget.image;
+    // How-to-apply text comes from the product's own analysis (gpt-4.1).
+    final howTo = (img?.saHowToUse ?? '').trim();
+    final canSave = _days.isNotEmpty;
+    final isRu = t.languageCode.startsWith('ru');
     const labelStyle = TextStyle(
       color: Colors.black,
       fontWeight: FontWeight.w600,
@@ -536,54 +726,92 @@ class _AddReminderSheetState extends State<_AddReminderSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(FFLocalizations.of(context).getText('cb_routine_product'),
-                style: labelStyle),
-            const SizedBox(height: 8),
-            SizedBox(
-              height: 76,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: widget.scans.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 10),
-                itemBuilder: (_, i) {
-                  final img = widget.scans[i];
-                  final selected = _imageId == img.id;
-                  return GestureDetector(
-                    onTap: () => setState(() {
-                      _imageId = img.id;
-                      _title = img.productName ?? img.brand ?? '';
-                    }),
-                    child: Container(
-                      width: 64,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: selected
-                              ? theme.primary
-                              : const Color(0xFFE6E6E6),
-                          width: selected ? 2 : 1,
+            Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: (img != null && img.imageUrl.isNotEmpty)
+                      ? Image.network(img.imageUrl,
+                          width: 44, height: 44, fit: BoxFit.cover)
+                      : Container(
+                          width: 44,
+                          height: 44,
+                          color: const Color(0xFFF2F2F2),
+                          child: const Icon(Icons.spa_outlined,
+                              color: Colors.black38, size: 20),
                         ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        e.title ?? '—',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: labelStyle,
                       ),
-                      // Clip the image with the inner radius (outer − border)
-                      // so square corners never sit over the rounded border.
-                      child: ClipRRect(
-                        borderRadius:
-                            BorderRadius.circular(selected ? 10 : 11),
-                        child: img.imageUrl.isNotEmpty
-                            ? Image.network(img.imageUrl,
-                                fit: BoxFit.cover, height: double.infinity)
-                            : Container(color: Colors.white),
+                      if (e.sortOrder != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: theme.primary.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              '${t.getText('cb_routine_step')} ${e.sortOrder}',
+                              style: TextStyle(
+                                color: theme.primary,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            if (howTo.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF7F7F7),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      t.getText('cb_routine_how'),
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
                       ),
                     ),
-                  );
-                },
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        howTo,
+                        style: const TextStyle(color: Colors.black87),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
+            ],
             const SizedBox(height: 16),
             Row(
               children: [
-                Text(FFLocalizations.of(context).getText('cb_routine_days'),
-                    style: labelStyle),
+                Text(t.getText('cb_routine_days'), style: labelStyle),
                 const Spacer(),
                 IconButton(
                   visualDensity: VisualDensity.compact,
@@ -625,34 +853,12 @@ class _AddReminderSheetState extends State<_AddReminderSheet> {
               ],
             ),
             const SizedBox(height: 16),
-            Row(
-              children: [
-                Text(FFLocalizations.of(context).getText('cb_routine_time'),
-                    style: labelStyle),
-                const Spacer(),
-                TextButton(
-                  onPressed: () async {
-                    final picked = await _pickTimeCupertino(context, _time);
-                    if (picked != null) setState(() => _time = picked);
-                  },
-                  child: Text(
-                    _time.format(context),
-                    style: TextStyle(
-                      color: theme.primary,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
             SizedBox(
               height: 52,
               child: ElevatedButton(
                 onPressed: canSave
-                    ? () => Navigator.of(context).pop(_RoutineDraft(
-                        _imageId, _title.trim(), _days.toList(), _time))
+                    ? () => Navigator.of(context)
+                        .pop(_EditResult(_days.toList()))
                     : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: theme.primary,
@@ -666,7 +872,314 @@ class _AddReminderSheetState extends State<_AddReminderSheet> {
                   ),
                 ),
                 child: Text(
-                  FFLocalizations.of(context).getText('cb_routine_save'),
+                  t.getText('cb_routine_save'),
+                  style: TextStyle(
+                    color: canSave ? Colors.white : const Color(0xFF9A8FBF),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context)
+                  .pop(_EditResult(_days.toList(), delete: true)),
+              child: Text(
+                t.getText('cb_routine_delete'),
+                style: const TextStyle(
+                  color: Color(0xFFE53935),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Full-screen empty state: explains the scan → bag → compatibility → routine
+/// flow with a CTA to the cosmetic bag.
+class _EmptyRoutineState extends StatelessWidget {
+  const _EmptyRoutineState({
+    required this.primary,
+    required this.onGoToBag,
+  });
+  final Color primary;
+  final VoidCallback onGoToBag;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = FFLocalizations.of(context);
+    return Center(
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 88,
+                height: 88,
+                decoration: BoxDecoration(
+                  color: primary.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.spa_outlined, color: primary, size: 40),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                t.getText('cb_routine_empty_title'),
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 20,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                t.getText('cb_routine_empty_body'),
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.black54),
+              ),
+              const SizedBox(height: 28),
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(
+                  onPressed: onGoToBag,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primary,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(26),
+                    ),
+                  ),
+                  child: Text(
+                    t.getText('cb_routine_empty_cta'),
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BagDraft {
+  _BagDraft(this.imageId, this.title, this.am, this.pm, this.weekdays);
+  final int imageId;
+  final String title;
+  final bool am;
+  final bool pm;
+  final List<int> weekdays;
+}
+
+/// Add a cosmetic-bag product to the routine: pick a product, tick Morning
+/// and/or Evening, choose the application weekdays.
+class _AddFromBagSheet extends StatefulWidget {
+  const _AddFromBagSheet({
+    required this.products,
+    required this.weekdayLabels,
+  });
+  final List<ImagesRow> products;
+  final List<String> weekdayLabels;
+
+  @override
+  State<_AddFromBagSheet> createState() => _AddFromBagSheetState();
+}
+
+class _AddFromBagSheetState extends State<_AddFromBagSheet> {
+  int? _imageId;
+  String _title = '';
+  bool _am = true;
+  bool _pm = true;
+  final Set<int> _days = {1, 2, 3, 4, 5, 6, 7}; // all days selected by default
+
+  Widget _partCheckbox({
+    required String label,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+    required Color primary,
+  }) {
+    return GestureDetector(
+      onTap: () => onChanged(!value),
+      behavior: HitTestBehavior.opaque,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            value
+                ? Icons.check_box_rounded
+                : Icons.check_box_outline_blank_rounded,
+            color: value ? primary : const Color(0xFFAEAEAE),
+            size: 22,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+    final t = FFLocalizations.of(context);
+    final canSave = _imageId != null && (_am || _pm) && _days.isNotEmpty;
+    final isRu = t.languageCode.startsWith('ru');
+    const labelStyle = TextStyle(
+      color: Colors.black,
+      fontWeight: FontWeight.w600,
+    );
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: 20,
+          right: 20,
+          top: 20,
+          bottom: 20 + MediaQuery.viewInsetsOf(context).bottom,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(t.getText('cb_routine_product'), style: labelStyle),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 76,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: widget.products.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 10),
+                itemBuilder: (_, i) {
+                  final img = widget.products[i];
+                  final selected = _imageId == img.id;
+                  return GestureDetector(
+                    onTap: () => setState(() {
+                      _imageId = img.id;
+                      _title = img.productName ?? img.brand ?? '';
+                    }),
+                    child: Container(
+                      width: 64,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: selected
+                              ? theme.primary
+                              : const Color(0xFFE6E6E6),
+                          width: selected ? 2 : 1,
+                        ),
+                      ),
+                      // Clip the image with the inner radius (outer − border)
+                      // so square corners never sit over the rounded border.
+                      child: ClipRRect(
+                        borderRadius:
+                            BorderRadius.circular(selected ? 10 : 11),
+                        child: img.imageUrl.isNotEmpty
+                            ? Image.network(img.imageUrl,
+                                fit: BoxFit.cover, height: double.infinity)
+                            : Container(color: Colors.white),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                _partCheckbox(
+                  label: t.getText('cb_sec_am'),
+                  value: _am,
+                  onChanged: (v) => setState(() => _am = v),
+                  primary: theme.primary,
+                ),
+                const SizedBox(width: 24),
+                _partCheckbox(
+                  label: t.getText('cb_sec_pm'),
+                  value: _pm,
+                  onChanged: (v) => setState(() => _pm = v),
+                  primary: theme.primary,
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Text(t.getText('cb_routine_days'), style: labelStyle),
+                const Spacer(),
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  splashRadius: 20,
+                  tooltip: isRu ? 'Все дни' : 'All days',
+                  icon: Icon(Icons.select_all_rounded,
+                      color: theme.primary, size: 22),
+                  onPressed: () => setState(() => _days
+                    ..clear()
+                    ..addAll(const [1, 2, 3, 4, 5, 6, 7])),
+                ),
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  splashRadius: 20,
+                  tooltip: isRu ? 'Снять все' : 'Clear all',
+                  icon: const Icon(Icons.deselect_rounded,
+                      color: Color(0xFF9E9E9E), size: 22),
+                  onPressed: () => setState(() => _days.clear()),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                for (var d = 1; d <= 7; d++)
+                  _DayChip(
+                    label: widget.weekdayLabels[d - 1],
+                    selected: _days.contains(d),
+                    primary: theme.primary,
+                    onTap: () => setState(() {
+                      if (_days.contains(d)) {
+                        _days.remove(d);
+                      } else {
+                        _days.add(d);
+                      }
+                    }),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 52,
+              child: ElevatedButton(
+                onPressed: canSave
+                    ? () => Navigator.of(context).pop(_BagDraft(
+                        _imageId!, _title, _am, _pm, _days.toList()))
+                    : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: theme.primary,
+                  foregroundColor: Colors.white,
+                  // Disabled: soft tinted fill + muted text (no white-on-grey).
+                  disabledBackgroundColor: theme.primary.withValues(alpha: 0.12),
+                  disabledForegroundColor: const Color(0xFFB0A6C9),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(26),
+                  ),
+                ),
+                child: Text(
+                  t.getText('cb_routine_save'),
                   style: TextStyle(
                     color: canSave ? Colors.white : const Color(0xFF9A8FBF),
                     fontWeight: FontWeight.w600,

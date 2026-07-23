@@ -448,14 +448,37 @@ class _RoutineStep extends StatelessWidget {
   const _RoutineStep({required this.step});
   final dynamic step;
 
+  /// «Пн·Чт» / "Mon·Thu" chip text, or the "daily" label for all 7 days.
+  String? _daysLabel(BuildContext context, Map m) {
+    final raw = m['days'];
+    if (raw is! List) return null;
+    final days = raw
+        .map((d) => int.tryParse(d.toString()))
+        .whereType<int>()
+        .where((d) => d >= 1 && d <= 7)
+        .toSet()
+        .toList()
+      ..sort();
+    if (days.isEmpty) return null;
+    if (days.length == 7) {
+      return FFLocalizations.of(context).getText('cb_days_daily');
+    }
+    final labels = FFLocalizations.of(context).languageCode.startsWith('ru')
+        ? const ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
+        : const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    return days.map((d) => labels[d - 1]).join('·');
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
     final m = step is Map ? step as Map : const {};
     final num = m['step']?.toString() ?? '•';
-    final action = (m['action'] ?? '').toString();
     final product = (m['product'] ?? '').toString();
-    final note = (m['note'] ?? '').toString();
+    // Old cached results still carry action/note from the previous LLM shape.
+    final title = product.isNotEmpty ? product : (m['action'] ?? '').toString();
+    final how = (m['how'] ?? m['note'] ?? '').toString();
+    final daysLabel = _daysLabel(context, m);
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Row(
@@ -486,7 +509,7 @@ class _RoutineStep extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  action,
+                  title,
                   style: theme.bodyLarge.override(
                     fontFamily: theme.bodyLargeFamily,
                     color: Colors.black,
@@ -495,19 +518,9 @@ class _RoutineStep extends StatelessWidget {
                     useGoogleFonts: !theme.bodyLargeIsCustom,
                   ),
                 ),
-                if (product.isNotEmpty)
+                if (how.isNotEmpty)
                   Text(
-                    product,
-                    style: theme.bodyMedium.override(
-                      fontFamily: theme.bodyMediumFamily,
-                      color: theme.primary,
-                      letterSpacing: 0,
-                      useGoogleFonts: !theme.bodyMediumIsCustom,
-                    ),
-                  ),
-                if (note.isNotEmpty)
-                  Text(
-                    note,
+                    how,
                     style: theme.bodySmall.override(
                       fontFamily: theme.bodySmallFamily,
                       color: Colors.black54,
@@ -518,6 +531,26 @@ class _RoutineStep extends StatelessWidget {
               ],
             ),
           ),
+          if (daysLabel != null)
+            Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: theme.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  daysLabel,
+                  style: TextStyle(
+                    color: theme.primary,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 11,
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );

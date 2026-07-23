@@ -56,74 +56,67 @@ const _kSortModes = <String>['fit', 'formula', 'price_asc', 'price_desc'];
 
 String _groupLabel(String name, String lang) {
   const m = <String, Map<String, String>>{
-    'form':              {'en': 'Form',       'ru': 'Форма',    'es': 'Tipo'},
-    'goal':              {'en': 'Goal',       'ru': 'Цель',     'es': 'Objetivo'},
-    'active':            {'en': 'Actives',    'ru': 'Активы',   'es': 'Activos'},
-    'composition_flags': {'en': 'Free from',  'ru': 'Без',      'es': 'Sin'},
-    'time_of_day':       {'en': 'Time of day','ru': 'Время',    'es': 'Momento'},
-    'price_band':        {'en': 'Price',      'ru': 'Цена',     'es': 'Precio'},
+    'form': {'en': 'Form', 'ru': 'Форма', 'es': 'Tipo', 'de': 'Art', 'fr': 'Type', 'it': 'Tipo', 'pt': 'Tipo', 'tr': 'Tür', 'ja': 'タイプ', 'ko': '종류', 'zh': '类型'},
+    'goal': {'en': 'Goal', 'ru': 'Цель', 'es': 'Objetivo', 'de': 'Ziel', 'fr': 'Objectif', 'it': 'Obiettivo', 'pt': 'Objetivo', 'tr': 'Hedef', 'ja': '目的', 'ko': '목적', 'zh': '目标'},
+    'active': {'en': 'Actives', 'ru': 'Активы', 'es': 'Activos', 'de': 'Wirkstoffe', 'fr': 'Actifs', 'it': 'Attivi', 'pt': 'Ativos', 'tr': 'Aktifler', 'ja': '有効成分', 'ko': '활성 성분', 'zh': '活性成分'},
+    'composition_flags': {'en': 'Free from', 'ru': 'Без', 'es': 'Sin', 'de': 'Frei von', 'fr': 'Sans', 'it': 'Senza', 'pt': 'Sem', 'tr': 'İçermez', 'ja': '不使用', 'ko': '무첨가', 'zh': '不含'},
+    'time_of_day': {'en': 'Time of day', 'ru': 'Время', 'es': 'Momento', 'de': 'Tageszeit', 'fr': 'Moment', 'it': 'Momento', 'pt': 'Momento', 'tr': 'Zaman', 'ja': '時間帯', 'ko': '시간대', 'zh': '时段'},
+    'price_band': {'en': 'Price', 'ru': 'Цена', 'es': 'Precio', 'de': 'Preis', 'fr': 'Prix', 'it': 'Prezzo', 'pt': 'Preço', 'tr': 'Fiyat', 'ja': '価格', 'ko': '가격', 'zh': '价格'},
   };
   return m[name]?[lang] ?? m[name]?['en'] ?? name;
 }
 
 String _valueLabel(String value, String lang) {
   const m = <String, Map<String, String>>{
-    // form
-    'serum':      {'en': 'Serum',       'ru': 'Сыворотка'},
-    'cream':      {'en': 'Cream',       'ru': 'Крем'},
-    'gel_cream':  {'en': 'Gel-cream',   'ru': 'Гель-крем'},
-    'toner':      {'en': 'Toner',       'ru': 'Тоник'},
-    'oil':        {'en': 'Oil',         'ru': 'Масло'},
-    'mask':       {'en': 'Mask',        'ru': 'Маска'},
-    'cleanser':   {'en': 'Cleanser',    'ru': 'Очищение'},
-    'sunscreen':  {'en': 'Sunscreen',   'ru': 'Санскрин'},
-    'eye_cream':  {'en': 'Eye cream',   'ru': 'Крем для глаз'},
-    'exfoliant':  {'en': 'Exfoliant',   'ru': 'Пилинг'},
-    // goal
-    'hydration':    {'en': 'Hydration',  'ru': 'Увлажнение'},
-    'anti_aging':   {'en': 'Anti-aging', 'ru': 'Антивозраст'},
-    'pigmentation': {'en': 'Brightening','ru': 'Осветление'},
-    'acne':         {'en': 'Acne',       'ru': 'Акне'},
-    'barrier':      {'en': 'Barrier',    'ru': 'Барьер'},
-    'pores':        {'en': 'Pores',      'ru': 'Поры'},
-    // active
-    'retinol':        {'en': 'Retinol',    'ru': 'Ретинол'},
-    'niacinamide':    {'en': 'Niacinamide','ru': 'Ниацинамид'},
-    'vitamin_c':      {'en': 'Vitamin C',  'ru': 'Витамин C'},
-    'bakuchiol':      {'en': 'Bakuchiol',  'ru': 'Бакучиол'},
-    'hyaluronic_acid':{'en': 'Hyaluronic', 'ru': 'Гиалурон'},
-    'ceramide':       {'en': 'Ceramide',   'ru': 'Церамиды'},
-    'peptide':        {'en': 'Peptide',    'ru': 'Пептиды'},
-    'salicylic_acid': {'en': 'BHA',        'ru': 'BHA'},
-    'glycolic_acid':  {'en': 'AHA',        'ru': 'AHA'},
-    'azelaic_acid':   {'en': 'Azelaic',    'ru': 'Азелаин'},
-    // composition flags
-    'no_fragrance':      {'en': 'Fragrance-free', 'ru': 'Без отдушек'},
-    'no_denat_alcohol':  {'en': 'Alcohol-free',   'ru': 'Без спирта'},
-    'no_essential_oils': {'en': 'No ess. oils',   'ru': 'Без эф. масел'},
-    'vegan':             {'en': 'Vegan',           'ru': 'Веган'},
-    // time
-    'am': {'en': 'Morning', 'ru': 'Утром'},
-    'pm': {'en': 'Night',   'ru': 'Ночью'},
-    // price
-    'budget':  {'en': 'Budget',    'ru': 'Бюджет'},
-    'mid':     {'en': 'Mid-range', 'ru': 'Средний'},
-    'premium': {'en': 'Premium',   'ru': 'Премиум'},
-    'luxury':  {'en': 'Luxury',    'ru': 'Люкс'},
+    'serum': {'en': 'Serum', 'ru': 'Сыворотка', 'es': 'Serum', 'de': 'Serum', 'fr': 'Sérum', 'it': 'Siero', 'pt': 'Sérum', 'tr': 'Serum', 'ja': '美容液', 'ko': '세럼', 'zh': '精华'},
+    'cream': {'en': 'Cream', 'ru': 'Крем', 'es': 'Crema', 'de': 'Creme', 'fr': 'Crème', 'it': 'Crema', 'pt': 'Creme', 'tr': 'Krem', 'ja': 'クリーム', 'ko': '크림', 'zh': '面霜'},
+    'gel_cream': {'en': 'Gel-cream', 'ru': 'Гель-крем', 'es': 'Gel-crema', 'de': 'Gel-Creme', 'fr': 'Gel-crème', 'it': 'Gel-crema', 'pt': 'Gel-creme', 'tr': 'Jel krem', 'ja': 'ジェルクリーム', 'ko': '젤크림', 'zh': '凝霜'},
+    'toner': {'en': 'Toner', 'ru': 'Тоник', 'es': 'Tónico', 'de': 'Toner', 'fr': 'Tonique', 'it': 'Tonico', 'pt': 'Tônico', 'tr': 'Tonik', 'ja': '化粧水', 'ko': '토너', 'zh': '爽肤水'},
+    'oil': {'en': 'Oil', 'ru': 'Масло', 'es': 'Aceite', 'de': 'Öl', 'fr': 'Huile', 'it': 'Olio', 'pt': 'Óleo', 'tr': 'Yağ', 'ja': 'オイル', 'ko': '오일', 'zh': '精油'},
+    'mask': {'en': 'Mask', 'ru': 'Маска', 'es': 'Mascarilla', 'de': 'Maske', 'fr': 'Masque', 'it': 'Maschera', 'pt': 'Máscara', 'tr': 'Maske', 'ja': 'マスク', 'ko': '마스크', 'zh': '面膜'},
+    'cleanser': {'en': 'Cleanser', 'ru': 'Очищение', 'es': 'Limpiador', 'de': 'Reiniger', 'fr': 'Nettoyant', 'it': 'Detergente', 'pt': 'Limpador', 'tr': 'Temizleyici', 'ja': '洗顔料', 'ko': '클렌저', 'zh': '洁面'},
+    'sunscreen': {'en': 'Sunscreen', 'ru': 'Санскрин', 'es': 'Protector solar', 'de': 'Sonnenschutz', 'fr': 'Écran solaire', 'it': 'Solare', 'pt': 'Protetor solar', 'tr': 'Güneş kremi', 'ja': '日焼け止め', 'ko': '선크림', 'zh': '防晒'},
+    'eye_cream': {'en': 'Eye cream', 'ru': 'Крем для глаз', 'es': 'Contorno de ojos', 'de': 'Augencreme', 'fr': 'Contour des yeux', 'it': 'Contorno occhi', 'pt': 'Creme para olhos', 'tr': 'Göz kremi', 'ja': 'アイクリーム', 'ko': '아이크림', 'zh': '眼霜'},
+    'exfoliant': {'en': 'Exfoliant', 'ru': 'Пилинг', 'es': 'Exfoliante', 'de': 'Peeling', 'fr': 'Exfoliant', 'it': 'Esfoliante', 'pt': 'Esfoliante', 'tr': 'Peeling', 'ja': '角質ケア', 'ko': '각질제거', 'zh': '去角质'},
+    'hydration': {'en': 'Hydration', 'ru': 'Увлажнение', 'es': 'Hidratación', 'de': 'Feuchtigkeit', 'fr': 'Hydratation', 'it': 'Idratazione', 'pt': 'Hidratação', 'tr': 'Nemlendirme', 'ja': '保湿', 'ko': '수분', 'zh': '保湿'},
+    'anti_aging': {'en': 'Anti-aging', 'ru': 'Антивозраст', 'es': 'Antiedad', 'de': 'Anti-Aging', 'fr': 'Anti-âge', 'it': 'Anti-età', 'pt': 'Antienvelhecimento', 'tr': 'Yaşlanma karşıtı', 'ja': 'エイジングケア', 'ko': '안티에이징', 'zh': '抗衰'},
+    'pigmentation': {'en': 'Brightening', 'ru': 'Осветление', 'es': 'Iluminación', 'de': 'Aufhellung', 'fr': 'Éclat', 'it': 'Illuminante', 'pt': 'Iluminação', 'tr': 'Aydınlatma', 'ja': '美白', 'ko': '브라이트닝', 'zh': '提亮'},
+    'acne': {'en': 'Acne', 'ru': 'Акне', 'es': 'Acné', 'de': 'Akne', 'fr': 'Acné', 'it': 'Acne', 'pt': 'Acne', 'tr': 'Akne', 'ja': 'ニキビ', 'ko': '여드름', 'zh': '痘痘'},
+    'barrier': {'en': 'Barrier', 'ru': 'Барьер', 'es': 'Barrera', 'de': 'Barriere', 'fr': 'Barrière', 'it': 'Barriera', 'pt': 'Barreira', 'tr': 'Bariyer', 'ja': 'バリア', 'ko': '장벽', 'zh': '屏障'},
+    'pores': {'en': 'Pores', 'ru': 'Поры', 'es': 'Poros', 'de': 'Poren', 'fr': 'Pores', 'it': 'Pori', 'pt': 'Poros', 'tr': 'Gözenekler', 'ja': '毛穴', 'ko': '모공', 'zh': '毛孔'},
+    'retinol': {'en': 'Retinol', 'ru': 'Ретинол', 'es': 'Retinol', 'de': 'Retinol', 'fr': 'Rétinol', 'it': 'Retinolo', 'pt': 'Retinol', 'tr': 'Retinol', 'ja': 'レチノール', 'ko': '레티놀', 'zh': '视黄醇'},
+    'niacinamide': {'en': 'Niacinamide', 'ru': 'Ниацинамид', 'es': 'Niacinamida', 'de': 'Niacinamid', 'fr': 'Niacinamide', 'it': 'Niacinamide', 'pt': 'Niacinamida', 'tr': 'Niasinamid', 'ja': 'ナイアシンアミド', 'ko': '나이아신아마이드', 'zh': '烟酰胺'},
+    'vitamin_c': {'en': 'Vitamin C', 'ru': 'Витамин C', 'es': 'Vitamina C', 'de': 'Vitamin C', 'fr': 'Vitamine C', 'it': 'Vitamina C', 'pt': 'Vitamina C', 'tr': 'C Vitamini', 'ja': 'ビタミンC', 'ko': '비타민C', 'zh': '维生素C'},
+    'bakuchiol': {'en': 'Bakuchiol', 'ru': 'Бакучиол', 'es': 'Bakuchiol', 'de': 'Bakuchiol', 'fr': 'Bakuchiol', 'it': 'Bakuchiol', 'pt': 'Bakuchiol', 'tr': 'Bakuchiol', 'ja': 'バクチオール', 'ko': '바쿠치올', 'zh': '补骨脂酚'},
+    'hyaluronic_acid': {'en': 'Hyaluronic', 'ru': 'Гиалурон', 'es': 'Hialurónico', 'de': 'Hyaluron', 'fr': 'Hyaluronique', 'it': 'Ialuronico', 'pt': 'Hialurônico', 'tr': 'Hyaluronik', 'ja': 'ヒアルロン酸', 'ko': '히알루론산', 'zh': '玻尿酸'},
+    'ceramide': {'en': 'Ceramide', 'ru': 'Церамиды', 'es': 'Ceramidas', 'de': 'Ceramide', 'fr': 'Céramides', 'it': 'Ceramidi', 'pt': 'Ceramidas', 'tr': 'Seramit', 'ja': 'セラミド', 'ko': '세라마이드', 'zh': '神经酰胺'},
+    'peptide': {'en': 'Peptide', 'ru': 'Пептиды', 'es': 'Péptidos', 'de': 'Peptide', 'fr': 'Peptides', 'it': 'Peptidi', 'pt': 'Peptídeos', 'tr': 'Peptit', 'ja': 'ペプチド', 'ko': '펩타이드', 'zh': '胜肽'},
+    'salicylic_acid': {'en': 'BHA', 'ru': 'BHA', 'es': 'BHA', 'de': 'BHA', 'fr': 'BHA', 'it': 'BHA', 'pt': 'BHA', 'tr': 'BHA', 'ja': 'BHA', 'ko': 'BHA', 'zh': 'BHA'},
+    'glycolic_acid': {'en': 'AHA', 'ru': 'AHA', 'es': 'AHA', 'de': 'AHA', 'fr': 'AHA', 'it': 'AHA', 'pt': 'AHA', 'tr': 'AHA', 'ja': 'AHA', 'ko': 'AHA', 'zh': 'AHA'},
+    'azelaic_acid': {'en': 'Azelaic', 'ru': 'Азелаин', 'es': 'Azelaico', 'de': 'Azelainsäure', 'fr': 'Acide azélaïque', 'it': 'Azelaico', 'pt': 'Azelaico', 'tr': 'Azelaik', 'ja': 'アゼライン酸', 'ko': '아젤라산', 'zh': '壬二酸'},
+    'no_fragrance': {'en': 'Fragrance-free', 'ru': 'Без отдушек', 'es': 'Sin fragancia', 'de': 'Ohne Duft', 'fr': 'Sans parfum', 'it': 'Senza profumo', 'pt': 'Sem fragrância', 'tr': 'Parfümsüz', 'ja': '無香料', 'ko': '무향', 'zh': '无香'},
+    'no_denat_alcohol': {'en': 'Alcohol-free', 'ru': 'Без спирта', 'es': 'Sin alcohol', 'de': 'Ohne Alkohol', 'fr': 'Sans alcool', 'it': 'Senza alcol', 'pt': 'Sem álcool', 'tr': 'Alkolsüz', 'ja': 'アルコールフリー', 'ko': '무알코올', 'zh': '无酒精'},
+    'no_essential_oils': {'en': 'No ess. oils', 'ru': 'Без эф. масел', 'es': 'Sin aceites es.', 'de': 'Ohne äth. Öle', 'fr': 'Sans huiles ess.', 'it': 'Senza oli ess.', 'pt': 'Sem óleos ess.', 'tr': 'Uçucu yağsız', 'ja': '精油不使用', 'ko': '에센셜오일 무첨가', 'zh': '无精油'},
+    'vegan': {'en': 'Vegan', 'ru': 'Веган', 'es': 'Vegano', 'de': 'Vegan', 'fr': 'Végane', 'it': 'Vegano', 'pt': 'Vegano', 'tr': 'Vegan', 'ja': 'ヴィーガン', 'ko': '비건', 'zh': '纯素'},
+    'am': {'en': 'Morning', 'ru': 'Утром', 'es': 'Mañana', 'de': 'Morgens', 'fr': 'Matin', 'it': 'Mattina', 'pt': 'Manhã', 'tr': 'Sabah', 'ja': '朝', 'ko': '아침', 'zh': '早晨'},
+    'pm': {'en': 'Night', 'ru': 'Ночью', 'es': 'Noche', 'de': 'Nachts', 'fr': 'Soir', 'it': 'Sera', 'pt': 'Noite', 'tr': 'Gece', 'ja': '夜', 'ko': '밤', 'zh': '夜晚'},
+    'budget': {'en': 'Budget', 'ru': 'Бюджет', 'es': 'Económico', 'de': 'Günstig', 'fr': 'Budget', 'it': 'Economico', 'pt': 'Econômico', 'tr': 'Uygun', 'ja': 'お手頃', 'ko': '저가', 'zh': '平价'},
+    'mid': {'en': 'Mid-range', 'ru': 'Средний', 'es': 'Gama media', 'de': 'Mittelklasse', 'fr': 'Milieu de gamme', 'it': 'Fascia media', 'pt': 'Intermediário', 'tr': 'Orta', 'ja': 'ミドル', 'ko': '중가', 'zh': '中端'},
+    'premium': {'en': 'Premium', 'ru': 'Премиум', 'es': 'Premium', 'de': 'Premium', 'fr': 'Premium', 'it': 'Premium', 'pt': 'Premium', 'tr': 'Premium', 'ja': 'プレミアム', 'ko': '프리미엄', 'zh': '高端'},
+    'luxury': {'en': 'Luxury', 'ru': 'Люкс', 'es': 'Lujo', 'de': 'Luxus', 'fr': 'Luxe', 'it': 'Lusso', 'pt': 'Luxo', 'tr': 'Lüks', 'ja': 'ラグジュアリー', 'ko': '럭셔리', 'zh': '奢华'},
   };
   return m[value]?[lang] ?? m[value]?['en'] ?? value;
 }
 
 String _sortLabel(String sort, String lang) {
   const m = <String, Map<String, String>>{
-    'fit':        {'en': '✦ Best fit',   'ru': '✦ Подбор'},
-    'formula':    {'en': 'By score',     'ru': 'По оценке'},
-    'price_asc':  {'en': 'Cheapest',     'ru': 'Дешевле'},
-    'price_desc': {'en': 'Premium',      'ru': 'Дороже'},
+    'fit': {'en': '✦ Best fit', 'ru': '✦ Подбор', 'es': '✦ A medida', 'de': '✦ Passt am besten', 'fr': '✦ Meilleur choix', 'it': '✦ Più adatto', 'pt': '✦ Melhor opção', 'tr': '✦ En uygun', 'ja': '✦ おすすめ順', 'ko': '✦ 맞춤순', 'zh': '✦ 最匹配'},
+    'formula': {'en': 'By score', 'ru': 'По оценке', 'es': 'Por puntuación', 'de': 'Nach Bewertung', 'fr': 'Par score', 'it': 'Per punteggio', 'pt': 'Por pontuação', 'tr': 'Puana göre', 'ja': 'スコア順', 'ko': '점수순', 'zh': '按评分'},
+    'price_asc': {'en': 'Cheapest', 'ru': 'Дешевле', 'es': 'Más barato', 'de': 'Günstigste', 'fr': 'Moins cher', 'it': 'Più economico', 'pt': 'Mais barato', 'tr': 'En ucuz', 'ja': '安い順', 'ko': '저렴한순', 'zh': '最便宜'},
+    'price_desc': {'en': 'Premium', 'ru': 'Дороже', 'es': 'Más caro', 'de': 'Teuerste', 'fr': 'Plus cher', 'it': 'Più costoso', 'pt': 'Mais caro', 'tr': 'En pahalı', 'ja': '高い順', 'ko': '비싼순', 'zh': '最贵'},
   };
-  return m[sort]?[lang] ?? sort;
+  return m[sort]?[lang] ?? m[sort]?['en'] ?? sort;
 }
-
 // ── Widget ────────────────────────────────────────────────────────────────────
 
 class SearchWidget extends StatefulWidget {
@@ -701,9 +694,23 @@ class _SearchWidgetState extends State<SearchWidget> {
             if (hint != null) ...[
               const SizedBox(height: 8),
               Text(
-                lang == 'ru'
-                    ? 'Попробуй убрать фильтр «${_groupLabel(hint, lang)}»'
-                    : 'Try removing the «${_groupLabel(hint, lang)}» filter',
+                (() {
+                  const t = <String, String>{
+                    'en': 'Try removing the «{f}» filter',
+                    'ru': 'Попробуй убрать фильтр «{f}»',
+                    'es': 'Prueba a quitar el filtro «{f}»',
+                    'de': 'Entferne den Filter «{f}»',
+                    'fr': 'Essaie de retirer le filtre «{f}»',
+                    'it': 'Prova a rimuovere il filtro «{f}»',
+                    'pt': 'Tente remover o filtro «{f}»',
+                    'tr': '«{f}» filtresini kaldırmayı dene',
+                    'ja': '「{f}」フィルターを外してみて',
+                    'ko': '«{f}» 필터를 해제해 보세요',
+                    'zh': '试试移除「{f}」筛选',
+                  };
+                  return (t[lang] ?? t['en']!)
+                      .replaceAll('{f}', _groupLabel(hint, lang));
+                })(),
                 style: theme.bodySmall.override(
                   fontFamily: theme.bodySmallFamily,
                   color: theme.secondaryText,

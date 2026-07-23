@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '/backend/supabase/database/tables/image_top_ingredients.dart';
+import '/flutter_flow/internationalization.dart';
 
 // ── Colour palette by dose-status ─────────────────────────────────────────
 const _kWorking = Color(0xFFFFB300);    // amber  — активно работает
@@ -15,12 +16,15 @@ Color _statusColor(String? status) => switch (status) {
       _ => _kUnknown,
     };
 
-String _statusLabel(String? status) => switch (status) {
-      'working' => 'работает',
-      'borderline' => 'на грани MEC',
-      'decorative' => 'декоративный',
-      _ => '',
-    };
+String _statusLabel(BuildContext context, String? status) {
+  final loc = FFLocalizations.of(context);
+  return switch (status) {
+    'working' => loc.getText('ib_status_working'),
+    'borderline' => loc.getText('ib_status_borderline'),
+    'decorative' => loc.getText('ib_status_decorative'),
+    _ => '',
+  };
+}
 
 // ── Parse "~2%" / "2-5%" / "5%" into a mid-point double 0..100 ───────────
 double _parseConc(String? raw) {
@@ -385,7 +389,7 @@ class _Tooltip extends StatelessWidget {
                       ),
                       const SizedBox(width: 5),
                       Text(
-                        _statusLabel(bubble.status),
+                        _statusLabel(context, bubble.status),
                         style: TextStyle(
                           fontSize: 11,
                           color: bubble.color,
