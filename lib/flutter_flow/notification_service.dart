@@ -208,7 +208,7 @@ class NotificationService {
   // Local-notification payloads carry an image id. Stale 'routine' payloads
   // from the removed experiment are ignored (non-numeric id → no navigation).
   void _routeLocalPayload(String? payload) {
-    if (payload == null || payload == 'routine') return;
+    if (payload == null || payload == 'routine' || payload == 'care') return;
     _onTap?.call({'image_id': payload});
   }
 

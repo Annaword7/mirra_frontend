@@ -72,13 +72,24 @@ class CarePlanningService {
         body: {},
       );
 
-  /// Команда УточнитьДирективу (частота ≤ cap класса — валидирует сервер).
+  /// Команда УточнитьДирективу: конкретные дни (сужение директивы) или
+  /// частота. Cap класса валидирует сервер.
   Future<ApiCallResponse> refineDirective(
-          String prescriptionId, int daysPerWeek) =>
+    String prescriptionId, {
+    int? daysPerWeek,
+    List<int>? pinnedDays,
+  }) =>
       _call(
         'carePrescriptionDirective',
         'care/prescriptions/$prescriptionId/directive',
         ApiCallType.PATCH,
-        body: {'days_per_week': daysPerWeek},
+        body: {
+          if (daysPerWeek != null) 'days_per_week': daysPerWeek,
+          if (pinnedDays != null) 'pinned_days': pinnedDays,
+        },
       );
+
+  /// Проекция календаря принятого режима (M4).
+  Future<ApiCallResponse> timetable() =>
+      _call('careTimetable', 'care/timetable', ApiCallType.GET);
 }

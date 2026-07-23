@@ -215,6 +215,12 @@ GoRouter createRouter(AppStateNotifier appStateNotifier, [Widget? entryPage]) =>
           builder: (context, params) => NewblankWidget(),
         ),
         FFRoute(
+          name: RoutineWidget.routeName,
+          path: RoutineWidget.routePath,
+          requireAuth: true,
+          builder: (context, params) => RoutineWidget(),
+        ),
+        FFRoute(
           name: CareReviewWidget.routeName,
           path: CareReviewWidget.routePath,
           requireAuth: true,

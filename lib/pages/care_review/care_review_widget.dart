@@ -98,7 +98,7 @@ class _CareReviewWidgetState extends State<CareReviewWidget> {
       setState(() => _regimenStatus = 'accepted');
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(_t('care_accepted'))));
-      context.pop();
+      context.goNamed('Routine');
     } else {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(_t('care_error'))));

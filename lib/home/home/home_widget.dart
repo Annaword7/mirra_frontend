@@ -634,7 +634,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                           20.0, 12.0, 20.0, 0.0),
                                   child: InkWell(
                                     onTap: () => context.pushNamed(
-                                        CareReviewWidget.routeName),
+                                        RoutineWidget.routeName),
                                     borderRadius: BorderRadius.circular(14.0),
                                     child: Container(
                                       padding: const EdgeInsets.symmetric(

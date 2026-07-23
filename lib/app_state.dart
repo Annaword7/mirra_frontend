@@ -80,6 +80,10 @@ class FFAppState extends ChangeNotifier {
       _obPregnancy = prefs.getString('ff_obPregnancy') ?? _obPregnancy;
     });
     _safeInit(() {
+      _carePushAm = prefs.getBool('ff_carePushAm') ?? true;
+      _carePushPm = prefs.getBool('ff_carePushPm') ?? true;
+    });
+    _safeInit(() {
       if (prefs.containsKey('ff_obAcneProne')) {
         _obAcneProne = prefs.getBool('ff_obAcneProne');
       }
@@ -377,6 +381,21 @@ class FFAppState extends ChangeNotifier {
     value == null
         ? prefs.remove('ff_obAcneProne')
         : prefs.setBool('ff_obAcneProne', value);
+  }
+
+  // M4: тумблеры дайджест-пушей рутины (доставка, не домен).
+  bool _carePushAm = true;
+  bool get carePushAm => _carePushAm;
+  set carePushAm(bool value) {
+    _carePushAm = value;
+    prefs.setBool('ff_carePushAm', value);
+  }
+
+  bool _carePushPm = true;
+  bool get carePushPm => _carePushPm;
+  set carePushPm(bool value) {
+    _carePushPm = value;
+    prefs.setBool('ff_carePushPm', value);
   }
 
   // Карта клиента (M1): pregnancy_status из квиза (буфер до логина).
