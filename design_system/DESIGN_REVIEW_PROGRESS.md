@@ -169,3 +169,14 @@ share-card 7.5px mini-bars) → **I4** (painters rebuilt there); **untranslated 
   external instantiation); **share_card** (7.5/9) + **score_breakdown** (8/9/9.5) → **I4** (text
   inside `CustomPaint`/`TextPainter` — rebuilt with the score system, changing size now risks
   painter layout). Non-color status cue on the ingredient_bubbles label stays for **I4**.
+- ✅ **3.3** `fix(a11y): enforce >=44-48px tap targets` — (a) **app-bar icon-button fleet**: all
+  `FlutterFlowIconButton buttonSize:40 → 48` (+ `borderRadius:20 → 24` to keep the circle), 7 buttons
+  across 5 files (langs, countries, imagesby_album ×2, forgot_password, edit_profile ×2) — Material
+  48 floor. (b) **shareproduct** back: bare `InkWell`+`Icon(24)` → 44×44 `SizedBox` hit area
+  (`Align.centerStart` keeps the arrow's visual position). (c) **search** filter chip (~32px) →
+  `minHeight:44` + center. (d) **onboarding_profile** preset-avatar tile 44×44 → 48×48.
+  `flutter analyze`: **0 errors / 0 warnings**; tests `+9 -1` (pre-existing boilerplate failure only).
+  **Resolved:** B3 tap-target rows — Search·#302 (chip), Onboarding Profile·#187 (avatars),
+  shareproduct/settings/albums back buttons·#450-type. **Excluded (verified):** share_card 45×45
+  avatar is **non-interactive** (static share image — N/A); routine step rows → module deleted;
+  navbar → team-modified (re-review); password toggles → already component-owned (Initiative 1).

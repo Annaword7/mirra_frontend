@@ -84,8 +84,8 @@ class _CountriesWidgetState extends State<CountriesWidget> {
               backgroundColor: Colors.white,
               automaticallyImplyLeading: false,
               leading: FlutterFlowIconButton(
-                borderRadius: 20.0,
-                buttonSize: 40.0,
+                borderRadius: 24.0,
+                buttonSize: 48.0,
                 icon: Icon(
                   Icons.arrow_back_rounded,
                   color: FlutterFlowTheme.of(context).primaryText,

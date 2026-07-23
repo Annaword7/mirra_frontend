@@ -87,8 +87,8 @@ class _ForgotPasswordWidgetState extends State<ForgotPasswordWidget>
             alignment: AlignmentDirectional(0.0, 0.0),
             child: FlutterFlowIconButton(
               borderColor: Colors.transparent,
-              borderRadius: 20.0,
-              buttonSize: 40.0,
+              borderRadius: 24.0,
+              buttonSize: 48.0,
               icon: Icon(
                 Icons.arrow_back_outlined,
                 color: FlutterFlowTheme.of(context).primaryText,

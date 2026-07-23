@@ -112,8 +112,8 @@ class _ImagesbyAlbumWidgetState extends State<ImagesbyAlbumWidget> {
               leading: Align(
                 alignment: AlignmentDirectional(0.0, 0.0),
                 child: FlutterFlowIconButton(
-                  borderRadius: 20.0,
-                  buttonSize: 40.0,
+                  borderRadius: 24.0,
+                  buttonSize: 48.0,
                   icon: Icon(
                     Icons.arrow_back_outlined,
                     color: FlutterFlowTheme.of(context).primaryBackground,
@@ -158,9 +158,9 @@ class _ImagesbyAlbumWidgetState extends State<ImagesbyAlbumWidget> {
                     padding:
                         EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 16.0, 0.0),
                     child: FlutterFlowIconButton(
-                      borderRadius: 20.0,
+                      borderRadius: 24.0,
                       borderWidth: 1.0,
-                      buttonSize: 40.0,
+                      buttonSize: 48.0,
                       icon: Icon(
                         Icons.edit,
                         color: FlutterFlowTheme.of(context).primaryBackground,

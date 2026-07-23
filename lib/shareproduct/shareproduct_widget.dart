@@ -121,10 +121,18 @@ class _ShareproductWidgetState extends State<ShareproductWidget> {
                               onTap: () async {
                                 context.safePop();
                               },
-                              child: Icon(
-                                Icons.arrow_back,
-                                color: FlutterFlowTheme.of(context).primaryText,
-                                size: 24.0,
+                              child: SizedBox(
+                                width: 44.0,
+                                height: 44.0,
+                                child: Align(
+                                  alignment: AlignmentDirectional.centerStart,
+                                  child: Icon(
+                                    Icons.arrow_back,
+                                    color:
+                                        FlutterFlowTheme.of(context).primaryText,
+                                    size: 24.0,
+                                  ),
+                                ),
                               ),
                             ),
                           ],

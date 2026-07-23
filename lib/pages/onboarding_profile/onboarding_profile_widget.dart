@@ -284,8 +284,8 @@ class _OnboardingProfileWidgetState extends State<OnboardingProfileWidget>
                     },
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 150),
-                      width: 44,
-                      height: 44,
+                      width: 48,
+                      height: 48,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(

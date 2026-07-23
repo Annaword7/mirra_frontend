@@ -139,8 +139,8 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
                 alignment: AlignmentDirectional(0.0, 0.0),
                 child: FlutterFlowIconButton(
                   borderColor: Colors.transparent,
-                  borderRadius: 20.0,
-                  buttonSize: 40.0,
+                  borderRadius: 24.0,
+                  buttonSize: 48.0,
                   icon: Icon(
                     Icons.arrow_back_outlined,
                     color: FlutterFlowTheme.of(context).primaryText,
@@ -200,9 +200,9 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
                             EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 16.0, 0.0),
                         child: FlutterFlowIconButton(
                           borderColor: Colors.transparent,
-                          borderRadius: 20.0,
+                          borderRadius: 24.0,
                           borderWidth: 1.0,
-                          buttonSize: 40.0,
+                          buttonSize: 48.0,
                           icon: Icon(
                             Icons.share_outlined,
                             color: Colors.transparent,
