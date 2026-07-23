@@ -12,7 +12,7 @@ rejected (with justification)**, or **superseded by another implemented change**
 
 | # | Initiative | Backlog | Status | Priority | Est. effort |
 |---|---|---|---|---|---|
-| 1 | **Inputs** — `AppTextField` (visible focus, one fill/border/radius, password toggle) | B10 | **In Progress (planning)** | High | S–M |
+| 1 | **Inputs** — `AppTextField` (visible focus, one fill/border/radius, password toggle) | B10 | **Completed** | High | S–M |
 | 2 | Button system — `PrimaryButton`/`Secondary`/`Pill`/`Destructive` | B1 | Not Started | High | L |
 | 3 | Accessibility pass — contrast, 12px floor, 44px targets, non-color cues | B3 | Not Started | High | M |
 | 4 | Semantic color + score system — `semanticScoreColor()`/`statusColor()`/legend | B2 | Not Started | High | M |
@@ -34,7 +34,7 @@ are tracked under Initiative 12 for a resolve/reject decision — none are silen
 
 ---
 
-## Initiative 1 — Inputs (`AppTextField`)  ·  Status: In Progress (planning)
+## Initiative 1 — Inputs (`AppTextField`)  ·  Status: ✅ Completed
 
 **Goal:** one text-field component with a **visible focus state**, consistent fill/border/radius,
 and a built-in password-visibility toggle with a 44px tap target. Replaces the divergent inline
@@ -52,5 +52,11 @@ edit_album, new_album) · 1.5 sheet field (link_telegram).
 - ✅ **1.2** `refactor(auth): migrate auth forms to AppTextField` — log_in (4 fields, incl. removing the `_inputDecoration`/`_inputTextStyle`/`_visibilityIcon` helpers), create_account (2), forgot_password (1). 7 fields → AppTextField. `flutter analyze`: 0 new issues (2 pre-existing `dart:math` unused_import left untouched). **Resolved:** C1·Log In·#2, #4; Create Account·#1, #2; Forgot Password·#1. **Superseded:** password-toggle tap-target (now the component's job). **Still open (not this commit):** Create Account·#5 (double autofocus — behavior, deferred to a11y/UX); Forgot Password·#2,#3,#4,#5,#6 (non-input findings).
 - ✅ **1.3** `refactor(onboarding): migrate onboarding fields to AppTextField` — onboarding_profile (firstName/lastName via `nameField` helper + nickname; removed `_fieldDecoration` + orphaned `theme` local), onboarding_quiz (brands autocomplete field). Also extended AppTextField: **input text → 16px `bodyLarge`** (canonical; makes all inputs consistent — auth create_account/forgot were 14, now 16, log_in already 16), plus `maxLengthEnforcement` + `showCounter` for the nickname's hidden counter. `flutter analyze`: 0 new issues. **Resolved:** C1·Onboarding Profile·#3 (input radius 14→16); Onboarding Quiz·#5 (brands field had no focus). **Note:** Onboarding Profile·#3 also mentioned the section-card radius 20 (a card, not input) — remains for the cards/typography work.
 - ✅ **1.4** `refactor(profile+albums): migrate to AppTextField` — edit_profile (firstName + lastName, preserving the lastName `onFieldSubmitted` DB-save and both capitalization formatters), edit_album (folder title, preserving unfocus-on-submit), new_album (album name). 4 fields. `flutter analyze`: **No issues found**. **Resolved:** C5·Edit Profile·#2 (duplicate decoration), #5 (invisible focus → primary; fill `alternate`→`surfaceMuted`); C6·Edit Album·#1 (decoration dup), #2 (radius 16 vs 24 — now unified 16); New Album·#2 (dup + focus `primaryBackground`→`primary`), #5 (`info` overloaded as field bg → `surfaceMuted`). **Note:** edit_profile·#4 (three-path save logic) is preserved as-is (behavior, out of scope).
+- ✅ **1.5** `refactor(link-telegram): migrate field to AppTextField` — the code/link `TextField` (border: none, radius 12) → AppTextField (radius 16 + visible focus ring); `enabled`/`autofocus`/submit behaviour preserved. `flutter analyze`: **No issues found**. **Resolved:** C8·Group A·#4 (field part). **Note:** #4's non-field parts (raw-hex title/handle colors) and #1,#2,#3,#5,#6,#7,#8 (sheet shell, drag handle, button shape, i18n) belong to the Sheets initiative (#6).
+
+### Initiative 1 — completion summary
+**Delivered:** `AppTextField` (+ `.password`) consumed by **13 fields across 9 screens** (log_in ×4, create_account ×2, forgot_password, onboarding_profile ×2, onboarding_quiz, edit_profile ×2, edit_album, new_album, link_telegram). Every form field now has one filled style, a **visible focus ring**, 16px text, radius 16, and password toggles in a 44px target.
+**Findings resolved:** C1 Log In #2,#4 · Create Account #1,#2 · Forgot Password #1 · Onboarding Profile #3 · Onboarding Quiz #5 · C5 Edit Profile #2,#5 · C6 Edit Album #1,#2 · New Album #2,#5 · C8 Group A #4 (field part). Password-toggle tap-target **superseded** (component-owned).
+**Carried forward (tracked, not dropped):** search bar → future `AppSearchField`; `guest_prefs` dropdown → future dropdown component; Create Account #5 (double autofocus) & Edit Profile #4 (three-path save) → Initiative 3 (a11y/UX); password-toggle a11y label localization → Initiative 12.
 
 **Deferred within this initiative (tracked, not dropped):** Search bar (C3·Search·#1) → future `AppSearchField`; `guest_prefs` dropdown → future dropdown component. Password-toggle label localization → Initiative 12.

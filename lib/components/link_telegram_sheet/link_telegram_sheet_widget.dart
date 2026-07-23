@@ -4,6 +4,7 @@ import '/auth/supabase_auth/auth_util.dart';
 import '/backend/api_requests/api_calls.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
+import '/design_system/components/app_text_field.dart';
 
 const _botName = '@Mirra_app_bot';
 
@@ -185,23 +186,13 @@ class _LinkTelegramSheetState extends State<LinkTelegramSheet> {
           const SizedBox(height: 12),
           _BotNameChip(botName: _botName),
           const SizedBox(height: 20),
-          TextField(
+          AppTextField(
             controller: _controller,
             autofocus: true,
             enabled: !_submitting,
+            hintText: FFLocalizations.of(context).getText('lt_code_or_link'),
             textInputAction: TextInputAction.done,
-            onSubmitted: (_) => _submit(),
-            decoration: InputDecoration(
-              hintText: FFLocalizations.of(context).getText('lt_code_or_link'),
-              filled: true,
-              fillColor: FlutterFlowTheme.of(context).surfaceMuted,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
-              ),
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            ),
+            onFieldSubmitted: (_) => _submit(),
           ),
           const SizedBox(height: 24),
           SizedBox(
