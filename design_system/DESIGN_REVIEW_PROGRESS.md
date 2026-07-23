@@ -16,8 +16,8 @@ rejected (with justification)**, or **superseded by another implemented change**
 | 2 | Button system — `AppButton` (primary/secondary/outline/text/destructive, pill) | B1 | **Completed** | High | L |
 | 3 | Accessibility pass — contrast, 12px floor, 44px targets, non-color cues | B3 | **Completed** | High | M |
 | 4 | Semantic color + score system — `semanticScoreColor()`/`statusColor()`/legend | B2 | **Completed** | High | M |
-| 5 | Empty vs loading — `SkeletonGrid` + `MirraEmptyState` | B4 | Not Started | High | M |
-| 6 | Sheets & dialogs — `MirraBottomSheet`/`MirraDialogCard`/`MirraDragHandle` | B5 | Not Started | High | M |
+| 5 | Empty vs loading — `SkeletonGrid` + `MirraEmptyState` | B4 | **Completed** | High | M |
+| 6 | Sheets & dialogs — `MirraBottomSheet`/`MirraDialogCard`/`MirraDragHandle` | B5 | **In Progress** | High | M |
 | 7 | Product surfaces — `ProductTile`/`MirraInfoCard`/`MirraChip`/`ScoreBadge` | B6 | **In Progress** | High | L |
 | 8 | Confirmation & limit consolidation — `ConfirmationSheet`/`ConfirmDialog`/`LimitReached`; delete `makepubluc` | B7 | **In Progress** | High | S |
 | 9 | Settings & rows — `SettingsRow`/`SelectableRow`/`SettingsList` | B8 | Not Started | Medium | M |
@@ -428,3 +428,32 @@ Buttons-only pass done earlier (8.1–8.4, all AppButton on `track2-design`). St
 - ⏸ **ConfirmationSheet / ConfirmDialog / LimitReached** — the fuller consolidation naturally builds on
   the **I6 shells** (`MirraBottomSheet`/`MirraDialogCard`), which are currently stranded on
   `rewrite/care-domain`. Doing it standalone now would duplicate I6. **Blocked on the branch move.**
+
+---
+
+## Initiative 5 — Empty vs loading  ·  Status: ✅ Completed
+_(commits cherry-picked from `rewrite/care-domain` onto `track2-design`; detailed per-commit notes
+live in those commits.)_ **Delivered:** `SkeletonGrid`/`SkeletonTile` (loading) + `MirraEmptyState`
+(empty, modeled on the collections empty). Loaders → SkeletonGrid: album_list_loading **1207→69**,
+loading_styles 440→114, loading_recent 237→48, gallery_loading 193→60, gallery_image_loading 179→48
+(analysis_loading kept — unique). newboardempty → MirraEmptyState (CTA = AppButton pill). **9 orphaned
+empty/loading widgets deleted** (18 files). Key finding: the B4 "empty-reads-as-loading" bug was
+already fixed live (boards branches skeleton vs empty). **Carried forward:** unused i18n keys for
+deleted widgets → I12.
+
+## Initiative 6 — Sheets & dialogs  ·  Status: In Progress
+_(6.1/6.2 cherry-picked from `rewrite/care-domain`.)_ **Decision:** canonical drag handle = **40×4 grey
+`border`**; sheet surface `secondaryBackground`.
+- ✅ **6.1** `MirraDragHandle` (40×4 border) + `MirraBottomSheet` (top-r24 surface + handle + standard
+  padding + keyboard inset).
+- ✅ **6.2** `MirraDialogCard` + `MirraDialogIcon` (transparent Dialog, r20 surface + soft shadow +
+  optional tinted icon badge).
+- ⬜ **6.3+** migrate the ~11 live sheets → `MirraBottomSheet` + error_popup → `MirraDialogCard`
+  (not yet done). Now unblocked on `track2-design`.
+
+### ⓘ Branch reconciliation (I5/I6 → track2-design)
+I5/I6 were accidentally committed to `rewrite/care-domain`; the 9 commits (`f475ce0`..`6b5b7bf`) were
+**cherry-picked onto `track2-design`** (new hashes `…`→`87e1642`). Conflicts were tracker-only except
+newboardempty (took the MirraEmptyState version). `rewrite/care-domain` still holds the originals
+(user may reset it to `c46c8ef` separately). `flutter analyze` after cherry-pick: **0 errors / 0
+warnings**; tests `+9 -1`.
