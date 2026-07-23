@@ -56,6 +56,7 @@ abstract class FlutterFlowTheme {
   late Color overlay10;
   late Color overlay20;
   late Color overlay27;
+  late Color onPrimary;
 
   FFDesignTokens get designToken => FFDesignTokens(this);
 
@@ -200,6 +201,7 @@ class LightModeTheme extends FlutterFlowTheme {
   late Color overlay10 = const Color(0x1A000000);
   late Color overlay20 = const Color(0x33000000);
   late Color overlay27 = const Color(0x44000000);
+  late Color onPrimary = const Color(0xFFFFFFFF);
 }
 
 abstract class Typography {

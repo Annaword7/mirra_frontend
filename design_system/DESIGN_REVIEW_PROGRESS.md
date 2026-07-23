@@ -13,7 +13,7 @@ rejected (with justification)**, or **superseded by another implemented change**
 | # | Initiative | Backlog | Status | Priority | Est. effort |
 |---|---|---|---|---|---|
 | 1 | **Inputs** — `AppTextField` (visible focus, one fill/border/radius, password toggle) | B10 | **Completed** | High | S–M |
-| 2 | Button system — `PrimaryButton`/`Secondary`/`Pill`/`Destructive` | B1 | Not Started | High | L |
+| 2 | Button system — `AppButton` (primary/secondary/outline/text/destructive, pill) | B1 | **In Progress** | High | L |
 | 3 | Accessibility pass — contrast, 12px floor, 44px targets, non-color cues | B3 | Not Started | High | M |
 | 4 | Semantic color + score system — `semanticScoreColor()`/`statusColor()`/legend | B2 | Not Started | High | M |
 | 5 | Empty vs loading — `SkeletonGrid` + `MirraEmptyState` | B4 | Not Started | High | M |
@@ -60,3 +60,27 @@ edit_album, new_album) · 1.5 sheet field (link_telegram).
 **Carried forward (tracked, not dropped):** search bar → future `AppSearchField`; `guest_prefs` dropdown → future dropdown component; Create Account #5 (double autofocus) & Edit Profile #4 (three-path save) → Initiative 3 (a11y/UX); password-toggle a11y label localization → Initiative 12.
 
 **Deferred within this initiative (tracked, not dropped):** Search bar (C3·Search·#1) → future `AppSearchField`; `guest_prefs` dropdown → future dropdown component. Password-toggle label localization → Initiative 12.
+
+---
+
+## Initiative 2 — Button system (`AppButton`)  ·  Status: In Progress
+
+**Decision (approved):** canonical shape = **Pill (radius full / StadiumBorder)**. Variants
+primary/secondary/outline/text/destructive; sizes sm 36 / md 44 / lg 52; built-in loading spinner;
+new `onPrimary` token (white).
+
+**Scope:** all standalone page/form buttons (56 FFButtonWidget, 48 ElevatedButton, 21 TextButton,
+6 OutlinedButton across ~40 files). **Excluded (consume AppButton in their own initiative):** paywall
+`PlanCard`/`ProPill` (→ I10), confirmation-sheet consolidation (→ I8), sheet/dialog shells (→ I6);
+navbar center FAB stays bespoke.
+
+**Findings:** C1·Log In #7,#8 · Onboarding Quiz #4 · C2·Home #7 · startanalys #6 · capture #4 ·
+C3·Search #7 · C5·Profile #8 · Edit Profile #8 · Routine #7 · C6·boards #3 · newboardempty #3 ·
+new_album #3 · cosmetic_bag_intro #4 · C7·confirmation sheets #8 · limit_out #4 · C8·Group A #1(btn) ·
+Group B #11 · dialogs #21 · newblank #40.
+
+**Commit plan:** 2.1 component + token · 2.2 auth & onboarding · 2.3 home/capture/search ·
+2.4 profile/routine/settings · 2.5 bag/boards · 2.6 limits + standalone dialog/sheet CTAs · 2.7 misc.
+
+**Commits:**
+- ✅ **2.1** `feat(ds): add AppButton component + onPrimary token` — new `lib/design_system/components/app_button.dart` (pill, 5 variants, 3 sizes, loading); added `onPrimary` (white) field to `LightModeTheme`. No migration. `flutter analyze`: **No issues found**. Resolves nothing yet (findings resolve as buttons migrate).
