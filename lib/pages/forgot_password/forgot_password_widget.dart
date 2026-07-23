@@ -3,8 +3,8 @@ import '/flutter_flow/flutter_flow_animations.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
 import '/design_system/components/app_text_field.dart';
+import '/design_system/components/app_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -173,7 +173,10 @@ class _ForgotPasswordWidgetState extends State<ForgotPasswordWidget>
                   Padding(
                     padding:
                         EdgeInsetsDirectional.fromSTEB(0.0, 8.0, 0.0, 12.0),
-                    child: FFButtonWidget(
+                    child: AppButton(
+                      label: FFLocalizations.of(context).getText(
+                        'ba5totab' /* Send Reset Password Link */,
+                      ),
                       onPressed: () async {
                         HapticFeedback.lightImpact();
                         if (_model.formKey.currentState == null ||
@@ -217,35 +220,6 @@ class _ForgotPasswordWidgetState extends State<ForgotPasswordWidget>
                           ),
                         );
                       },
-                      text: FFLocalizations.of(context).getText(
-                        'ba5totab' /* Send Reset Password Link */,
-                      ),
-                      options: FFButtonOptions(
-                        width: double.infinity,
-                        height: 55.0,
-                        padding:
-                            EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                        iconPadding:
-                            EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                        color: FlutterFlowTheme.of(context).primary,
-                        textStyle: FlutterFlowTheme.of(context)
-                            .titleSmall
-                            .override(
-                              fontFamily:
-                                  FlutterFlowTheme.of(context).titleSmallFamily,
-                              color: Colors.white,
-                              letterSpacing: 0.0,
-                              fontWeight: FontWeight.w600,
-                              useGoogleFonts: !FlutterFlowTheme.of(context)
-                                  .titleSmallIsCustom,
-                            ),
-                        elevation: 0.0,
-                        borderSide: BorderSide(
-                          color: Colors.transparent,
-                          width: 1.0,
-                        ),
-                        borderRadius: BorderRadius.circular(50.0),
-                      ),
                     ),
                   ),
                 ],

@@ -79,8 +79,12 @@ C3·Search #7 · C5·Profile #8 · Edit Profile #8 · Routine #7 · C6·boards #
 new_album #3 · cosmetic_bag_intro #4 · C7·confirmation sheets #8 · limit_out #4 · C8·Group A #1(btn) ·
 Group B #11 · dialogs #21 · newblank #40.
 
-**Commit plan:** 2.1 component + token · 2.2 auth & onboarding · 2.3 home/capture/search ·
-2.4 profile/routine/settings · 2.5 bag/boards · 2.6 limits + standalone dialog/sheet CTAs · 2.7 misc.
+**Commit plan:** 2.1 component + token · 2.2 auth · 2.3 onboarding · 2.4 home/capture/search ·
+2.5 profile/routine/settings · 2.6 bag/boards · 2.7 limits + standalone dialog/sheet CTAs · 2.8 misc.
+(Split auth vs onboarding for reviewability — onboarding_quiz has 7 buttons via `_primaryBtn`/`_secondaryBtn` builders.)
+
+**Apple sign-in buttons are intentionally excluded** (Apple HIG requires their own branded style) — kept as `FFButtonWidget`; tracked for a future dedicated `AppleButton` if desired.
 
 **Commits:**
 - ✅ **2.1** `feat(ds): add AppButton component + onPrimary token` — new `lib/design_system/components/app_button.dart` (pill, 5 variants, 3 sizes, loading); added `onPrimary` (white) field to `LightModeTheme`. No migration. `flutter analyze`: **No issues found**. Resolves nothing yet (findings resolve as buttons migrate).
+- ✅ **2.2** `refactor(auth): migrate auth CTAs to AppButton` — log_in (Log in + Create account), create_account (Create account), forgot_password (Send reset). 4 primary CTAs: height 55 → lg (52), radius 50 → pill token; async `onPressed` + loading preserved (`FFButtonWidget` default `showLoadingIndicator: true` ≙ AppButton spinner). Removed the orphaned `flutter_flow_widgets` import in forgot_password. `flutter analyze`: 0 new issues (2 pre-existing `dart:math` untouched). **Resolved (button parts):** C1·Log In·#8 (height 55) and #7 (button radius 50 → pill; the tab-pill/icon-button radii remain — not button-family); Forgot Password·#5 (the 55/50 CTA part; back button remains for an icon-button pass). **Excluded:** Apple sign-in buttons (branded).
