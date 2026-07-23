@@ -235,3 +235,12 @@ palette (product_card_v2 + ingredient_bubbles) · 4.4 painters (score_breakdown 
   amber / decorative & unknown grey), with `k*` const palette. Pure/context-free (single light mode).
   No migration yet — findings resolve as sites route through it in 4.2–4.5. `flutter analyze`: **No
   issues found** (file); project **0 errors / 0 warnings**.
+- ✅ **4.2** `refactor(score): route 3 score-ramp sites through score_status` — replaced the copy-pasted
+  ramp with the shared foundation: **share_card** (`_scoreColor`+`_scoreGrade` top-level fns deleted;
+  `_miniBar`/badge call `semanticScoreColor`/`scoreGrade`), **imagedetailed_main** (`_scoreColor` fn
+  deleted; bg-tint + badge + `_ScoreBadge._grade` getter now call the shared fns), **imagedetailed_top_raited**
+  (`_ScoreBadge._color`/`_grade` getters collapsed to shared-fn one-liners). **Value-identical** — same
+  thresholds (75/65/55/45/35) and colors, zero visual change; pure de-duplication. `flutter analyze`:
+  **0 errors / 0 warnings**; tests `+9 -1` (pre-existing only). **Resolved:** B2 score-ramp
+  duplication (3 sites → 1). **Note:** a separate `greenText #1B5E20` const in share_card (positive-delta
+  text, not the ramp) is left untouched — belongs to the later share_card raw-hex cleanup.

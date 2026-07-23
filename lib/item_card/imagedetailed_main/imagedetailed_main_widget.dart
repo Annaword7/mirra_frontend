@@ -1,5 +1,6 @@
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
+import '/design_system/foundations/score_status.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blurhash/flutter_blurhash.dart';
 import 'package:octo_image/octo_image.dart';
@@ -42,14 +43,8 @@ class ImagedetailedMainWidget extends StatefulWidget {
       _ImagedetailedMainWidgetState();
 }
 
-Color _scoreColor(double score) {
-  if (score >= 75) return const Color(0xFF1B5E20);
-  if (score >= 65) return const Color(0xFF43A047);
-  if (score >= 55) return const Color(0xFFC0CA33);
-  if (score >= 45) return const Color(0xFFFFB300);
-  if (score >= 35) return const Color(0xFFFF7043);
-  return const Color(0xFFD32F2F);
-}
+// Score color lives in design_system/foundations/score_status.dart
+// (semanticScoreColor).
 
 class _ImagedetailedMainWidgetState extends State<ImagedetailedMainWidget> {
   late ImagedetailedMainModel _model;
@@ -88,7 +83,7 @@ class _ImagedetailedMainWidgetState extends State<ImagedetailedMainWidget> {
           ),
           BoxShadow(
             blurRadius: 16.0,
-            color: _scoreColor(widget.score ?? 0).withOpacity(0.07),
+            color: semanticScoreColor(widget.score ?? 0).withOpacity(0.07),
             offset: Offset(0.0, 4.0),
           ),
         ],
@@ -331,15 +326,7 @@ class _ScoreBadge extends StatelessWidget {
   const _ScoreBadge({required this.score});
   final double? score;
 
-  String get _grade {
-    final s = score!;
-    if (s >= 75) return 'A';
-    if (s >= 65) return 'B';
-    if (s >= 55) return 'C';
-    if (s >= 45) return 'D';
-    if (s >= 35) return 'E';
-    return 'F';
-  }
+  String get _grade => scoreGrade(score!);
 
   @override
   Widget build(BuildContext context) {
@@ -374,7 +361,7 @@ class _ScoreBadge extends StatelessWidget {
         ),
       );
     }
-    final sColor = _scoreColor(score!);
+    final sColor = semanticScoreColor(score!);
     return Container(
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.92),

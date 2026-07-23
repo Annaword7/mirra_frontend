@@ -21,6 +21,7 @@ import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/internationalization.dart' show kTranslationsMap;
+import '/design_system/foundations/score_status.dart';
 
 // Localized strings live in kTranslationsMap as 'sc_<key>'. Keyed by the passed
 // `lang` so the rendered share image matches the requested language.
@@ -29,25 +30,8 @@ String _t(String key, String lang) =>
     kTranslationsMap['sc_$key']?['en'] ??
     key;
 
-// ── Score helpers ──────────────────────────────────────────────────────────────
-
-Color _scoreColor(double s) {
-  if (s >= 75) return const Color(0xFF1B5E20);
-  if (s >= 65) return const Color(0xFF43A047);
-  if (s >= 55) return const Color(0xFFC0CA33);
-  if (s >= 45) return const Color(0xFFFFB300);
-  if (s >= 35) return const Color(0xFFFF7043);
-  return const Color(0xFFD32F2F);
-}
-
-String _scoreGrade(double s) {
-  if (s >= 75) return 'A';
-  if (s >= 65) return 'B';
-  if (s >= 55) return 'C';
-  if (s >= 45) return 'D';
-  if (s >= 35) return 'E';
-  return 'F';
-}
+// Score/grade helpers live in design_system/foundations/score_status.dart
+// (semanticScoreColor / scoreGrade).
 
 // ── Widget ─────────────────────────────────────────────────────────────────────
 
@@ -245,7 +229,7 @@ String _axisLabel(String lang, String axis) {
 
 Widget _miniBar(String label, double? value) {
   final v = value == null ? 0.0 : value.clamp(0.0, 100.0);
-  final color = value == null ? const Color(0xFFBBBBBB) : _scoreColor(v);
+  final color = value == null ? const Color(0xFFBBBBBB) : semanticScoreColor(v);
   return Padding(
     padding: const EdgeInsets.only(bottom: 4),
     child: Row(
@@ -376,8 +360,8 @@ Widget _rightPanel({
   required double scoreFontSize,
   required EdgeInsets padding,
 }) {
-  final sColor = _scoreColor(score);
-  final grade = _scoreGrade(score);
+  final sColor = semanticScoreColor(score);
+  final grade = scoreGrade(score);
   const primary = Color(0xFF5C85D9);
 
   return Padding(

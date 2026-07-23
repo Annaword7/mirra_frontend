@@ -1,5 +1,6 @@
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
+import '/design_system/foundations/score_status.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blurhash/flutter_blurhash.dart';
 import 'package:octo_image/octo_image.dart';
@@ -214,25 +215,9 @@ class _ScoreBadge extends StatelessWidget {
   const _ScoreBadge({required this.score});
   final double? score;
 
-  Color get _color {
-    final s = score!;
-    if (s >= 75) return const Color(0xFF1B5E20);
-    if (s >= 65) return const Color(0xFF43A047);
-    if (s >= 55) return const Color(0xFFC0CA33);
-    if (s >= 45) return const Color(0xFFFFB300);
-    if (s >= 35) return const Color(0xFFFF7043);
-    return const Color(0xFFD32F2F);
-  }
+  Color get _color => semanticScoreColor(score!);
 
-  String get _grade {
-    final s = score!;
-    if (s >= 75) return 'A';
-    if (s >= 65) return 'B';
-    if (s >= 55) return 'C';
-    if (s >= 45) return 'D';
-    if (s >= 35) return 'E';
-    return 'F';
-  }
+  String get _grade => scoreGrade(score!);
 
   @override
   Widget build(BuildContext context) {
