@@ -626,6 +626,70 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                   weekLimit: appState.freeScanLimit,
                                 ),
                               ),
+                              // ── Care review entry (M3b) ───────────────────
+                              if (containerImagesRowList.length >= 2)
+                                Padding(
+                                  padding:
+                                      const EdgeInsetsDirectional.fromSTEB(
+                                          20.0, 12.0, 20.0, 0.0),
+                                  child: InkWell(
+                                    onTap: () => context.pushNamed(
+                                        CareReviewWidget.routeName),
+                                    borderRadius: BorderRadius.circular(14.0),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 14.0, vertical: 12.0),
+                                      decoration: BoxDecoration(
+                                        color: FlutterFlowTheme.of(context)
+                                            .primary
+                                            .withValues(alpha: 0.08),
+                                        borderRadius:
+                                            BorderRadius.circular(14.0),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.auto_awesome_rounded,
+                                              color:
+                                                  FlutterFlowTheme.of(context)
+                                                      .primary,
+                                              size: 22.0),
+                                          const SizedBox(width: 10.0),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  FFLocalizations.of(context)
+                                                      .getText(
+                                                          'care_entry_title'),
+                                                  style: const TextStyle(
+                                                    color: Colors.black,
+                                                    fontWeight:
+                                                        FontWeight.w700,
+                                                    fontSize: 14.0,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  FFLocalizations.of(context)
+                                                      .getText(
+                                                          'care_entry_sub'),
+                                                  style: const TextStyle(
+                                                    color: Colors.black54,
+                                                    fontSize: 12.5,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          const Icon(
+                                              Icons.chevron_right_rounded,
+                                              color: Colors.black26),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               if (containerImagesRowList.length != 0)
                                 Align(
                                   alignment: AlignmentDirectional(-1.0, 0.0),
