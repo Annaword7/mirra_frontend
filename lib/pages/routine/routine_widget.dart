@@ -1,4 +1,5 @@
 import '/backend/supabase/database/database.dart';
+import '/components/navbar/navbar_widget.dart';
 import '/design_system/components/app_button.dart';
 import '/domain/care_planning/care_planning_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -189,9 +190,12 @@ class _RoutineWidgetState extends State<RoutineWidget> {
     final app = FFAppState();
     return Scaffold(
       backgroundColor: Colors.white,
+      extendBody: true,
+      bottomNavigationBar: const NavbarWidget(activePage: 4),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+        automaticallyImplyLeading: false,
         iconTheme: const IconThemeData(color: Colors.black),
         title: Text(
           _t('care_routine_title'),
@@ -234,7 +238,7 @@ class _RoutineWidgetState extends State<RoutineWidget> {
                     ),
                     Expanded(
                       child: ListView(
-                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
+                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 130),
                         children: [
                           _Section(
                             title: _t('cb_sec_am'),
