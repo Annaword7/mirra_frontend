@@ -5,6 +5,7 @@ import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
+import '/design_system/components/app_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'new_album_model.dart';
@@ -112,67 +113,15 @@ class _NewAlbumWidgetState extends State<NewAlbumWidget> {
                   children: [
                     Container(
                       width: double.infinity,
-                      child: TextFormField(
+                      child: AppTextField(
                         controller: _model.albumnameTextController,
                         focusNode: _model.albumnameFocusNode,
                         autofocus: true,
+                        hintText: FFLocalizations.of(context).getText(
+                          'azcd4b5c' /* New board name */,
+                        ),
                         textCapitalization: TextCapitalization.words,
                         textInputAction: TextInputAction.next,
-                        obscureText: false,
-                        decoration: InputDecoration(
-                          hintText: FFLocalizations.of(context).getText(
-                            'azcd4b5c' /* New board name */,
-                          ),
-                          hintStyle: FlutterFlowTheme.of(context)
-                              .bodyMedium
-                              .override(
-                                fontFamily: FlutterFlowTheme.of(context)
-                                    .bodyMediumFamily,
-                                letterSpacing: 0.0,
-                                useGoogleFonts: !FlutterFlowTheme.of(context)
-                                    .bodyMediumIsCustom,
-                              ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: FlutterFlowTheme.of(context).info,
-                              width: 1.0,
-                            ),
-                            borderRadius: BorderRadius.circular(24.0),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: FlutterFlowTheme.of(context)
-                                  .primaryBackground,
-                              width: 1.0,
-                            ),
-                            borderRadius: BorderRadius.circular(24.0),
-                          ),
-                          errorBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: FlutterFlowTheme.of(context).error,
-                              width: 1.0,
-                            ),
-                            borderRadius: BorderRadius.circular(24.0),
-                          ),
-                          focusedErrorBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: FlutterFlowTheme.of(context).error,
-                              width: 1.0,
-                            ),
-                            borderRadius: BorderRadius.circular(24.0),
-                          ),
-                          filled: true,
-                          fillColor: FlutterFlowTheme.of(context).info,
-                        ),
-                        style: FlutterFlowTheme.of(context).bodyMedium.override(
-                              fontFamily:
-                                  FlutterFlowTheme.of(context).bodyMediumFamily,
-                              color: FlutterFlowTheme.of(context).primaryText,
-                              letterSpacing: 0.0,
-                              useGoogleFonts: !FlutterFlowTheme.of(context)
-                                  .bodyMediumIsCustom,
-                            ),
-                        cursorColor: FlutterFlowTheme.of(context).primary,
                         validator: _model.albumnameTextControllerValidator
                             .asValidator(context),
                         inputFormatters: [
