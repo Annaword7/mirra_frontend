@@ -158,3 +158,9 @@ text-less gallery empties).
   wasn't a fit here (custom asymmetric radii + pill, not uniform tiles) — deduped internally instead.
   All 5 grid/list loaders now done; **analysis_loading kept** (unique step-icon + rotating-facts UI per
   review #36).
+- ✅ **5.5** `feat(ds): add MirraEmptyState` — new
+  `lib/design_system/components/mirra_empty_state.dart`: centered **icon (56, secondaryText) + headline
+  (titleMedium) + optional body (bodyMedium secondaryText) + optional primary `AppButton` CTA**. The
+  empty-state primitive that fixes the "empty reads as loading" bug — loading grids use `SkeletonGrid`,
+  empty screens use this. No migration yet (6 empties wired in 5.6+, with copy/CTA/icons). `flutter
+  analyze`: **No issues found**.
