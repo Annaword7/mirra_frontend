@@ -18,7 +18,7 @@ rejected (with justification)**, or **superseded by another implemented change**
 | 4 | Semantic color + score system — `semanticScoreColor()`/`statusColor()`/legend | B2 | **Completed** | High | M |
 | 5 | Empty vs loading — `SkeletonGrid` + `MirraEmptyState` | B4 | Not Started | High | M |
 | 6 | Sheets & dialogs — `MirraBottomSheet`/`MirraDialogCard`/`MirraDragHandle` | B5 | Not Started | High | M |
-| 7 | Product surfaces — `ProductTile`/`MirraInfoCard`/`MirraChip`/`ScoreBadge` | B6 | Not Started | High | L |
+| 7 | Product surfaces — `ProductTile`/`MirraInfoCard`/`MirraChip`/`ScoreBadge` | B6 | **In Progress** | High | L |
 | 8 | Confirmation & limit consolidation — `ConfirmationSheet`/`ConfirmDialog`/`LimitReached`; delete `makepubluc` | B7 | **In Progress (buttons only)** | High | S |
 | 9 | Settings & rows — `SettingsRow`/`SelectableRow`/`SettingsList` | B8 | Not Started | Medium | M |
 | 10 | Paywall — `PlanCard`/`FeatureRow`/`ProPill`/dark palette | B9 | **In Progress** | Medium | M |
@@ -370,3 +370,24 @@ typo + `LinkText`.
   color-tokenization track).
 - **"Update a Pro" → "Upgrade to Pro"** (upgrade #1) — localized key `rl28xdip` → **I12** (i18n edit).
 - **upgrade_widget 55-high "pill"** is a CTA → AppButton/I2 (Low).
+
+---
+
+## Initiative 7 — Product surfaces  ·  Status: In Progress
+
+**Goal:** dedup the product-tile family — shared `ScoreBadge`, `formatPrice`, and (where safe)
+`ProductTile`. Source: DESIGN_REVIEW item_card cluster (tiles A `imagedetailed_main` / B
+`imagedetailed_top_raited` are "the same card": duplicate `_scoreColor` [done I4.2], `_grade`,
+`_formatCardPrice`, `_ScoreBadge`, image block).
+
+**Liveness:** tile A used in **4 screens** (home, search, toprated, imagesby_album); tile B in **1**
+(toprated). Both live.
+
+**Commit plan:** 7.1 `formatPrice` util · 7.2 `ScoreBadge` component · 7.3 assess `ProductTile` merge.
+
+**Commits:**
+- ✅ **7.1** `refactor(product): shared formatPrice util` — new
+  `lib/design_system/foundations/format_price.dart` (`currencySymbol` + `formatPrice`). Replaced the
+  byte-identical `_formatCardPrice` in both tiles and itemcard2's `_currencySymbol`+`_formatPrice`
+  (same symbol table) — 3 copies → 1. `flutter analyze`: **0 errors / 0 warnings** (full project);
+  tests `+9 -1`. **Resolved (part of):** item_card Tiles·#1 (`_formatCardPrice` dup).

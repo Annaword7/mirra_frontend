@@ -16,6 +16,7 @@ import '/flutter_flow/flutter_flow_animations.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/design_system/components/app_button.dart';
+import '/design_system/foundations/format_price.dart';
 import '/item_card/deleteitem/deleteitem_widget.dart';
 import '/item_card/ingridients/ingridients_widget.dart';
 import '/components/product_card_v2/product_card_v2_widget.dart';
@@ -226,29 +227,6 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
     });
   }
 
-  String _currencySymbol(String? code) {
-    const symbols = {
-      'ARS': 'AR\$',
-      'CAD': 'CA\$',
-      'CLP': 'CL\$',
-      'CNY': '¥',
-      'COP': 'CO\$',
-      'EUR': '€',
-      'GBP': '£',
-      'JPY': '¥',
-      'KRW': '₩',
-      'MXN': 'MX\$',
-      'PEN': 'S/',
-      'RUB': '₽',
-      'USD': '\$',
-    };
-    return symbols[code] ?? code ?? '';
-  }
-
-  String _formatPrice(double price, String? code) {
-    final sym = _currencySymbol(code);
-    return '$sym${price.round()}';
-  }
 
   Widget _buildPendingPlaceholder(BuildContext context) {
     return Padding(
@@ -1197,7 +1175,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                       ),
                                       const SizedBox(height: 2),
                                       Text(
-                                        _formatPrice(avg, code),
+                                        formatPrice(avg, code),
                                         style: FlutterFlowTheme.of(context)
                                             .bodyMedium
                                             .override(
@@ -1214,7 +1192,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                       ),
                                       if (min != null && max != null)
                                         Text(
-                                          '${_formatPrice(min, code)} – ${_formatPrice(max, code)}',
+                                          '${formatPrice(min, code)} – ${formatPrice(max, code)}',
                                           style: FlutterFlowTheme.of(context)
                                               .bodyMedium
                                               .override(

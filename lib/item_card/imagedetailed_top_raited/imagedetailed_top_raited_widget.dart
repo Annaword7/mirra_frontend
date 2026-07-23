@@ -1,6 +1,7 @@
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/design_system/foundations/score_status.dart';
+import '/design_system/foundations/format_price.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blurhash/flutter_blurhash.dart';
 import 'package:octo_image/octo_image.dart';
@@ -140,7 +141,7 @@ class _ImagedetailedTopRaitedWidgetState
                         ),
                         padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
                         child: Text(
-                          '~ ${_formatCardPrice(widget.avgPrice!, widget.priceCurrencyCode)}',
+                          '~ ${formatPrice(widget.avgPrice!, widget.priceCurrencyCode)}',
                           style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
@@ -199,16 +200,6 @@ class _ImagedetailedTopRaitedWidgetState
       ),
     );
   }
-}
-
-String _formatCardPrice(double price, String? code) {
-  const symbols = {
-    'ARS': 'AR\$', 'CAD': 'CA\$', 'CLP': 'CL\$', 'CNY': '¥',
-    'COP': 'CO\$', 'EUR': '€', 'GBP': '£', 'JPY': '¥',
-    'KRW': '₩', 'MXN': 'MX\$', 'PEN': 'S/', 'RUB': '₽', 'USD': '\$',
-  };
-  final sym = symbols[code] ?? code ?? '';
-  return '$sym${price.round()}';
 }
 
 class _ScoreBadge extends StatelessWidget {
