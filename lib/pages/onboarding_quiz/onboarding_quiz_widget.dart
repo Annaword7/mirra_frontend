@@ -35,6 +35,7 @@ enum _Step {
   acne,
   pregnancy,
   goals,
+  prefs,
   optional,
   result,
 }
@@ -97,6 +98,8 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
   bool? _sensitive;
   bool? _acneProne;
   String? _pregnancy;
+  bool _prefFragranceFree = false;
+  int? _prefMaxSteps;
   final List<String> _goals = [];
   String? _ageRange;
   String? _budgetRange;
@@ -136,6 +139,9 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
         _sensitive = row.skinSensitivity;
         _acneProne = row.acneProne;
         _pregnancy = row.pregnancyStatus;
+        final cp = (row.carePreferences as Map?)?.cast<String, dynamic>() ?? {};
+        _prefFragranceFree = cp['fragrance_free'] == true;
+        _prefMaxSteps = cp['max_steps'] is int ? cp['max_steps'] as int : null;
         _goals
           ..clear()
           ..addAll(row.skinGoals);
@@ -194,8 +200,11 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
       case _Step.goals:
         _go(_Step.pregnancy);
         break;
-      case _Step.optional:
+      case _Step.prefs:
         _go(_Step.goals);
+        break;
+      case _Step.optional:
+        _go(_Step.prefs);
         break;
       case _Step.result:
         _go(_Step.optional);
@@ -258,6 +267,10 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
             'skin_sensitivity': _sensitive,
             'acne_prone': _acneProne,
             'pregnancy_status': _pregnancy,
+            'care_preferences': {
+              if (_prefFragranceFree) 'fragrance_free': true,
+              if (_prefMaxSteps != null) 'max_steps': _prefMaxSteps,
+            },
             'skin_goals': _goals,
             'age_range': _ageRange,
             'budget_range': _budgetRange,
@@ -274,6 +287,8 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
           app.obSensitive = _sensitive;
           app.obAcneProne = _acneProne;
           app.obPregnancy = _pregnancy;
+          app.obPrefFragranceFree = _prefFragranceFree;
+          app.obPrefMaxSteps = _prefMaxSteps;
           app.obGoals = List<String>.from(_goals);
           app.obAgeRange = _ageRange;
           app.obBudgetRange = _budgetRange;
@@ -390,6 +405,8 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
         return 4;
       case _Step.goals:
         return 5;
+      case _Step.prefs:
+        return 6;
       default:
         return 0;
     }
@@ -441,7 +458,7 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
             child: _progressActive == 0
                 ? const SizedBox.shrink()
                 : Row(
-                    children: List.generate(5, (i) {
+                    children: List.generate(6, (i) {
                       final active = i < _progressActive;
                       return Expanded(
                         child: Container(
@@ -484,6 +501,8 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
         return _buildPregnancy(theme);
       case _Step.goals:
         return _buildGoals(theme);
+      case _Step.prefs:
+        return _buildPrefs(theme);
       case _Step.optional:
         return _buildOptional(theme);
       case _Step.result:
@@ -797,6 +816,68 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
     );
   }
 
+  Widget _buildPrefs(FlutterFlowTheme theme) {
+    Widget stepChip(int? value, String label) {
+      final selected = _prefMaxSteps == value;
+      return Expanded(
+        child: GestureDetector(
+          onTap: () => safeSetState(() => _prefMaxSteps = value),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 120),
+            height: 44,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: selected ? theme.primary : _card,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                  color: selected ? theme.primary : _border,
+                  width: selected ? 2 : 1),
+            ),
+            child: Text(
+              label,
+              style: TextStyle(
+                color: selected ? Colors.white : _ink,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+                fontSize: _fsBody - 1,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _heading(theme, 'obq_prefs_title', 'obq_prefs_why'),
+        _optionCard(theme,
+            title: _t('prefs_fragrance_free'),
+            selected: _prefFragranceFree,
+            onTap: () => safeSetState(
+                () => _prefFragranceFree = !_prefFragranceFree)),
+        const SizedBox(height: 20),
+        Text(_t('prefs_max_steps'),
+            style: theme.bodyMedium.override(
+                color: _ink,
+                fontSize: _fsBody,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0)),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            stepChip(3, '3'),
+            const SizedBox(width: 8),
+            stepChip(4, '4'),
+            const SizedBox(width: 8),
+            stepChip(5, '5'),
+            const SizedBox(width: 8),
+            stepChip(null, _t('prefs_no_limit')),
+          ],
+        ),
+      ],
+    );
+  }
+
   Widget _buildAcne(FlutterFlowTheme theme) {
     void pick(bool v) => _pickTap(() {
           _acneProne = v;
@@ -1075,17 +1156,23 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
       case _Step.goals:
         children.add(AppButton(
           label: _t('obq_next'),
-          onPressed: _goals.isEmpty ? null : () => _go(_Step.optional),
+          onPressed: _goals.isEmpty ? null : () => _go(_Step.prefs),
         ));
         children.add(const SizedBox(height: 8));
         children.add(TextButton(
           onPressed: () {
             _goals.clear();
-            _go(_Step.optional);
+            _go(_Step.prefs);
           },
           child: Text(_t('obq_goals_none'),
               style: theme.bodyMedium
                   .override(color: _ink, fontSize: _fsBody, letterSpacing: 0)),
+        ));
+        break;
+      case _Step.prefs:
+        children.add(AppButton(
+          label: _t('obq_next'),
+          onPressed: () => _go(_Step.optional),
         ));
         break;
       case _Step.optional:

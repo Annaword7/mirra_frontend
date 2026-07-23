@@ -84,6 +84,14 @@ class FFAppState extends ChangeNotifier {
       _carePushPm = prefs.getBool('ff_carePushPm') ?? true;
     });
     _safeInit(() {
+      if (prefs.containsKey('ff_obPrefFragranceFree')) {
+        _obPrefFragranceFree = prefs.getBool('ff_obPrefFragranceFree');
+      }
+      if (prefs.containsKey('ff_obPrefMaxSteps')) {
+        _obPrefMaxSteps = prefs.getInt('ff_obPrefMaxSteps');
+      }
+    });
+    _safeInit(() {
       if (prefs.containsKey('ff_obAcneProne')) {
         _obAcneProne = prefs.getBool('ff_obAcneProne');
       }
@@ -383,6 +391,25 @@ class FFAppState extends ChangeNotifier {
         : prefs.setBool('ff_obAcneProne', value);
   }
 
+  // Карта клиента (M3c): буфер предпочтений из квиза (до логина).
+  bool? _obPrefFragranceFree;
+  bool? get obPrefFragranceFree => _obPrefFragranceFree;
+  set obPrefFragranceFree(bool? value) {
+    _obPrefFragranceFree = value;
+    value == null
+        ? prefs.remove('ff_obPrefFragranceFree')
+        : prefs.setBool('ff_obPrefFragranceFree', value);
+  }
+
+  int? _obPrefMaxSteps;
+  int? get obPrefMaxSteps => _obPrefMaxSteps;
+  set obPrefMaxSteps(int? value) {
+    _obPrefMaxSteps = value;
+    value == null
+        ? prefs.remove('ff_obPrefMaxSteps')
+        : prefs.setInt('ff_obPrefMaxSteps', value);
+  }
+
   // M4: тумблеры дайджест-пушей рутины (доставка, не домен).
   bool _carePushAm = true;
   bool get carePushAm => _carePushAm;
@@ -462,6 +489,8 @@ class FFAppState extends ChangeNotifier {
     obSensitive = null;
     obAcneProne = null;
     obPregnancy = null;
+    obPrefFragranceFree = null;
+    obPrefMaxSteps = null;
     obGoals = [];
     obAgeRange = null;
     obBudgetRange = null;
