@@ -1,12 +1,12 @@
-import 'dart:ui' show ImageFilter;
-
 import '/flutter_flow/flutter_flow_animations.dart';
+import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'navbar_model.dart';
 export 'navbar_model.dart';
 
@@ -98,14 +98,14 @@ class _NavbarWidgetState extends State<NavbarWidget>
 
   Widget _buildTab({
     required int pageId,
-    required IconData iconData,
-    IconData? activeIconData,
+    required Widget icon,
     required String label,
     required String routeName,
   }) {
     final active = widget.activePage == pageId;
-    final color =
-        active ? FlutterFlowTheme.of(context).primary : const Color(0xFF2C2C2E);
+    final color = active
+        ? FlutterFlowTheme.of(context).alternate
+        : FlutterFlowTheme.of(context).secondaryBackground;
 
     return Expanded(
       child: InkWell(
@@ -124,8 +124,7 @@ class _NavbarWidgetState extends State<NavbarWidget>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(active ? (activeIconData ?? iconData) : iconData,
-                color: color, size: 24),
+            IconTheme(data: IconThemeData(color: color, size: 24), child: icon),
             FittedBox(
               fit: BoxFit.scaleDown,
               child: Text(
@@ -134,18 +133,17 @@ class _NavbarWidgetState extends State<NavbarWidget>
                       fontFamily:
                           FlutterFlowTheme.of(context).bodyMediumFamily,
                       color: color,
-                      fontSize: 11.0,
+                      fontSize: 12.0,
                       letterSpacing: 0.0,
-                      fontWeight: active ? FontWeight.w600 : FontWeight.w400,
                       useGoogleFonts:
                           !FlutterFlowTheme.of(context).bodyMediumIsCustom,
                     ),
               ),
             ),
           ]
-              .divide(const SizedBox(height: 5.0))
-              .addToStart(const SizedBox(height: 10.0))
-              .addToEnd(const SizedBox(height: 10.0)),
+              .divide(const SizedBox(height: 6.0))
+              .addToStart(const SizedBox(height: 12.0))
+              .addToEnd(const SizedBox(height: 12.0)),
         ),
       ),
     );
@@ -166,135 +164,130 @@ class _NavbarWidgetState extends State<NavbarWidget>
 
   @override
   Widget build(BuildContext context) {
-    final primary = FlutterFlowTheme.of(context).primary;
-    final dark = Theme.of(context).brightness == Brightness.dark;
-    // Frosted-glass approximation (iOS ultraThinMaterial style).
-    final glassFill = dark
-        ? Colors.black.withValues(alpha: 0.42)
-        : Colors.white.withValues(alpha: 0.72);
-    final glassBorder = dark
-        ? Colors.white.withValues(alpha: 0.16)
-        : Colors.white.withValues(alpha: 0.75);
-
     return SizedBox(
-      height: 108.0,
+      height: 121.0,
       child: Stack(
-        clipBehavior: Clip.none,
         children: [
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Padding(
-              padding:
-                  const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 28.0),
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(30.0),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.10),
-                      blurRadius: 24.0,
-                      offset: const Offset(0.0, 8.0),
-                    ),
-                  ],
+          Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(20.0, 0.0, 20.0, 0.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                Padding(
+                  padding:
+                      const EdgeInsetsDirectional.fromSTEB(0.0, 20.0, 0.0, 0.0),
+                  child: Container(
+                    width: double.infinity,
+                    height: 1.0,
+                    decoration:
+                        const BoxDecoration(),
+                  ),
                 ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(30.0),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 18.0, sigmaY: 18.0),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: glassFill,
-                        borderRadius: BorderRadius.circular(30.0),
-                        border: Border.all(color: glassBorder, width: 1.0),
+                Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: FlutterFlowTheme.of(context).primary,
+                    boxShadow: [
+                      BoxShadow(
+                        blurRadius: 4.0,
+                        color: FlutterFlowTheme.of(context).primary,
+                        offset: const Offset(0.0, 1.0),
                       ),
-                      child: Padding(
-                        padding: const EdgeInsetsDirectional.fromSTEB(
-                            8.0, 0.0, 8.0, 0.0),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.max,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            _buildTab(
-                              pageId: 2,
-                              iconData: Icons.home_outlined,
-                              activeIconData: Icons.home_rounded,
-                              label: FFLocalizations.of(context)
-                                  .getText('kndykt66' /* Home */),
-                              routeName: HomeWidget.routeName,
-                            ),
-                            _buildTab(
-                              pageId: 1,
-                              iconData: Icons.search_rounded,
-                              label: FFLocalizations.of(context)
-                                  .getText('f0lv5sbb' /* Explore */),
-                              routeName: TopratedWidget.routeName,
-                            ),
-                            const Expanded(child: SizedBox(height: 40.0)),
-                            _buildTab(
-                              pageId: 3,
-                              iconData: Icons.spa_outlined,
-                              activeIconData: Icons.spa_rounded,
-                              label: FFLocalizations.of(context)
-                                  .getText('cb_bag_title'),
-                              routeName: CosmeticBagWidget.routeName,
-                            ),
-                            _buildTab(
-                              pageId: 4,
-                              iconData: Icons.calendar_today_outlined,
-                              activeIconData: Icons.calendar_month_rounded,
-                              label: FFLocalizations.of(context)
-                                  .getText('cb_routine_title'),
-                              routeName: RoutineCalendarWidget.routeName,
-                            ),
-                          ],
-                        ),
+                    ],
+                    borderRadius: BorderRadius.circular(48.0),
+                    border: Border.all(
+                      color: FlutterFlowTheme.of(context).primary,
+                    ),
+                  ),
+                  child: Align(
+                    alignment: AlignmentDirectional.center,
+                    child: Padding(
+                      padding: const EdgeInsetsDirectional.fromSTEB(
+                          16.0, 0.0, 16.0, 0.0),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.max,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildTab(
+                            pageId: 2,
+                            icon: const Icon(Icons.home),
+                            label: FFLocalizations.of(context)
+                                .getText('kndykt66' /* Home */),
+                            routeName: HomeWidget.routeName,
+                          ),
+                          _buildTab(
+                            pageId: 1,
+                            icon: const FaIcon(FontAwesomeIcons.search),
+                            label: FFLocalizations.of(context)
+                                .getText('f0lv5sbb' /* Explore */),
+                            routeName: TopratedWidget.routeName,
+                          ),
+                          // Center FAB placeholder
+                          const Expanded(
+                            child: SizedBox(height: 40.0),
+                          ),
+                          _buildTab(
+                            pageId: 3,
+                            icon: const Icon(Icons.space_dashboard),
+                            label: FFLocalizations.of(context)
+                                .getText('5lvcbe4s' /* Boards */),
+                            routeName: BoardsWidget.routeName,
+                          ),
+                          _buildTab(
+                            pageId: 4,
+                            icon: const Icon(Icons.person),
+                            label: FFLocalizations.of(context)
+                                .getText('i0bb253q' /* Profile */),
+                            routeName: ProfileWidget.routeName,
+                          ),
+                        ],
                       ),
                     ),
                   ),
                 ),
-              ),
+              ],
             ),
           ),
 
           // Center FAB (scan button)
           Align(
-            alignment: const AlignmentDirectional(0.0, -0.72),
+            alignment: const AlignmentDirectional(0.0, -0.67),
             child: Container(
               decoration: BoxDecoration(
-                shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: primary.withValues(alpha: 0.40),
-                    blurRadius: 16.0,
-                    offset: const Offset(0.0, 6.0),
+                    blurRadius: 4.0,
+                    color: FlutterFlowTheme.of(context).primary,
+                    offset: const Offset(0.0, -2.0),
                   ),
                 ],
+                borderRadius: BorderRadius.circular(24.0),
               ),
-              child: Material(
-                color: primary,
-                shape: const CircleBorder(),
-                clipBehavior: Clip.antiAlias,
-                child: InkWell(
-                  onTap: () {
-                    HapticFeedback.lightImpact();
-                    context.pushNamed(
-                      TakeorUploadPageWidget.routeName,
-                      extra: <String, dynamic>{
-                        '__transition_info__': TransitionInfo(
-                          hasTransition: true,
-                          transitionType: PageTransitionType.fade,
-                          duration: Duration(milliseconds: 0),
-                        ),
-                      },
-                    );
-                  },
-                  child: const SizedBox(
-                    width: 62.0,
-                    height: 62.0,
-                    child: Icon(Icons.auto_awesome_rounded,
-                        color: Colors.white, size: 32.0),
-                  ),
+              child: FlutterFlowIconButton(
+                borderColor: Colors.transparent,
+                borderRadius: 24.0,
+                buttonSize: 65.0,
+                fillColor: FlutterFlowTheme.of(context).alternate,
+                icon: Icon(
+                  Icons.auto_awesome_rounded,
+                  color: widget.activePage == 5
+                      ? FlutterFlowTheme.of(context).primary
+                      : FlutterFlowTheme.of(context).secondaryBackground,
+                  size: 35.0,
                 ),
+                onPressed: () {
+                  HapticFeedback.lightImpact();
+                  context.pushNamed(
+                    TakeorUploadPageWidget.routeName,
+                    extra: <String, dynamic>{
+                      '__transition_info__': TransitionInfo(
+                        hasTransition: true,
+                        transitionType: PageTransitionType.fade,
+                        duration: Duration(milliseconds: 0),
+                      ),
+                    },
+                  );
+                },
               ),
             ).animateOnPageLoad(animationsMap['containerOnPageLoadAnimation']!),
           ),

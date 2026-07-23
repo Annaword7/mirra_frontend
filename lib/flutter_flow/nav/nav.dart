@@ -215,28 +215,6 @@ GoRouter createRouter(AppStateNotifier appStateNotifier, [Widget? entryPage]) =>
           builder: (context, params) => NewblankWidget(),
         ),
         FFRoute(
-          name: CosmeticBagIntroWidget.routeName,
-          path: CosmeticBagIntroWidget.routePath,
-          builder: (context, params) => CosmeticBagIntroWidget(),
-        ),
-        FFRoute(
-          name: CompatibilityResultWidget.routeName,
-          path: CompatibilityResultWidget.routePath,
-          builder: (context, params) => CompatibilityResultWidget(),
-        ),
-        FFRoute(
-          name: CosmeticBagWidget.routeName,
-          path: CosmeticBagWidget.routePath,
-          requireAuth: true,
-          builder: (context, params) => CosmeticBagWidget(),
-        ),
-        FFRoute(
-          name: RoutineCalendarWidget.routeName,
-          path: RoutineCalendarWidget.routePath,
-          requireAuth: true,
-          builder: (context, params) => RoutineCalendarWidget(),
-        ),
-        FFRoute(
           name: Itemcard2Widget.routeName,
           path: Itemcard2Widget.routePath,
           builder: (context, params) => Itemcard2Widget(

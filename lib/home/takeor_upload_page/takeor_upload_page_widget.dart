@@ -11,6 +11,7 @@ import '/flutter_flow/flutter_flow_animations.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
+import '/design_system/components/app_button.dart';
 import '/flutter_flow/upload_data.dart';
 import '/limits/limit_out/limit_out_widget.dart';
 import '/components/error_popup/error_popup_widget.dart';
@@ -356,19 +357,6 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
             ));
           }
           FFAppState().feedbackPendingScan = true;
-          if (await CosmeticBagIntroWidget.handleScanSuccess(
-            context,
-            ExtractproductinfoNEWBCNDCopyCall.iamgeID(
-              (_model.extractedproductGalary?.jsonBody ?? ''),
-            ),
-            mounted: mounted,
-          )) {
-            FFAppState().uploadedimageurl = '';
-            FFAppState().analysisloading = false;
-            FFAppState().Producanalysstate = 0;
-            if (mounted) safeSetState(() {});
-            return;
-          }
           if (!mounted) {
             FFAppState().uploadedimageurl = '';
             FFAppState().analysisloading = false;
@@ -762,17 +750,6 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
         ));
       }
       FFAppState().feedbackPendingScan = true;
-      if (await CosmeticBagIntroWidget.handleScanSuccess(
-        context,
-        imageId,
-        mounted: mounted,
-      )) {
-        FFAppState().uploadedimageurl = '';
-        FFAppState().analysisloading = false;
-        FFAppState().Producanalysstate = 0;
-        if (mounted) safeSetState(() {});
-        return;
-      }
       if (!mounted) {
         FFAppState().uploadedimageurl = '';
         FFAppState().analysisloading = false;
@@ -867,7 +844,11 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
   }
 
   Widget _buildCameraButton(BuildContext context) {
-    return FFButtonWidget(
+    return AppButton(
+      label: FFLocalizations.of(context).getText(
+        'xirptk6c' /* Take a photo */,
+      ),
+      icon: Icons.camera_alt,
       onPressed: () async {
         final appState = context.read<FFAppState>();
         if (appState.analysesused >= appState.freeScanLimit) {
@@ -1100,19 +1081,6 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                   ));
                 }
                 FFAppState().feedbackPendingScan = true;
-                if (await CosmeticBagIntroWidget.handleScanSuccess(
-                  context,
-                  ExtractproductinfoNEWBCNDCopyCall.iamgeID(
-                    (_model.extractedproductcamera?.jsonBody ?? ''),
-                  ),
-                  mounted: mounted,
-                )) {
-                  FFAppState().uploadedimageurl = '';
-                  FFAppState().analysisloading = false;
-                  FFAppState().Producanalysstate = 0;
-                  if (mounted) safeSetState(() {});
-                  return;
-                }
                 if (!mounted) {
                   FFAppState().uploadedimageurl = '';
                   FFAppState().analysisloading = false;
@@ -1346,41 +1314,15 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
 
         if (_shouldSetState) safeSetState(() {});
       },
-      text: FFLocalizations.of(context).getText(
-        'xirptk6c' /* Take a photo */,
-      ),
-      icon: Icon(
-        Icons.camera_alt,
-        size: 28.0,
-      ),
-      options: FFButtonOptions(
-        width: double.infinity,
-        height: 65.0,
-        padding: EdgeInsets.all(8.0),
-        iconPadding:
-            EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-        iconColor: Colors.white,
-        color: Color(0xD25C85D9),
-        textStyle: FlutterFlowTheme.of(context).titleMedium.override(
-              fontFamily:
-                  FlutterFlowTheme.of(context).titleMediumFamily,
-              color: Colors.white,
-              letterSpacing: 0.0,
-              fontWeight: FontWeight.w600,
-              useGoogleFonts:
-                  !FlutterFlowTheme.of(context).titleMediumIsCustom,
-            ),
-        elevation: 0.4,
-        borderSide: BorderSide(
-          color: Color(0xD15C85D9),
-        ),
-        borderRadius: BorderRadius.circular(36.0),
-      ),
     );
   }
 
   Widget _buildGalleryButton(BuildContext context) {
-    return FFButtonWidget(
+    return AppButton(
+      label: FFLocalizations.of(context).getText(
+        'pznd0mgm' /* Choose from gallery */,
+      ),
+      icon: Icons.photo_library,
       onPressed: () async {
         final appState = context.read<FFAppState>();
         debugPrint('[gallery] tap: analysesused=${appState.analysesused} '
@@ -1471,36 +1413,6 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
         if (_shouldSetState) safeSetState(() {});
         return;
       },
-      text: FFLocalizations.of(context).getText(
-        'pznd0mgm' /* Choose from gallery */,
-      ),
-      icon: Icon(
-        Icons.photo_library,
-        size: 28.0,
-      ),
-      options: FFButtonOptions(
-        width: double.infinity,
-        height: 65.0,
-        padding: EdgeInsets.all(8.0),
-        iconPadding:
-            EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-        iconColor: Colors.white,
-        color: Color(0xD25C85D9),
-        textStyle: FlutterFlowTheme.of(context).titleMedium.override(
-              fontFamily:
-                  FlutterFlowTheme.of(context).titleMediumFamily,
-              color: Colors.white,
-              letterSpacing: 0.0,
-              fontWeight: FontWeight.w600,
-              useGoogleFonts:
-                  !FlutterFlowTheme.of(context).titleMediumIsCustom,
-            ),
-        elevation: 0.4,
-        borderSide: BorderSide(
-          color: Color(0xD15C85D9),
-        ),
-        borderRadius: BorderRadius.circular(36.0),
-      ),
     );
   }
 

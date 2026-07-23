@@ -205,17 +205,14 @@ class NotificationService {
     }
   }
 
-  // 'routine' → open the routine calendar; otherwise it's an image id.
+  // Local-notification payloads carry an image id. Stale 'routine' payloads
+  // from the removed experiment are ignored (non-numeric id → no navigation).
   void _routeLocalPayload(String? payload) {
-    if (payload == null) return;
-    if (payload == 'routine') {
-      _onTap?.call({'route': 'routine'});
-    } else {
-      _onTap?.call({'image_id': payload});
-    }
+    if (payload == null || payload == 'routine') return;
+    _onTap?.call({'image_id': payload});
   }
 
-  // ── Routine reminders (local scheduled notifications) ──────────────────────
+  // ── Scheduled local reminders (generic weekly mechanism) ────────────────────
 
   bool _schedulingReady = false;
 

@@ -21,13 +21,6 @@ export '/home/takeor_upload_page/takeor_upload_page_widget.dart'
     show TakeorUploadPageWidget;
 export '/settings/countries/countries_widget.dart' show CountriesWidget;
 export '/pages/newblank/newblank_widget.dart' show NewblankWidget;
-export '/pages/cosmetic_bag_intro/cosmetic_bag_intro_widget.dart'
-    show CosmeticBagIntroWidget;
-export '/pages/compatibility_result/compatibility_result_widget.dart'
-    show CompatibilityResultWidget;
-export '/pages/cosmetic_bag/cosmetic_bag_widget.dart' show CosmeticBagWidget;
-export '/pages/routine_calendar/routine_calendar_widget.dart'
-    show RoutineCalendarWidget;
 export '/itemcard2/itemcard2_widget.dart' show Itemcard2Widget;
 export '/shareproduct/shareproduct_widget.dart' show ShareproductWidget;
 export '/search/search_widget.dart' show SearchWidget;

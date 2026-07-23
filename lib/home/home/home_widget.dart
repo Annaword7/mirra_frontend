@@ -4,10 +4,10 @@ import '/backend/api_requests/api_calls.dart';
 import '/backend/supabase/database/tables/product_prices.dart';
 import '/backend/supabase/supabase.dart';
 import '/components/navbar/navbar_widget.dart';
-import '/components/home_pipeline_widget.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
+import '/design_system/components/app_button.dart';
 import '/item_card/imagedetailed_main/imagedetailed_main_widget.dart';
 import 'dart:async';
 import '/index.dart';
@@ -487,56 +487,20 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                             children: [
                                               if (!appState.isprouser)
                                                 Flexible(
-                                                    child: FFButtonWidget(
-                                                  onPressed: () async {
-                                                    context.pushNamed(
-                                                        PaywallpageWidget
-                                                            .routeName);
-                                                  },
-                                                  text: FFLocalizations.of(
+                                                    child: AppButton(
+                                                  label: FFLocalizations.of(
                                                           context)
                                                       .getText(
                                                     'fjrdil62' /* Update to PRO */,
                                                   ),
-                                                  icon: FaIcon(
-                                                    FontAwesomeIcons.crown,
-                                                    size: 15.0,
-                                                  ),
-                                                  options: FFButtonOptions(
-                                                    height: 35.0,
-                                                    padding:
-                                                        EdgeInsetsDirectional
-                                                            .fromSTEB(18.0, 8.0,
-                                                                17.0, 7.0),
-                                                    iconPadding:
-                                                        EdgeInsetsDirectional
-                                                            .fromSTEB(0.0, 0.0,
-                                                                0.0, 0.0),
-                                                    color: FlutterFlowTheme.of(
-                                                            context)
-                                                        .primary,
-                                                    textStyle: FlutterFlowTheme
-                                                            .of(context)
-                                                        .titleSmall
-                                                        .override(
-                                                          fontFamily:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .titleSmallFamily,
-                                                          color: Colors.white,
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              FontWeight.w700,
-                                                          useGoogleFonts:
-                                                              !FlutterFlowTheme
-                                                                      .of(context)
-                                                                  .titleSmallIsCustom,
-                                                        ),
-                                                    elevation: 0.0,
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            18.0),
-                                                  ),
+                                                  icon: FontAwesomeIcons.crown,
+                                                  size: AppButtonSize.sm,
+                                                  fullWidth: false,
+                                                  onPressed: () {
+                                                    context.pushNamed(
+                                                        PaywallpageWidget
+                                                            .routeName);
+                                                  },
                                                 )),
                                             ].divide(SizedBox(width: 16.0)),
                                           ),
@@ -650,7 +614,6 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                     ),
                                   ),
                                 ),
-                              const HomePipelineWidget(),
                               // ── Scan quota bar ─────────────────────────────
                               Padding(
                                 padding: EdgeInsetsDirectional.fromSTEB(
@@ -917,49 +880,14 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                         ),
                                                   ),
                                                   const SizedBox(height: 28),
-                                                  FFButtonWidget(
-                                                    onPressed: () =>
-                                                        context.pushNamed(
-                                                            TakeorUploadPageWidget
-                                                                .routeName),
-                                                    text: btnLabel,
-                                                    showLoadingIndicator: false,
-                                                    options: FFButtonOptions(
-                                                      height: 50,
-                                                      padding:
-                                                          const EdgeInsetsDirectional
-                                                              .fromSTEB(
-                                                              28, 0, 28, 0),
-                                                      iconPadding:
-                                                          const EdgeInsetsDirectional
-                                                              .fromSTEB(
-                                                              0, 0, 0, 0),
-                                                      color:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .primary,
-                                                      textStyle:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .titleSmall
-                                                              .override(
-                                                                fontFamily: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .titleSmallFamily,
-                                                                color: Colors
-                                                                    .white,
-                                                                letterSpacing:
-                                                                    0.0,
-                                                                useGoogleFonts:
-                                                                    !FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .titleSmallIsCustom,
-                                                              ),
-                                                      elevation: 0.0,
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              50.0),
-                                                    ),
+                                                  AppButton(
+                                                    label: btnLabel,
+                                                    fullWidth: false,
+                                                    onPressed: () {
+                                                      context.pushNamed(
+                                                          TakeorUploadPageWidget
+                                                              .routeName);
+                                                    },
                                                   ),
                                                 ],
                                               ),
