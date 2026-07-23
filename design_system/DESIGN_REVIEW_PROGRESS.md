@@ -333,3 +333,11 @@ typo + `LinkText`.
   `animateOnPageLoad` + paddings. **467 → 348 lines.** `flutter analyze`: **0 errors / 0 warnings**;
   tests `+9 -1`. **Resolved:** C7·PremiumFeaturesList·#2 (shared FeatureRow), PaywallConfirmation·#2.
   **Note:** paywall_confirmation's sheet **shell** (100×5 handle, r24) + PRO pill remain for I6/10.2.
+- ✅ **10.2** `feat(paywall): ProPill + migrate 2 badges` — new
+  `lib/design_system/components/pro_pill.dart` (primary-filled r40 pill, bold Plus-Jakarta-Sans label,
+  optional leading icon; `contentColor`/`height`/`fontSize`/`letterSpacing`/`padding` params). Migrated
+  the **paywallpage** header "UPGRADE TO PRO" pill (text-only, `alternate`) and the
+  **paywall_confirmation** "PRO" pill (icon + `info`-colored, h40, 14/ls0) to it. `flutter analyze`:
+  **0 errors / 0 warnings**; tests `+9 -1`. **Resolved:** C7·PaywallPage·#6, PaywallConfirmation·#5
+  (unified PRO badge). **Not done:** upgrade_widget's 55-high "pill" is really a **CTA button**
+  (→ AppButton/I2, not a badge) — left with a note; it's Low-priority (#3).

@@ -11,6 +11,7 @@ import '/flutter_flow/flutter_flow_widgets.dart';
 import '/backend/schema/structs/index.dart';
 import '/custom_code/actions/index.dart' as actions;
 import '/flutter_flow/revenue_cat_util.dart' as revenue_cat;
+import '/design_system/components/pro_pill.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -129,27 +130,9 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                               }
                             },
                           ),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: FlutterFlowTheme.of(context).primary,
-                              borderRadius: BorderRadius.circular(40.0),
-                            ),
-                            child: Padding(
-                              padding: EdgeInsetsDirectional.fromSTEB(12.0, 8.0, 12.0, 8.0),
-                              child: Text(
-                                FFLocalizations.of(context).getText('7n2kv1iq' /* UPGRADE TO PRO */),
-                                style: FlutterFlowTheme.of(context).labelSmall.override(
-                                      font: GoogleFonts.plusJakartaSans(
-                                        fontWeight: FontWeight.w700,
-                                        fontStyle: FlutterFlowTheme.of(context).labelSmall.fontStyle,
-                                      ),
-                                      color: FlutterFlowTheme.of(context).alternate,
-                                      letterSpacing: 1.0,
-                                      fontWeight: FontWeight.w700,
-                                      fontStyle: FlutterFlowTheme.of(context).labelSmall.fontStyle,
-                                    ),
-                              ),
-                            ),
+                          ProPill(
+                            label: FFLocalizations.of(context)
+                                .getText('7n2kv1iq' /* UPGRADE TO PRO */),
                           ),
                           // Spacer to balance the close button
                           SizedBox(width: 44.0),

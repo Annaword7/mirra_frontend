@@ -3,6 +3,7 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/design_system/components/feature_row.dart';
+import '/design_system/components/pro_pill.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -186,48 +187,17 @@ class _PaywallConfirmationWidgetState extends State<PaywallConfirmationWidget>
                 alignment: AlignmentDirectional(0.0, 0.0),
                 child: Padding(
                   padding: EdgeInsetsDirectional.fromSTEB(0.0, 24.0, 0.0, 6.0),
-                  child: Container(
+                  child: ProPill(
+                    label: FFLocalizations.of(context).getText(
+                      '0t5sc45u' /* PRO */,
+                    ),
+                    icon: Icons.auto_awesome_rounded,
+                    contentColor: FlutterFlowTheme.of(context).info,
                     height: 40.0,
-                    decoration: BoxDecoration(
-                      color: FlutterFlowTheme.of(context).primary,
-                      borderRadius: BorderRadius.circular(40.0),
-                    ),
-                    child: Padding(
-                      padding:
-                          EdgeInsetsDirectional.fromSTEB(14.0, 8.0, 14.0, 8.0),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.auto_awesome_rounded,
-                            color: FlutterFlowTheme.of(context).info,
-                            size: 16.0,
-                          ),
-                          Text(
-                            FFLocalizations.of(context).getText(
-                              '0t5sc45u' /* PRO */,
-                            ),
-                            style: FlutterFlowTheme.of(context)
-                                .bodyMedium
-                                .override(
-                                  font: GoogleFonts.plusJakartaSans(
-                                    fontWeight: FontWeight.w700,
-                                    fontStyle: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .fontStyle,
-                                  ),
-                                  color: FlutterFlowTheme.of(context).info,
-                                  fontSize: 14.0,
-                                  letterSpacing: 0.0,
-                                  fontWeight: FontWeight.w700,
-                                  fontStyle: FlutterFlowTheme.of(context)
-                                      .bodyMedium
-                                      .fontStyle,
-                                ),
-                          ),
-                        ].divide(SizedBox(width: 6.0)),
-                      ),
-                    ),
+                    fontSize: 14.0,
+                    letterSpacing: 0.0,
+                    padding: const EdgeInsetsDirectional.fromSTEB(
+                        14.0, 8.0, 14.0, 8.0),
                   ).animateOnPageLoad(
                       animationsMap['containerOnPageLoadAnimation']!),
                 ),
