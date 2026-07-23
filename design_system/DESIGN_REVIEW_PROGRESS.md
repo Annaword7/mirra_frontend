@@ -15,7 +15,7 @@ rejected (with justification)**, or **superseded by another implemented change**
 | 1 | **Inputs** — `AppTextField` (visible focus, one fill/border/radius, password toggle) | B10 | **Completed** | High | S–M |
 | 2 | Button system — `AppButton` (primary/secondary/outline/text/destructive, pill) | B1 | **Completed** | High | L |
 | 3 | Accessibility pass — contrast, 12px floor, 44px targets, non-color cues | B3 | **Completed** | High | M |
-| 4 | Semantic color + score system — `semanticScoreColor()`/`statusColor()`/legend | B2 | Not Started | High | M |
+| 4 | Semantic color + score system — `semanticScoreColor()`/`statusColor()`/legend | B2 | **In Progress** | High | M |
 | 5 | Empty vs loading — `SkeletonGrid` + `MirraEmptyState` | B4 | Not Started | High | M |
 | 6 | Sheets & dialogs — `MirraBottomSheet`/`MirraDialogCard`/`MirraDragHandle` | B5 | Not Started | High | M |
 | 7 | Product surfaces — `ProductTile`/`MirraInfoCard`/`MirraChip`/`ScoreBadge` | B6 | Not Started | High | L |
@@ -198,3 +198,40 @@ autofocus fixed. `flutter analyze` clean throughout; tests `+9 -1` (pre-existing
 - **Painter-embedded sub-12** (share_card 7.5/9px, score_breakdown 8/9/9.5px, radar) → **I4**.
 - **paywall** sub-12 → **I10**; **startanalys** sub-12 → **I12** (unrouted/dead).
 - **Untranslated a11y strings** (`'Retry'`, `'Delete'`, `'Active'/'Issues'`, forgot-pw feedback) → **I12**.
+
+---
+
+## Initiative 4 — Semantic color + score system  ·  Status: In Progress
+
+**Goal:** one score ramp + one status palette + non-color cues, replacing the copy-pasted and
+**contradictory** score/status logic. Source: DESIGN_REVIEW cluster **B2** + score/status a11y rows
+(incl. the non-color-cue + painter sub-12 items **deferred here from Initiative 3**).
+
+**Contradictions found (evidence):**
+- **Score ramp** — identical 5-tier `_scoreColor`(0–100) + A–F grade copy-pasted in **3 files**
+  (share_card, imagedetailed_main, imagedetailed_top_raited): `≥75 #1B5E20 · ≥65 #43A047 · ≥55
+  #C0CA33 · ≥45 #FFB300 · ≥35 #FF7043 · <35 #D32F2F`.
+- **Status palette** — 3 mappings for the same `working`/`borderline`/`decorative`: product_card_v2
+  (working **green**, borderline amber, decorative grey), score_breakdown painter (working **green**
+  #2E7D32, amber #F9A825, grey #9E9E9E), ingredient_bubbles (working **amber** #FFB300, borderline
+  steel #78909C, decorative muted #90A4AE) — ingredient_bubbles inverts the meaning.
+- product_card_v2 `_fitColor` uses a different 3-tier cutoff (75/60) + dead dark-mode branches
+  (app has no dark mode); painters add more ad-hoc greens/ambers/slate-blues.
+
+**Decisions (approved):** adopt the **majority 5-tier ramp** as canonical; **status semantics:
+working = good → GREEN**, borderline amber, decorative & unknown grey. Non-color cues: score uses
+the **grade letter** (already redundant); status gets an **icon** (`statusIcon`). Single light-mode
+palette (no dark branching). API lives in `lib/design_system/foundations/score_status.dart` as pure,
+context-free functions (painters need it without `BuildContext`).
+
+**Commit plan:** 4.1 foundation file · 4.2 migrate the 3 score-ramp sites · 4.3 reconcile status
+palette (product_card_v2 + ingredient_bubbles) · 4.4 painters (score_breakdown / radar: shared colors
++ sub-12 fix) · 4.5 non-color status cues (icons).
+
+**Commits:**
+- ✅ **4.1** `feat(ds): add score_status foundation` — new
+  `lib/design_system/foundations/score_status.dart`: `semanticScoreColor(score)` + `scoreGrade(score)`
+  (5-tier canonical ramp, A–F), `statusColor(status)` + `statusIcon(status)` (working green / borderline
+  amber / decorative & unknown grey), with `k*` const palette. Pure/context-free (single light mode).
+  No migration yet — findings resolve as sites route through it in 4.2–4.5. `flutter analyze`: **No
+  issues found** (file); project **0 errors / 0 warnings**.
