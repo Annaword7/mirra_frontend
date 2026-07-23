@@ -3,8 +3,8 @@ import '/backend/supabase/supabase.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
 import '/design_system/components/app_text_field.dart';
+import '/design_system/components/app_button.dart';
 import '/flutter_flow/upload_data.dart';
 import '/index.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -883,7 +883,10 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
                       Padding(
                         padding: EdgeInsetsDirectional.fromSTEB(
                             16.0, 0.0, 16.0, 0.0),
-                        child: FFButtonWidget(
+                        child: AppButton(
+                          label: FFLocalizations.of(context).getText(
+                            'bwi4v4ib' /* Save Changes */,
+                          ),
                           onPressed: () async {
                             HapticFeedback.lightImpact();
                             if (_model.formKey.currentState == null ||
@@ -925,35 +928,6 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
                               ),
                             );
                           },
-                          text: FFLocalizations.of(context).getText(
-                            'bwi4v4ib' /* Save Changes */,
-                          ),
-                          options: FFButtonOptions(
-                            width: double.infinity,
-                            height: 55.0,
-                            padding: EdgeInsetsDirectional.fromSTEB(
-                                0.0, 0.0, 0.0, 0.0),
-                            iconPadding: EdgeInsetsDirectional.fromSTEB(
-                                0.0, 0.0, 0.0, 0.0),
-                            color: FlutterFlowTheme.of(context).primary,
-                            textStyle: FlutterFlowTheme.of(context)
-                                .titleSmall
-                                .override(
-                                  fontFamily: FlutterFlowTheme.of(context)
-                                      .titleSmallFamily,
-                                  color: Colors.white,
-                                  letterSpacing: 0.0,
-                                  fontWeight: FontWeight.w600,
-                                  useGoogleFonts: !FlutterFlowTheme.of(context)
-                                      .titleSmallIsCustom,
-                                ),
-                            elevation: 0.0,
-                            borderSide: BorderSide(
-                              color: Colors.transparent,
-                              width: 1.0,
-                            ),
-                            borderRadius: BorderRadius.circular(50.0),
-                          ),
                         ),
                       ),
                     ]

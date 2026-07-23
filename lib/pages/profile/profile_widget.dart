@@ -6,7 +6,7 @@ import '/components/link_telegram_sheet/link_telegram_sheet_widget.dart';
 import '/components/navbar/navbar_widget.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
+import '/design_system/components/app_button.dart';
 import '/flutter_flow/revenue_cat_util.dart' as revenue_cat;
 import '/environment_values.dart';
 import '/index.dart';
@@ -959,7 +959,9 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                           Padding(
                             padding: EdgeInsetsDirectional.fromSTEB(
                                 16.0, 27.0, 16.0, 0.0),
-                            child: FFButtonWidget(
+                            child: AppButton(
+                              label: FFLocalizations.of(context)
+                                  .getText('cm_create_account'),
                               onPressed: () {
                                 HapticFeedback.lightImpact();
                                 context.pushNamed(
@@ -972,38 +974,15 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                   },
                                 );
                               },
-                              text: FFLocalizations.of(context)
-                                  .getText('cm_create_account'),
-                              options: FFButtonOptions(
-                                width: double.infinity,
-                                height: 55.0,
-                                padding: EdgeInsetsDirectional.fromSTEB(
-                                    0.0, 0.0, 0.0, 0.0),
-                                iconPadding: EdgeInsetsDirectional.fromSTEB(
-                                    0.0, 0.0, 0.0, 0.0),
-                                color: FlutterFlowTheme.of(context).secondary,
-                                textStyle: FlutterFlowTheme.of(context)
-                                    .titleSmall
-                                    .override(
-                                      fontFamily: FlutterFlowTheme.of(context)
-                                          .titleSmallFamily,
-                                      color: FlutterFlowTheme.of(context)
-                                          .primaryText,
-                                      letterSpacing: 0.0,
-                                      fontWeight: FontWeight.w600,
-                                      useGoogleFonts:
-                                          !FlutterFlowTheme.of(context)
-                                              .titleSmallIsCustom,
-                                    ),
-                                elevation: 0.0,
-                                borderRadius: BorderRadius.circular(30.0),
-                              ),
                             ),
                           ),
                           Padding(
                             padding: EdgeInsetsDirectional.fromSTEB(
                                 16.0, 12.0, 16.0, 0.0),
-                            child: FFButtonWidget(
+                            child: AppButton(
+                              label: FFLocalizations.of(context)
+                                  .getText('prof_sign_in'),
+                              variant: AppButtonVariant.secondary,
                               onPressed: () {
                                 HapticFeedback.lightImpact();
                                 context.pushNamed(
@@ -1016,38 +995,16 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                   },
                                 );
                               },
-                              text: FFLocalizations.of(context)
-                                  .getText('prof_sign_in'),
-                              options: FFButtonOptions(
-                                width: double.infinity,
-                                height: 55.0,
-                                padding: EdgeInsetsDirectional.fromSTEB(
-                                    0.0, 0.0, 0.0, 0.0),
-                                iconPadding: EdgeInsetsDirectional.fromSTEB(
-                                    0.0, 0.0, 0.0, 0.0),
-                                color: Color(0xFFE7E8EB),
-                                textStyle: FlutterFlowTheme.of(context)
-                                    .titleSmall
-                                    .override(
-                                      fontFamily: FlutterFlowTheme.of(context)
-                                          .titleSmallFamily,
-                                      color: FlutterFlowTheme.of(context)
-                                          .primaryText,
-                                      letterSpacing: 0.0,
-                                      fontWeight: FontWeight.w600,
-                                      useGoogleFonts:
-                                          !FlutterFlowTheme.of(context)
-                                              .titleSmallIsCustom,
-                                    ),
-                                elevation: 0.0,
-                                borderRadius: BorderRadius.circular(30.0),
-                              ),
                             ),
                           ),
                           Padding(
                             padding: EdgeInsetsDirectional.fromSTEB(
                                 16.0, 12.0, 16.0, 0.0),
-                            child: FFButtonWidget(
+                            child: AppButton(
+                              label: FFLocalizations.of(context)
+                                  .getText('prof_end_session'),
+                              variant: AppButtonVariant.text,
+                              size: AppButtonSize.sm,
                               onPressed: () async {
                                 HapticFeedback.lightImpact();
                                 FFAppState().isprouser = false;
@@ -1063,32 +1020,6 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                 GoRouter.of(context).clearRedirectLocation();
                                 context.goNamed(OnboardingQuizWidget.routeName);
                               },
-                              text: FFLocalizations.of(context)
-                                  .getText('prof_end_session'),
-                              options: FFButtonOptions(
-                                width: double.infinity,
-                                height: 35.0,
-                                padding: EdgeInsetsDirectional.fromSTEB(
-                                    0.0, 0.0, 0.0, 0.0),
-                                iconPadding: EdgeInsetsDirectional.fromSTEB(
-                                    0.0, 0.0, 0.0, 0.0),
-                                color: FlutterFlowTheme.of(context).alternate,
-                                textStyle: FlutterFlowTheme.of(context)
-                                    .titleSmall
-                                    .override(
-                                      fontFamily: FlutterFlowTheme.of(context)
-                                          .titleSmallFamily,
-                                      color: FlutterFlowTheme.of(context)
-                                          .secondaryText,
-                                      letterSpacing: 0.0,
-                                      fontWeight: FontWeight.w500,
-                                      useGoogleFonts:
-                                          !FlutterFlowTheme.of(context)
-                                              .titleSmallIsCustom,
-                                    ),
-                                elevation: 0.0,
-                                borderRadius: BorderRadius.circular(50.0),
-                              ),
                             ),
                           ),
                         ] else ...[
@@ -1096,7 +1027,11 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                           Padding(
                             padding: EdgeInsetsDirectional.fromSTEB(
                                 16.0, 27.0, 16.0, 0.0),
-                            child: FFButtonWidget(
+                            child: AppButton(
+                              label: FFLocalizations.of(context).getText(
+                                '01vkpjw3' /* Log out */,
+                              ),
+                              variant: AppButtonVariant.secondary,
                               onPressed: () async {
                                 HapticFeedback.lightImpact();
                                 FFAppState().isprouser = false;
@@ -1112,43 +1047,17 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                 GoRouter.of(context).clearRedirectLocation();
                                 context.goNamed(OnboardingQuizWidget.routeName);
                               },
-                              text: FFLocalizations.of(context).getText(
-                                '01vkpjw3' /* Log out */,
-                              ),
-                              options: FFButtonOptions(
-                                width: double.infinity,
-                                height: 55.0,
-                                padding: EdgeInsetsDirectional.fromSTEB(
-                                    0.0, 0.0, 0.0, 0.0),
-                                iconPadding: EdgeInsetsDirectional.fromSTEB(
-                                    0.0, 0.0, 0.0, 0.0),
-                                color: Color(0xFFE7E8EB),
-                                textStyle: FlutterFlowTheme.of(context)
-                                    .titleSmall
-                                    .override(
-                                      fontFamily: FlutterFlowTheme.of(context)
-                                          .titleSmallFamily,
-                                      color: FlutterFlowTheme.of(context)
-                                          .primaryText,
-                                      letterSpacing: 0.0,
-                                      fontWeight: FontWeight.w600,
-                                      useGoogleFonts:
-                                          !FlutterFlowTheme.of(context)
-                                              .titleSmallIsCustom,
-                                    ),
-                                elevation: 0.0,
-                                borderSide: BorderSide(
-                                  color: Color(0xFFE7E8EB),
-                                  width: 1.0,
-                                ),
-                                borderRadius: BorderRadius.circular(30.0),
-                              ),
                             ),
                           ),
                           Padding(
                             padding: EdgeInsetsDirectional.fromSTEB(
                                 16.0, 12.0, 16.0, 0.0),
-                            child: FFButtonWidget(
+                            child: AppButton(
+                              label: FFLocalizations.of(context).getText(
+                                'hm5mygux' /* Delete account */,
+                              ),
+                              variant: AppButtonVariant.text,
+                              size: AppButtonSize.sm,
                               onPressed: () async {
                                 HapticFeedback.lightImpact();
                                 await showModalBottomSheet(
@@ -1171,37 +1080,6 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                   },
                                 ).then((value) => safeSetState(() {}));
                               },
-                              text: FFLocalizations.of(context).getText(
-                                'hm5mygux' /* Delete account */,
-                              ),
-                              options: FFButtonOptions(
-                                width: double.infinity,
-                                height: 35.0,
-                                padding: EdgeInsetsDirectional.fromSTEB(
-                                    0.0, 0.0, 0.0, 0.0),
-                                iconPadding: EdgeInsetsDirectional.fromSTEB(
-                                    0.0, 0.0, 0.0, 0.0),
-                                color: FlutterFlowTheme.of(context).alternate,
-                                textStyle: FlutterFlowTheme.of(context)
-                                    .titleSmall
-                                    .override(
-                                      fontFamily: FlutterFlowTheme.of(context)
-                                          .titleSmallFamily,
-                                      color: FlutterFlowTheme.of(context)
-                                          .primaryText,
-                                      letterSpacing: 0.0,
-                                      fontWeight: FontWeight.w600,
-                                      useGoogleFonts:
-                                          !FlutterFlowTheme.of(context)
-                                              .titleSmallIsCustom,
-                                    ),
-                                elevation: 0.0,
-                                borderSide: BorderSide(
-                                  color: Colors.transparent,
-                                  width: 1.0,
-                                ),
-                                borderRadius: BorderRadius.circular(50.0),
-                              ),
                             ),
                           ),
                         ],
