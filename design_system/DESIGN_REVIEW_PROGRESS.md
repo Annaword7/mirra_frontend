@@ -457,3 +457,12 @@ I5/I6 were accidentally committed to `rewrite/care-domain`; the 9 commits (`f475
 newboardempty (took the MirraEmptyState version). `rewrite/care-domain` still holds the originals
 (user may reset it to `c46c8ef` separately). `flutter analyze` after cherry-pick: **0 errors / 0
 warnings**; tests `+9 -1`.
+- ✅ **8.6** `feat(dialogs): ConfirmDialog + migrate deleteitem/markasspam` — new
+  `lib/design_system/components/confirm_dialog.dart` (centered card via the MirraDialogCard shell +
+  `MirraDialogIcon` badge, optional icon, title/body, **side-by-side Cancel/Confirm** — Cancel first so
+  a destructive action isn't the most prominent). Migrated **deleteitem** (149→65; icon + destructive,
+  delete+go-home action) and **markasspam** (162→69; no icon, Hide=primary, spam+pop(true)) — both now
+  one component. Removed orphaned imports. `flutter analyze`: **0 errors / 0 warnings**; tests `+9 -1`.
+  **Resolved:** item_card ConfirmDialogs·#1 (unify), #3 (deleteitem stacked→side-by-side, Cancel first),
+  #4 (markasspam Expanded — already), #2 (destructive/primary via AppButton variants). **Note:**
+  markasspam shell unified to r20/blur24/secondaryBackground (was r16/blur12/white); body → secondaryText.
