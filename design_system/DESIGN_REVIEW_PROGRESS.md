@@ -19,7 +19,7 @@ rejected (with justification)**, or **superseded by another implemented change**
 | 5 | Empty vs loading — `SkeletonGrid` + `MirraEmptyState` | B4 | **Completed** | High | M |
 | 6 | Sheets & dialogs — `MirraBottomSheet`/`MirraDialogCard`/`MirraDragHandle` | B5 | **In Progress** | High | M |
 | 7 | Product surfaces — `ProductTile`/`MirraInfoCard`/`MirraChip`/`ScoreBadge` | B6 | **In Progress** | High | L |
-| 8 | Confirmation & limit consolidation — `ConfirmationSheet`/`ConfirmDialog`/`LimitReached`; delete `makepubluc` | B7 | **In Progress** | High | S |
+| 8 | Confirmation & limit consolidation — `ConfirmationSheet`/`ConfirmDialog`/`LimitReached`; delete `makepubluc` | B7 | **Completed** | High | S |
 | 9 | Settings & rows — `SettingsRow`/`SelectableRow`/`SettingsList` | B8 | Not Started | Medium | M |
 | 10 | Paywall — `PlanCard`/`FeatureRow`/`ProPill`/dark palette | B9 | **In Progress** | Medium | M |
 | 11 | Typography hygiene — roles over raw TextStyle, `displayXS`, kill local scales | B11 | Not Started | Medium | M |
@@ -475,3 +475,21 @@ warnings**; tests `+9 -1`.
   warnings**; tests `+9 -1`. **Resolved:** B7 ConfirmationSheet (folded into ConfirmDialog — no separate
   component needed; the sheets are centered cards, not drag-handle sheets). Shell unified to
   r20/blur24/secondaryBackground.
+- ✅ **8.8** `refactor(limits): out_of_generations → MirraBottomSheet; reject LimitReached merge` —
+  migrated **out_of_generations** onto the I6 `MirraBottomSheet` shell (handle 100×5 `info` → canonical
+  40×4 `border`; surface `alternate` → `secondaryBackground`; keeps the error icon, title, body, Got-it
+  CTA + page-load animations). **LimitReached full merge — REJECTED (justified):** limit_out is a
+  centered card with **dynamic RichText** (limit/date) + **isPro-conditional** CTAs; out_of_generations
+  is an **animated bottom sheet** with a single CTA. Folding two structurally-different surfaces into one
+  `variant` component is over-abstraction (simplicity-first) — the shared surface (title + one CTA) is
+  too thin to justify it. limit_out left as its own card. `flutter analyze`: **0 errors / 0 warnings**;
+  tests `+9 -1`. **Resolved:** out_of_generations·#2 (shared sheet shell → MirraBottomSheet);
+  LimitReached (B7) rejected-with-justification.
+
+### Initiative 8 — completion summary
+**Delivered:** deleted the dead `makepubluc` twin; **`ConfirmDialog`** now backs **all 6** confirm /
+visibility surfaces (deleteitem, markasspam, makepublic, makeprivate, hidenavailability, copyitem —
+optional icon / cancel / loading / scrim-dismiss); **out_of_generations → MirraBottomSheet**.
+**Findings resolved:** B7 (delete makepubluc ✔, ConfirmDialog ✔, ConfirmationSheet folded into
+ConfirmDialog ✔, LimitReached **rejected-with-justification**); item_card ConfirmDialogs #1–#4;
+out_of_generations #2. Net across 8.5–8.8: **~800 lines removed**, 8 surfaces → 2 components.
