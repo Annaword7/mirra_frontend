@@ -62,15 +62,7 @@ class _NewAlbumWidgetState extends State<NewAlbumWidget> {
                     '3k3xtikh' /* Create new board */,
                   ),
                   textAlign: TextAlign.center,
-                  style: FlutterFlowTheme.of(context).headlineSmall.override(
-                        fontFamily:
-                            FlutterFlowTheme.of(context).headlineSmallFamily,
-                        fontSize: 26.0,
-                        letterSpacing: 0.0,
-                        fontWeight: FontWeight.w700,
-                        useGoogleFonts:
-                            !FlutterFlowTheme.of(context).headlineSmallIsCustom,
-                      ),
+                  style: FlutterFlowTheme.of(context).displayXS,
                 ),
               ),
               Text(

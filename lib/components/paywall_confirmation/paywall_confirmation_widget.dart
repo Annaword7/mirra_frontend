@@ -190,15 +190,7 @@ class _PaywallConfirmationWidgetState extends State<PaywallConfirmationWidget>
                     'mcrnylah' /* Welcome to M!RRA Pro */,
                   ),
                   textAlign: TextAlign.center,
-                  style: FlutterFlowTheme.of(context).headlineSmall.override(
-                        fontFamily:
-                            FlutterFlowTheme.of(context).headlineSmallFamily,
-                        fontSize: 26.0,
-                        letterSpacing: 0.0,
-                        fontWeight: FontWeight.w700,
-                        useGoogleFonts:
-                            !FlutterFlowTheme.of(context).headlineSmallIsCustom,
-                      ),
+                  style: FlutterFlowTheme.of(context).displayXS,
                 ).animateOnPageLoad(animationsMap['textOnPageLoadAnimation']!),
               ),
               Padding(

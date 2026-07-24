@@ -103,15 +103,7 @@ class _OutOfGenerationsWidgetState extends State<OutOfGenerationsWidget>
                     '1zkc5y9j' /* Limit reached */,
                   ),
                   textAlign: TextAlign.center,
-                  style: FlutterFlowTheme.of(context).headlineSmall.override(
-                        fontFamily:
-                            FlutterFlowTheme.of(context).headlineSmallFamily,
-                        fontSize: 26.0,
-                        letterSpacing: 0.0,
-                        fontWeight: FontWeight.w700,
-                        useGoogleFonts:
-                            !FlutterFlowTheme.of(context).headlineSmallIsCustom,
-                      ),
+                  style: FlutterFlowTheme.of(context).displayXS,
                 ).animateOnPageLoad(animationsMap['textOnPageLoadAnimation']!),
               ),
               Text(

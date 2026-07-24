@@ -119,15 +119,7 @@ class _LeaveReviewWidgetState extends State<LeaveReviewWidget> {
                       ),
                       textAlign: TextAlign.center,
                       style:
-                          FlutterFlowTheme.of(context).headlineSmall.override(
-                                fontFamily: FlutterFlowTheme.of(context)
-                                    .headlineSmallFamily,
-                                fontSize: 26.0,
-                                letterSpacing: 0.0,
-                                fontWeight: FontWeight.w700,
-                                useGoogleFonts: !FlutterFlowTheme.of(context)
-                                    .headlineSmallIsCustom,
-                              ),
+                          FlutterFlowTheme.of(context).displayXS,
                     ),
                   ),
                   Text(

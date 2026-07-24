@@ -115,6 +115,17 @@ abstract class FlutterFlowTheme {
   String get headlineSmallFamily => typography.headlineSmallFamily;
   bool get headlineSmallIsCustom => typography.headlineSmallIsCustom;
   TextStyle get headlineSmall => typography.headlineSmall;
+  // displayXS: the 24–26px section/sheet title role (Design Review Initiative 11),
+  // replacing the ad-hoc `headlineSmall.override(fontSize: 26, w700)`.
+  String get displayXSFamily => headlineSmallFamily;
+  bool get displayXSIsCustom => headlineSmallIsCustom;
+  TextStyle get displayXS => headlineSmall.override(
+        fontFamily: headlineSmallFamily,
+        fontSize: 26.0,
+        letterSpacing: 0.0,
+        fontWeight: FontWeight.w700,
+        useGoogleFonts: !headlineSmallIsCustom,
+      );
   String get titleLargeFamily => typography.titleLargeFamily;
   bool get titleLargeIsCustom => typography.titleLargeIsCustom;
   TextStyle get titleLarge => typography.titleLarge;

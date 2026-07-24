@@ -22,7 +22,7 @@ rejected (with justification)**, or **superseded by another implemented change**
 | 8 | Confirmation & limit consolidation — `ConfirmationSheet`/`ConfirmDialog`/`LimitReached`; delete `makepubluc` | B7 | **Completed** | High | S |
 | 9 | Settings & rows — `SettingsRow`/`SelectableRow`/`SettingsList` | B8 | **In Progress** | Medium | M |
 | 10 | Paywall — `PlanCard`/`FeatureRow`/`ProPill`/dark palette | B9 | **In Progress** | Medium | M |
-| 11 | Typography hygiene — roles over raw TextStyle, `displayXS`, kill local scales | B11 | Not Started | Medium | M |
+| 11 | Typography hygiene — roles over raw TextStyle, `displayXS`, kill local scales | B11 | **In Progress** | Medium | M |
 | 12 | Localization & dead-code cleanup — inline strings→FFLocalizations, remove dead code | B12 | Not Started | Medium | S |
 | 13 | Layout constants — `kNavBarHeight`, spacing tokens for magic offsets | B13 | Not Started | Low | S |
 
@@ -563,3 +563,22 @@ The 3 competing handles → one 40×4 `border`; two shells → one `secondaryBac
 Langs #1. **Remaining (minor, low-value):** `SettingsList` wrapper (Langs `Expanded+ListView.divide`
 vs Countries `SingleChildScrollView+ListView.separated` — two idioms, both work) + `SettingsScaffold`
 shared title style (Langs #2, #4) — cosmetic, not blocking.
+
+---
+
+## Initiative 11 — Typography hygiene  ·  Status: In Progress
+**Goal:** add a `displayXS` role, route raw `TextStyle`/magic sizes through theme roles (Raleway), kill
+local type scales. Source: DESIGN_REVIEW B11. **Note:** the review flags B11–B13 as needing
+**screen-by-screen Xcode verification** (line 96) — so the broad font/size changes are device-verify;
+this initiative lands the safe/additive core.
+- ✅ **11.1** `feat(type): add displayXS role + route the 26px sheet titles` — added
+  `displayXS`/`displayXSFamily`/`displayXSIsCustom` to `FlutterFlowTheme` (= `headlineSmall` @ 26px,
+  w700, ls0 — the exact ad-hoc style the sheet titles used). Routed **6** sheet titles
+  (out_of_generations, new_album, delete_confirmation, leave_review, negative_feedback,
+  paywall_confirmation) from `headlineSmall.override(fontSize: 26, w700)` → `theme.displayXS`.
+  **Value-identical** (invisible); kills the `fontSize: 26` magic. `flutter analyze`: **0 errors / 0
+  warnings**; tests `+9 -1`. **Resolved:** B11 displayXS role + the sheet-title magic-26.
+  **⏸ Deferred (device-verify, per review line 96):** raw `TextStyle`→roles (login_feature_cards 26/13/11
+  no-Raleway, quota text, step labels…); **Sora/Roboto → Raleway** (langs/countries titles, region
+  picker); **kill local scales** (`_fsTitle/_fsBody/_fsSub` in onboarding_profile/quiz;
+  `_kTextPrimary/_kTextSecondary` in login_feature_cards) — all visible font/size changes.
