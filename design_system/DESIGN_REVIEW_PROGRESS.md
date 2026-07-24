@@ -498,3 +498,10 @@ out_of_generations #2. Net across 8.5–8.8: **~800 lines removed**, 8 surfaces 
   manual `bottomPad`). Handle unified (guest_prefs `#E0E0E0` → canonical `border`); surface white →
   `secondaryBackground`. Content/behaviour unchanged. `flutter analyze`: **0 errors / 0 warnings**;
   tests `+9 -1`. **Resolved:** C8·Group A·#1 (shared shell), #2 (handle → border).
+- ✅ **6.4** `refactor(sheets): album sheets → MirraBottomSheet` — new_album (181→160), edit_album
+  (241→222), albumslist (201→183) migrated onto `MirraBottomSheet` (dropped the `Align`/alternate/r24
+  shell + 100×5 `info` handle). `crossAxisAlignment: center`, `addBottomInset: false` (all call sites
+  wrap in `viewInsets` Padding — verified), `handleGap` tuned per sheet (12/10/20) to match the old
+  handle→content gap. Handle unified 100×5 `info` → 40×4 `border`; surface `alternate` →
+  `secondaryBackground`. `flutter analyze`: **0 errors / 0 warnings**; tests `+9 -1`. **Resolved:**
+  C6·#1 (albumslist/edit_album/new_album shared sheet chrome → BottomSheetScaffold).

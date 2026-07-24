@@ -1,4 +1,5 @@
 import 'dart:async';
+import '/design_system/components/mirra_bottom_sheet.dart';
 import '/auth/supabase_auth/auth_util.dart';
 import '/backend/supabase/supabase.dart';
 import '/flutter_flow/analytics_service.dart';
@@ -47,33 +48,13 @@ class _NewAlbumWidgetState extends State<NewAlbumWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-      alignment: AlignmentDirectional(0.0, 1.0),
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: FlutterFlowTheme.of(context).alternate,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(24.0),
-            topRight: Radius.circular(24.0),
-          ),
-          border: Border.all(
-            color: FlutterFlowTheme.of(context).alternate,
-          ),
-        ),
-        child: Padding(
-          padding: EdgeInsetsDirectional.fromSTEB(16.0, 12.0, 16.0, 32.0),
-          child: Column(
+    return MirraBottomSheet(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      addBottomInset: false,
+      handleGap: 12.0,
+      child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 100.0,
-                height: 5.0,
-                decoration: BoxDecoration(
-                  color: FlutterFlowTheme.of(context).info,
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-              ),
               Padding(
                 padding: EdgeInsetsDirectional.fromSTEB(0.0, 24.0, 0.0, 0.0),
                 child: Text(
@@ -174,8 +155,6 @@ class _NewAlbumWidgetState extends State<NewAlbumWidget> {
               ),
             ].divide(SizedBox(height: 12.0)),
           ),
-        ),
-      ),
     );
   }
 }

@@ -1,6 +1,7 @@
 import '/backend/supabase/supabase.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
+import '/design_system/components/mirra_bottom_sheet.dart';
 import '/design_system/components/app_text_field.dart';
 import '/design_system/components/app_button.dart';
 import 'package:flutter/material.dart';
@@ -100,31 +101,13 @@ class _EditAlbumWidgetState extends State<EditAlbumWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-      alignment: AlignmentDirectional(0.0, 1.0),
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: FlutterFlowTheme.of(context).alternate,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(24.0),
-            topRight: Radius.circular(24.0),
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsetsDirectional.fromSTEB(16.0, 12.0, 16.0, 32.0),
-          child: Column(
+    return MirraBottomSheet(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      addBottomInset: false,
+      handleGap: 10.0,
+      child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Drag handle
-              Container(
-                width: 100.0,
-                height: 5.0,
-                decoration: BoxDecoration(
-                  color: FlutterFlowTheme.of(context).info,
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-              ),
               Padding(
                 padding:
                     const EdgeInsetsDirectional.fromSTEB(0.0, 24.0, 0.0, 0.0),
@@ -234,8 +217,6 @@ class _EditAlbumWidgetState extends State<EditAlbumWidget> {
               ),
             ].divide(const SizedBox(height: 10.0)),
           ),
-        ),
-      ),
     );
   }
 }

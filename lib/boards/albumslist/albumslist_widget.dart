@@ -1,4 +1,5 @@
 import 'dart:async';
+import '/design_system/components/mirra_bottom_sheet.dart';
 import '/auth/supabase_auth/auth_util.dart';
 import '/backend/api_requests/api_calls.dart';
 import '/backend/supabase/supabase.dart';
@@ -63,30 +64,12 @@ class _AlbumslistWidgetState extends State<AlbumslistWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: FlutterFlowTheme.of(context).alternate,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(24.0),
-          topRight: Radius.circular(24.0),
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsetsDirectional.fromSTEB(16.0, 12.0, 16.0, 32.0),
-        child: Column(
+    return MirraBottomSheet(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      addBottomInset: false,
+      child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Drag handle
-            Container(
-              width: 100.0,
-              height: 5.0,
-              decoration: BoxDecoration(
-                color: FlutterFlowTheme.of(context).info,
-                borderRadius: BorderRadius.circular(12.0),
-              ),
-            ),
-            const SizedBox(height: 20),
             // Title
             Align(
               alignment: Alignment.centerLeft,
@@ -195,7 +178,6 @@ class _AlbumslistWidgetState extends State<AlbumslistWidget> {
             ),
           ],
         ),
-      ),
     );
   }
 }
