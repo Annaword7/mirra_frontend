@@ -3543,7 +3543,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
   // upgrade
   {
     'rl28xdip': {
-      'en': 'Update a Pro',
+      'en': 'Upgrade to Pro',
       'es': 'Mejorar a Pro',
       'ru': 'Перейти на Pro',
       'de': 'Auf Pro aktualisieren',

@@ -23,7 +23,7 @@ rejected (with justification)**, or **superseded by another implemented change**
 | 9 | Settings & rows — `SettingsRow`/`SelectableRow`/`SettingsList` | B8 | **In Progress** | Medium | M |
 | 10 | Paywall — `PlanCard`/`FeatureRow`/`ProPill`/dark palette | B9 | **In Progress** | Medium | M |
 | 11 | Typography hygiene — roles over raw TextStyle, `displayXS`, kill local scales | B11 | **In Progress** | Medium | M |
-| 12 | Localization & dead-code cleanup — inline strings→FFLocalizations, remove dead code | B12 | Not Started | Medium | S |
+| 12 | Localization & dead-code cleanup — inline strings→FFLocalizations, remove dead code | B12 | **In Progress** | Medium | S |
 | 13 | Layout constants — `kNavBarHeight`, spacing tokens for magic offsets | B13 | Not Started | Low | S |
 
 ## ⚠ Repo change — modules deleted (commit `12de10f`, 2026-07-23)
@@ -582,3 +582,23 @@ this initiative lands the safe/additive core.
   no-Raleway, quota text, step labels…); **Sora/Roboto → Raleway** (langs/countries titles, region
   picker); **kill local scales** (`_fsTitle/_fsBody/_fsSub` in onboarding_profile/quiz;
   `_kTextPrimary/_kTextSecondary` in login_feature_cards) — all visible font/size changes.
+
+---
+
+## Initiative 12 — Localization & dead-code cleanup  ·  Status: In Progress
+**Goal:** remove dead code; move inline strings/maps into `FFLocalizations`. Source: DESIGN_REVIEW B12
++ report-only flags. Also the home for items deferred here through the session (startanalys stub, unused
+i18n keys, untranslated strings).
+- ✅ **12.1** `chore: delete dead widgets + fix "Update a Pro" typo` — deleted **light_dark_toggle**
+  (review says delete #801) and **startanalys** (orphaned `print()`-stub, unrouted — confirmed 0 refs);
+  fixed the "Update a Pro" → **"Upgrade to Pro"** English string (key `rl28xdip`, upgrade #1). `flutter
+  analyze`: **0 errors / 0 warnings**; tests `+9 -1`. **Resolved:** B12 dead-code (light_dark_toggle,
+  startanalys); upgrade·#1 typo. Product_card_v2's dead dark-branch was already removed in **4.3**.
+  **Kept (verified live, not dead):** `score_card` (empty-build stub but referenced by index.dart +
+  log_in/create_account/login_feature_cards — flag only, per review #419).
+  **⏸ Deferred (needs your 11-language translation process — I won't invent translations):** inline
+  hardcoded strings → `FFLocalizations` ('Retry', 'Active'/'Issues', 'Untitled', 'Failed to copy
+  product', forgot-pw 'Email required!'/'Success…', weekday labels missing Spanish). Adding these keys
+  + translations is the tracked add-language workflow. **Unused i18n keys** from session-deleted widgets
+  (empty_gallery/no_images/nounsorteditems/blank_album/makepubluc/gallery_loading/…, `gzohwfxg`) —
+  harmless; pruning the generated table is error-prone, left as optional.
