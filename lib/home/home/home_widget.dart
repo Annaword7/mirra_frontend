@@ -9,6 +9,7 @@ import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/design_system/components/app_button.dart';
 import '/design_system/components/pro_hero_button.dart';
+import '/design_system/components/skeleton_line.dart';
 import '/item_card/imagedetailed_main/imagedetailed_main_widget.dart';
 import 'dart:async';
 import '/index.dart';
@@ -548,36 +549,50 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                           .fontStyle,
                                                 ),
                                           ),
-                                          Flexible(
-                                            child: Text(
-                                              valueOrDefault<String>(
-                                                _model.usersanswer?.firstOrNull
-                                                    ?.firstName,
-                                                'user',
+                                          if (_model.usersanswer == null)
+                                            const Padding(
+                                              padding:
+                                                  EdgeInsetsDirectional.only(
+                                                      start: 4.0, top: 4.0),
+                                              child: SkeletonLine(
+                                                  width: 96.0, height: 24.0),
+                                            )
+                                          else
+                                            Flexible(
+                                              child: Text(
+                                                valueOrDefault<String>(
+                                                  _model.usersanswer?.firstOrNull
+                                                      ?.firstName,
+                                                  'user',
+                                                ),
+                                                overflow:
+                                                    TextOverflow.ellipsis,
+                                                style:
+                                                    FlutterFlowTheme.of(context)
+                                                        .bodyMedium
+                                                        .override(
+                                                          font: GoogleFonts
+                                                              .raleway(
+                                                            fontWeight:
+                                                                FontWeight.w700,
+                                                            fontStyle:
+                                                                FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyMedium
+                                                                    .fontStyle,
+                                                          ),
+                                                          fontSize: 28.0,
+                                                          letterSpacing: 0.0,
+                                                          fontWeight:
+                                                              FontWeight.w700,
+                                                          fontStyle:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMedium
+                                                                  .fontStyle,
+                                                        ),
                                               ),
-                                              overflow: TextOverflow.ellipsis,
-                                              style: FlutterFlowTheme.of(context)
-                                                  .bodyMedium
-                                                  .override(
-                                                    font: GoogleFonts.raleway(
-                                                      fontWeight: FontWeight.w700,
-                                                      fontStyle:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .bodyMedium
-                                                              .fontStyle,
-                                                    ),
-                                                    fontSize: 28.0,
-                                                    letterSpacing: 0.0,
-                                                    fontWeight: FontWeight.w700,
-                                                    fontStyle:
-                                                        FlutterFlowTheme.of(
-                                                                context)
-                                                            .bodyMedium
-                                                            .fontStyle,
-                                                  ),
                                             ),
-                                          ),
                                               ],
                                             ),
                                           ),
@@ -615,12 +630,26 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                               Padding(
                                 padding: EdgeInsetsDirectional.fromSTEB(
                                     20.0, 10.0, 20.0, 0.0),
-                                child: _HomeQuotaBar(
-                                  isPro: appState.isprouser,
-                                  scansUsed: appState.analysesused,
-                                  weekResetDate: appState.weekResetDate,
-                                  weekLimit: appState.freeScanLimit,
-                                ),
+                                child: _model.usersanswer == null
+                                    ? Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: const [
+                                          SkeletonLine(
+                                              width: 210.0, height: 14.0),
+                                          SizedBox(height: 10.0),
+                                          SkeletonLine(
+                                              width: double.infinity,
+                                              height: 8.0,
+                                              radius: 4.0),
+                                        ],
+                                      )
+                                    : _HomeQuotaBar(
+                                        isPro: appState.isprouser,
+                                        scansUsed: appState.analysesused,
+                                        weekResetDate: appState.weekResetDate,
+                                        weekLimit: appState.freeScanLimit,
+                                      ),
                               ),
                               if (containerImagesRowList.length != 0)
                                 Align(
