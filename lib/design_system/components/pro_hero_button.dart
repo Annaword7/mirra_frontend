@@ -75,12 +75,11 @@ class _ProHeroButtonState extends State<ProHeroButton> {
     );
 
     if (!reduceMotion) {
-      // Bright gloss streak sweeping across, with a pause between passes.
-      pill = pill
-          .animate(onPlay: (c) => c.repeat())
-          .shimmer(
-            delay: 900.ms,
-            duration: 2200.ms,
+      // Bright gloss streak sweeps across once, shortly after the screen
+      // appears — then the pill stays static (gradient + gold glow).
+      pill = pill.animate().shimmer(
+            delay: 500.ms,
+            duration: 1500.ms,
             color: const Color(0xE6FFFFFF),
             angle: 0.4,
           );
