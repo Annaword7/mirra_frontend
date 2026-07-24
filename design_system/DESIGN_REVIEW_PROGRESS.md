@@ -20,7 +20,7 @@ rejected (with justification)**, or **superseded by another implemented change**
 | 6 | Sheets & dialogs — `MirraBottomSheet`/`MirraDialogCard`/`MirraDragHandle` | B5 | **In Progress** | High | M |
 | 7 | Product surfaces — `ProductTile`/`MirraInfoCard`/`MirraChip`/`ScoreBadge` | B6 | **In Progress** | High | L |
 | 8 | Confirmation & limit consolidation — `ConfirmationSheet`/`ConfirmDialog`/`LimitReached`; delete `makepubluc` | B7 | **Completed** | High | S |
-| 9 | Settings & rows — `SettingsRow`/`SelectableRow`/`SettingsList` | B8 | Not Started | Medium | M |
+| 9 | Settings & rows — `SettingsRow`/`SelectableRow`/`SettingsList` | B8 | **In Progress** | Medium | M |
 | 10 | Paywall — `PlanCard`/`FeatureRow`/`ProPill`/dark palette | B9 | **In Progress** | Medium | M |
 | 11 | Typography hygiene — roles over raw TextStyle, `displayXS`, kill local scales | B11 | Not Started | Medium | M |
 | 12 | Localization & dead-code cleanup — inline strings→FFLocalizations, remove dead code | B12 | Not Started | Medium | S |
@@ -532,3 +532,12 @@ The 3 competing handles → one 40×4 `border`; two shells → one `secondaryBac
 - **error_popup** (3 dialogs) → `MirraDialogCard` — complex stateful widget (expandable field, 3
   variants); shells match MirraDialogCard but migration needs a device check.
 - **share_card_sheet** — Story/Square toggle + live preview (non-standard sheet).
+
+---
+
+## Initiative 9 — Settings & rows  ·  Status: In Progress
+**Goal:** `SettingsRow` (collapse the ~7 hand-copied profile rows) + `SelectableRow`/`SettingsList`
+(Langs/Countries near-verbatim rows). Source: DESIGN_REVIEW Cluster 5 (Profile #1,#2; Langs/Countries #1).
+- ✅ **9.1** `feat(ds): add SettingsRow` — new `lib/design_system/components/settings_row.dart`:
+  tappable `primaryBackground` pill (55h, r16), leading icon + label, optional trailing current-value,
+  chevron; light haptic on tap. No migration yet. `flutter analyze`: **No issues found**.
