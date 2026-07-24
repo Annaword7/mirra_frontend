@@ -541,3 +541,12 @@ The 3 competing handles → one 40×4 `border`; two shells → one `secondaryBac
 - ✅ **9.1** `feat(ds): add SettingsRow` — new `lib/design_system/components/settings_row.dart`:
   tappable `primaryBackground` pill (55h, r16), leading icon + label, optional trailing current-value,
   chevron; light haptic on tap. No migration yet. `flutter analyze`: **No issues found**.
+- ✅ **9.2** `refactor(profile): 7 settings rows → SettingsRow` — replaced the 7 hand-copied `InkWell`
+  rows (~594 lines) in profile_widget with `SettingsRow` calls (Try premium / Edit Profile / Link
+  Telegram / Share / Leave a Review / App language / Your Region), preserving all conditionals
+  (`!currentUserIsAnonymous`, `showLinkTelegram`, `!isWeb` Builder) + onTap actions (pushNamed /
+  showModalBottomSheet / Share.share). The "Your Region" row's nested Expanded+Column flattens to the
+  standard row (fixes C5·#2 misalignment). **profile_widget ~1000 → 649 lines.** `flutter analyze`:
+  **0 errors / 0 warnings**; tests `+9 -1`. **Resolved:** C5·Profile·#1 (7 rows → SettingsRow), #2
+  (Region row normalized). **Note:** the Share row now also fires a light haptic (SettingsRow bakes it
+  in) — it previously didn't; consistent with the others.
