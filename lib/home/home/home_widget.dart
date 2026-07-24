@@ -544,7 +544,10 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                               // ── Scan quota bar ─────────────────────────────
                               Padding(
                                 padding: EdgeInsetsDirectional.fromSTEB(
-                                    20.0, 10.0, 20.0, 0.0),
+                                    20.0,
+                                    FlutterFlowTheme.of(context).space.s24,
+                                    20.0,
+                                    0.0),
                                 child: _model.usersanswer == null
                                     ? Column(
                                         crossAxisAlignment:
