@@ -24,7 +24,7 @@ rejected (with justification)**, or **superseded by another implemented change**
 | 10 | Paywall — `PlanCard`/`FeatureRow`/`ProPill`/dark palette | B9 | **In Progress** | Medium | M |
 | 11 | Typography hygiene — roles over raw TextStyle, `displayXS`, kill local scales | B11 | **In Progress** | Medium | M |
 | 12 | Localization & dead-code cleanup — inline strings→FFLocalizations, remove dead code | B12 | **In Progress** | Medium | S |
-| 13 | Layout constants — `kNavBarHeight`, spacing tokens for magic offsets | B13 | Not Started | Low | S |
+| 13 | Layout constants — `kNavBarHeight`, spacing tokens for magic offsets | B13 | **In Progress** | Low | S |
 
 ## ⚠ Repo change — modules deleted (commit `12de10f`, 2026-07-23)
 Four experimental modules were removed by the team mid-Track-2. Their Design Review findings are
@@ -602,3 +602,17 @@ i18n keys, untranslated strings).
   + translations is the tracked add-language workflow. **Unused i18n keys** from session-deleted widgets
   (empty_gallery/no_images/nounsorteditems/blank_album/makepubluc/gallery_loading/…, `gzohwfxg`) —
   harmless; pruning the generated table is error-prone, left as optional.
+
+---
+
+## Initiative 13 — Layout constants  ·  Status: In Progress
+**Goal:** a shared `kNavBarHeight` + spacing tokens for the magic navbar-coupled offsets. Source: B13
+(Low; review says device-verify, line 96). **Reality:** the team rewrote the navbar since the review —
+its height is now **121** (not the review's 108), so those findings are stale.
+- ✅ **13.1** `feat(layout): kNavBarHeight constant` — new `lib/design_system/foundations/layout.dart`
+  (`kNavBarHeight = 121.0`); routed navbar_widget's `height: 121.0` → `kNavBarHeight` (value-identical,
+  single source of truth). `flutter analyze`: **0 errors / 0 warnings**; tests `+9 -1`. **Resolved:**
+  B13 `kNavBarHeight`. **⏸ Deferred (navbar re-review + device-verify, per review line 96):** re-deriving
+  takeor_upload's hand-tuned capture offsets (`bottom: 320` illustration, `bottom: 100 + safeArea` action
+  zone) from `kNavBarHeight` — they don't cleanly derive from 121 and touching the capture-screen layout
+  blind is unsafe; left untouched.

@@ -1,6 +1,7 @@
 import '/flutter_flow/flutter_flow_animations.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
+import '/design_system/foundations/layout.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/index.dart';
 import 'package:flutter/material.dart';
@@ -165,7 +166,7 @@ class _NavbarWidgetState extends State<NavbarWidget>
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 121.0,
+      height: kNavBarHeight,
       child: Stack(
         children: [
           Padding(
