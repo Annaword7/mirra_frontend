@@ -26,6 +26,8 @@ class ProHeroButton extends StatefulWidget {
 class _ProHeroButtonState extends State<ProHeroButton> {
   bool _pressed = false;
 
+  static final BorderRadius _shape = BorderRadius.circular(999.0);
+
   @override
   Widget build(BuildContext context) {
     final reduceMotion = MediaQuery.of(context).disableAnimations;
@@ -33,22 +35,17 @@ class _ProHeroButtonState extends State<ProHeroButton> {
     // Lighter blue = primary tinted toward white (stays within blue + white).
     final lightBlue = Color.lerp(primary, Colors.white, 0.30)!;
 
-    Widget pill = Container(
+    // The gradient surface + label. The gloss sweep is applied here and then
+    // clipped to the pill shape below (so it never shows in the corners).
+    Widget surface = Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [lightBlue, primary],
         ),
-        borderRadius: BorderRadius.circular(999.0),
+        borderRadius: _shape,
         border: Border.all(color: const Color(0x40FFFFFF), width: 1.0),
-        boxShadow: [
-          BoxShadow(
-            color: primary.withValues(alpha: 0.5),
-            blurRadius: 20.0,
-            offset: const Offset(0.0, 8.0),
-          ),
-        ],
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 11.0),
@@ -75,13 +72,29 @@ class _ProHeroButtonState extends State<ProHeroButton> {
     if (!reduceMotion) {
       // Bright gloss streak sweeps across once, shortly after the screen
       // appears — then the pill stays static (gradient + blue glow).
-      pill = pill.animate().shimmer(
+      surface = surface.animate().shimmer(
             delay: 500.ms,
             duration: 1500.ms,
             color: const Color(0xCCFFFFFF),
             angle: 0.4,
           );
     }
+
+    // Clip the gradient + gloss to the rounded shape; carry the glow on an
+    // outer box so the shadow isn't clipped away.
+    final pill = DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: _shape,
+        boxShadow: [
+          BoxShadow(
+            color: primary.withValues(alpha: 0.5),
+            blurRadius: 20.0,
+            offset: const Offset(0.0, 8.0),
+          ),
+        ],
+      ),
+      child: ClipRRect(borderRadius: _shape, child: surface),
+    );
 
     return Semantics(
       button: true,
