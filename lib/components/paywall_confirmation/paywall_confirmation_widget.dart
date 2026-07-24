@@ -4,6 +4,7 @@ import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/design_system/components/feature_row.dart';
 import '/design_system/components/pro_pill.dart';
+import '/design_system/components/mirra_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -156,33 +157,13 @@ class _PaywallConfirmationWidgetState extends State<PaywallConfirmationWidget>
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-      alignment: AlignmentDirectional(0.0, 1.0),
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: FlutterFlowTheme.of(context).alternate,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(24.0),
-            topRight: Radius.circular(24.0),
-          ),
-          border: Border.all(
-            color: FlutterFlowTheme.of(context).alternate,
-          ),
-        ),
-        child: Padding(
-          padding: EdgeInsetsDirectional.fromSTEB(16.0, 12.0, 16.0, 32.0),
-          child: Column(
+    return MirraBottomSheet(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      addBottomInset: false,
+      handleGap: 0.0,
+      child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 100.0,
-                height: 5.0,
-                decoration: BoxDecoration(
-                  color: FlutterFlowTheme.of(context).info,
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-              ),
               Align(
                 alignment: AlignmentDirectional(0.0, 0.0),
                 child: Padding(
@@ -311,8 +292,6 @@ class _PaywallConfirmationWidgetState extends State<PaywallConfirmationWidget>
               ),
             ],
           ),
-        ),
-      ),
     );
   }
 }

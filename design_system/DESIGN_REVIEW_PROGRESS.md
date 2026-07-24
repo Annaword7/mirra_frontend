@@ -513,3 +513,22 @@ out_of_generations #2. Net across 8.5–8.8: **~800 lines removed**, 8 surfaces 
   **⏸ Deferred (device-verify):** **leave_review** + **negative_feedback** have **internal keyboard-inset
   logic** (`viewInsetsOf().bottom > 0` conditional layout) — blind shell-migration risks breaking their
   keyboard-aware layout; needs an on-device check.
+- ✅ **6.6** `refactor(sheets): paywall_confirmation → MirraBottomSheet` — migrated paywall_confirmation
+  (348→297) onto `MirraBottomSheet` (Group B; `handleGap: 0`, center, `addBottomInset: false`;
+  page-load animations on content preserved). Handle 100×5 `info` → 40×4 `border`; surface `alternate`
+  → `secondaryBackground`. `flutter analyze`: **0 errors / 0 warnings** (isolated `google_fonts`
+  unused-import is a false positive — used 2×); tests `+9 -1`. **Resolved:** C7·PaywallConfirmation·#1
+  (shared BottomSheetScaffold).
+
+### Initiative 6 — status (8 sheets migrated; complex remainder device-verify)
+**Delivered:** `MirraDragHandle` + `MirraBottomSheet` + `MirraDialogCard`/`MirraDialogIcon` (6.1/6.2),
+and **8 live sheets migrated to `MirraBottomSheet`**: link_telegram, guest_prefs (Group A); new_album,
+edit_album, albumslist, delete_confirmation, paywall_confirmation (Group B); + out_of_generations (8.8).
+The 3 competing handles → one 40×4 `border`; two shells → one `secondaryBackground`/r24 scaffold.
+**Findings resolved:** C8 Group A #1,#2 · Group B #9,#10 · C6 #1 · C7 PaywallConfirmation #1;
+`MirraDragHandle` (#751), `MirraBottomSheet` (#738/#750), `MirraDialogCard` (#255).
+**⏸ Deferred (device-verify — blind-refactor risk):**
+- **leave_review**, **negative_feedback** — internal keyboard-inset conditional layout.
+- **error_popup** (3 dialogs) → `MirraDialogCard` — complex stateful widget (expandable field, 3
+  variants); shells match MirraDialogCard but migration needs a device check.
+- **share_card_sheet** — Story/Square toggle + live preview (non-standard sheet).
