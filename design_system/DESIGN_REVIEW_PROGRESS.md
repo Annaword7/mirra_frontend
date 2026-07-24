@@ -505,3 +505,11 @@ out_of_generations #2. Net across 8.5–8.8: **~800 lines removed**, 8 surfaces 
   handle→content gap. Handle unified 100×5 `info` → 40×4 `border`; surface `alternate` →
   `secondaryBackground`. `flutter analyze`: **0 errors / 0 warnings**; tests `+9 -1`. **Resolved:**
   C6·#1 (albumslist/edit_album/new_album shared sheet chrome → BottomSheetScaffold).
+- ✅ **6.5** `refactor(sheets): delete_confirmation → MirraBottomSheet` — migrated delete_confirmation
+  (181→160) onto `MirraBottomSheet` (Group B pattern; `handleGap: 0`, `addBottomInset: false`, center).
+  Handle `info`+redundant-border → canonical 40×4 `border`; surface `alternate` → `secondaryBackground`.
+  Nested error `AlertDialog` (in a button handler) preserved. `flutter analyze`: **0 errors / 0
+  warnings**; tests `+9 -1`. **Resolved:** C8·Group B·#9 (shell), #10 (redundant-border handle).
+  **⏸ Deferred (device-verify):** **leave_review** + **negative_feedback** have **internal keyboard-inset
+  logic** (`viewInsetsOf().bottom > 0` conditional layout) — blind shell-migration risks breaking their
+  keyboard-aware layout; needs an on-device check.
