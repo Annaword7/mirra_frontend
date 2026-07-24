@@ -279,6 +279,13 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                 ).then((value) => safeSetState(() {})),
                               ),
                               SettingsRow(
+                                icon: Icons.face_retouching_natural,
+                                label: FFLocalizations.of(context)
+                                    .getText('prof_skin_profile'),
+                                onTap: () => context
+                                    .pushNamed(OnboardingQuizWidget.routeName),
+                              ),
+                              SettingsRow(
                                 icon: Icons.language_sharp,
                                 label: FFLocalizations.of(context)
                                     .getText('su4nz9dy' /* App language */),

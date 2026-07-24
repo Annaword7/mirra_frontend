@@ -33,10 +33,17 @@ enum _Step {
   determine,
   sensitivity,
   acne,
+  pregnancy,
   goals,
+  prefs,
   optional,
   result,
 }
+
+// Карта клиента (M1): значения pregnancy_status в users.
+const kPregnancyPregnantOrNursing = 'pregnant_or_nursing';
+const kPregnancyNone = 'none';
+const kPregnancyUndisclosed = 'undisclosed';
 
 // Goal chips → backend goal keys (mirra _VALID_SKIN_GOALS, the shipped 6).
 const _goalKeys = <List<String>>[
@@ -90,6 +97,9 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
   String? _skinType;
   bool? _sensitive;
   bool? _acneProne;
+  String? _pregnancy;
+  bool _prefFragranceFree = false;
+  int? _prefMaxSteps;
   final List<String> _goals = [];
   String? _ageRange;
   String? _budgetRange;
@@ -110,6 +120,12 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
     _model = createModel(context, () => OnboardingQuizModel());
     _model.brandsTextController ??= TextEditingController();
     _model.brandsFocusNode ??= FocusNode();
+    // Повторное прохождение: welcome-шаг («настроим под тебя») не нужен —
+    // стартуем сразу с первого вопроса, синхронно, без мигания welcome
+    // на время асинхронного префилла.
+    if (FFAppState().onboardingDone && currentUserUid.isNotEmpty) {
+      _step = _Step.type;
+    }
     if (currentUserUid.isNotEmpty) _loadExistingProfile();
   }
 
@@ -128,6 +144,10 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
         _skinType = st;
         _sensitive = row.skinSensitivity;
         _acneProne = row.acneProne;
+        _pregnancy = row.pregnancyStatus;
+        final cp = (row.carePreferences as Map?)?.cast<String, dynamic>() ?? {};
+        _prefFragranceFree = cp['fragrance_free'] == true;
+        _prefMaxSteps = cp['max_steps'] is int ? cp['max_steps'] as int : null;
         _goals
           ..clear()
           ..addAll(row.skinGoals);
@@ -180,11 +200,17 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
       case _Step.acne:
         _go(_Step.sensitivity);
         break;
-      case _Step.goals:
+      case _Step.pregnancy:
         _go(_Step.acne);
         break;
-      case _Step.optional:
+      case _Step.goals:
+        _go(_Step.pregnancy);
+        break;
+      case _Step.prefs:
         _go(_Step.goals);
+        break;
+      case _Step.optional:
+        _go(_Step.prefs);
         break;
       case _Step.result:
         _go(_Step.optional);
@@ -246,6 +272,11 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
             'skin_type': _skinType,
             'skin_sensitivity': _sensitive,
             'acne_prone': _acneProne,
+            'pregnancy_status': _pregnancy,
+            'care_preferences': {
+              if (_prefFragranceFree) 'fragrance_free': true,
+              if (_prefMaxSteps != null) 'max_steps': _prefMaxSteps,
+            },
             'skin_goals': _goals,
             'age_range': _ageRange,
             'budget_range': _budgetRange,
@@ -261,6 +292,9 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
           app.obSkinType = _skinType;
           app.obSensitive = _sensitive;
           app.obAcneProne = _acneProne;
+          app.obPregnancy = _pregnancy;
+          app.obPrefFragranceFree = _prefFragranceFree;
+          app.obPrefMaxSteps = _prefMaxSteps;
           app.obGoals = List<String>.from(_goals);
           app.obAgeRange = _ageRange;
           app.obBudgetRange = _budgetRange;
@@ -373,8 +407,12 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
         return 2;
       case _Step.acne:
         return 3;
-      case _Step.goals:
+      case _Step.pregnancy:
         return 4;
+      case _Step.goals:
+        return 5;
+      case _Step.prefs:
+        return 6;
       default:
         return 0;
     }
@@ -426,7 +464,7 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
             child: _progressActive == 0
                 ? const SizedBox.shrink()
                 : Row(
-                    children: List.generate(4, (i) {
+                    children: List.generate(6, (i) {
                       final active = i < _progressActive;
                       return Expanded(
                         child: Container(
@@ -465,8 +503,12 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
         return _buildSensitivity(theme);
       case _Step.acne:
         return _buildAcne(theme);
+      case _Step.pregnancy:
+        return _buildPregnancy(theme);
       case _Step.goals:
         return _buildGoals(theme);
+      case _Step.prefs:
+        return _buildPrefs(theme);
       case _Step.optional:
         return _buildOptional(theme);
       case _Step.result:
@@ -755,10 +797,106 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
     );
   }
 
+  Widget _buildPregnancy(FlutterFlowTheme theme) {
+    void pick(String v) => _pickTap(() {
+          _pregnancy = v;
+          _go(_Step.goals);
+        });
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _heading(theme, 'obq_preg_title', 'obq_preg_why'),
+        _optionCard(theme,
+            title: _t('obq_preg_yes'),
+            selected: _pregnancy == kPregnancyPregnantOrNursing,
+            onTap: () => pick(kPregnancyPregnantOrNursing)),
+        _optionCard(theme,
+            title: _t('obq_preg_no'),
+            selected: _pregnancy == kPregnancyNone,
+            onTap: () => pick(kPregnancyNone)),
+        _optionCard(theme,
+            title: _t('obq_preg_skip'),
+            selected: _pregnancy == kPregnancyUndisclosed,
+            onTap: () => pick(kPregnancyUndisclosed)),
+      ],
+    );
+  }
+
+  Widget _buildPrefs(FlutterFlowTheme theme) {
+    Widget stepChip(int? value, String label) {
+      final selected = _prefMaxSteps == value;
+      // «Без лимита» шире цифр (flex 2); FittedBox гарантирует вмещение
+      // на любом языке; постоянный вес шрифта — текст не расширяется
+      // при выборе.
+      return Expanded(
+        flex: value == null ? 2 : 1,
+        child: GestureDetector(
+          onTap: () => safeSetState(() => _prefMaxSteps = value),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 120),
+            height: 44,
+            alignment: Alignment.center,
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            decoration: BoxDecoration(
+              color: selected ? theme.primary : _card,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                  color: selected ? theme.primary : _border,
+                  width: selected ? 2 : 1),
+            ),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                label,
+                maxLines: 1,
+                style: TextStyle(
+                  color: selected ? Colors.white : _ink,
+                  fontWeight: FontWeight.w600,
+                  fontSize: _fsBody - 1,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _heading(theme, 'obq_prefs_title', 'obq_prefs_why'),
+        _optionCard(theme,
+            title: _t('prefs_fragrance_free'),
+            selected: _prefFragranceFree,
+            onTap: () => safeSetState(
+                () => _prefFragranceFree = !_prefFragranceFree)),
+        const SizedBox(height: 20),
+        Text(_t('prefs_max_steps'),
+            style: theme.bodyMedium.override(
+                color: _ink,
+                fontSize: _fsBody,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0)),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            stepChip(3, '3'),
+            const SizedBox(width: 8),
+            stepChip(4, '4'),
+            const SizedBox(width: 8),
+            stepChip(5, '5'),
+            const SizedBox(width: 8),
+            stepChip(null, _t('prefs_no_limit')),
+          ],
+        ),
+      ],
+    );
+  }
+
   Widget _buildAcne(FlutterFlowTheme theme) {
     void pick(bool v) => _pickTap(() {
           _acneProne = v;
-          _go(_Step.goals);
+          _go(_Step.pregnancy);
         });
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1033,17 +1171,23 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
       case _Step.goals:
         children.add(AppButton(
           label: _t('obq_next'),
-          onPressed: _goals.isEmpty ? null : () => _go(_Step.optional),
+          onPressed: _goals.isEmpty ? null : () => _go(_Step.prefs),
         ));
         children.add(const SizedBox(height: 8));
         children.add(TextButton(
           onPressed: () {
             _goals.clear();
-            _go(_Step.optional);
+            _go(_Step.prefs);
           },
           child: Text(_t('obq_goals_none'),
               style: theme.bodyMedium
                   .override(color: _ink, fontSize: _fsBody, letterSpacing: 0)),
+        ));
+        break;
+      case _Step.prefs:
+        children.add(AppButton(
+          label: _t('obq_next'),
+          onPressed: () => _go(_Step.optional),
         ));
         break;
       case _Step.optional:

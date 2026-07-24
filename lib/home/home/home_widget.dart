@@ -172,6 +172,11 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
           'skin_type': app.obSkinType,
           'skin_sensitivity': app.obSensitive,
           'acne_prone': app.obAcneProne,
+          'pregnancy_status': app.obPregnancy,
+          'care_preferences': {
+            if (app.obPrefFragranceFree == true) 'fragrance_free': true,
+            if (app.obPrefMaxSteps != null) 'max_steps': app.obPrefMaxSteps,
+          },
           'skin_goals': app.obGoals,
           'age_range': app.obAgeRange,
           'budget_range': app.obBudgetRange,

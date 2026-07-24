@@ -21,6 +21,10 @@ export '/home/takeor_upload_page/takeor_upload_page_widget.dart'
     show TakeorUploadPageWidget;
 export '/settings/countries/countries_widget.dart' show CountriesWidget;
 export '/pages/newblank/newblank_widget.dart' show NewblankWidget;
+export '/pages/bag/bag_widget.dart' show BagWidget;
+export '/pages/routine/routine_widget.dart' show RoutineWidget;
+export '/pages/care_review/care_review_widget.dart'
+    show CareReviewWidget;
 export '/itemcard2/itemcard2_widget.dart' show Itemcard2Widget;
 export '/shareproduct/shareproduct_widget.dart' show ShareproductWidget;
 export '/search/search_widget.dart' show SearchWidget;

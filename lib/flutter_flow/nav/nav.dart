@@ -215,6 +215,24 @@ GoRouter createRouter(AppStateNotifier appStateNotifier, [Widget? entryPage]) =>
           builder: (context, params) => NewblankWidget(),
         ),
         FFRoute(
+          name: BagWidget.routeName,
+          path: BagWidget.routePath,
+          requireAuth: true,
+          builder: (context, params) => BagWidget(),
+        ),
+        FFRoute(
+          name: RoutineWidget.routeName,
+          path: RoutineWidget.routePath,
+          requireAuth: true,
+          builder: (context, params) => RoutineWidget(),
+        ),
+        FFRoute(
+          name: CareReviewWidget.routeName,
+          path: CareReviewWidget.routePath,
+          requireAuth: true,
+          builder: (context, params) => CareReviewWidget(),
+        ),
+        FFRoute(
           name: Itemcard2Widget.routeName,
           path: Itemcard2Widget.routePath,
           builder: (context, params) => Itemcard2Widget(

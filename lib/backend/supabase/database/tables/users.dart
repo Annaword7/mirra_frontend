@@ -109,4 +109,14 @@ class UsersRow extends SupabaseDataRow {
   List<String> get trustedBrands => getListField<String>('trusted_brands');
   set trustedBrands(List<String>? value) =>
       setListField<String>('trusted_brands', value);
+
+  /// Карта клиента (M1): 'pregnant_or_nursing' | 'none' | 'undisclosed' | null.
+  String? get pregnancyStatus => getField<String>('pregnancy_status');
+  set pregnancyStatus(String? value) =>
+      setField<String>('pregnancy_status', value);
+
+  /// Карта клиента (M1): предпочтения (рамки приемлемости ухода), словарь.
+  dynamic get carePreferences => getField<dynamic>('care_preferences');
+  set carePreferences(dynamic value) =>
+      setField<dynamic>('care_preferences', value);
 }

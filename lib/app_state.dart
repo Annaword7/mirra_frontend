@@ -77,6 +77,21 @@ class FFAppState extends ChangeNotifier {
       }
     });
     _safeInit(() {
+      _obPregnancy = prefs.getString('ff_obPregnancy') ?? _obPregnancy;
+    });
+    _safeInit(() {
+      _carePushAm = prefs.getBool('ff_carePushAm') ?? true;
+      _carePushPm = prefs.getBool('ff_carePushPm') ?? true;
+    });
+    _safeInit(() {
+      if (prefs.containsKey('ff_obPrefFragranceFree')) {
+        _obPrefFragranceFree = prefs.getBool('ff_obPrefFragranceFree');
+      }
+      if (prefs.containsKey('ff_obPrefMaxSteps')) {
+        _obPrefMaxSteps = prefs.getInt('ff_obPrefMaxSteps');
+      }
+    });
+    _safeInit(() {
       if (prefs.containsKey('ff_obAcneProne')) {
         _obAcneProne = prefs.getBool('ff_obAcneProne');
       }
@@ -376,6 +391,50 @@ class FFAppState extends ChangeNotifier {
         : prefs.setBool('ff_obAcneProne', value);
   }
 
+  // Карта клиента (M3c): буфер предпочтений из квиза (до логина).
+  bool? _obPrefFragranceFree;
+  bool? get obPrefFragranceFree => _obPrefFragranceFree;
+  set obPrefFragranceFree(bool? value) {
+    _obPrefFragranceFree = value;
+    value == null
+        ? prefs.remove('ff_obPrefFragranceFree')
+        : prefs.setBool('ff_obPrefFragranceFree', value);
+  }
+
+  int? _obPrefMaxSteps;
+  int? get obPrefMaxSteps => _obPrefMaxSteps;
+  set obPrefMaxSteps(int? value) {
+    _obPrefMaxSteps = value;
+    value == null
+        ? prefs.remove('ff_obPrefMaxSteps')
+        : prefs.setInt('ff_obPrefMaxSteps', value);
+  }
+
+  // M4: тумблеры дайджест-пушей рутины (доставка, не домен).
+  bool _carePushAm = true;
+  bool get carePushAm => _carePushAm;
+  set carePushAm(bool value) {
+    _carePushAm = value;
+    prefs.setBool('ff_carePushAm', value);
+  }
+
+  bool _carePushPm = true;
+  bool get carePushPm => _carePushPm;
+  set carePushPm(bool value) {
+    _carePushPm = value;
+    prefs.setBool('ff_carePushPm', value);
+  }
+
+  // Карта клиента (M1): pregnancy_status из квиза (буфер до логина).
+  String? _obPregnancy;
+  String? get obPregnancy => _obPregnancy;
+  set obPregnancy(String? value) {
+    _obPregnancy = value;
+    value == null
+        ? prefs.remove('ff_obPregnancy')
+        : prefs.setString('ff_obPregnancy', value);
+  }
+
   List<String> _obGoals = [];
   List<String> get obGoals => _obGoals;
   set obGoals(List<String> value) {
@@ -429,6 +488,9 @@ class FFAppState extends ChangeNotifier {
     obSkinType = null;
     obSensitive = null;
     obAcneProne = null;
+    obPregnancy = null;
+    obPrefFragranceFree = null;
+    obPrefMaxSteps = null;
     obGoals = [];
     obAgeRange = null;
     obBudgetRange = null;
