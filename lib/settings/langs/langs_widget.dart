@@ -2,6 +2,7 @@ import '/auth/supabase_auth/auth_util.dart';
 import '/backend/supabase/supabase.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
+import '/design_system/components/selectable_row.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -108,11 +109,9 @@ class _LangsWidgetState extends State<LangsWidget> {
                             final selected =
                                 FFLocalizations.of(context).languageCode ==
                                     lang.code;
-                            return InkWell(
-                              splashColor: Colors.transparent,
-                              focusColor: Colors.transparent,
-                              hoverColor: Colors.transparent,
-                              highlightColor: Colors.transparent,
+                            return SelectableRow(
+                              label: '${lang.flag} ${lang.nativeName}',
+                              selected: selected,
                               onTap: () async {
                                 _model.langcode = lang.code;
                                 safeSetState(() {});
@@ -126,52 +125,6 @@ class _LangsWidgetState extends State<LangsWidget> {
                                 }
                                 context.safePop();
                               },
-                              child: Container(
-                                width: double.infinity,
-                                decoration: BoxDecoration(
-                                  color: FlutterFlowTheme.of(context).surfaceMuted,
-                                  borderRadius: BorderRadius.circular(12.0),
-                                  border: Border.all(
-                                    color: selected
-                                        ? FlutterFlowTheme.of(context).primary
-                                        : Colors.transparent,
-                                    width: 2.0,
-                                  ),
-                                ),
-                                child: Padding(
-                                  padding: EdgeInsets.all(16.0),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.max,
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        '${lang.flag} ${lang.nativeName}',
-                                        style: FlutterFlowTheme.of(context)
-                                            .bodyMedium
-                                            .override(
-                                              fontFamily:
-                                                  FlutterFlowTheme.of(context)
-                                                      .bodyMediumFamily,
-                                              color: FlutterFlowTheme.of(context).primaryText,
-                                              fontSize: 16.0,
-                                              letterSpacing: 0.0,
-                                              useGoogleFonts:
-                                                  !FlutterFlowTheme.of(context)
-                                                      .bodyMediumIsCustom,
-                                            ),
-                                      ),
-                                      Icon(
-                                        selected
-                                            ? Icons.check_circle_rounded
-                                            : Icons.radio_button_off,
-                                        color: const Color(0xFF555555),
-                                        size: 24.0,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
                             );
                           }),
                         ].divide(SizedBox(height: 12.0)),

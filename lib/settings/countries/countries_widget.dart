@@ -2,6 +2,7 @@ import '/auth/supabase_auth/auth_util.dart';
 import '/backend/supabase/supabase.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
+import '/design_system/components/selectable_row.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -180,11 +181,21 @@ class _CountriesWidgetState extends State<CountriesWidget> {
                                 itemBuilder: (context, listViewIndex) {
                                   final listViewCountriesRow =
                                       listViewCountriesRowList[listViewIndex];
-                                  return InkWell(
-                                    splashColor: Colors.transparent,
-                                    focusColor: Colors.transparent,
-                                    hoverColor: Colors.transparent,
-                                    highlightColor: Colors.transparent,
+                                  return SelectableRow(
+                                    label:
+                                        '${valueOrDefault<String>(listViewCountriesRow.flagEmoji, '-')} ${() {
+                                      final lc = FFLocalizations.of(context)
+                                          .languageCode;
+                                      if (lc == 'ru') {
+                                        return listViewCountriesRow.nameRu;
+                                      } else if (lc == 'es') {
+                                        return listViewCountriesRow.nameEs;
+                                      } else {
+                                        return listViewCountriesRow.nameEn;
+                                      }
+                                    }()}',
+                                    selected: countriesUsersRow?.countryId ==
+                                        listViewCountriesRow.id,
                                     onTap: () async {
                                       await UsersTable().update(
                                         data: {
@@ -197,119 +208,6 @@ class _CountriesWidgetState extends State<CountriesWidget> {
                                       );
                                       context.safePop();
                                     },
-                                    child: Container(
-                                      width: double.infinity,
-                                      decoration: BoxDecoration(
-                                        color: FlutterFlowTheme.of(context).surfaceMuted,
-                                        borderRadius:
-                                            BorderRadius.circular(12.0),
-                                        border: Border.all(
-                                          color: countriesUsersRow?.countryId ==
-                                                  listViewCountriesRow.id
-                                              ? FlutterFlowTheme.of(context)
-                                                  .primary
-                                              : Colors.transparent,
-                                          width: 2.0,
-                                        ),
-                                      ),
-                                      child: Padding(
-                                        padding: EdgeInsets.all(16.0),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.max,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Row(
-                                              mainAxisSize: MainAxisSize.max,
-                                              children: [
-                                                Text(
-                                                  valueOrDefault<String>(
-                                                    listViewCountriesRow
-                                                        .flagEmoji,
-                                                    '-',
-                                                  ),
-                                                  style: FlutterFlowTheme.of(
-                                                          context)
-                                                      .bodyMedium
-                                                      .override(
-                                                        fontFamily:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .bodyMediumFamily,
-                                  fontSize: 16.0,
-                                                        color:
-                                                            FlutterFlowTheme.of(context).primaryText,
-                                                        letterSpacing: 0.0,
-                                                        useGoogleFonts:
-                                                            !FlutterFlowTheme
-                                                                    .of(context)
-                                                                .bodyMediumIsCustom,
-                                                      ),
-                                                ),
-                                                Text(
-                                                  () {
-                                                    if (FFLocalizations.of(
-                                                                context)
-                                                            .languageCode ==
-                                                        'ru') {
-                                                      return listViewCountriesRow
-                                                          .nameRu;
-                                                    } else if (FFLocalizations
-                                                                .of(context)
-                                                            .languageCode ==
-                                                        'es') {
-                                                      return listViewCountriesRow
-                                                          .nameEs;
-                                                    } else {
-                                                      return listViewCountriesRow
-                                                          .nameEn;
-                                                    }
-                                                  }(),
-                                                  style: FlutterFlowTheme.of(
-                                                          context)
-                                                      .bodyMedium
-                                                      .override(
-                                                        fontFamily:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .bodyMediumFamily,
-                                  fontSize: 16.0,
-                                                        color:
-                                                            FlutterFlowTheme.of(context).primaryText,
-                                                        letterSpacing: 0.0,
-                                                        useGoogleFonts:
-                                                            !FlutterFlowTheme
-                                                                    .of(context)
-                                                                .bodyMediumIsCustom,
-                                                      ),
-                                                ),
-                                              ].divide(SizedBox(width: 5.0)),
-                                            ),
-                                            Row(
-                                              mainAxisSize: MainAxisSize.max,
-                                              children: [
-                                                if (countriesUsersRow
-                                                        ?.countryId !=
-                                                    listViewCountriesRow.id)
-                                                  Icon(
-                                                    Icons.radio_button_off,
-                                                    color: const Color(0xFF555555),
-                                                    size: 24.0,
-                                                  ),
-                                                if (countriesUsersRow
-                                                        ?.countryId ==
-                                                    listViewCountriesRow.id)
-                                                  Icon(
-                                                    Icons.check_circle_rounded,
-                                                    color: const Color(0xFF555555),
-                                                    size: 24.0,
-                                                  ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
                                   );
                                 },
                               );

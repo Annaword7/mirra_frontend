@@ -550,3 +550,16 @@ The 3 competing handles → one 40×4 `border`; two shells → one `secondaryBac
   **0 errors / 0 warnings**; tests `+9 -1`. **Resolved:** C5·Profile·#1 (7 rows → SettingsRow), #2
   (Region row normalized). **Note:** the Share row now also fires a light haptic (SettingsRow bakes it
   in) — it previously didn't; consistent with the others.
+- ✅ **9.3** `feat(ds): SelectableRow + migrate Langs/Countries` — new
+  `lib/design_system/components/selectable_row.dart` (`surfaceMuted` r12 pill, label + check/radio
+  icon, 2px `primary` border when selected). Migrated **langs** (189→142) and **countries** (330→228)
+  selectable rows to it (countries' flag+locale-name folded into one `label`; onTap actions preserved).
+  `flutter analyze`: **0 errors / 0 warnings**; tests `+9 -1`. **Resolved:** C5·Countries·#1,
+  Langs·#1 (shared SelectableRow).
+
+### Initiative 9 — status (core delivered)
+**Delivered:** `SettingsRow` (profile 7 rows → 1 component, ~594 lines removed, Region row fixed) +
+`SelectableRow` (langs/countries rows unified). **Findings resolved:** C5 Profile #1,#2; Countries #1;
+Langs #1. **Remaining (minor, low-value):** `SettingsList` wrapper (Langs `Expanded+ListView.divide`
+vs Countries `SingleChildScrollView+ListView.separated` — two idioms, both work) + `SettingsScaffold`
+shared title style (Langs #2, #4) — cosmetic, not blocking.
