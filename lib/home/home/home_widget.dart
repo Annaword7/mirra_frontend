@@ -508,129 +508,35 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                             ].divide(SizedBox(width: 16.0)),
                                           ),
                                         ),
+                                        InkWell(
+                                          splashColor: Colors.transparent,
+                                          focusColor: Colors.transparent,
+                                          hoverColor: Colors.transparent,
+                                          highlightColor: Colors.transparent,
+                                          onTap: () async {
+                                            context.pushNamed(
+                                                ProfileWidget.routeName);
+                                          },
+                                          child: Container(
+                                            width: 45.0,
+                                            height: 45.0,
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              color: FlutterFlowTheme.of(context)
+                                                  .primary,
+                                            ),
+                                            child: const Icon(
+                                              Icons.person,
+                                              color: Colors.white,
+                                              size: 24,
+                                            ),
+                                          ),
+                                        ),
                                       ].divide(SizedBox(width: 16.0)),
                                     ),
                                   ),
                                 ),
                               ),
-                              Align(
-                                  alignment: AlignmentDirectional(-1.0, 0.0),
-                                  child: Padding(
-                                    padding: EdgeInsetsDirectional.fromSTEB(
-                                        20.0, 20.0, 20.0, 0.0),
-                                    child: Container(
-                                      decoration: BoxDecoration(),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.max,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Flexible(
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                          Text(
-                                            FFLocalizations.of(context).getText(
-                                              'pmne5rlo' /* Hello,  */,
-                                            ),
-                                            style: FlutterFlowTheme.of(context)
-                                                .bodyMedium
-                                                .override(
-                                                  font: GoogleFonts.raleway(
-                                                    fontWeight: FontWeight.w700,
-                                                    fontStyle:
-                                                        FlutterFlowTheme.of(
-                                                                context)
-                                                            .bodyMedium
-                                                            .fontStyle,
-                                                  ),
-                                                  fontSize: 28.0,
-                                                  letterSpacing: 0.0,
-                                                  fontWeight: FontWeight.w700,
-                                                  fontStyle:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMedium
-                                                          .fontStyle,
-                                                ),
-                                          ),
-                                          if (_model.usersanswer == null)
-                                            const Padding(
-                                              padding:
-                                                  EdgeInsetsDirectional.only(
-                                                      start: 4.0, top: 4.0),
-                                              child: SkeletonLine(
-                                                  width: 96.0, height: 24.0),
-                                            )
-                                          else
-                                            Flexible(
-                                              child: Text(
-                                                valueOrDefault<String>(
-                                                  _model.usersanswer?.firstOrNull
-                                                      ?.firstName,
-                                                  'user',
-                                                ),
-                                                overflow:
-                                                    TextOverflow.ellipsis,
-                                                style:
-                                                    FlutterFlowTheme.of(context)
-                                                        .bodyMedium
-                                                        .override(
-                                                          font: GoogleFonts
-                                                              .raleway(
-                                                            fontWeight:
-                                                                FontWeight.w700,
-                                                            fontStyle:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
-                                                          ),
-                                                          fontSize: 28.0,
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              FontWeight.w700,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontStyle,
-                                                        ),
-                                              ),
-                                            ),
-                                              ],
-                                            ),
-                                          ),
-                                          InkWell(
-                                            splashColor: Colors.transparent,
-                                            focusColor: Colors.transparent,
-                                            hoverColor: Colors.transparent,
-                                            highlightColor: Colors.transparent,
-                                            onTap: () async {
-                                              context.pushNamed(
-                                                  ProfileWidget.routeName);
-                                            },
-                                            child: Container(
-                                              width: 45.0,
-                                              height: 45.0,
-                                              decoration: BoxDecoration(
-                                                shape: BoxShape.circle,
-                                                color:
-                                                    FlutterFlowTheme.of(context)
-                                                        .primary,
-                                              ),
-                                              child: const Icon(
-                                                Icons.person,
-                                                color: Colors.white,
-                                                size: 24,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
                               // ── Scan quota bar ─────────────────────────────
                               Padding(
                                 padding: EdgeInsetsDirectional.fromSTEB(
