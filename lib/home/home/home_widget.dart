@@ -476,7 +476,11 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                             children: [
                               Padding(
                                 padding: EdgeInsetsDirectional.fromSTEB(
-                                    0.0, 64.0, 0.0, 0.0),
+                                    0.0,
+                                    MediaQuery.of(context).padding.top +
+                                        FlutterFlowTheme.of(context).space.s24,
+                                    0.0,
+                                    0.0),
                                 child: Container(
                                   decoration: BoxDecoration(),
                                   child: Padding(
