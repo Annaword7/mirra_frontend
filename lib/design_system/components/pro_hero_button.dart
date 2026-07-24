@@ -88,8 +88,8 @@ class _ProHeroButtonState extends State<ProHeroButton> {
         boxShadow: [
           BoxShadow(
             color: primary.withValues(alpha: 0.5),
-            blurRadius: 20.0,
-            offset: const Offset(0.0, 8.0),
+            blurRadius: 16.0,
+            offset: const Offset(0.0, 6.0),
           ),
         ],
       ),
