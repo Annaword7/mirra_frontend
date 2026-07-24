@@ -3,10 +3,10 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// The "candy foil" PRO upgrade CTA (home hero): a warm pearlescent-gold pill
-/// with a small crown, a soft gold glow, and a bright gloss sweep that runs
-/// across it — enticing to tap. Honors reduce-motion (static when set) and
-/// scales down slightly on press.
+/// The "aurora glow" PRO upgrade CTA (home hero): a brand blue→violet gradient
+/// pill with a small crown, a soft violet glow, and a single bright gloss sweep
+/// shortly after the screen appears — enticing to tap. Honors reduce-motion
+/// (static) and scales down slightly on press.
 class ProHeroButton extends StatefulWidget {
   const ProHeroButton({
     super.key,
@@ -24,13 +24,10 @@ class ProHeroButton extends StatefulWidget {
 class _ProHeroButtonState extends State<ProHeroButton> {
   bool _pressed = false;
 
-  // Candy-foil palette (warm pearlescent gold), derived from the brand pastels.
-  static const _cream = Color(0xFFF2EBB4);
-  static const _peach = Color(0xFFF4CFBC);
-  static const _gold = Color(0xFFE7B24C);
-  static const _lightGold = Color(0xFFFFF3CF);
-  static const _ink = Color(0xFF5A3B12); // warm brown text on the light foil
-  static const _crownInk = Color(0xFF7A5218);
+  // Aurora palette — brand blue → violet.
+  static const _blue = Color(0xFF5C85D9);
+  static const _mid = Color(0xFF6F7FE0);
+  static const _violet = Color(0xFF9489F5);
 
   @override
   Widget build(BuildContext context) {
@@ -41,14 +38,14 @@ class _ProHeroButtonState extends State<ProHeroButton> {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [_cream, _peach, _lightGold, _gold, _peach, _cream],
+          colors: [_blue, _mid, _violet],
         ),
         borderRadius: BorderRadius.circular(999.0),
-        border: Border.all(color: const Color(0x8CFFFFFF), width: 1.0),
+        border: Border.all(color: const Color(0x40FFFFFF), width: 1.0),
         boxShadow: [
           BoxShadow(
-            color: _gold.withValues(alpha: 0.42),
-            blurRadius: 18.0,
+            color: _violet.withValues(alpha: 0.5),
+            blurRadius: 20.0,
             offset: const Offset(0.0, 8.0),
           ),
         ],
@@ -58,7 +55,8 @@ class _ProHeroButtonState extends State<ProHeroButton> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const FaIcon(FontAwesomeIcons.crown, size: 14.0, color: _crownInk),
+            const FaIcon(FontAwesomeIcons.crown,
+                size: 14.0, color: Colors.white),
             const SizedBox(width: 9.0),
             Text(
               widget.label,
@@ -66,7 +64,14 @@ class _ProHeroButtonState extends State<ProHeroButton> {
                 fontWeight: FontWeight.w800,
                 fontSize: 15.0,
                 letterSpacing: 0.2,
-                color: _ink,
+                color: Colors.white,
+                shadows: const [
+                  Shadow(
+                    color: Color(0x47141432),
+                    blurRadius: 2.0,
+                    offset: Offset(0.0, 1.0),
+                  ),
+                ],
               ),
             ),
           ],
@@ -76,11 +81,11 @@ class _ProHeroButtonState extends State<ProHeroButton> {
 
     if (!reduceMotion) {
       // Bright gloss streak sweeps across once, shortly after the screen
-      // appears — then the pill stays static (gradient + gold glow).
+      // appears — then the pill stays static (gradient + violet glow).
       pill = pill.animate().shimmer(
             delay: 500.ms,
             duration: 1500.ms,
-            color: const Color(0xE6FFFFFF),
+            color: const Color(0xCCFFFFFF),
             angle: 0.4,
           );
     }
