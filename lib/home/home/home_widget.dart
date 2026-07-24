@@ -8,6 +8,7 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/design_system/components/app_button.dart';
+import '/design_system/components/pro_hero_button.dart';
 import '/item_card/imagedetailed_main/imagedetailed_main_widget.dart';
 import 'dart:async';
 import '/index.dart';
@@ -15,7 +16,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -487,15 +487,12 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                             children: [
                                               if (!appState.isprouser)
                                                 Flexible(
-                                                    child: AppButton(
+                                                    child: ProHeroButton(
                                                   label: FFLocalizations.of(
                                                           context)
                                                       .getText(
                                                     'fjrdil62' /* Update to PRO */,
                                                   ),
-                                                  icon: FontAwesomeIcons.crown,
-                                                  size: AppButtonSize.sm,
-                                                  fullWidth: false,
                                                   onPressed: () {
                                                     context.pushNamed(
                                                         PaywallpageWidget
