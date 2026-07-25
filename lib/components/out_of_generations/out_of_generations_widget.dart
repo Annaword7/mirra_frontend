@@ -1,7 +1,8 @@
 import '/flutter_flow/flutter_flow_animations.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
+import '/design_system/components/app_button.dart';
+import '/design_system/components/mirra_bottom_sheet.dart';
 import '/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -80,33 +81,13 @@ class _OutOfGenerationsWidgetState extends State<OutOfGenerationsWidget>
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-      alignment: AlignmentDirectional(0.0, 1.0),
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: FlutterFlowTheme.of(context).alternate,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(24.0),
-            topRight: Radius.circular(24.0),
-          ),
-          border: Border.all(
-            color: FlutterFlowTheme.of(context).alternate,
-          ),
-        ),
-        child: Padding(
-          padding: EdgeInsetsDirectional.fromSTEB(16.0, 12.0, 16.0, 32.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 100.0,
-                height: 5.0,
-                decoration: BoxDecoration(
-                  color: FlutterFlowTheme.of(context).info,
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-              ),
+    return MirraBottomSheet(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      handleGap: 4.0,
+      child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
               Padding(
                 padding: EdgeInsetsDirectional.fromSTEB(0.0, 24.0, 0.0, 12.0),
                 child: Icon(
@@ -122,15 +103,7 @@ class _OutOfGenerationsWidgetState extends State<OutOfGenerationsWidget>
                     '1zkc5y9j' /* Limit reached */,
                   ),
                   textAlign: TextAlign.center,
-                  style: FlutterFlowTheme.of(context).headlineSmall.override(
-                        fontFamily:
-                            FlutterFlowTheme.of(context).headlineSmallFamily,
-                        fontSize: 26.0,
-                        letterSpacing: 0.0,
-                        fontWeight: FontWeight.bold,
-                        useGoogleFonts:
-                            !FlutterFlowTheme.of(context).headlineSmallIsCustom,
-                      ),
+                  style: FlutterFlowTheme.of(context).displayXS,
                 ).animateOnPageLoad(animationsMap['textOnPageLoadAnimation']!),
               ),
               Text(
@@ -151,7 +124,10 @@ class _OutOfGenerationsWidgetState extends State<OutOfGenerationsWidget>
               ),
               Padding(
                 padding: EdgeInsetsDirectional.fromSTEB(0.0, 32.0, 0.0, 0.0),
-                child: FFButtonWidget(
+                child: AppButton(
+                  label: FFLocalizations.of(context).getText(
+                    'enziwu64' /* Got it */,
+                  ),
                   onPressed: () async {
                     HapticFeedback.lightImpact();
 
@@ -159,39 +135,11 @@ class _OutOfGenerationsWidgetState extends State<OutOfGenerationsWidget>
 
                     Navigator.pop(context);
                   },
-                  text: FFLocalizations.of(context).getText(
-                    'enziwu64' /* Got it */,
-                  ),
-                  options: FFButtonOptions(
-                    width: double.infinity,
-                    height: 55.0,
-                    padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                    iconPadding:
-                        EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                    color: FlutterFlowTheme.of(context).primary,
-                    textStyle: FlutterFlowTheme.of(context).titleSmall.override(
-                          fontFamily:
-                              FlutterFlowTheme.of(context).titleSmallFamily,
-                          color: Colors.white,
-                          letterSpacing: 0.0,
-                          fontWeight: FontWeight.w600,
-                          useGoogleFonts:
-                              !FlutterFlowTheme.of(context).titleSmallIsCustom,
-                        ),
-                    elevation: 0.0,
-                    borderSide: BorderSide(
-                      color: Colors.transparent,
-                      width: 1.0,
-                    ),
-                    borderRadius: BorderRadius.circular(50.0),
-                  ),
                 ).animateOnPageLoad(
                     animationsMap['buttonOnPageLoadAnimation']!),
               ),
             ],
           ),
-        ),
-      ),
     );
   }
 }

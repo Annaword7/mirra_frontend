@@ -38,7 +38,7 @@ class AppStateNotifier extends ChangeNotifier {
   /// Otherwise, this will trigger a refresh and interrupt the action(s).
   bool notifyOnAuthChange = true;
 
-  bool get loading => user == null || showSplashImage;
+  bool get loading => showSplashImage;
   bool get loggedIn => user?.loggedIn ?? false;
   bool get initiallyLoggedIn => initialUser?.loggedIn ?? false;
   bool get shouldRedirect => loggedIn && _redirectLocation != null;
@@ -80,16 +80,44 @@ GoRouter createRouter(AppStateNotifier appStateNotifier, [Widget? entryPage]) =>
       refreshListenable: appStateNotifier,
       navigatorKey: appNavigatorKey,
       observers: [AnalyticsService.instance.observer],
-      errorBuilder: (context, state) => appStateNotifier.loggedIn
-          ? entryPage ?? HomeWidget()
-          : NewblankWidget(),
+      errorBuilder: (context, state) {
+        final appState = context.watch<FFAppState>();
+
+        if (appStateNotifier.loading) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (appStateNotifier.loggedIn) {
+          return entryPage ?? HomeWidget();
+        }
+
+        return appState.onboardingDone
+            ? NewblankWidget()
+            : OnboardingQuizWidget();
+      },
       routes: [
         FFRoute(
           name: '_initialize',
           path: '/',
-          builder: (context, _) => appStateNotifier.loggedIn
-              ? entryPage ?? HomeWidget()
-              : (FFAppState().onboardingDone ? NewblankWidget() : OnboardingCarouselWidget()),
+          builder: (context, _) {
+            final appState = context.watch<FFAppState>();
+
+            if (appStateNotifier.loading) {
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            }
+
+            if (appStateNotifier.loggedIn) {
+              return entryPage ?? HomeWidget();
+            }
+
+            return appState.onboardingDone
+                ? NewblankWidget()
+                : OnboardingQuizWidget();
+          },
         ),
         FFRoute(
           name: CreateAccountPageWidget.routeName,
@@ -107,14 +135,9 @@ GoRouter createRouter(AppStateNotifier appStateNotifier, [Widget? entryPage]) =>
           builder: (context, params) => OnboardingProfileWidget(),
         ),
         FFRoute(
-          name: OnboardingInstructionsWidget.routeName,
-          path: OnboardingInstructionsWidget.routePath,
-          builder: (context, params) => OnboardingInstructionsWidget(),
-        ),
-        FFRoute(
-          name: OnboardingCarouselWidget.routeName,
-          path: OnboardingCarouselWidget.routePath,
-          builder: (context, params) => OnboardingCarouselWidget(),
+          name: OnboardingQuizWidget.routeName,
+          path: OnboardingQuizWidget.routePath,
+          builder: (context, params) => OnboardingQuizWidget(),
         ),
         FFRoute(
           name: BoardsWidget.routeName,
@@ -129,20 +152,16 @@ GoRouter createRouter(AppStateNotifier appStateNotifier, [Widget? entryPage]) =>
           builder: (context, params) => HomeWidget(),
         ),
         FFRoute(
+          name: SearchWidget.routeName,
+          path: SearchWidget.routePath,
+          requireAuth: true,
+          builder: (context, params) => const SearchWidget(),
+        ),
+        FFRoute(
           name: ProfileWidget.routeName,
           path: ProfileWidget.routePath,
           requireAuth: true,
           builder: (context, params) => ProfileWidget(),
-        ),
-        FFRoute(
-          name: ImagedetailsWidget.routeName,
-          path: ImagedetailsWidget.routePath,
-          builder: (context, params) => ImagedetailsWidget(
-            imageid: params.getParam(
-              'imageid',
-              ParamType.int,
-            ),
-          ),
         ),
         FFRoute(
           name: ImagesbyAlbumWidget.routeName,
@@ -186,12 +205,6 @@ GoRouter createRouter(AppStateNotifier appStateNotifier, [Widget? entryPage]) =>
           builder: (context, params) => TakeorUploadPageWidget(),
         ),
         FFRoute(
-          name: FavoritesWidget.routeName,
-          path: FavoritesWidget.routePath,
-          requireAuth: true,
-          builder: (context, params) => FavoritesWidget(),
-        ),
-        FFRoute(
           name: CountriesWidget.routeName,
           path: CountriesWidget.routePath,
           builder: (context, params) => CountriesWidget(),
@@ -200,6 +213,24 @@ GoRouter createRouter(AppStateNotifier appStateNotifier, [Widget? entryPage]) =>
           name: NewblankWidget.routeName,
           path: NewblankWidget.routePath,
           builder: (context, params) => NewblankWidget(),
+        ),
+        FFRoute(
+          name: BagWidget.routeName,
+          path: BagWidget.routePath,
+          requireAuth: true,
+          builder: (context, params) => BagWidget(),
+        ),
+        FFRoute(
+          name: RoutineWidget.routeName,
+          path: RoutineWidget.routePath,
+          requireAuth: true,
+          builder: (context, params) => RoutineWidget(),
+        ),
+        FFRoute(
+          name: CareReviewWidget.routeName,
+          path: CareReviewWidget.routePath,
+          requireAuth: true,
+          builder: (context, params) => CareReviewWidget(),
         ),
         FFRoute(
           name: Itemcard2Widget.routeName,
@@ -399,7 +430,11 @@ class FFRoute {
 
           if (requireAuth && !appStateNotifier.loggedIn) {
             appStateNotifier.setRedirectLocationIfUnset(state.uri.toString());
-            return '/Splash';
+            // '/' is the real splash/initialize route. Once auth restores,
+            // the saved redirectLocation forwards to the requested screen
+            // (e.g. a routine-reminder deep link). '/Splash' isn't a route —
+            // returning it rendered a blank/grey screen.
+            return '/';
           }
           return null;
         },
@@ -413,11 +448,13 @@ class FFRoute {
                 )
               : builder(context, ffParams);
           final child = appStateNotifier.loading
-              ? Container(
-                  color: Colors.transparent,
-                  child: Image.asset(
-                    'assets/images/splash.png',
-                    fit: BoxFit.cover,
+              ? ColoredBox(
+                  color: Colors.white,
+                  child: Center(
+                    child: Image.asset(
+                      'assets/images/splash.png',
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 )
               : page;

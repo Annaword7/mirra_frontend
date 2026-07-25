@@ -1,5 +1,5 @@
-import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
+import '/design_system/components/feature_row.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'premium_features_list_model.dart';
@@ -15,6 +15,19 @@ class PremiumFeaturesListWidget extends StatefulWidget {
 
 class _PremiumFeaturesListWidgetState extends State<PremiumFeaturesListWidget> {
   late PremiumFeaturesListModel _model;
+
+  // The 8 pro features: (icon, localization key, isFontAwesome, iconSize).
+  static const List<({IconData icon, String key, bool fa, double size})>
+      _features = [
+    (icon: Icons.all_inclusive_rounded, key: 'ic2_pro_unlimited', fa: false, size: 20.0),
+    (icon: Icons.biotech_outlined, key: '8xm0tarf', fa: false, size: 20.0),
+    (icon: Icons.list_alt_rounded, key: 'inci_full_list', fa: false, size: 20.0),
+    (icon: FontAwesomeIcons.eyeSlash, key: 'pm4r9x2w', fa: true, size: 18.0),
+    (icon: Icons.lightbulb_outline_rounded, key: 'ic2_pro_howto', fa: false, size: 20.0),
+    (icon: Icons.face_retouching_natural, key: 'ic2_pro_skin', fa: false, size: 20.0),
+    (icon: Icons.verified_rounded, key: 'ic2_pro_actives', fa: false, size: 20.0),
+    (icon: Icons.notes_rounded, key: 'ic2_pro_notes', fa: false, size: 20.0),
+  ];
 
   @override
   void setState(VoidCallback callback) {
@@ -40,187 +53,20 @@ class _PremiumFeaturesListWidgetState extends State<PremiumFeaturesListWidget> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
+      padding: const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
       child: Column(
         mainAxisSize: MainAxisSize.max,
-        children: [
-          Row(
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Container(
-                width: 40.0,
-                height: 40.0,
-                decoration: BoxDecoration(
-                  color: FlutterFlowTheme.of(context).primary,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: FlutterFlowTheme.of(context).primary,
-                  ),
-                ),
-                child: Align(
-                  alignment: AlignmentDirectional(0.0, 0.0),
-                  child: Icon(
-                    Icons.biotech_outlined,
-                    color: FlutterFlowTheme.of(context).alternate,
-                    size: 20.0,
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Text(
-                  FFLocalizations.of(context).getText(
-                    '8xm0tarf' /* Full scientific analysis */,
-                  ),
-                  textAlign: TextAlign.start,
-                  style: FlutterFlowTheme.of(context).bodyMedium.override(
-                        fontFamily:
-                            FlutterFlowTheme.of(context).bodyMediumFamily,
-                        color: Colors.white,
-                        fontSize: 15.0,
-                        letterSpacing: 0.0,
-                        fontWeight: FontWeight.w500,
-                        lineHeight: 1.3,
-                        useGoogleFonts:
-                            !FlutterFlowTheme.of(context).bodyMediumIsCustom,
-                      ),
-                ),
-              ),
-            ].divide(SizedBox(width: 12.0)),
-          ),
-          Row(
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              Container(
-                width: 40.0,
-                height: 40.0,
-                decoration: BoxDecoration(
-                  color: FlutterFlowTheme.of(context).primary,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: FlutterFlowTheme.of(context).primary,
-                  ),
-                ),
-                child: Align(
-                  alignment: AlignmentDirectional(0.0, 0.0),
-                  child: Icon(
-                    Icons.list_alt_rounded,
-                    color: FlutterFlowTheme.of(context).alternate,
-                    size: 20.0,
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Text(
-                  FFLocalizations.of(context).getText(
-                    'inci_full_list' /* Full INCI ingredient list */,
-                  ),
-                  textAlign: TextAlign.start,
-                  style: FlutterFlowTheme.of(context).bodyMedium.override(
-                        fontFamily:
-                            FlutterFlowTheme.of(context).bodyMediumFamily,
-                        color: Colors.white,
-                        fontSize: 15.0,
-                        letterSpacing: 0.0,
-                        fontWeight: FontWeight.w500,
-                        lineHeight: 1.3,
-                        useGoogleFonts:
-                            !FlutterFlowTheme.of(context).bodyMediumIsCustom,
-                      ),
-                ),
-              ),
-            ].divide(SizedBox(width: 12.0)),
-          ),
-          Row(
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              Container(
-                width: 40.0,
-                height: 40.0,
-                decoration: BoxDecoration(
-                  color: FlutterFlowTheme.of(context).primary,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: FlutterFlowTheme.of(context).primary,
-                  ),
-                ),
-                child: Align(
-                  alignment: AlignmentDirectional(0.0, 0.0),
-                  child: Icon(
-                    Icons.auto_graph_rounded,
-                    color: FlutterFlowTheme.of(context).alternate,
-                    size: 20.0,
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Text(
-                  FFLocalizations.of(context).getText(
-                    'o1zj0116' /* Top-rated products ranking */,
-                  ),
-                  textAlign: TextAlign.start,
-                  style: FlutterFlowTheme.of(context).bodyMedium.override(
-                        fontFamily:
-                            FlutterFlowTheme.of(context).bodyMediumFamily,
-                        color: Colors.white,
-                        fontSize: 15.0,
-                        letterSpacing: 0.0,
-                        fontWeight: FontWeight.w500,
-                        lineHeight: 1.3,
-                        useGoogleFonts:
-                            !FlutterFlowTheme.of(context).bodyMediumIsCustom,
-                      ),
-                ),
-              ),
-            ].divide(SizedBox(width: 12.0)),
-          ),
-          Row(
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              Container(
-                width: 40.0,
-                height: 40.0,
-                decoration: BoxDecoration(
-                  color: FlutterFlowTheme.of(context).primary,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: FlutterFlowTheme.of(context).primary,
-                  ),
-                ),
-                child: Align(
-                  alignment: AlignmentDirectional(0.0, 0.0),
-                  child: FaIcon(
-                    FontAwesomeIcons.eyeSlash,
-                    color: FlutterFlowTheme.of(context).alternate,
-                    size: 18.0,
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Text(
-                  FFLocalizations.of(context).getText(
-                    'pm4r9x2w' /* Keep your scans private */,
-                  ),
-                  textAlign: TextAlign.start,
-                  style: FlutterFlowTheme.of(context).bodyMedium.override(
-                        fontFamily:
-                            FlutterFlowTheme.of(context).bodyMediumFamily,
-                        color: Colors.white,
-                        fontSize: 15.0,
-                        letterSpacing: 0.0,
-                        fontWeight: FontWeight.w500,
-                        lineHeight: 1.3,
-                        useGoogleFonts:
-                            !FlutterFlowTheme.of(context).bodyMediumIsCustom,
-                      ),
-                ),
-              ),
-            ].divide(SizedBox(width: 12.0)),
-          ),
-        ]
-            .divide(SizedBox(height: 8.0))
-            .addToStart(SizedBox(height: 16.0))
-            .addToEnd(SizedBox(height: 16.0)),
+        children: _features
+            .map((f) => FeatureRow(
+                  icon: f.icon,
+                  label: FFLocalizations.of(context).getText(f.key),
+                  faIcon: f.fa,
+                  iconSize: f.size,
+                ))
+            .toList()
+            .divide(const SizedBox(height: 8.0))
+            .addToStart(const SizedBox(height: 16.0))
+            .addToEnd(const SizedBox(height: 16.0)),
       ),
     );
   }

@@ -2,6 +2,8 @@ import 'dart:io' show Platform;
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import '/app_state.dart';
 
 export 'package:purchases_flutter/purchases_flutter.dart'
     show Package, Offering;
@@ -63,9 +65,18 @@ Future initialize(
 
     Purchases.addCustomerInfoUpdateListener((info) {
       customerInfo = info;
+      // Только СНИМАЕМ pro при потере entitlement (реал-тайм отмена/истечение).
+      // Grant pro здесь НЕ делаем: pro-статус выдаётся per-account из БД
+      // (после покупки и по RC-webhook). Иначе вход в другой профиль на том же
+      // Apple ID перенёс бы pro на чужой аккаунт — подписка привязана к Apple ID.
+      final active =
+          info.entitlements.all['EntitlementMirra']?.isActive ?? false;
+      if (!active) {
+        FFAppState().isprouser = false;
+      }
     });
-  } on Exception catch (e) {
-    print("RevenueCat initialization failed: $e");
+  } on Exception catch (e, s) {
+    FirebaseCrashlytics.instance.recordError(e, s, fatal: false, reason: 'RevenueCat initialization failed');
   }
 }
 
@@ -84,7 +95,10 @@ Future<bool> purchasePackage(String package) async {
     final result = await Purchases.purchasePackage(revenueCatPackage);
     customerInfo = result.customerInfo;
     return true;
-  } catch (_) {
+  } catch (e, s) {
+    if (e is! PlatformException || e.code != 'purchase_cancelled') {
+      FirebaseCrashlytics.instance.recordError(e, s, fatal: false, reason: 'purchasePackage failed');
+    }
     return false;
   }
 }
@@ -101,8 +115,8 @@ Future loadOfferings() async {
   }
   try {
     _offerings = await Purchases.getOfferings();
-  } on PlatformException catch (e) {
-    print("Error loading offerings info: $e");
+  } on PlatformException catch (e, s) {
+    FirebaseCrashlytics.instance.recordError(e, s, fatal: false, reason: 'loadOfferings failed');
   }
 }
 
@@ -112,8 +126,8 @@ Future loadCustomerInfo() async {
   }
   try {
     _customerInfo = await Purchases.getCustomerInfo();
-  } on PlatformException catch (e) {
-    print("Error loading purchaser info: $e");
+  } on PlatformException catch (e, s) {
+    FirebaseCrashlytics.instance.recordError(e, s, fatal: false, reason: 'loadCustomerInfo failed');
   }
 }
 
@@ -129,8 +143,8 @@ Future<bool?> isEntitled(String entitlementId) async {
   try {
     customerInfo = await Purchases.getCustomerInfo();
     return customerInfo!.entitlements.all[entitlementId]?.isActive ?? false;
-  } on Exception catch (e) {
-    print("Unable to check RevenueCat entitlements: $e");
+  } on Exception catch (e, s) {
+    FirebaseCrashlytics.instance.recordError(e, s, fatal: false, reason: 'isEntitled check failed');
     return null;
   }
 }
@@ -140,18 +154,22 @@ Future login(String? uid) async {
   if (!_isConfigured) {
     return;
   }
+  // Skip when there is no identity change: same user re-login or already-anonymous logout.
   if (uid == _loggedInUid) {
     return;
   }
   try {
     if (uid != null) {
       customerInfo = (await Purchases.logIn(uid)).customerInfo;
+      // Anchor identity for webhooks (renewals can carry an anonymous app_user_id);
+      // the backend resolves the user via this supabase_uid attribute.
+      await Purchases.setAttributes({'supabase_uid': uid});
     } else {
       customerInfo = await Purchases.logOut();
     }
     _loggedInUid = uid;
-  } on Exception catch (e) {
-    print("Unable to logIn or logOut user in RevenueCat: $e");
+  } catch (e, s) {
+    FirebaseCrashlytics.instance.recordError(e, s, fatal: false, reason: 'RevenueCat login/logout failed');
   }
 }
 
@@ -170,7 +188,7 @@ Future restorePurchases() async {
   }
   try {
     customerInfo = await Purchases.restorePurchases();
-  } on PlatformException catch (e) {
-    print("Unable to restore purchases in RevenueCat: $e");
+  } on PlatformException catch (e, s) {
+    FirebaseCrashlytics.instance.recordError(e, s, fatal: false, reason: 'restorePurchases failed');
   }
 }

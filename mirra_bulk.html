@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>MiRRA — Bulk Analyzer</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --blue: #5C85D9;
+  --blue-light: #EBF0FC;
+  --text: #1A1A1A;
+  --sub: #666;
+  --border: #dde3f0;
+  --bg: #f4f6fb;
+  --green: #2e7d32;
+  --red: #c62828;
+  --yellow: #f57f17;
+}
+
+body {
+  font-family: -apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ── Header ── */
+.header {
+  background: white;
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.logo { font-size: 18px; font-weight: 800; color: var(--blue); letter-spacing: -0.5px; }
+.user-chip {
+  font-size: 12px; color: var(--sub);
+  background: var(--blue-light);
+  padding: 4px 10px;
+  border-radius: 20px;
+  display: none;
+}
+.user-chip.visible { display: block; }
+
+/* ── Layout ── */
+.main { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+.two-col { display: grid; grid-template-columns: 320px 1fr; gap: 24px; align-items: start; }
+
+/* ── Panel ── */
+.panel {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  padding: 24px;
+}
+.panel h2 { font-size: 14px; font-weight: 700; color: var(--sub); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 16px; }
+
+/* ── Login form ── */
+.field { margin-bottom: 12px; }
+.field label { font-size: 12px; font-weight: 600; color: var(--sub); display: block; margin-bottom: 5px; }
+.field input {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.field input:focus { border-color: var(--blue); }
+.btn {
+  width: 100%;
+  background: var(--blue);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.btn:hover { opacity: 0.88; }
+.btn:disabled { opacity: 0.45; cursor: default; }
+.btn-secondary {
+  background: var(--blue-light);
+  color: var(--blue);
+  margin-top: 8px;
+}
+.err { font-size: 12px; color: var(--red); margin-top: 8px; display: none; }
+.err.visible { display: block; }
+
+/* ── Language selector ── */
+.lang-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.lang-btn {
+  flex: 1;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: white;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  color: var(--sub);
+  transition: all 0.15s;
+}
+.lang-btn.active {
+  border-color: var(--blue);
+  background: var(--blue-light);
+  color: var(--blue);
+}
+
+/* ── Drop zone ── */
+.dropzone {
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  padding: 36px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s;
+  background: white;
+}
+.dropzone:hover, .dropzone.drag { border-color: var(--blue); background: var(--blue-light); }
+.dropzone input { display: none; }
+.drop-icon { font-size: 32px; margin-bottom: 8px; }
+.drop-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+.drop-sub { font-size: 12px; color: var(--sub); }
+.drop-note { font-size: 11px; color: var(--sub); margin-top: 8px; opacity: 0.7; }
+
+/* ── Queue stats ── */
+.stats-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.stat {
+  flex: 1;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  text-align: center;
+}
+.stat-num { font-size: 22px; font-weight: 800; color: var(--blue); }
+.stat-label { font-size: 11px; color: var(--sub); margin-top: 2px; }
+
+/* ── Queue list ── */
+.queue { display: flex; flex-direction: column; gap: 12px; }
+
+/* ── Job card ── */
+.job {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.job.running { border-color: var(--blue); }
+.job.done { border-color: #c8e6c9; }
+.job.error { border-color: #ffcdd2; }
+
+.job-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+}
+.job-thumb {
+  width: 44px; height: 44px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--bg);
+}
+.job-thumb-placeholder {
+  width: 44px; height: 44px;
+  border-radius: 8px;
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; flex-shrink: 0;
+}
+.job-meta { flex: 1; min-width: 0; }
+.job-filename { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.job-status { font-size: 11px; color: var(--sub); margin-top: 2px; }
+.job-badge { flex-shrink: 0; }
+
+/* Status dot */
+.dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 5px;
+}
+.dot-queue { background: #bbb; }
+.dot-run { background: var(--blue); animation: pulse 1s infinite; }
+.dot-done { background: var(--green); }
+.dot-err  { background: var(--red); }
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* Score badge */
+.score-pill {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--blue-light);
+  border-radius: 20px;
+  padding: 5px 10px 5px 6px;
+  font-size: 13px; font-weight: 700;
+}
+.score-letter {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 800;
+  color: white;
+}
+
+/* Result body */
+.job-result {
+  border-top: 1px solid var(--border);
+  padding: 14px 16px;
+  display: none;
+  gap: 14px;
+}
+.job.done .job-result { display: flex; flex-direction: column; }
+.result-product { font-size: 14px; font-weight: 700; }
+.result-brand   { font-size: 12px; color: var(--blue); font-weight: 600; margin-bottom: 6px; }
+.result-scores {
+  display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px;
+}
+.score-tag {
+  font-size: 11px;
+  background: var(--bg);
+  border-radius: 6px;
+  padding: 3px 7px;
+  color: var(--sub);
+}
+.score-tag b { color: var(--text); }
+.result-summary {
+  font-size: 12px;
+  line-height: 1.6;
+  color: #444;
+  white-space: pre-wrap;
+}
+.result-error {
+  font-size: 12px;
+  color: var(--red);
+  background: #fff5f5;
+  border-radius: 8px;
+  padding: 8px 10px;
+  display: none;
+}
+.job.error .result-error { display: block; }
+.job.error .job-result { display: flex; }
+
+/* Step progress */
+.steps {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+}
+.step {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--bg);
+  color: #aaa;
+  font-weight: 600;
+}
+.step.done  { background: #e8f5e9; color: var(--green); }
+.step.run   { background: #e3f0ff; color: var(--blue); }
+.step.err   { background: #ffebee; color: var(--red); }
+
+/* Empty state */
+.empty {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--sub);
+  font-size: 14px;
+}
+.empty-icon { font-size: 36px; margin-bottom: 10px; }
+
+/* Auth gated */
+.gated { display: none; }
+.gated.visible { display: block; }
+.login-section { display: block; }
+.login-section.hidden { display: none; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">M!RRA Bulk</div>
+  <span class="user-chip" id="userChip"></span>
+</div>
+
+<div class="main">
+  <div class="two-col">
+
+    <!-- LEFT: login + settings -->
+    <div>
+      <!-- Login -->
+      <div class="panel login-section" id="loginSection">
+        <h2>Sign In</h2>
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="email" placeholder="you@example.com" autocomplete="username">
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
+        </div>
+        <button class="btn" id="loginBtn" onclick="doLogin()">Sign in</button>
+        <div class="err" id="loginErr"></div>
+      </div>
+
+      <!-- Settings (shown after login) -->
+      <div class="panel gated" id="settingsPanel">
+        <h2>Language</h2>
+        <div class="lang-row">
+          <button class="lang-btn" id="lang-en" onclick="setLang('en')">EN</button>
+          <button class="lang-btn active" id="lang-ru" onclick="setLang('ru')">RU</button>
+          <button class="lang-btn" id="lang-es" onclick="setLang('es')">ES</button>
+        </div>
+
+        <h2>Upload photos</h2>
+        <div class="dropzone" id="dropzone"
+          onclick="document.getElementById('fileInput').click()"
+          ondragover="onDragOver(event)"
+          ondragleave="onDragLeave(event)"
+          ondrop="onDrop(event)">
+          <input type="file" id="fileInput" multiple accept="image/*" onchange="onFiles(this.files)">
+          <div class="drop-icon">📷</div>
+          <div class="drop-title">Drop photos here</div>
+          <div class="drop-sub">or click to browse</div>
+          <div class="drop-note">JPG / PNG / HEIC · multiple files supported</div>
+        </div>
+
+        <button class="btn btn-secondary" style="margin-top:16px" onclick="doLogout()">Sign out</button>
+      </div>
+    </div>
+
+    <!-- RIGHT: queue + results -->
+    <div class="gated" id="queuePanel">
+      <div class="stats-row">
+        <div class="stat"><div class="stat-num" id="statTotal">0</div><div class="stat-label">Total</div></div>
+        <div class="stat"><div class="stat-num" id="statDone" style="color:var(--green)">0</div><div class="stat-label">Done</div></div>
+        <div class="stat"><div class="stat-num" id="statErr" style="color:var(--red)">0</div><div class="stat-label">Errors</div></div>
+      </div>
+
+      <div class="queue" id="queue">
+        <div class="empty" id="emptyState">
+          <div class="empty-icon">🧴</div>
+          <div>Upload photos to start bulk analysis</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── Config ───────────────────────────────────────────────────────────────
+const SUPABASE_URL  = 'https://pjapsfbztorijypnldam.supabase.co';
+const ANON_KEY      = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqYXBzZmJ6dG9yaWp5cG5sZGFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQzNjY0ODEsImV4cCI6MjA1OTk0MjQ4MX0.aMFtS5zXK-psMT6gfdg67Zx6qdUrzWD-zqihjUvEtZU';
+const BACKEND       = 'https://web-production-47a2d.up.railway.app/api/mirra';
+
+let jwt      = null;
+let userId   = null;
+let language = 'ru';
+let running  = false;
+let jobQueue = [];
+
+// ── Auth ─────────────────────────────────────────────────────────────────
+async function doLogin() {
+  const email    = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const btn      = document.getElementById('loginBtn');
+  const err      = document.getElementById('loginErr');
+  err.className  = 'err';
+  btn.disabled   = true;
+  btn.textContent = 'Signing in…';
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: ANON_KEY },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error_description || data.msg || 'Login failed');
+
+    jwt    = data.access_token;
+    userId = data.user.id;
+    onLoggedIn(data.user.email);
+  } catch (e) {
+    err.textContent = e.message;
+    err.className   = 'err visible';
+    btn.disabled    = false;
+    btn.textContent = 'Sign in';
+  }
+}
+
+function onLoggedIn(email) {
+  document.getElementById('loginSection').className   = 'panel login-section hidden';
+  document.getElementById('settingsPanel').className  = 'panel gated visible';
+  document.getElementById('queuePanel').className     = 'gated visible';
+  const chip = document.getElementById('userChip');
+  chip.textContent = email;
+  chip.className   = 'user-chip visible';
+}
+
+function doLogout() {
+  jwt = null; userId = null;
+  document.getElementById('loginSection').className  = 'panel login-section';
+  document.getElementById('settingsPanel').className = 'panel gated';
+  document.getElementById('queuePanel').className    = 'gated';
+  document.getElementById('userChip').className      = 'user-chip';
+  document.getElementById('loginBtn').disabled       = false;
+  document.getElementById('loginBtn').textContent    = 'Sign in';
+}
+
+// Enter → login
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !jwt) doLogin();
+});
+
+// ── Language ─────────────────────────────────────────────────────────────
+function setLang(l) {
+  language = l;
+  ['en','ru','es'].forEach(x =>
+    document.getElementById('lang-' + x).className =
+      'lang-btn' + (x === l ? ' active' : '')
+  );
+}
+
+// ── Drag & drop ───────────────────────────────────────────────────────────
+function onDragOver(e)  { e.preventDefault(); document.getElementById('dropzone').classList.add('drag'); }
+function onDragLeave()  { document.getElementById('dropzone').classList.remove('drag'); }
+function onDrop(e)      { e.preventDefault(); onDragLeave(); onFiles(e.dataTransfer.files); }
+function onFiles(files) { [...files].forEach(addJob); }
+
+// ── Jobs ──────────────────────────────────────────────────────────────────
+let jobCounter = 0;
+
+function addJob(file) {
+  const id  = ++jobCounter;
+  const job = { id, file, status: 'queued', lang: language };
+  jobQueue.push(job);
+  renderJob(job);
+  updateStats();
+  if (!running) runNext();
+}
+
+async function runNext() {
+  const job = jobQueue.find(j => j.status === 'queued');
+  if (!job) { running = false; return; }
+  running = true;
+  await processJob(job);
+  runNext();
+}
+
+async function processJob(job) {
+  setStatus(job, 'running', 'Reading file…');
+
+  try {
+    // Step 1: upload to Supabase Storage, get public URL
+    setStatus(job, 'running', 'Uploading image…');
+    setStep(job, 1);
+    const dataUrl  = await fileToDataUrl(job.file);
+    setThumb(job, dataUrl);
+    const imageUrl = await uploadToStorage(job.file);
+
+    // Step 2: extract product info
+    setStatus(job, 'running', 'Extracting product name…');
+    setStep(job, 2);
+    const extractRes = await api('/extract-product-info', {
+      image_url:     imageUrl,
+      user_id:       userId,
+      language_code: job.lang
+    });
+    job.imageId     = extractRes.image_id;
+    job.productName = extractRes.product_name;
+    job.brand       = extractRes.brand;
+
+    // Step 3: search ingredients
+    setStatus(job, 'running', 'Searching ingredients…');
+    setStep(job, 3);
+    await api('/search-ingredients', {
+      image_id:     job.imageId,
+      product_name: job.productName,
+      brand:        job.brand
+    });
+
+    // Step 4: scientific analysis
+    setStatus(job, 'running', 'Running analysis…');
+    setStep(job, 4);
+    const analysis = await api('/scientific-analysis', {
+      image_id:      job.imageId,
+      language_code: job.lang
+    });
+
+    job.result = analysis;
+    setStatus(job, 'done', 'Done');
+    setStep(job, 5);
+    renderResult(job);
+
+  } catch (e) {
+    setStatus(job, 'error', e.message);
+    renderError(job, e.message);
+  }
+
+  updateStats();
+}
+
+// ── API helper ────────────────────────────────────────────────────────────
+async function api(path, body) {
+  const res = await fetch(BACKEND + path, {
+    method:  'POST',
+    headers: {
+      'Content-Type':  'application/json',
+      'Authorization': 'Bearer ' + jwt
+    },
+    body: JSON.stringify(body)
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || data.message || `HTTP ${res.status}`);
+  return data;
+}
+
+// ── File → base64 (for thumbnail only) ────────────────────────────────────
+function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload  = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// ── Upload file to Supabase Storage → public URL ───────────────────────────
+async function uploadToStorage(file) {
+  const ext  = file.name.split('.').pop() || 'jpg';
+  const path = `scans/${userId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+
+  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/images/${path}`, {
+    method:  'POST',
+    headers: {
+      'Authorization': 'Bearer ' + jwt,
+      'Content-Type':  file.type || 'image/jpeg',
+    },
+    body: file
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || `Storage upload failed: HTTP ${res.status}`);
+  }
+
+  return `${SUPABASE_URL}/storage/v1/object/public/images/${path}`;
+}
+
+// ── DOM helpers ───────────────────────────────────────────────────────────
+function getJobEl(job)  { return document.getElementById('job-' + job.id); }
+
+function renderJob(job) {
+  document.getElementById('emptyState').style.display = 'none';
+  const div = document.createElement('div');
+  div.className = 'job queued';
+  div.id = 'job-' + job.id;
+  div.innerHTML = `
+    <div class="job-header">
+      <div class="job-thumb-placeholder" id="thumb-${job.id}">📷</div>
+      <div class="job-meta">
+        <div class="job-filename">${job.file.name}</div>
+        <div class="job-status" id="status-${job.id}">
+          <span class="dot dot-queue"></span>Queued
+        </div>
+        <div class="steps" id="steps-${job.id}">
+          <span class="step" id="step-${job.id}-1">Upload</span>
+          <span class="step" id="step-${job.id}-2">Extract</span>
+          <span class="step" id="step-${job.id}-3">Ingredients</span>
+          <span class="step" id="step-${job.id}-4">Analysis</span>
+        </div>
+      </div>
+      <div class="job-badge" id="badge-${job.id}"></div>
+    </div>
+    <div class="job-result" id="result-${job.id}"></div>
+  `;
+  document.getElementById('queue').appendChild(div);
+}
+
+function setStatus(job, state, text) {
+  job.status = state;
+  const el  = getJobEl(job);
+  el.className = 'job ' + state;
+  const dotClass = state === 'running' ? 'dot-run'
+                 : state === 'done'    ? 'dot-done'
+                 : state === 'error'   ? 'dot-err'
+                 : 'dot-queue';
+  document.getElementById('status-' + job.id).innerHTML =
+    `<span class="dot ${dotClass}"></span>${text}`;
+}
+
+function setStep(job, step) {
+  for (let i = 1; i <= 4; i++) {
+    const el = document.getElementById(`step-${job.id}-${i}`);
+    if (!el) continue;
+    el.className = 'step' + (i < step ? ' done' : i === step ? ' run' : '');
+  }
+}
+
+function setThumb(job, src) {
+  const wrap = document.getElementById('thumb-' + job.id);
+  wrap.outerHTML =
+    `<img class="job-thumb" id="thumb-${job.id}" src="${src}" alt="">`;
+}
+
+function renderResult(job) {
+  const a = job.result?.analysis || {};
+  const s = a.scores || {};
+  const composite = Math.round(s.composite_score || 0);
+  const color = scoreColor(composite);
+  const letter = scoreGrade(composite);
+
+  // Badge
+  document.getElementById('badge-' + job.id).innerHTML = `
+    <div class="score-pill">
+      <div class="score-letter" style="background:${color}">${letter}</div>
+      <span style="color:${color}">${composite}</span>
+    </div>`;
+
+  // Subscores
+  const subs = ['efficacy','safety','stability','user_experience','comedogenicity'];
+  const subLabels = { efficacy:'Efficacy', safety:'Safety', stability:'Stability',
+                      user_experience:'UX', comedogenicity:'Acne' };
+  const subHtml = subs.map(k => {
+    const v = Math.round((s[k] || {}).score || 0);
+    return `<span class="score-tag">${subLabels[k]}: <b>${v}</b></span>`;
+  }).join('');
+
+  const summary = a.expert_summary || a.consumer_summary || '';
+
+  document.getElementById('result-' + job.id).innerHTML = `
+    <div>
+      <div class="result-product">${job.productName || '—'}</div>
+      <div class="result-brand">${job.brand || ''}</div>
+    </div>
+    <div class="result-scores">${subHtml}</div>
+    ${summary ? `<div class="result-summary">${summary}</div>` : ''}
+  `;
+}
+
+function renderError(job, msg) {
+  document.getElementById('result-' + job.id).innerHTML =
+    `<div class="result-error">${msg}</div>`;
+}
+
+// ── Stats ─────────────────────────────────────────────────────────────────
+function updateStats() {
+  document.getElementById('statTotal').textContent = jobQueue.length;
+  document.getElementById('statDone').textContent  = jobQueue.filter(j => j.status === 'done').length;
+  document.getElementById('statErr').textContent   = jobQueue.filter(j => j.status === 'error').length;
+}
+
+// ── Score helpers ─────────────────────────────────────────────────────────
+function scoreColor(s) {
+  if (s >= 75) return '#2e7d32';
+  if (s >= 65) return '#43a047';
+  if (s >= 55) return '#c0ca33';
+  if (s >= 45) return '#ffb300';
+  if (s >= 35) return '#ff7043';
+  return '#c62828';
+}
+function scoreGrade(s) {
+  if (s >= 75) return 'A';
+  if (s >= 65) return 'B';
+  if (s >= 55) return 'C';
+  if (s >= 45) return 'D';
+  if (s >= 35) return 'E';
+  return 'F';
+}
+</script>
+</body>
+</html>

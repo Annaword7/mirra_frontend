@@ -86,6 +86,15 @@ class IngredientsEfficacyRow extends SupabaseDataRow {
   set mechanismOfAction(String? value) =>
       setField<String>('mechanism_of_action', value);
 
+  String? get descriptionEn => getField<String>('description_en');
+  set descriptionEn(String? value) => setField<String>('description_en', value);
+
+  String? get descriptionRu => getField<String>('description_ru');
+  set descriptionRu(String? value) => setField<String>('description_ru', value);
+
+  String? get descriptionEs => getField<String>('description_es');
+  set descriptionEs(String? value) => setField<String>('description_es', value);
+
   DateTime? get createdAt => getField<DateTime>('created_at');
   set createdAt(DateTime? value) => setField<DateTime>('created_at', value);
 

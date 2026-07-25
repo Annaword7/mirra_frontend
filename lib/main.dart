@@ -1,9 +1,6 @@
 import 'dart:ui';
 import 'dart:async';
-import 'dart:typed_data';
-import 'package:flutter/services.dart';
 import '/custom_code/actions/index.dart' as actions;
-import 'shared_image_state.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/gestures.dart';
@@ -32,10 +29,37 @@ void main() async {
   final environmentValues = FFDevEnvironmentValues();
   await environmentValues.initialize();
 
+  // Start Supabase early — runs in parallel with Firebase init
+  final supaFuture = SupaFlow.initialize();
+
   await initFirebase();
 
-  // Catch all Flutter framework errors
-  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+  // Catch all Flutter framework errors.
+  // IMPORTANT: We call recordError() directly instead of recordFlutterFatalError()
+  // because the latter calls FlutterError.presentError() synchronously, which
+  // calls this same handler again → infinite recursion → stack overflow → crash loop.
+  FlutterError.onError = (FlutterErrorDetails details) {
+    // GoTrue background token refresh network errors are non-fatal —
+    // the user doesn't see a crash, the SDK retries automatically.
+    final stack = details.stack?.toString() ?? '';
+    final exceptionStr = details.exception.toString();
+    final isNonFatal = stack.contains('_autoRefreshTokenTick') ||
+        stack.contains('GoTrueClient') ||
+        stack.contains('google_fonts_base') ||
+        stack.contains('_httpFetchFontAndSaveToDevice') ||
+        // Network failures surfaced through a FutureBuilder bound to a
+        // Supabase/Postgrest query — the UI shows an error state, not a crash.
+        stack.contains('postgrest_builder.dart') ||
+        exceptionStr.contains('ClientException') ||
+        exceptionStr.contains('SocketException') ||
+        exceptionStr.contains('TimeoutException');
+    FirebaseCrashlytics.instance.recordError(
+      details.exception,
+      details.stack,
+      reason: details.context,
+      fatal: !isNonFatal,
+    );
+  };
   // Catch errors outside Flutter (platform, isolates, async)
   PlatformDispatcher.instance.onError = (error, stack) {
     FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
@@ -46,26 +70,29 @@ void main() async {
   await actions.lockOrientation();
   // End initial custom actions code
 
-  await SupaFlow.initialize();
-
   await FFLocalizations.initialize();
 
   final appState = FFAppState(); // Initialize FFAppState
   await appState.initializePersistedState();
 
-  await fetchRemoteConfig();
-
-  await revenue_cat.initialize(
-    "appl_nlqWcEvNVGNUCbMcdEcsbKbwNrV",
-    "",
-    debugLogEnabled: true,
-    loadDataAfterLaunch: true,
-  );
+  // Wait for Supabase to finish (likely already done by now)
+  await supaFuture;
 
   runApp(ChangeNotifierProvider(
     create: (context) => appState,
     child: MyApp(),
   ));
+
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    unawaited(fetchRemoteConfig());
+
+    unawaited(revenue_cat.initialize(
+      "appl_nlqWcEvNVGNUCbMcdEcsbKbwNrV",
+      "",
+      debugLogEnabled: true,
+      loadDataAfterLaunch: true,
+    ));
+  });
 }
 
 class MyApp extends StatefulWidget {
@@ -123,55 +150,30 @@ class _MyAppState extends State<MyApp> {
         _appStateNotifier.update(user);
         if (user.loggedIn) {
           NotificationService.instance.onUserLogin();
+          FirebaseCrashlytics.instance.setUserIdentifier(user.uid ?? '');
+        } else {
+          FirebaseCrashlytics.instance.setUserIdentifier('');
         }
       });
     jwtTokenStream.listen((_) {});
-    Future.delayed(
-      Duration(milliseconds: 1000),
-      () => _appStateNotifier.stopShowingSplashImage(),
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _appStateNotifier.stopShowingSplashImage();
+    });
 
     // Handle Universal Links (mirra.up.railway.app/product/{id})
     _initDeepLinks();
 
-    // Handle images shared from external apps ("Open in MiRRA")
-    _initShareChannel();
-
     // Push notifications
     NotificationService.instance.init(
       onTap: (data) {
+        if (data['route'] == 'routine') {
+          _router.go('/routineCalendar');
+          return;
+        }
         final imageId = data['image_id'];
         if (imageId != null) _router.go('/itemcard2?imageid=$imageId');
       },
     );
-  }
-
-  static const _shareChannel = MethodChannel('mirra/share');
-
-  void _initShareChannel() {
-    _shareChannel.setMethodCallHandler((call) async {
-      if (call.method == 'sharedImage') {
-        await _loadAndRoutePendingSharedImage();
-      }
-    });
-    // Check for an image that arrived before Flutter was ready
-    // (e.g. cold launch via "Open In")
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadAndRoutePendingSharedImage();
-    });
-  }
-
-  Future<void> _loadAndRoutePendingSharedImage() async {
-    try {
-      final result =
-          await _shareChannel.invokeMethod<Uint8List>('getPendingSharedImage');
-      if (result != null && result.isNotEmpty) {
-        SharedImageState.instance.pendingImage = result;
-        _router.go('/takeorUploadPage');
-      }
-    } catch (_) {
-      // Channel not available (Android / web) — ignore silently
-    }
   }
 
   void _initDeepLinks() {
@@ -229,11 +231,8 @@ class _MyAppState extends State<MyApp> {
         FallbackCupertinoLocalizationDelegate(),
       ],
       locale: _locale,
-      supportedLocales: const [
-        Locale('en'),
-        Locale('ru'),
-        Locale('es'),
-      ],
+      supportedLocales:
+          kSupportedLanguages.map((language) => createLocale(language)).toList(),
       theme: ThemeData(
         brightness: Brightness.light,
         scrollbarTheme: ScrollbarThemeData(
@@ -255,38 +254,13 @@ class _MyAppState extends State<MyApp> {
       themeMode: _themeMode,
       routerConfig: _router,
       builder: (context, child) {
-        if (FFDevEnvironmentValues.currentEnvironment != 'Development') {
-          return child!;
+        if (child == null) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
         }
-        // Dev-only banner: shows which backend is active
-        return Stack(
-          children: [
-            child!,
-            Positioned(
-              top: MediaQuery.of(context).padding.top + 4,
-              right: 8,
-              child: IgnorePointer(
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: const Color(0xCCFF6B00),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    'DEV',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        );
+
+        return child;
       },
     );
   }

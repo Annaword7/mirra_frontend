@@ -48,4 +48,22 @@ class ImageTopIngredientsRow extends SupabaseDataRow {
 
   String? get description => getField<String>('description');
   set description(String? value) => setField<String>('description', value);
+
+  /// Dose status vs minimum effective concentration: working / borderline / decorative
+  String? get status => getField<String>('status');
+  set status(String? value) => setField<String>('status', value);
+
+  /// Estimated concentration range, e.g. "1.0–3.5%"
+  String? get estimatedConcentration =>
+      getField<String>('estimated_concentration');
+  set estimatedConcentration(String? value) =>
+      setField<String>('estimated_concentration', value);
+
+  /// Minimum effective concentration (%) from the MEC table
+  double? get mec => getField<double>('mec');
+  set mec(double? value) => setField<double>('mec', value);
+
+  String? get evidenceLevel => getField<String>('evidence_level');
+  set evidenceLevel(String? value) =>
+      setField<String>('evidence_level', value);
 }

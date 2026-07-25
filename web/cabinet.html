@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MiRRA — личный кабинет</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --blue: #5C85D9;
+  --blue-dark: #3e63b7;
+  --blue-soft: #EEF3FF;
+  --bg: #F6F7FB;
+  --card: #FFFFFF;
+  --text: #151821;
+  --muted: #697386;
+  --border: #E1E7F2;
+  --green: #2E7D32;
+  --red: #C62828;
+  --yellow: #F9A825;
+  --shadow: 0 14px 40px rgba(48, 67, 111, 0.10);
+}
+body {
+  min-height: 100vh;
+  background: radial-gradient(circle at top left, #EAF0FF 0, transparent 34rem), var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", sans-serif;
+}
+button, input, select { font: inherit; }
+button { border: 0; cursor: pointer; }
+.app { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
+.sidebar { background: rgba(255,255,255,0.84); border-right: 1px solid var(--border); padding: 28px 20px; backdrop-filter: blur(18px); display: flex; flex-direction: column; }
+.brand { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; font-weight: 900; color: var(--blue); letter-spacing: -0.04em; font-size: 23px; }
+.brand-mark { width: 34px; height: 34px; border-radius: 12px; background: var(--blue); color: white; display: grid; place-items: center; box-shadow: var(--shadow); }
+.nav { display: grid; gap: 8px; margin-bottom: 24px; }
+.nav button { width: 100%; text-align: left; padding: 12px 14px; border-radius: 14px; color: var(--muted); background: transparent; font-weight: 700; }
+.nav button.active, .nav button:hover { background: var(--blue-soft); color: var(--blue-dark); }
+.user-box { border: 1px solid var(--border); border-radius: 18px; padding: 14px; background: white; display: none; margin-top: auto; }
+.user-box.visible { display: block; }
+.user-email { font-weight: 800; font-size: 13px; word-break: break-all; }
+.user-meta { color: var(--muted); font-size: 12px; margin-top: 4px; }
+.main { padding: 30px; overflow: auto; }
+.topbar { display: flex; justify-content: space-between; gap: 18px; align-items: center; margin-bottom: 24px; }
+.title h1 { font-size: 30px; letter-spacing: -0.05em; }
+.title p { color: var(--muted); margin-top: 5px; }
+.actions { display: flex; gap: 10px; align-items: center; }
+.btn { min-height: 42px; border-radius: 13px; padding: 0 18px; font-weight: 800; background: var(--blue); color: white; transition: transform 0.12s, opacity 0.12s; }
+.btn:hover { opacity: 0.9; transform: translateY(-1px); }
+.btn:disabled { opacity: 0.45; cursor: default; transform: none; }
+.btn.secondary { background: white; color: var(--blue-dark); border: 1px solid var(--border); }
+.btn.danger { background: #FFECEC; color: var(--red); }
+.btn.upgrade { background: linear-gradient(135deg, #5C85D9, #8AA9EA); }
+.view { display: none; }
+.view.active { display: block; }
+/* Auth gate */
+.auth-only { display: none; }
+.auth-only.visible { display: flex; }
+.guest-only.hidden { display: none; }
+/* Card */
+.card { background: rgba(255,255,255,0.92); border: 1px solid var(--border); border-radius: 24px; padding: 22px; box-shadow: var(--shadow); }
+.card h2 { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
+.field { display: grid; gap: 7px; margin-bottom: 12px; }
+.field label { color: var(--muted); font-size: 12px; font-weight: 800; }
+.field input, .field select { width: 100%; border: 1px solid var(--border); border-radius: 13px; padding: 12px 13px; outline: none; background: white; }
+.field input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(92,133,217,0.14); }
+.message { display: none; margin-top: 10px; font-size: 13px; color: var(--red); }
+.message.visible { display: block; }
+/* Gallery */
+.gallery-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 20px; }
+.gallery-toolbar h2 { font-size: 20px; letter-spacing: -0.03em; color: var(--text); }
+.products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; }
+.product-card { background: white; border: 1px solid var(--border); border-radius: 20px; overflow: hidden; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; text-decoration: none; color: inherit; display: block; }
+.product-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+.product-thumb { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
+.product-thumb-ph { width: 100%; aspect-ratio: 1; background: var(--blue-soft); display: grid; place-items: center; font-size: 38px; }
+.product-card-body { padding: 12px; }
+.product-card-name { font-weight: 900; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.product-card-brand { color: var(--muted); font-size: 11px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 16px; }
+.product-card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+.product-card-date { color: var(--muted); font-size: 11px; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin-top: 24px; }
+.page-btn { min-width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--border); background: white; color: var(--muted); font-weight: 800; font-size: 13px; }
+.page-btn.active { background: var(--blue); color: white; border-color: var(--blue); }
+.page-btn:disabled { opacity: 0.4; cursor: default; }
+.empty { border: 1px dashed var(--border); border-radius: 20px; padding: 48px 24px; text-align: center; color: var(--muted); background: rgba(255,255,255,0.7); }
+.empty-icon { font-size: 40px; margin-bottom: 12px; }
+/* Subscription view */
+.sub-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+.plan-name { font-size: 28px; font-weight: 950; color: var(--blue); letter-spacing: -0.04em; }
+.plan-status { display: inline-block; margin-top: 6px; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; background: var(--blue-soft); color: var(--blue-dark); }
+.plan-status.active { background: #EAF6EB; color: var(--green); }
+.usage { display: grid; gap: 10px; margin-top: 20px; }
+.usage-row { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; }
+.bar { height: 10px; border-radius: 999px; overflow: hidden; background: #E9EEF8; }
+.bar span { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--blue), #8AA9EA); transition: width 0.6s ease; }
+.upgrade-banner { border: 1.5px solid rgba(92,133,217,0.3); border-radius: 20px; padding: 22px; background: var(--blue-soft); }
+.upgrade-banner h3 { font-size: 18px; font-weight: 900; margin-bottom: 8px; }
+.upgrade-banner p { color: var(--muted); font-size: 13px; line-height: 1.5; margin-bottom: 16px; }
+.pro-features { display: grid; gap: 8px; margin-bottom: 20px; }
+.pro-feature { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 700; }
+.pro-feature::before { content: '✓'; color: var(--blue); font-weight: 900; }
+/* Scan view */
+.scan-grid { display: grid; grid-template-columns: minmax(290px, 380px) minmax(0, 1fr); gap: 22px; align-items: start; }
+.stack { display: grid; gap: 18px; }
+.language-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.chip-btn { border: 1px solid var(--border); border-radius: 12px; padding: 10px; background: white; color: var(--muted); font-weight: 900; }
+.chip-btn.active { border-color: var(--blue); background: var(--blue-soft); color: var(--blue-dark); }
+.dropzone { border: 2px dashed #CAD5EA; border-radius: 20px; min-height: 170px; display: grid; place-items: center; text-align: center; padding: 24px; background: white; transition: 0.15s; }
+.dropzone.drag, .dropzone:hover { border-color: var(--blue); background: var(--blue-soft); }
+.dropzone input { display: none; }
+.drop-icon { font-size: 38px; margin-bottom: 10px; }
+.drop-title { font-weight: 900; }
+.drop-sub { color: var(--muted); font-size: 13px; margin-top: 4px; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.stat { border: 1px solid var(--border); background: white; border-radius: 18px; padding: 16px; }
+.stat-num { font-size: 28px; font-weight: 950; color: var(--blue); letter-spacing: -0.04em; }
+.stat-label { color: var(--muted); font-size: 12px; font-weight: 800; margin-top: 3px; }
+.queue-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
+.queue-toolbar h2 { margin: 0; }
+.queue { display: grid; gap: 12px; }
+.job { border: 1px solid var(--border); border-radius: 20px; background: white; overflow: hidden; }
+.job.running { border-color: var(--blue); }
+.job.done { border-color: #BFE3C2; }
+.job.error { border-color: #F4B7B7; }
+.job-head { display: flex; align-items: center; gap: 14px; padding: 14px; }
+.thumb, .thumb-placeholder { width: 58px; height: 58px; border-radius: 16px; object-fit: cover; background: var(--blue-soft); flex: 0 0 auto; display: grid; place-items: center; font-size: 24px; }
+.job-info { min-width: 0; flex: 1; }
+.job-name { font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.job-status { margin-top: 3px; color: var(--muted); font-size: 12px; }
+.steps { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.step { border-radius: 999px; padding: 4px 8px; background: #F1F3F8; color: var(--muted); font-size: 11px; font-weight: 800; }
+.step.run { background: var(--blue-soft); color: var(--blue-dark); }
+.step.done { background: #EAF6EB; color: var(--green); }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; background: #B8C0CF; }
+.dot.run { background: var(--blue); animation: pulse 1s infinite; }
+.dot.done { background: var(--green); }
+.dot.error { background: var(--red); }
+@keyframes pulse { 50% { opacity: .45; } }
+.score-pill { display: inline-flex; align-items: center; gap: 7px; border-radius: 999px; background: var(--blue-soft); padding: 6px 10px 6px 6px; font-weight: 950; }
+.score-letter { width: 28px; height: 28px; border-radius: 50%; color: white; display: grid; place-items: center; font-size: 12px; }
+.result { display: none; border-top: 1px solid var(--border); padding: 14px; }
+.job.done .result, .job.error .result { display: block; }
+.result-title { font-weight: 950; }
+.result-brand { color: var(--muted); font-size: 13px; margin-top: 2px; }
+.score-tags { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+.score-tag { background: #F4F6FA; border-radius: 999px; padding: 6px 9px; font-size: 12px; color: var(--muted); }
+.summary { margin-top: 12px; color: #394150; font-size: 13px; line-height: 1.45; }
+.error-text { color: var(--red); font-size: 13px; }
+.history { display: grid; gap: 10px; }
+.history-item { display: flex; justify-content: space-between; gap: 12px; padding: 12px; border: 1px solid var(--border); border-radius: 16px; background: white; }
+.history-title { font-weight: 900; font-size: 13px; }
+.history-meta { color: var(--muted); font-size: 12px; margin-top: 2px; }
+.spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--blue); border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (max-width: 960px) { .app { grid-template-columns: 1fr; } .scan-grid, .sub-grid, .stats { grid-template-columns: 1fr; } .topbar { flex-direction: column; align-items: flex-start; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><div class="brand-mark">M</div><span>MiRRA</span></div>
+    <div class="nav" id="mainNav">
+      <button class="active" data-view="productsView">Мои продукты</button>
+      <button data-view="scanView">Сканирование</button>
+      <button data-view="subscriptionView">Подписка</button>
+    </div>
+    <div class="user-box" id="userBox">
+      <div class="user-email" id="userEmail">—</div>
+      <div class="user-meta" id="userPlan">Личный кабинет</div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="title">
+        <h1 id="viewTitle">Мои продукты</h1>
+        <p id="viewSubtitle">Все ваши отсканированные продукты</p>
+      </div>
+      <div class="actions auth-only" id="topActions">
+        <button class="btn secondary" type="button" onclick="refreshCurrentView()">Обновить</button>
+        <button class="btn danger" type="button" onclick="logout()">Выйти</button>
+      </div>
+    </div>
+
+    <!-- Login (shown when not authenticated) -->
+    <div id="loginView" class="card" style="max-width: 400px;">
+      <h2>Вход в MiRRA</h2>
+      <div class="field"><label>Email</label><input id="email" type="email" autocomplete="username" placeholder="you@example.com"></div>
+      <div class="field"><label>Пароль</label><input id="password" type="password" autocomplete="current-password" placeholder="••••••••"></div>
+      <button class="btn" id="loginBtn" type="button" onclick="login()">Войти</button>
+      <div class="message" id="loginMessage"></div>
+    </div>
+
+    <!-- View: Products -->
+    <section class="view" id="productsView">
+      <div class="gallery-toolbar">
+        <h2>Все продукты</h2>
+        <div id="galleryCount" style="color:var(--muted);font-size:13px;"></div>
+      </div>
+      <div id="productsGrid" class="products-grid"></div>
+      <div id="productsPagination" class="pagination"></div>
+    </section>
+
+    <!-- View: Scan -->
+    <section class="view" id="scanView">
+      <div class="scan-grid">
+        <section class="stack">
+          <div class="card">
+            <h2>Настройки сканирования</h2>
+            <div class="field">
+              <label>Язык результата</label>
+              <div class="language-row">
+                <button class="chip-btn" id="lang-en" type="button" onclick="setLanguage('en')">EN</button>
+                <button class="chip-btn active" id="lang-ru" type="button" onclick="setLanguage('ru')">RU</button>
+                <button class="chip-btn" id="lang-es" type="button" onclick="setLanguage('es')">ES</button>
+              </div>
+            </div>
+            <div class="dropzone" id="dropzone" onclick="fileInput.click()" ondragover="dragOver(event)" ondragleave="dragLeave()" ondrop="dropFiles(event)">
+              <input id="fileInput" type="file" multiple accept="image/*" onchange="addFiles(this.files)">
+              <div>
+                <div class="drop-icon">📷</div>
+                <div class="drop-title">Перетащите фото продуктов</div>
+                <div class="drop-sub">или нажмите, чтобы выбрать JPG / PNG / HEIC</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="stack">
+          <div class="stats">
+            <div class="stat"><div class="stat-num" id="statTotal">0</div><div class="stat-label">Всего</div></div>
+            <div class="stat"><div class="stat-num" id="statRunning">0</div><div class="stat-label">В работе</div></div>
+            <div class="stat"><div class="stat-num" id="statDone">0</div><div class="stat-label">Готово</div></div>
+            <div class="stat"><div class="stat-num" id="statError">0</div><div class="stat-label">Ошибки</div></div>
+          </div>
+
+          <div class="card">
+            <div class="queue-toolbar">
+              <h2>Очередь анализа</h2>
+              <div class="actions">
+                <button class="btn secondary" type="button" onclick="exportCsv()">CSV</button>
+                <button class="btn secondary" type="button" onclick="clearFinished()">Очистить готовые</button>
+              </div>
+            </div>
+            <div class="queue" id="queue"><div class="empty" id="emptyState">Загрузите фото, чтобы начать bulk-анализ.</div></div>
+          </div>
+
+          <div class="card">
+            <div class="queue-toolbar">
+              <h2>История сессии</h2>
+              <button class="btn secondary" type="button" onclick="clearHistory()">Очистить</button>
+            </div>
+            <div class="history" id="history"><div class="empty">Пока нет завершённых анализов.</div></div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <!-- View: Subscription -->
+    <section class="view" id="subscriptionView">
+      <div class="sub-grid">
+        <div class="card">
+          <h2>Текущий план</h2>
+          <div class="plan-name" id="planName">—</div>
+          <span class="plan-status" id="planStatus">—</span>
+          <div class="usage">
+            <div class="bar"><span id="usageBar"></span></div>
+            <div class="usage-row"><span id="usageText">—</span><span id="expiryText">—</span></div>
+          </div>
+        </div>
+        <div class="upgrade-banner" id="upgradeBanner" style="display:none;">
+          <h3>🔓 Разблокируйте полный анализ</h3>
+          <p>Получите доступ к экспертному разбору состава, полному INCI, анализу рисков и персональным рекомендациям.</p>
+          <div class="pro-features">
+            <div class="pro-feature">Экспертный разбор состава</div>
+            <div class="pro-feature">Полный список INCI</div>
+            <div class="pro-feature">Ингредиенты-проблемы с уровнем риска</div>
+            <div class="pro-feature">Инструкция по правильному применению</div>
+            <div class="pro-feature">Совместимость с типом кожи</div>
+          </div>
+          <button class="btn upgrade" type="button" onclick="upgrade()">Оформить Pro</button>
+        </div>
+        <div class="card" id="proActiveCard" style="display:none;">
+          <h2>Pro активен</h2>
+          <p style="font-size:14px;color:var(--muted);line-height:1.5;">У вас есть доступ ко всем функциям MiRRA Pro. Все карточки открыты полностью.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+const SUPABASE_URL = {{ supabase_url|tojson }};
+const ANON_KEY = {{ supabase_anon_key|tojson }};
+const BACKEND = {{ backend_base|tojson }};
+// TODO: Set RevenueCat Web Billing key from RC Dashboard → Web Billing → rcb_...
+const RC_WEB_KEY = '';
+
+const PAGE_SIZE = 24;
+let session = JSON.parse(localStorage.getItem('mirraCabinetSession') || 'null');
+let language = localStorage.getItem('mirraCabinetLanguage') || 'ru';
+let jobs = [];
+let sessionHistory = JSON.parse(localStorage.getItem('mirraCabinetHistory') || '[]');
+let running = false;
+let jobCounter = 0;
+let currentPage = 0;
+let totalProducts = 0;
+let isPro = false;
+
+const fileInput = document.getElementById('fileInput');
+
+const viewMeta = {
+  productsView:     { title: 'Мои продукты',  subtitle: 'Все ваши отсканированные продукты' },
+  scanView:         { title: 'Сканирование',   subtitle: 'Bulk-анализ продуктов через те же endpoints, что использует приложение' },
+  subscriptionView: { title: 'Подписка',       subtitle: 'Управление планом и апгрейд до Pro' },
+};
+
+document.addEventListener('keydown', event => {
+  if (event.key === 'Enter' && !session) login();
+});
+
+document.querySelectorAll('#mainNav [data-view]').forEach(button => {
+  button.addEventListener('click', () => setView(button.dataset.view));
+});
+
+boot();
+
+function boot() {
+  setLanguage(language);
+  renderHistory();
+  if (session?.access_token) {
+    showCabinet();
+  } else {
+    document.getElementById('loginView').style.display = 'block';
+  }
+}
+
+function setView(viewId) {
+  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('#mainNav button').forEach(b => b.classList.remove('active'));
+  document.getElementById(viewId)?.classList.add('active');
+  document.querySelector(`#mainNav [data-view="${viewId}"]`)?.classList.add('active');
+  const meta = viewMeta[viewId];
+  if (meta) {
+    document.getElementById('viewTitle').textContent = meta.title;
+    document.getElementById('viewSubtitle').textContent = meta.subtitle;
+  }
+  if (viewId === 'productsView') loadProducts(0);
+  if (viewId === 'subscriptionView') loadSubscription();
+}
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+
+async function login() {
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const button = document.getElementById('loginBtn');
+  const message = document.getElementById('loginMessage');
+  message.className = 'message';
+  button.disabled = true;
+  button.textContent = 'Входим…';
+  try {
+    const response = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: ANON_KEY },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error_description || data.msg || 'Не удалось войти');
+    session = data;
+    localStorage.setItem('mirraCabinetSession', JSON.stringify(session));
+    showCabinet();
+  } catch (error) {
+    message.textContent = error.message;
+    message.className = 'message visible';
+  } finally {
+    button.disabled = false;
+    button.textContent = 'Войти';
+  }
+}
+
+function showCabinet() {
+  document.getElementById('loginView').style.display = 'none';
+  document.getElementById('topActions').classList.add('visible');
+  document.getElementById('userBox').classList.add('visible');
+  document.getElementById('userEmail').textContent = session.user?.email || 'Авторизован';
+  setView('productsView');
+}
+
+function logout() {
+  session = null;
+  jobs = [];
+  isPro = false;
+  localStorage.removeItem('mirraCabinetSession');
+  document.getElementById('loginView').style.display = 'block';
+  document.getElementById('topActions').classList.remove('visible');
+  document.getElementById('userBox').classList.remove('visible');
+  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+  document.getElementById('queue').innerHTML = '<div class="empty" id="emptyState">Загрузите фото, чтобы начать bulk-анализ.</div>';
+  updateStats();
+}
+
+function refreshCurrentView() {
+  const active = document.querySelector('.view.active');
+  if (!active) return;
+  if (active.id === 'productsView') loadProducts(currentPage);
+  if (active.id === 'subscriptionView') loadSubscription();
+}
+
+// ── Gallery ───────────────────────────────────────────────────────────────────
+
+async function loadProducts(page) {
+  const grid = document.getElementById('productsGrid');
+  const pagination = document.getElementById('productsPagination');
+  grid.innerHTML = '<div style="padding:40px;text-align:center;"><div class="spinner"></div></div>';
+  pagination.innerHTML = '';
+  currentPage = page;
+  try {
+    const offset = page * PAGE_SIZE;
+    const response = await fetch(
+      `${SUPABASE_URL}/rest/v1/images?user=eq.${session.user.id}&hided=neq.true` +
+      `&select=id,product_name,brand,image_url,sa_composite_score,created_at,product_type` +
+      `&order=created_at.desc&limit=${PAGE_SIZE}&offset=${offset}`,
+      {
+        headers: {
+          apikey: ANON_KEY,
+          Authorization: `Bearer ${session.access_token}`,
+          'Range-Unit': 'items',
+          Prefer: 'count=exact'
+        }
+      }
+    );
+    const contentRange = response.headers.get('Content-Range') || '';
+    totalProducts = parseInt(contentRange.split('/')[1] || '0', 10);
+    const products = await response.json();
+    renderProducts(products);
+    renderPagination();
+    document.getElementById('galleryCount').textContent =
+      totalProducts ? `${totalProducts} продуктов` : '';
+  } catch (error) {
+    grid.innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div>${escapeHtml(error.message)}</div>`;
+  }
+}
+
+function renderProducts(products) {
+  const grid = document.getElementById('productsGrid');
+  if (!products.length) {
+    grid.innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="empty-icon">📦</div>Пока нет отсканированных продуктов.<br>Начните с вкладки «Сканирование».</div>';
+    return;
+  }
+  grid.innerHTML = products.map(p => {
+    const score = Math.round(p.sa_composite_score || 0);
+    const color = scoreColor(score);
+    const grade = scoreGrade(score);
+    const date = p.created_at ? new Date(p.created_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }) : '';
+    const thumb = p.image_url
+      ? `<img class="product-thumb" src="${escapeHtml(p.image_url)}" alt="" loading="lazy" onerror="this.outerHTML='<div class=\\'product-thumb-ph\\'>🧴</div>'">`
+      : '<div class="product-thumb-ph">🧴</div>';
+    const scoreBadge = score > 0
+      ? `<div class="score-pill" style="font-size:11px;padding:4px 8px 4px 4px;"><span class="score-letter" style="width:22px;height:22px;font-size:10px;background:${color}">${grade}</span><span style="color:${color}">${score}</span></div>`
+      : '';
+    return `<a class="product-card" href="/product?id=${p.id}">
+      ${thumb}
+      <div class="product-card-body">
+        <div class="product-card-name">${escapeHtml(p.product_name || 'Без названия')}</div>
+        <div class="product-card-brand">${escapeHtml(p.brand || '')}</div>
+        <div class="product-card-footer">
+          <span class="product-card-date">${date}</span>
+          ${scoreBadge}
+        </div>
+      </div>
+    </a>`;
+  }).join('');
+}
+
+function renderPagination() {
+  const pagination = document.getElementById('productsPagination');
+  const totalPages = Math.ceil(totalProducts / PAGE_SIZE);
+  if (totalPages <= 1) { pagination.innerHTML = ''; return; }
+  const pages = [];
+  pages.push(`<button class="page-btn${currentPage === 0 ? ' active' : ''}" onclick="loadProducts(0)">1</button>`);
+  for (let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages - 2, currentPage + 2); i++) {
+    pages.push(`<button class="page-btn${i === currentPage ? ' active' : ''}" onclick="loadProducts(${i})">${i + 1}</button>`);
+  }
+  if (totalPages > 1) {
+    pages.push(`<button class="page-btn${currentPage === totalPages - 1 ? ' active' : ''}" onclick="loadProducts(${totalPages - 1})">${totalPages}</button>`);
+  }
+  pagination.innerHTML = pages.join('');
+}
+
+// ── Subscription ──────────────────────────────────────────────────────────────
+
+async function loadSubscription() {
+  try {
+    const info = await api('/subscription/info', null, 'GET');
+    const used = Number(info.monthly_analyses_used || 0);
+    const limit = Number(info.monthly_limit || 0);
+    const percent = limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : 0;
+    const plan = info.subscription_plan || 'free';
+    isPro = plan === 'premium';
+    document.getElementById('planName').textContent = plan === 'premium' ? 'Pro' : 'Free';
+    const statusEl = document.getElementById('planStatus');
+    statusEl.textContent = info.subscription_status || 'active';
+    statusEl.className = `plan-status${(info.subscription_status || '') === 'active' ? ' active' : ''}`;
+    document.getElementById('usageText').textContent = `${used}/${limit || '∞'} анализов использовано`;
+    document.getElementById('expiryText').textContent = info.days_until_expiry != null ? `${info.days_until_expiry} дн. до окончания` : '';
+    document.getElementById('usageBar').style.width = `${percent}%`;
+    document.getElementById('userPlan').textContent = `План: ${isPro ? 'Pro' : 'Free'}`;
+    document.getElementById('upgradeBanner').style.display = isPro ? 'none' : 'block';
+    document.getElementById('proActiveCard').style.display = isPro ? 'block' : 'none';
+  } catch (error) {
+    document.getElementById('usageText').textContent = error.message;
+  }
+}
+
+async function upgrade() {
+  if (!RC_WEB_KEY) {
+    alert('Web-платежи ещё не настроены. Оформите подписку через мобильное приложение MiRRA.');
+    return;
+  }
+  // RevenueCat Web Billing
+  // const { Purchases } = await import('https://cdn.revenuecat.com/...');
+  // const purchases = Purchases.configure(RC_WEB_KEY, session.user.id);
+  // const offerings = await purchases.getOfferings();
+  // await purchases.purchase({ rcPackage: offerings.current.availablePackages[0] });
+}
+
+// ── Scan ──────────────────────────────────────────────────────────────────────
+
+function setLanguage(nextLanguage) {
+  language = nextLanguage;
+  localStorage.setItem('mirraCabinetLanguage', language);
+  ['en', 'ru', 'es'].forEach(code => {
+    document.getElementById(`lang-${code}`).className = `chip-btn${code === language ? ' active' : ''}`;
+  });
+}
+
+function dragOver(event) { event.preventDefault(); document.getElementById('dropzone').classList.add('drag'); }
+function dragLeave() { document.getElementById('dropzone').classList.remove('drag'); }
+function dropFiles(event) { event.preventDefault(); dragLeave(); addFiles(event.dataTransfer.files); }
+
+function addFiles(fileList) {
+  [...fileList].filter(file => file.type.startsWith('image/') || /\.hei[cf]$/i.test(file.name)).forEach(file => {
+    const job = { id: ++jobCounter, file, status: 'queued', lang: language };
+    jobs.push(job);
+    renderJob(job);
+  });
+  updateStats();
+  if (!running) runNext();
+}
+
+async function runNext() {
+  const job = jobs.find(item => item.status === 'queued');
+  if (!job) { running = false; return; }
+  running = true;
+  await processJob(job);
+  runNext();
+}
+
+async function processJob(job) {
+  try {
+    setJobStatus(job, 'running', 'Готовим фото…');
+    setStep(job, 1);
+    const previewUrl = await fileToDataUrl(job.file);
+    setThumb(job, previewUrl);
+
+    setJobStatus(job, 'running', 'Загружаем в Storage…');
+    const imageUrl = await uploadToStorage(job.file);
+
+    setStep(job, 2);
+    setJobStatus(job, 'running', 'Распознаём продукт…');
+    const extracted = await api('/extract-product-info', {
+      image_url: imageUrl,
+      user_id: session.user.id,
+      language_code: job.lang
+    });
+    job.imageId = extracted.image_id;
+    job.productName = extracted.product_name;
+    job.brand = extracted.brand;
+
+    setStep(job, 3);
+    setJobStatus(job, 'running', 'Ищем INCI…');
+    await api('/search-ingredients', {
+      image_id: job.imageId,
+      product_name: job.productName,
+      brand: job.brand
+    });
+
+    setStep(job, 4);
+    setJobStatus(job, 'running', 'Считаем научный анализ…');
+    job.result = await api('/scientific-analysis', {
+      image_id: job.imageId,
+      language_code: job.lang
+    });
+
+    setJobStatus(job, 'done', 'Готово');
+    renderResult(job);
+    addHistory(job);
+  } catch (error) {
+    setJobStatus(job, 'error', error.message);
+    renderError(job, error.message);
+  }
+  updateStats();
+}
+
+async function api(path, body, method = 'POST') {
+  const response = await fetch(BACKEND + path, {
+    method,
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+    body: body ? JSON.stringify(body) : undefined
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || data.message || data.details || `HTTP ${response.status}`);
+  return data;
+}
+
+async function uploadToStorage(file) {
+  const extension = file.name.split('.').pop() || 'jpg';
+  const path = `scans/${session.user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${extension}`;
+  const response = await fetch(`${SUPABASE_URL}/storage/v1/object/images/${path}`, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${session.access_token}`, 'Content-Type': file.type || 'image/jpeg' },
+    body: file
+  });
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data.message || `Storage upload failed: HTTP ${response.status}`);
+  }
+  return `${SUPABASE_URL}/storage/v1/object/public/images/${path}`;
+}
+
+function renderJob(job) {
+  document.getElementById('emptyState')?.remove();
+  const element = document.createElement('div');
+  element.className = 'job';
+  element.id = `job-${job.id}`;
+  element.innerHTML = `
+    <div class="job-head">
+      <div class="thumb-placeholder" id="thumb-${job.id}">📷</div>
+      <div class="job-info">
+        <div class="job-name">${escapeHtml(job.file.name)}</div>
+        <div class="job-status" id="status-${job.id}"><span class="dot"></span>В очереди</div>
+        <div class="steps">
+          <span class="step" id="step-${job.id}-1">Upload</span>
+          <span class="step" id="step-${job.id}-2">Extract</span>
+          <span class="step" id="step-${job.id}-3">INCI</span>
+          <span class="step" id="step-${job.id}-4">Analysis</span>
+        </div>
+      </div>
+      <div id="badge-${job.id}"></div>
+    </div>
+    <div class="result" id="result-${job.id}"></div>
+  `;
+  document.getElementById('queue').prepend(element);
+}
+
+function setJobStatus(job, status, text) {
+  job.status = status;
+  const element = document.getElementById(`job-${job.id}`);
+  if (element) element.className = `job ${status}`;
+  const dot = status === 'running' ? 'run' : status === 'done' ? 'done' : status === 'error' ? 'error' : '';
+  document.getElementById(`status-${job.id}`).innerHTML = `<span class="dot ${dot}"></span>${escapeHtml(text)}`;
+  updateStats();
+}
+
+function setStep(job, currentStep) {
+  for (let step = 1; step <= 4; step++) {
+    const el = document.getElementById(`step-${job.id}-${step}`);
+    if (el) el.className = `step${step < currentStep ? ' done' : step === currentStep ? ' run' : ''}`;
+  }
+}
+
+function setThumb(job, source) {
+  document.getElementById(`thumb-${job.id}`).outerHTML =
+    `<img class="thumb" id="thumb-${job.id}" src="${source}" alt="">`;
+}
+
+function renderResult(job) {
+  const analysis = job.result?.analysis || {};
+  const scores = analysis.scores || {};
+  const composite = Math.round(scores.composite_score || 0);
+  const color = scoreColor(composite);
+  document.getElementById(`badge-${job.id}`).innerHTML =
+    `<div class="score-pill"><span class="score-letter" style="background:${color}">${scoreGrade(composite)}</span><span style="color:${color}">${composite}</span></div>`;
+  const scoreKeys = [['efficacy','Эффективность'],['safety','Безопасность'],['stability','Стабильность'],['user_experience','UX'],['comedogenicity','Акне']];
+  const scoreTags = scoreKeys.map(([k, l]) => `<span class="score-tag">${l}: <b>${Math.round((scores[k]||{}).score||0)}</b></span>`).join('');
+  const summary = analysis.expert_summary || analysis.consumer_summary || '';
+  document.getElementById(`result-${job.id}`).innerHTML = `
+    <div class="result-title">${escapeHtml(job.productName || '—')}</div>
+    <div class="result-brand">${escapeHtml(job.brand || '')}</div>
+    <div class="score-tags">${scoreTags}</div>
+    ${summary ? `<div class="summary">${escapeHtml(summary)}</div>` : ''}
+    <a href="/product?id=${job.imageId}" style="display:inline-block;margin-top:12px;font-size:12px;color:var(--blue);font-weight:800;">Открыть карточку →</a>
+  `;
+}
+
+function renderError(job, message) {
+  document.getElementById(`result-${job.id}`).innerHTML = `<div class="error-text">${escapeHtml(message)}</div>`;
+}
+
+function addHistory(job) {
+  const analysis = job.result?.analysis || {};
+  const score = Math.round((analysis.scores || {}).composite_score || 0);
+  sessionHistory.unshift({ imageId: job.imageId, productName: job.productName || '—', brand: job.brand || '', score, language: job.lang, createdAt: new Date().toISOString() });
+  sessionHistory = sessionHistory.slice(0, 50);
+  localStorage.setItem('mirraCabinetHistory', JSON.stringify(sessionHistory));
+  renderHistory();
+}
+
+function renderHistory() {
+  const container = document.getElementById('history');
+  if (!sessionHistory.length) { container.innerHTML = '<div class="empty">Пока нет завершённых анализов.</div>'; return; }
+  container.innerHTML = sessionHistory.map(item => `
+    <div class="history-item">
+      <div>
+        <div class="history-title">${escapeHtml(item.productName)}</div>
+        <div class="history-meta">${escapeHtml(item.brand)} · ${item.language.toUpperCase()} · ID ${item.imageId}</div>
+      </div>
+      <div class="score-pill"><span class="score-letter" style="background:${scoreColor(item.score)}">${scoreGrade(item.score)}</span><span>${item.score}</span></div>
+    </div>
+  `).join('');
+}
+
+function clearFinished() {
+  jobs.filter(j => j.status === 'done' || j.status === 'error').forEach(j => document.getElementById(`job-${j.id}`)?.remove());
+  jobs = jobs.filter(j => j.status !== 'done' && j.status !== 'error');
+  if (!jobs.length) document.getElementById('queue').innerHTML = '<div class="empty" id="emptyState">Загрузите фото, чтобы начать bulk-анализ.</div>';
+  updateStats();
+}
+
+function clearHistory() {
+  sessionHistory = [];
+  localStorage.removeItem('mirraCabinetHistory');
+  renderHistory();
+}
+
+function exportCsv() {
+  const completed = jobs.filter(j => j.status === 'done');
+  if (!completed.length) return;
+  const rows = [['image_id','brand','product_name','score','language']].concat(
+    completed.map(j => [j.imageId, j.brand||'', j.productName||'', Math.round((j.result?.analysis?.scores||{}).composite_score||0), j.lang])
+  );
+  const csv = rows.map(row => row.map(cell => `"${String(cell).replaceAll('"','""')}"`).join(',')).join('\n');
+  const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+  const link = Object.assign(document.createElement('a'), { href: url, download: `mirra-bulk-${new Date().toISOString().slice(0,10)}.csv` });
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function updateStats() {
+  document.getElementById('statTotal').textContent = jobs.length;
+  document.getElementById('statRunning').textContent = jobs.filter(j => j.status === 'running' || j.status === 'queued').length;
+  document.getElementById('statDone').textContent = jobs.filter(j => j.status === 'done').length;
+  document.getElementById('statError').textContent = jobs.filter(j => j.status === 'error').length;
+}
+
+function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function scoreColor(score) {
+  if (score >= 75) return '#2E7D32';
+  if (score >= 65) return '#43A047';
+  if (score >= 55) return '#C0CA33';
+  if (score >= 45) return '#FFB300';
+  if (score >= 35) return '#FF7043';
+  return '#C62828';
+}
+
+function scoreGrade(score) {
+  if (score >= 75) return 'A';
+  if (score >= 65) return 'B';
+  if (score >= 55) return 'C';
+  if (score >= 45) return 'D';
+  if (score >= 35) return 'E';
+  return 'F';
+}
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+}
+</script>
+</body>
+</html>

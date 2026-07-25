@@ -1,10 +1,12 @@
 import 'dart:async';
+import '/design_system/components/mirra_bottom_sheet.dart';
 import '/auth/supabase_auth/auth_util.dart';
 import '/backend/supabase/supabase.dart';
 import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
+import '/design_system/components/app_text_field.dart';
+import '/design_system/components/app_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'new_album_model.dart';
@@ -46,33 +48,13 @@ class _NewAlbumWidgetState extends State<NewAlbumWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-      alignment: AlignmentDirectional(0.0, 1.0),
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: FlutterFlowTheme.of(context).alternate,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(24.0),
-            topRight: Radius.circular(24.0),
-          ),
-          border: Border.all(
-            color: FlutterFlowTheme.of(context).alternate,
-          ),
-        ),
-        child: Padding(
-          padding: EdgeInsetsDirectional.fromSTEB(16.0, 12.0, 16.0, 32.0),
-          child: Column(
+    return MirraBottomSheet(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      addBottomInset: false,
+      handleGap: 12.0,
+      child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 100.0,
-                height: 5.0,
-                decoration: BoxDecoration(
-                  color: FlutterFlowTheme.of(context).info,
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-              ),
               Padding(
                 padding: EdgeInsetsDirectional.fromSTEB(0.0, 24.0, 0.0, 0.0),
                 child: Text(
@@ -80,15 +62,7 @@ class _NewAlbumWidgetState extends State<NewAlbumWidget> {
                     '3k3xtikh' /* Create new board */,
                   ),
                   textAlign: TextAlign.center,
-                  style: FlutterFlowTheme.of(context).headlineSmall.override(
-                        fontFamily:
-                            FlutterFlowTheme.of(context).headlineSmallFamily,
-                        fontSize: 26.0,
-                        letterSpacing: 0.0,
-                        fontWeight: FontWeight.bold,
-                        useGoogleFonts:
-                            !FlutterFlowTheme.of(context).headlineSmallIsCustom,
-                      ),
+                  style: FlutterFlowTheme.of(context).displayXS,
                 ),
               ),
               Text(
@@ -112,67 +86,15 @@ class _NewAlbumWidgetState extends State<NewAlbumWidget> {
                   children: [
                     Container(
                       width: double.infinity,
-                      child: TextFormField(
+                      child: AppTextField(
                         controller: _model.albumnameTextController,
                         focusNode: _model.albumnameFocusNode,
                         autofocus: true,
+                        hintText: FFLocalizations.of(context).getText(
+                          'azcd4b5c' /* New board name */,
+                        ),
                         textCapitalization: TextCapitalization.words,
                         textInputAction: TextInputAction.next,
-                        obscureText: false,
-                        decoration: InputDecoration(
-                          hintText: FFLocalizations.of(context).getText(
-                            'azcd4b5c' /* New board name */,
-                          ),
-                          hintStyle: FlutterFlowTheme.of(context)
-                              .bodyMedium
-                              .override(
-                                fontFamily: FlutterFlowTheme.of(context)
-                                    .bodyMediumFamily,
-                                letterSpacing: 0.0,
-                                useGoogleFonts: !FlutterFlowTheme.of(context)
-                                    .bodyMediumIsCustom,
-                              ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: FlutterFlowTheme.of(context).info,
-                              width: 1.0,
-                            ),
-                            borderRadius: BorderRadius.circular(24.0),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: FlutterFlowTheme.of(context)
-                                  .primaryBackground,
-                              width: 1.0,
-                            ),
-                            borderRadius: BorderRadius.circular(24.0),
-                          ),
-                          errorBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: FlutterFlowTheme.of(context).error,
-                              width: 1.0,
-                            ),
-                            borderRadius: BorderRadius.circular(24.0),
-                          ),
-                          focusedErrorBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: FlutterFlowTheme.of(context).error,
-                              width: 1.0,
-                            ),
-                            borderRadius: BorderRadius.circular(24.0),
-                          ),
-                          filled: true,
-                          fillColor: FlutterFlowTheme.of(context).info,
-                        ),
-                        style: FlutterFlowTheme.of(context).bodyMedium.override(
-                              fontFamily:
-                                  FlutterFlowTheme.of(context).bodyMediumFamily,
-                              color: FlutterFlowTheme.of(context).primaryText,
-                              letterSpacing: 0.0,
-                              useGoogleFonts: !FlutterFlowTheme.of(context)
-                                  .bodyMediumIsCustom,
-                            ),
-                        cursorColor: FlutterFlowTheme.of(context).primary,
                         validator: _model.albumnameTextControllerValidator
                             .asValidator(context),
                         inputFormatters: [
@@ -191,7 +113,10 @@ class _NewAlbumWidgetState extends State<NewAlbumWidget> {
                   ],
                 ),
               ),
-              FFButtonWidget(
+              AppButton(
+                label: FFLocalizations.of(context).getText(
+                  'h68noqox' /* Create */,
+                ),
                 onPressed: () async {
                   HapticFeedback.lightImpact();
                   if (_model.formKey.currentState == null ||
@@ -209,69 +134,19 @@ class _NewAlbumWidgetState extends State<NewAlbumWidget> {
 
                   safeSetState(() {});
                 },
-                text: FFLocalizations.of(context).getText(
-                  'h68noqox' /* Create */,
-                ),
-                options: FFButtonOptions(
-                  width: double.infinity,
-                  height: 55.0,
-                  padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                  iconPadding:
-                      EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                  color: FlutterFlowTheme.of(context).primary,
-                  textStyle: FlutterFlowTheme.of(context).titleSmall.override(
-                        fontFamily:
-                            FlutterFlowTheme.of(context).titleSmallFamily,
-                        color: Colors.white,
-                        letterSpacing: 0.0,
-                        fontWeight: FontWeight.w600,
-                        useGoogleFonts:
-                            !FlutterFlowTheme.of(context).titleSmallIsCustom,
-                      ),
-                  elevation: 0.0,
-                  borderSide: BorderSide(
-                    color: Colors.transparent,
-                    width: 1.0,
-                  ),
-                  borderRadius: BorderRadius.circular(50.0),
-                ),
               ),
-              FFButtonWidget(
+              AppButton(
+                label: FFLocalizations.of(context).getText(
+                  'sw4zsxbk' /* Cancel */,
+                ),
+                variant: AppButtonVariant.secondary,
                 onPressed: () async {
                   HapticFeedback.lightImpact();
                   Navigator.pop(context);
                 },
-                text: FFLocalizations.of(context).getText(
-                  'sw4zsxbk' /* Cancel */,
-                ),
-                options: FFButtonOptions(
-                  width: double.infinity,
-                  height: 55.0,
-                  padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                  iconPadding:
-                      EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                  color: FlutterFlowTheme.of(context).info,
-                  textStyle: FlutterFlowTheme.of(context).titleSmall.override(
-                        fontFamily:
-                            FlutterFlowTheme.of(context).titleSmallFamily,
-                        color: FlutterFlowTheme.of(context).primaryText,
-                        letterSpacing: 0.0,
-                        fontWeight: FontWeight.w600,
-                        useGoogleFonts:
-                            !FlutterFlowTheme.of(context).titleSmallIsCustom,
-                      ),
-                  elevation: 0.0,
-                  borderSide: BorderSide(
-                    color: FlutterFlowTheme.of(context).info,
-                    width: 1.0,
-                  ),
-                  borderRadius: BorderRadius.circular(50.0),
-                ),
               ),
             ].divide(SizedBox(height: 12.0)),
           ),
-        ),
-      ),
     );
   }
 }

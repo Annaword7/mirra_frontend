@@ -3,9 +3,11 @@ import '/backend/supabase/supabase.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
+import '/design_system/components/app_text_field.dart';
+import '/design_system/components/app_button.dart';
 import '/flutter_flow/upload_data.dart';
 import '/index.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -73,6 +75,12 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
       ),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
+          FirebaseCrashlytics.instance.recordError(
+            snapshot.error,
+            snapshot.stackTrace,
+            fatal: false,
+            reason: 'EditProfile FutureBuilder error',
+          );
           return Scaffold(
             backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
             body: Center(
@@ -131,8 +139,8 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
                 alignment: AlignmentDirectional(0.0, 0.0),
                 child: FlutterFlowIconButton(
                   borderColor: Colors.transparent,
-                  borderRadius: 20.0,
-                  buttonSize: 40.0,
+                  borderRadius: 24.0,
+                  buttonSize: 48.0,
                   icon: Icon(
                     Icons.arrow_back_outlined,
                     color: FlutterFlowTheme.of(context).primaryText,
@@ -192,9 +200,9 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
                             EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 16.0, 0.0),
                         child: FlutterFlowIconButton(
                           borderColor: Colors.transparent,
-                          borderRadius: 20.0,
+                          borderRadius: 24.0,
                           borderWidth: 1.0,
-                          buttonSize: 40.0,
+                          buttonSize: 48.0,
                           icon: Icon(
                             Icons.share_outlined,
                             color: Colors.transparent,
@@ -349,12 +357,14 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
                                         decoration: BoxDecoration(
                                           color: FlutterFlowTheme.of(context)
                                               .alternate,
-                                          image: DecorationImage(
-                                            fit: BoxFit.cover,
-                                            image: Image.network(
-                                              FFAppState().userProfilePicture,
-                                            ).image,
-                                          ),
+                                          image: FFAppState().userProfilePicture.isNotEmpty
+                                              ? DecorationImage(
+                                                  fit: BoxFit.cover,
+                                                  image: NetworkImage(
+                                                    FFAppState().userProfilePicture,
+                                                  ),
+                                                )
+                                              : null,
                                           shape: BoxShape.circle,
                                         ),
                                         child: editProfileUsersRow?.profileImage != null
@@ -366,6 +376,7 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
                                                   width: 120.0,
                                                   height: 120.0,
                                                   fit: BoxFit.cover,
+                                                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                                                 ),
                                               )
                                             : const SizedBox.shrink(),
@@ -757,7 +768,7 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
                                       Expanded(
                                         child: Container(
                                           width: 100.0,
-                                          child: TextFormField(
+                                          child: AppTextField(
                                             controller: _model
                                                     .firstNameTextController ??=
                                                 TextEditingController(
@@ -766,98 +777,13 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
                                             ),
                                             focusNode:
                                                 _model.firstNameFocusNode,
-                                            autofocus: false,
-                                            autofillHints: [
-                                              AutofillHints.givenName
-                                            ],
                                             textCapitalization:
                                                 TextCapitalization.words,
                                             textInputAction:
                                                 TextInputAction.next,
-                                            obscureText: false,
-                                            decoration: InputDecoration(
-                                              hintStyle: FlutterFlowTheme.of(
-                                                      context)
-                                                  .bodyMedium
-                                                  .override(
-                                                    fontFamily:
-                                                        FlutterFlowTheme.of(
-                                                                context)
-                                                            .bodyMediumFamily,
-                                                    color: FlutterFlowTheme.of(
-                                                            context)
-                                                        .primaryText,
-                                                    letterSpacing: 0.0,
-                                                    useGoogleFonts:
-                                                        !FlutterFlowTheme.of(
-                                                                context)
-                                                            .bodyMediumIsCustom,
-                                                  ),
-                                              enabledBorder: OutlineInputBorder(
-                                                borderSide: BorderSide(
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .alternate,
-                                                  width: 1.0,
-                                                ),
-                                                borderRadius:
-                                                    BorderRadius.circular(16.0),
-                                              ),
-                                              focusedBorder: OutlineInputBorder(
-                                                borderSide: BorderSide(
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .secondaryBackground,
-                                                  width: 1.0,
-                                                ),
-                                                borderRadius:
-                                                    BorderRadius.circular(16.0),
-                                              ),
-                                              errorBorder: OutlineInputBorder(
-                                                borderSide: BorderSide(
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .error,
-                                                  width: 1.0,
-                                                ),
-                                                borderRadius:
-                                                    BorderRadius.circular(16.0),
-                                              ),
-                                              focusedErrorBorder:
-                                                  OutlineInputBorder(
-                                                borderSide: BorderSide(
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .error,
-                                                  width: 1.0,
-                                                ),
-                                                borderRadius:
-                                                    BorderRadius.circular(16.0),
-                                              ),
-                                              filled: true,
-                                              fillColor:
-                                                  FlutterFlowTheme.of(context)
-                                                      .alternate,
-                                            ),
-                                            style: FlutterFlowTheme.of(context)
-                                                .bodyMedium
-                                                .override(
-                                                  fontFamily:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMediumFamily,
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .primaryText,
-                                                  letterSpacing: 0.0,
-                                                  useGoogleFonts:
-                                                      !FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMediumIsCustom,
-                                                ),
-                                            cursorColor:
-                                                FlutterFlowTheme.of(context)
-                                                    .primary,
+                                            autofillHints: const [
+                                              AutofillHints.givenName
+                                            ],
                                             validator: _model
                                                 .firstNameTextControllerValidator
                                                 .asValidator(context),
@@ -881,7 +807,7 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
                                       Expanded(
                                         child: Container(
                                           width: 100.0,
-                                          child: TextFormField(
+                                          child: AppTextField(
                                             controller: _model
                                                     .lastNameTextController ??=
                                                 TextEditingController(
@@ -903,98 +829,13 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
                                                 ),
                                               );
                                             },
-                                            autofocus: false,
-                                            autofillHints: [
-                                              AutofillHints.familyName
-                                            ],
                                             textCapitalization:
                                                 TextCapitalization.words,
                                             textInputAction:
                                                 TextInputAction.next,
-                                            obscureText: false,
-                                            decoration: InputDecoration(
-                                              hintStyle: FlutterFlowTheme.of(
-                                                      context)
-                                                  .bodyMedium
-                                                  .override(
-                                                    fontFamily:
-                                                        FlutterFlowTheme.of(
-                                                                context)
-                                                            .bodyMediumFamily,
-                                                    color: FlutterFlowTheme.of(
-                                                            context)
-                                                        .primaryText,
-                                                    letterSpacing: 0.0,
-                                                    useGoogleFonts:
-                                                        !FlutterFlowTheme.of(
-                                                                context)
-                                                            .bodyMediumIsCustom,
-                                                  ),
-                                              enabledBorder: OutlineInputBorder(
-                                                borderSide: BorderSide(
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .alternate,
-                                                  width: 1.0,
-                                                ),
-                                                borderRadius:
-                                                    BorderRadius.circular(16.0),
-                                              ),
-                                              focusedBorder: OutlineInputBorder(
-                                                borderSide: BorderSide(
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .secondaryBackground,
-                                                  width: 1.0,
-                                                ),
-                                                borderRadius:
-                                                    BorderRadius.circular(16.0),
-                                              ),
-                                              errorBorder: OutlineInputBorder(
-                                                borderSide: BorderSide(
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .error,
-                                                  width: 1.0,
-                                                ),
-                                                borderRadius:
-                                                    BorderRadius.circular(16.0),
-                                              ),
-                                              focusedErrorBorder:
-                                                  OutlineInputBorder(
-                                                borderSide: BorderSide(
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .error,
-                                                  width: 1.0,
-                                                ),
-                                                borderRadius:
-                                                    BorderRadius.circular(16.0),
-                                              ),
-                                              filled: true,
-                                              fillColor:
-                                                  FlutterFlowTheme.of(context)
-                                                      .alternate,
-                                            ),
-                                            style: FlutterFlowTheme.of(context)
-                                                .bodyMedium
-                                                .override(
-                                                  fontFamily:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMediumFamily,
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .primaryText,
-                                                  letterSpacing: 0.0,
-                                                  useGoogleFonts:
-                                                      !FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMediumIsCustom,
-                                                ),
-                                            cursorColor:
-                                                FlutterFlowTheme.of(context)
-                                                    .primary,
+                                            autofillHints: const [
+                                              AutofillHints.familyName
+                                            ],
                                             validator: _model
                                                 .lastNameTextControllerValidator
                                                 .asValidator(context),
@@ -1042,7 +883,10 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
                       Padding(
                         padding: EdgeInsetsDirectional.fromSTEB(
                             16.0, 0.0, 16.0, 0.0),
-                        child: FFButtonWidget(
+                        child: AppButton(
+                          label: FFLocalizations.of(context).getText(
+                            'bwi4v4ib' /* Save Changes */,
+                          ),
                           onPressed: () async {
                             HapticFeedback.lightImpact();
                             if (_model.formKey.currentState == null ||
@@ -1084,35 +928,6 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
                               ),
                             );
                           },
-                          text: FFLocalizations.of(context).getText(
-                            'bwi4v4ib' /* Save Changes */,
-                          ),
-                          options: FFButtonOptions(
-                            width: double.infinity,
-                            height: 55.0,
-                            padding: EdgeInsetsDirectional.fromSTEB(
-                                0.0, 0.0, 0.0, 0.0),
-                            iconPadding: EdgeInsetsDirectional.fromSTEB(
-                                0.0, 0.0, 0.0, 0.0),
-                            color: FlutterFlowTheme.of(context).primary,
-                            textStyle: FlutterFlowTheme.of(context)
-                                .titleSmall
-                                .override(
-                                  fontFamily: FlutterFlowTheme.of(context)
-                                      .titleSmallFamily,
-                                  color: Colors.white,
-                                  letterSpacing: 0.0,
-                                  fontWeight: FontWeight.w600,
-                                  useGoogleFonts: !FlutterFlowTheme.of(context)
-                                      .titleSmallIsCustom,
-                                ),
-                            elevation: 0.0,
-                            borderSide: BorderSide(
-                              color: Colors.transparent,
-                              width: 1.0,
-                            ),
-                            borderRadius: BorderRadius.circular(50.0),
-                          ),
                         ),
                       ),
                     ]

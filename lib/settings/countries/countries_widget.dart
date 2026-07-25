@@ -2,6 +2,7 @@ import '/auth/supabase_auth/auth_util.dart';
 import '/backend/supabase/supabase.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
+import '/design_system/components/selectable_row.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -52,7 +53,7 @@ class _CountriesWidgetState extends State<CountriesWidget> {
         // Customize what your widget looks like when it's loading.
         if (!snapshot.hasData) {
           return Scaffold(
-            backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+            backgroundColor: Colors.white,
             body: Center(
               child: SizedBox(
                 width: 50.0,
@@ -79,16 +80,16 @@ class _CountriesWidgetState extends State<CountriesWidget> {
           },
           child: Scaffold(
             key: scaffoldKey,
-            backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+            backgroundColor: Colors.white,
             appBar: AppBar(
-              backgroundColor: FlutterFlowTheme.of(context).primary,
+              backgroundColor: Colors.white,
               automaticallyImplyLeading: false,
               leading: FlutterFlowIconButton(
-                borderRadius: 20.0,
-                buttonSize: 40.0,
+                borderRadius: 24.0,
+                buttonSize: 48.0,
                 icon: Icon(
                   Icons.arrow_back_rounded,
-                  color: FlutterFlowTheme.of(context).alternate,
+                  color: FlutterFlowTheme.of(context).primaryText,
                   size: 24.0,
                 ),
                 onPressed: () async {
@@ -102,19 +103,11 @@ class _CountriesWidgetState extends State<CountriesWidget> {
                     '8pwht5ld' /* Your Region */,
                   ),
                   style: FlutterFlowTheme.of(context).titleLarge.override(
-                        font: GoogleFonts.sora(
-                          fontWeight: FlutterFlowTheme.of(context)
-                              .titleLarge
-                              .fontWeight,
-                          fontStyle:
-                              FlutterFlowTheme.of(context).titleLarge.fontStyle,
-                        ),
-                        color: FlutterFlowTheme.of(context).alternate,
+                        font: GoogleFonts.sora(fontWeight: FontWeight.w500),
+                        color: FlutterFlowTheme.of(context).primaryText,
+                        fontSize: 24.0,
                         letterSpacing: 0.0,
-                        fontWeight:
-                            FlutterFlowTheme.of(context).titleLarge.fontWeight,
-                        fontStyle:
-                            FlutterFlowTheme.of(context).titleLarge.fontStyle,
+                        fontWeight: FontWeight.w500,
                       ),
                 ),
               ),
@@ -147,6 +140,7 @@ class _CountriesWidgetState extends State<CountriesWidget> {
                                 .override(
                                   fontFamily: FlutterFlowTheme.of(context)
                                       .bodyMediumFamily,
+                                  fontSize: 16.0,
                                   color:
                                       FlutterFlowTheme.of(context).primaryText,
                                   letterSpacing: 0.0,
@@ -187,11 +181,21 @@ class _CountriesWidgetState extends State<CountriesWidget> {
                                 itemBuilder: (context, listViewIndex) {
                                   final listViewCountriesRow =
                                       listViewCountriesRowList[listViewIndex];
-                                  return InkWell(
-                                    splashColor: Colors.transparent,
-                                    focusColor: Colors.transparent,
-                                    hoverColor: Colors.transparent,
-                                    highlightColor: Colors.transparent,
+                                  return SelectableRow(
+                                    label:
+                                        '${valueOrDefault<String>(listViewCountriesRow.flagEmoji, '-')} ${() {
+                                      final lc = FFLocalizations.of(context)
+                                          .languageCode;
+                                      if (lc == 'ru') {
+                                        return listViewCountriesRow.nameRu;
+                                      } else if (lc == 'es') {
+                                        return listViewCountriesRow.nameEs;
+                                      } else {
+                                        return listViewCountriesRow.nameEn;
+                                      }
+                                    }()}',
+                                    selected: countriesUsersRow?.countryId ==
+                                        listViewCountriesRow.id,
                                     onTap: () async {
                                       await UsersTable().update(
                                         data: {
@@ -204,123 +208,6 @@ class _CountriesWidgetState extends State<CountriesWidget> {
                                       );
                                       context.safePop();
                                     },
-                                    child: Container(
-                                      width: double.infinity,
-                                      decoration: BoxDecoration(
-                                        color: FlutterFlowTheme.of(context)
-                                            .secondaryBackground,
-                                        borderRadius:
-                                            BorderRadius.circular(12.0),
-                                        border: Border.all(
-                                          color: FlutterFlowTheme.of(context)
-                                              .secondaryBackground,
-                                          width: 2.0,
-                                        ),
-                                      ),
-                                      child: Padding(
-                                        padding: EdgeInsets.all(16.0),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.max,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Row(
-                                              mainAxisSize: MainAxisSize.max,
-                                              children: [
-                                                Text(
-                                                  valueOrDefault<String>(
-                                                    listViewCountriesRow
-                                                        .flagEmoji,
-                                                    '-',
-                                                  ),
-                                                  style: FlutterFlowTheme.of(
-                                                          context)
-                                                      .bodyMedium
-                                                      .override(
-                                                        fontFamily:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .bodyMediumFamily,
-                                                        color:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .primaryText,
-                                                        letterSpacing: 0.0,
-                                                        useGoogleFonts:
-                                                            !FlutterFlowTheme
-                                                                    .of(context)
-                                                                .bodyMediumIsCustom,
-                                                      ),
-                                                ),
-                                                Text(
-                                                  () {
-                                                    if (FFLocalizations.of(
-                                                                context)
-                                                            .languageCode ==
-                                                        'ru') {
-                                                      return listViewCountriesRow
-                                                          .nameRu;
-                                                    } else if (FFLocalizations
-                                                                .of(context)
-                                                            .languageCode ==
-                                                        'es') {
-                                                      return listViewCountriesRow
-                                                          .nameEs;
-                                                    } else {
-                                                      return listViewCountriesRow
-                                                          .nameEn;
-                                                    }
-                                                  }(),
-                                                  style: FlutterFlowTheme.of(
-                                                          context)
-                                                      .bodyMedium
-                                                      .override(
-                                                        fontFamily:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .bodyMediumFamily,
-                                                        color:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .primaryText,
-                                                        letterSpacing: 0.0,
-                                                        useGoogleFonts:
-                                                            !FlutterFlowTheme
-                                                                    .of(context)
-                                                                .bodyMediumIsCustom,
-                                                      ),
-                                                ),
-                                              ].divide(SizedBox(width: 5.0)),
-                                            ),
-                                            Row(
-                                              mainAxisSize: MainAxisSize.max,
-                                              children: [
-                                                if (countriesUsersRow
-                                                        ?.countryId !=
-                                                    listViewCountriesRow.id)
-                                                  Icon(
-                                                    Icons.radio_button_off,
-                                                    color: FlutterFlowTheme.of(
-                                                            context)
-                                                        .primary,
-                                                    size: 24.0,
-                                                  ),
-                                                if (countriesUsersRow
-                                                        ?.countryId ==
-                                                    listViewCountriesRow.id)
-                                                  Icon(
-                                                    Icons.check_circle_rounded,
-                                                    color: FlutterFlowTheme.of(
-                                                            context)
-                                                        .primary,
-                                                    size: 24.0,
-                                                  ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
                                   );
                                 },
                               );

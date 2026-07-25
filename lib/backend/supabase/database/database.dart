@@ -6,6 +6,7 @@ export 'row.dart';
 export 'table.dart';
 
 export 'tables/images.dart';
+export 'tables/app_config.dart';
 export 'tables/product_type_weights.dart';
 export 'tables/ingredient_incompatibilities.dart';
 export 'tables/api_usage.dart';
@@ -44,3 +45,5 @@ export 'tables/ingredients.dart';
 export 'tables/album_images.dart';
 export 'tables/unsorted_images.dart';
 export 'tables/risk_flags.dart';
+export 'tables/product_prices.dart';
+export 'tables/bag_items.dart';

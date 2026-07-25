@@ -43,7 +43,7 @@ FeedbackService.recordFirstLaunchIfNeeded();
 **`itemcard2_widget.dart:110`** — при открытии карточки продукта:
 ```dart
 if (await FeedbackService.shouldShowPrompt()) {
-  await FeedbackService.recordShown();
+  await FeedbackService.recordShown(context.read<FFAppState>());
   showDialog(...FeedbackCollectorWidget());
 }
 ```

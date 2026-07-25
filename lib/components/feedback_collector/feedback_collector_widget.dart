@@ -122,7 +122,7 @@ class FeedbackCollectorWidget extends StatelessWidget {
                         style: theme.headlineSmall.override(
                           fontFamily: theme.headlineSmallFamily,
                           fontSize: 22.0,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w700,
                           letterSpacing: 0.0,
                           useGoogleFonts: !theme.headlineSmallIsCustom,
                         ),
@@ -161,11 +161,11 @@ class FeedbackCollectorWidget extends StatelessWidget {
                         FFAppState().feedbackLastShownVersion = await _appVersion();
                         final inAppReview = InAppReview.instance;
                         if (await inAppReview.isAvailable()) {
+                          // requestReview may be silently ignored by iOS quotas.
                           await inAppReview.requestReview();
-                        } else {
-                          await inAppReview.openStoreListing(
-                              appStoreId: '6745415201');
                         }
+                        await inAppReview.openStoreListing(
+                            appStoreId: '6745415201');
                         if (context.mounted) Navigator.pop(context);
                       },
                       child: Ink(
@@ -224,7 +224,10 @@ class FeedbackCollectorWidget extends StatelessWidget {
                           context: context,
                           isScrollControlled: true,
                           backgroundColor: Colors.transparent,
-                          builder: (context) => const NegativeFeedbackWidget(),
+                          builder: (context) => Padding(
+                            padding: MediaQuery.viewInsetsOf(context),
+                            child: const NegativeFeedbackWidget(),
+                          ),
                         );
                       }
                     },

@@ -5,6 +5,8 @@ import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
+import '/design_system/components/app_text_field.dart';
+import '/design_system/components/app_button.dart';
 import 'dart:async';
 import '/index.dart';
 import 'dart:math' as math;
@@ -233,7 +235,14 @@ class _CreateAccountPageWidgetState extends State<CreateAccountPageWidget>
                 size: 30.0,
               ),
               onPressed: () async {
-                context.pushNamed(NewblankWidget.routeName);
+                // Return to the previous screen (e.g. a scan result for an
+                // anonymous user) rather than always jumping to the welcome
+                // screen and stranding the user's accumulated scans.
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.goNamed(NewblankWidget.routeName);
+                }
               },
             ),
             actions: [],
@@ -355,105 +364,24 @@ class _CreateAccountPageWidgetState extends State<CreateAccountPageWidget>
                                             0.0, 16.0, 0.0, 16.0),
                                         child: Container(
                                           width: double.infinity,
-                                          child: TextFormField(
+                                          child: AppTextField(
                                             controller: _model
                                                 .emailAddressTextController,
                                             focusNode:
                                                 _model.emailAddressFocusNode,
                                             autofocus: true,
-                                            autofillHints: [
-                                              AutofillHints.email
-                                            ],
-                                            textInputAction:
-                                                TextInputAction.next,
-                                            obscureText: false,
-                                            decoration: InputDecoration(
-                                              hintText:
-                                                  FFLocalizations.of(context)
-                                                      .getText(
-                                                'fzz6pquo' /* Email address */,
-                                              ),
-                                              hintStyle:
-                                                  FlutterFlowTheme.of(context)
-                                                      .bodyMedium
-                                                      .override(
-                                                        fontFamily:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .bodyMediumFamily,
-                                                        letterSpacing: 0.0,
-                                                        useGoogleFonts:
-                                                            !FlutterFlowTheme
-                                                                    .of(context)
-                                                                .bodyMediumIsCustom,
-                                                      ),
-                                              enabledBorder: OutlineInputBorder(
-                                                borderSide: BorderSide(
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .primaryBackground,
-                                                  width: 1.0,
-                                                ),
-                                                borderRadius:
-                                                    BorderRadius.circular(16.0),
-                                              ),
-                                              focusedBorder: OutlineInputBorder(
-                                                borderSide: BorderSide(
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .primaryBackground,
-                                                  width: 1.0,
-                                                ),
-                                                borderRadius:
-                                                    BorderRadius.circular(16.0),
-                                              ),
-                                              errorBorder: OutlineInputBorder(
-                                                borderSide: BorderSide(
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .error,
-                                                  width: 1.0,
-                                                ),
-                                                borderRadius:
-                                                    BorderRadius.circular(16.0),
-                                              ),
-                                              focusedErrorBorder:
-                                                  OutlineInputBorder(
-                                                borderSide: BorderSide(
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .error,
-                                                  width: 1.0,
-                                                ),
-                                                borderRadius:
-                                                    BorderRadius.circular(16.0),
-                                              ),
-                                              filled: true,
-                                              fillColor:
-                                                  FlutterFlowTheme.of(context)
-                                                      .primaryBackground,
+                                            hintText:
+                                                FFLocalizations.of(context)
+                                                    .getText(
+                                              'fzz6pquo' /* Email address */,
                                             ),
-                                            style: FlutterFlowTheme.of(context)
-                                                .bodyMedium
-                                                .override(
-                                                  fontFamily:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMediumFamily,
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .primaryText,
-                                                  letterSpacing: 0.0,
-                                                  useGoogleFonts:
-                                                      !FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMediumIsCustom,
-                                                ),
                                             keyboardType:
                                                 TextInputType.emailAddress,
-                                            cursorColor:
-                                                FlutterFlowTheme.of(context)
-                                                    .primary,
+                                            textInputAction:
+                                                TextInputAction.next,
+                                            autofillHints: const [
+                                              AutofillHints.email
+                                            ],
                                             validator: _model
                                                 .emailAddressTextControllerValidator
                                                 .asValidator(context),
@@ -465,124 +393,21 @@ class _CreateAccountPageWidgetState extends State<CreateAccountPageWidget>
                                             0.0, 0.0, 0.0, 16.0),
                                         child: Container(
                                           width: double.infinity,
-                                          child: TextFormField(
+                                          child: AppTextField.password(
                                             controller:
                                                 _model.passwordTextController,
                                             focusNode: _model.passwordFocusNode,
-                                            autofocus: true,
-                                            autofillHints: [
-                                              AutofillHints.newPassword
-                                            ],
+                                            autofocus: false,
+                                            hintText:
+                                                FFLocalizations.of(context)
+                                                    .getText(
+                                              'jl6rrleg' /* Password */,
+                                            ),
                                             textInputAction:
                                                 TextInputAction.done,
-                                            obscureText:
-                                                !_model.passwordVisibility,
-                                            decoration: InputDecoration(
-                                              hintText:
-                                                  FFLocalizations.of(context)
-                                                      .getText(
-                                                'jl6rrleg' /* Password */,
-                                              ),
-                                              hintStyle:
-                                                  FlutterFlowTheme.of(context)
-                                                      .bodyMedium
-                                                      .override(
-                                                        fontFamily:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .bodyMediumFamily,
-                                                        letterSpacing: 0.0,
-                                                        useGoogleFonts:
-                                                            !FlutterFlowTheme
-                                                                    .of(context)
-                                                                .bodyMediumIsCustom,
-                                                      ),
-                                              enabledBorder: OutlineInputBorder(
-                                                borderSide: BorderSide(
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .primaryBackground,
-                                                  width: 1.0,
-                                                ),
-                                                borderRadius:
-                                                    BorderRadius.circular(16.0),
-                                              ),
-                                              focusedBorder: OutlineInputBorder(
-                                                borderSide: BorderSide(
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .primaryBackground,
-                                                  width: 1.0,
-                                                ),
-                                                borderRadius:
-                                                    BorderRadius.circular(16.0),
-                                              ),
-                                              errorBorder: OutlineInputBorder(
-                                                borderSide: BorderSide(
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .error,
-                                                  width: 1.0,
-                                                ),
-                                                borderRadius:
-                                                    BorderRadius.circular(16.0),
-                                              ),
-                                              focusedErrorBorder:
-                                                  OutlineInputBorder(
-                                                borderSide: BorderSide(
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .error,
-                                                  width: 1.0,
-                                                ),
-                                                borderRadius:
-                                                    BorderRadius.circular(16.0),
-                                              ),
-                                              filled: true,
-                                              fillColor:
-                                                  FlutterFlowTheme.of(context)
-                                                      .primaryBackground,
-                                              suffixIcon: InkWell(
-                                                onTap: () async {
-                                                  safeSetState(() => _model
-                                                          .passwordVisibility =
-                                                      !_model
-                                                          .passwordVisibility);
-                                                },
-                                                focusNode: FocusNode(
-                                                    skipTraversal: true),
-                                                child: Icon(
-                                                  _model.passwordVisibility
-                                                      ? Icons
-                                                          .visibility_outlined
-                                                      : Icons
-                                                          .visibility_off_outlined,
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .secondaryText,
-                                                  size: 18.0,
-                                                ),
-                                              ),
-                                            ),
-                                            style: FlutterFlowTheme.of(context)
-                                                .bodyMedium
-                                                .override(
-                                                  fontFamily:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMediumFamily,
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .primaryText,
-                                                  letterSpacing: 0.0,
-                                                  useGoogleFonts:
-                                                      !FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMediumIsCustom,
-                                                ),
-                                            cursorColor:
-                                                FlutterFlowTheme.of(context)
-                                                    .primary,
+                                            autofillHints: const [
+                                              AutofillHints.newPassword
+                                            ],
                                             validator: _model
                                                 .passwordTextControllerValidator
                                                 .asValidator(context),
@@ -595,7 +420,11 @@ class _CreateAccountPageWidgetState extends State<CreateAccountPageWidget>
                                 Padding(
                                   padding: EdgeInsetsDirectional.fromSTEB(
                                       0.0, 8.0, 0.0, 8.0),
-                                  child: FFButtonWidget(
+                                  child: AppButton(
+                                    label:
+                                        FFLocalizations.of(context).getText(
+                                      'o5q6qmi9' /* Create account */,
+                                    ),
                                     onPressed: () async {
                                       HapticFeedback.lightImpact();
                                       if (_model.formKey.currentState == null ||
@@ -628,39 +457,6 @@ class _CreateAccountPageWidgetState extends State<CreateAccountPageWidget>
                                         },
                                       );
                                     },
-                                    text: FFLocalizations.of(context).getText(
-                                      'o5q6qmi9' /* Create account */,
-                                    ),
-                                    options: FFButtonOptions(
-                                      width: double.infinity,
-                                      height: 55.0,
-                                      padding: EdgeInsetsDirectional.fromSTEB(
-                                          0.0, 0.0, 0.0, 0.0),
-                                      iconPadding:
-                                          EdgeInsetsDirectional.fromSTEB(
-                                              0.0, 0.0, 0.0, 0.0),
-                                      color:
-                                          FlutterFlowTheme.of(context).primary,
-                                      textStyle: FlutterFlowTheme.of(context)
-                                          .titleSmall
-                                          .override(
-                                            fontFamily:
-                                                FlutterFlowTheme.of(context)
-                                                    .titleSmallFamily,
-                                            color: Colors.white,
-                                            letterSpacing: 0.0,
-                                            fontWeight: FontWeight.w600,
-                                            useGoogleFonts:
-                                                !FlutterFlowTheme.of(context)
-                                                    .titleSmallIsCustom,
-                                          ),
-                                      elevation: 0.0,
-                                      borderSide: BorderSide(
-                                        color: Colors.transparent,
-                                        width: 1.0,
-                                      ),
-                                      borderRadius: BorderRadius.circular(50.0),
-                                    ),
                                   ),
                                 ),
                                 isAndroid

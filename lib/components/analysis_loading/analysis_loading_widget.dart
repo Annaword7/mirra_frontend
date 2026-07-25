@@ -10,102 +10,15 @@ import 'package:provider/provider.dart';
 import 'analysis_loading_model.dart';
 export 'analysis_loading_model.dart';
 
-// Ingredient facts per language. Keys: 'en', 'ru', 'es'
-const _facts = {
-  'en': [
-    'Hyaluronic acid can hold up to 1000× its weight in water',
-    'Niacinamide reduces pores and evens skin tone at just 2–5%',
-    'Vitamin C works best at pH below 3.5 — so formula matters',
-    'Retinol speeds up cell turnover — start slow to avoid irritation',
-    'Ceramides are the "mortar" between skin cells — they lock moisture in',
-    'SPF 30 blocks ~97% of UVB rays; SPF 50 blocks ~98%',
-    'Peptides are short amino acid chains that signal skin to produce collagen',
-    'Glycerin is one of the most effective and affordable humectants',
-    'AHAs exfoliate the surface; BHAs penetrate deep into pores',
-    'Squalane mimics your skin\'s natural sebum — great for all skin types',
-    'Fragrance is the #1 cause of cosmetic allergic reactions',
-    'Parabens have been used as preservatives in cosmetics since the 1950s',
-    'Zinc oxide is both a sunscreen and a calming anti-inflammatory agent',
-    'Caffeine in skincare temporarily reduces puffiness by constricting blood vessels',
-    'Salicylic acid is oil-soluble — that\'s why it can clear inside the pore',
-    'Tranexamic acid is one of the most effective ingredients for hyperpigmentation',
-    'The "natural" label has no legal definition in cosmetics — always check the INCI',
-    'Panthenol (pro-vitamin B5) attracts moisture and supports skin barrier repair',
-    'Silicones fill in fine lines temporarily — they don\'t clog pores for most people',
-    'Lactic acid is an AHA derived from milk — gentler than glycolic acid',
-    'Bakuchiol is a plant-based alternative to retinol with fewer side effects',
-    'The skin barrier is mostly made of fatty acids, cholesterol and ceramides',
-    'Ferulic acid doubles the stability and effectiveness of vitamins C and E',
-    'More than 70% of skincare products contain water as the first ingredient',
-    'Azelaic acid works on acne, redness and uneven tone — and is safe in pregnancy',
-  ],
-  'ru': [
-    'Гиалуроновая кислота удерживает до 1000× своего веса в воде',
-    'Ниацинамид сужает поры и выравнивает тон при концентрации 2–5%',
-    'Витамин C работает эффективно только при pH ниже 3.5',
-    'Ретинол ускоряет обновление клеток — начинайте с малых доз',
-    'Керамиды — это «цемент» между клетками кожи, удерживающий влагу',
-    'SPF 30 блокирует ~97% UVB-лучей, SPF 50 — ~98%',
-    'Пептиды — короткие цепочки аминокислот, стимулирующие выработку коллагена',
-    'Глицерин — один из самых эффективных и доступных увлажняющих компонентов',
-    'AHA-кислоты обновляют поверхность кожи; BHA проникают вглубь пор',
-    'Скваланс имитирует натуральное себум кожи — подходит для всех типов',
-    'Отдушки — причина №1 аллергических реакций на косметику',
-    'Парабены используются как консерванты в косметике с 1950-х годов',
-    'Оксид цинка одновременно защищает от солнца и снимает воспаление',
-    'Кофеин в косметике временно уменьшает отёки, сужая сосуды',
-    'Салициловая кислота жирорастворима — поэтому она очищает поры изнутри',
-    'Транексамовая кислота — один из самых эффективных компонентов против пигментации',
-    'Слово «натуральный» на косметике не имеет юридического определения — всегда читайте INCI',
-    'Пантенол (провитамин B5) притягивает влагу и помогает восстановить барьер кожи',
-    'Силиконы заполняют морщины временно — у большинства людей они не забивают поры',
-    'Молочная кислота — AHA из молока, мягче гликолевой',
-    'Бакухиол — растительная альтернатива ретинолу с меньшим числом побочных эффектов',
-    'Кожный барьер состоит в основном из жирных кислот, холестерина и керамидов',
-    'Феруловая кислота удваивает стабильность и эффективность витаминов C и E',
-    'Более 70% средств по уходу за кожей содержат воду как первый ингредиент',
-    'Азелаиновая кислота борется с акне, покраснением и пигментацией — безопасна при беременности',
-  ],
-  'es': [
-    'El ácido hialurónico puede retener hasta 1000× su peso en agua',
-    'La niacinamida reduce los poros y unifica el tono a 2–5%',
-    'La vitamina C funciona mejor a un pH por debajo de 3.5',
-    'El retinol acelera la renovación celular — empieza despacio',
-    'Las ceramidas son el "cemento" entre células de la piel',
-    'SPF 30 bloquea ~97% de rayos UVB; SPF 50 bloquea ~98%',
-    'Los péptidos son cadenas cortas de aminoácidos que estimulan el colágeno',
-    'La glicerina es uno de los humectantes más eficaces y asequibles',
-    'Los AHA exfolian la superficie; los BHA penetran profundamente',
-    'El escualano imita el sebo natural de la piel — apto para todos',
-    'Las fragancias son la causa nº1 de reacciones alérgicas en cosmética',
-    'Los parabenos se usan como conservantes en cosmética desde los años 50',
-    'El óxido de zinc protege del sol y calma la inflamación a la vez',
-    'La cafeína tópica reduce temporalmente la hinchazón al contraer los vasos',
-    'El ácido salicílico es liposoluble — por eso puede limpiar dentro del poro',
-    'El ácido tranexámico es uno de los más eficaces contra la hiperpigmentación',
-    'La etiqueta "natural" no tiene definición legal en cosmética — lee siempre el INCI',
-    'El pantenol (pro-vitamina B5) atrae la humedad y repara la barrera cutánea',
-    'Las siliconas rellenan líneas temporalmente — no obstruyen poros en la mayoría',
-    'El ácido láctico es un AHA derivado de la leche — más suave que el glicólico',
-    'El bakuchiol es una alternativa vegetal al retinol con menos efectos secundarios',
-    'La barrera cutánea está formada principalmente por ácidos grasos, colesterol y ceramidas',
-    'El ácido ferúlico duplica la estabilidad y eficacia de las vitaminas C y E',
-    'Más del 70% de los productos de cuidado contienen agua como primer ingrediente',
-    'El ácido azelaico trata el acné, la rojez y el tono irregular — seguro en el embarazo',
-  ],
-};
-
-const _stepLabels = {
-  'en': ['Recognizing product', 'Searching ingredients', 'Running analysis'],
-  'ru': ['Распознаём продукт', 'Ищем состав', 'Анализируем'],
-  'es': ['Reconociendo producto', 'Buscando ingredientes', 'Analizando'],
-};
-
-const _didYouKnow = {
-  'en': 'Did you know?',
-  'ru': 'А вы знали?',
-  'es': '¿Lo sabías?',
-};
+// Localized facts & steps live in kTranslationsMap as 'al_fact_<n>' / 'al_step_<n>'.
+const _factKeys = [
+  'al_fact_1', 'al_fact_2', 'al_fact_3', 'al_fact_4', 'al_fact_5', //
+  'al_fact_6', 'al_fact_7', 'al_fact_8', 'al_fact_9', 'al_fact_10', //
+  'al_fact_11', 'al_fact_12', 'al_fact_13', 'al_fact_14', 'al_fact_15', //
+  'al_fact_16', 'al_fact_17', 'al_fact_18', 'al_fact_19', 'al_fact_20', //
+  'al_fact_21', 'al_fact_22', 'al_fact_23', 'al_fact_24', 'al_fact_25', //
+];
+const _stepKeys = ['al_step_1', 'al_step_2', 'al_step_3'];
 
 class AnalysisLoadingWidget extends StatefulWidget {
   const AnalysisLoadingWidget({super.key});
@@ -125,10 +38,8 @@ class _AnalysisLoadingWidgetState extends State<AnalysisLoadingWidget> {
     _model.factIndex = Random().nextInt(25);
     _factTimer = Timer.periodic(const Duration(seconds: 5), (_) {
       if (!mounted) return;
-      final lang = FFLocalizations.of(context).languageCode;
-      final facts = _facts[lang] ?? _facts['en']!;
       setState(() {
-        _model.factIndex = (_model.factIndex + 1) % facts.length;
+        _model.factIndex = (_model.factIndex + 1) % _factKeys.length;
       });
     });
   }
@@ -142,19 +53,18 @@ class _AnalysisLoadingWidgetState extends State<AnalysisLoadingWidget> {
 
   @override
   Widget build(BuildContext context) {
-    context.watch<FFAppState>();
+    final facts =
+        _factKeys.map((k) => FFLocalizations.of(context).getText(k)).toList();
+    final steps =
+        _stepKeys.map((k) => FFLocalizations.of(context).getText(k)).toList();
+    final appState = context.watch<FFAppState>();
 
-    final lang = FFLocalizations.of(context).languageCode;
-    final facts = _facts[lang] ?? _facts['en']!;
-    final steps = _stepLabels[lang] ?? _stepLabels['en']!;
-    final currentStep = FFAppState().Producanalysstate; // 1, 2 or 3
-
-    final productName = FFAppState().extractedProductName;
-    final brand = FFAppState().extractedBrand;
+    final currentStep = appState.Producanalysstate;
+    final productName = appState.extractedProductName;
+    final brand = appState.extractedBrand;
     final hasProduct = productName.isNotEmpty;
 
     final screenH = MediaQuery.of(context).size.height;
-    final topPadding = MediaQuery.of(context).padding.top;
     final bottomPadding = MediaQuery.of(context).padding.bottom;
 
     return Material(
@@ -167,9 +77,9 @@ class _AnalysisLoadingWidgetState extends State<AnalysisLoadingWidget> {
             left: 0,
             right: 0,
             height: screenH * 0.55,
-            child: FFAppState().uploudedimagepath.isNotEmpty
+            child: appState.uploudedimagepath.isNotEmpty
                 ? Image.network(
-                    FFAppState().uploudedimagepath,
+                    appState.uploudedimagepath,
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => Container(
                       color: FlutterFlowTheme.of(context).alternate,
@@ -237,7 +147,7 @@ class _AnalysisLoadingWidgetState extends State<AnalysisLoadingWidget> {
                                 fontFamily: FlutterFlowTheme.of(context)
                                     .titleMediumFamily,
                                 color: Colors.white,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w700,
                                 letterSpacing: 0,
                                 useGoogleFonts: !FlutterFlowTheme.of(context)
                                     .titleMediumIsCustom,
@@ -245,7 +155,10 @@ class _AnalysisLoadingWidgetState extends State<AnalysisLoadingWidget> {
                         ),
                       ],
                     )
-                  : const SizedBox.shrink(key: ValueKey('empty')),
+                  : const SizedBox(
+                      height: 20,
+                      key: ValueKey('placeholder'),
+                    ),
             ),
           ),
 
@@ -280,7 +193,8 @@ class _AnalysisLoadingWidgetState extends State<AnalysisLoadingWidget> {
                                       .bodyMediumFamily,
                                   color: isActive
                                       ? FlutterFlowTheme.of(context).primary
-                                      : FlutterFlowTheme.of(context).primaryText,
+                                      : FlutterFlowTheme.of(context)
+                                          .primaryText,
                                   fontWeight: isActive
                                       ? FontWeight.w600
                                       : FontWeight.normal,
@@ -315,7 +229,8 @@ class _AnalysisLoadingWidgetState extends State<AnalysisLoadingWidget> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              _didYouKnow[lang] ?? _didYouKnow['en']!,
+                              FFLocalizations.of(context)
+                                  .getText('al_did_you_know'),
                               style: FlutterFlowTheme.of(context)
                                   .bodySmall
                                   .override(
@@ -324,14 +239,16 @@ class _AnalysisLoadingWidgetState extends State<AnalysisLoadingWidget> {
                                     color: FlutterFlowTheme.of(context).primary,
                                     fontWeight: FontWeight.w600,
                                     letterSpacing: 0,
-                                    useGoogleFonts: !FlutterFlowTheme.of(context)
-                                        .bodySmallIsCustom,
+                                    useGoogleFonts:
+                                        !FlutterFlowTheme.of(context)
+                                            .bodySmallIsCustom,
                                   ),
                             ),
                             const SizedBox(height: 4),
                             AnimatedSwitcher(
                               duration: const Duration(milliseconds: 500),
-                              transitionBuilder: (child, anim) => FadeTransition(
+                              transitionBuilder: (child, anim) =>
+                                  FadeTransition(
                                 opacity: anim,
                                 child: child,
                               ),

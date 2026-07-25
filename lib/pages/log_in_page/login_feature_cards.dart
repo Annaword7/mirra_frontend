@@ -97,7 +97,7 @@ class _FeatureScoreCardState extends State<FeatureScoreCard>
                 'A',
                 style: TextStyle(
                   fontSize: 26,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                   color: _scoreColor,
                 ),
               ),
@@ -117,7 +117,7 @@ class _FeatureScoreCardState extends State<FeatureScoreCard>
             '94 / 100',
             style: TextStyle(
               color: _kTextSecondary,
-              fontSize: 11,
+              fontSize: 12,
             ),
           ),
         ],
@@ -262,7 +262,7 @@ class _FeatureScanCardState extends State<FeatureScanCard>
             FFLocalizations.of(context).getText('lfc_scan_subtitle'),
             style: TextStyle(
               color: _kTextSecondary,
-              fontSize: 11,
+              fontSize: 12,
             ),
           ),
         ],
@@ -370,7 +370,7 @@ class _FeatureIngredientsCardState extends State<FeatureIngredientsCard>
                               pill.label,
                               style: const TextStyle(
                                 color: _kTextPrimary,
-                                fontSize: 11,
+                                fontSize: 12,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),

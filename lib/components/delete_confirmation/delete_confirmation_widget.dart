@@ -1,11 +1,14 @@
 import '/auth/supabase_auth/auth_util.dart';
 import '/backend/api_requests/api_calls.dart';
+import '/design_system/components/mirra_bottom_sheet.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
+import '/design_system/components/app_button.dart';
+import '/flutter_flow/revenue_cat_util.dart' as revenue_cat;
 import '/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'delete_confirmation_model.dart';
 export 'delete_confirmation_model.dart';
 
@@ -43,33 +46,13 @@ class _DeleteConfirmationWidgetState extends State<DeleteConfirmationWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-      alignment: AlignmentDirectional(0.0, 1.0),
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: FlutterFlowTheme.of(context).alternate,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(24.0),
-            topRight: Radius.circular(24.0),
-          ),
-        ),
-        child: Padding(
-          padding: EdgeInsetsDirectional.fromSTEB(16.0, 12.0, 16.0, 32.0),
-          child: Column(
+    return MirraBottomSheet(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      addBottomInset: false,
+      handleGap: 0.0,
+      child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 100.0,
-                height: 5.0,
-                decoration: BoxDecoration(
-                  color: FlutterFlowTheme.of(context).info,
-                  borderRadius: BorderRadius.circular(12.0),
-                  border: Border.all(
-                    color: FlutterFlowTheme.of(context).info,
-                  ),
-                ),
-              ),
               Padding(
                 padding: EdgeInsetsDirectional.fromSTEB(0.0, 24.0, 0.0, 0.0),
                 child: Text(
@@ -77,15 +60,7 @@ class _DeleteConfirmationWidgetState extends State<DeleteConfirmationWidget> {
                     '4latue44' /* Are you sure you want to delet... */,
                   ),
                   textAlign: TextAlign.center,
-                  style: FlutterFlowTheme.of(context).headlineSmall.override(
-                        fontFamily:
-                            FlutterFlowTheme.of(context).headlineSmallFamily,
-                        fontSize: 26.0,
-                        letterSpacing: 0.0,
-                        fontWeight: FontWeight.bold,
-                        useGoogleFonts:
-                            !FlutterFlowTheme.of(context).headlineSmallIsCustom,
-                      ),
+                  style: FlutterFlowTheme.of(context).displayXS,
                 ),
               ),
               Padding(
@@ -107,7 +82,11 @@ class _DeleteConfirmationWidgetState extends State<DeleteConfirmationWidget> {
               ),
               Padding(
                 padding: EdgeInsetsDirectional.fromSTEB(0.0, 32.0, 0.0, 0.0),
-                child: FFButtonWidget(
+                child: AppButton(
+                  label: FFLocalizations.of(context).getText(
+                    'qh4oraql' /* Delete account */,
+                  ),
+                  variant: AppButtonVariant.destructive,
                   onPressed: () async {
                     HapticFeedback.lightImpact();
                     _model.deleteuseranswer = await DeleteUserNEWBCNDCall.call(
@@ -118,6 +97,12 @@ class _DeleteConfirmationWidgetState extends State<DeleteConfirmationWidget> {
 
                     if ((_model.deleteuseranswer?.succeeded ?? true)) {
                       FFAppState().isprouser = false;
+                      FFAppState().analysesused = 0;
+                      FFAppState().weekResetDate = null;
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.remove('hint_upload_seen');
+                      await prefs.remove('pro_preview_used');
+                      await revenue_cat.login(null);
                       GoRouter.of(context).prepareAuthEvent();
                       await authManager.signOut();
                       GoRouter.of(context).clearRedirectLocation();
@@ -145,73 +130,23 @@ class _DeleteConfirmationWidgetState extends State<DeleteConfirmationWidget> {
 
                     safeSetState(() {});
                   },
-                  text: FFLocalizations.of(context).getText(
-                    'qh4oraql' /* Delete account */,
-                  ),
-                  options: FFButtonOptions(
-                    width: double.infinity,
-                    height: 55.0,
-                    padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                    iconPadding:
-                        EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                    color: FlutterFlowTheme.of(context).tertiary,
-                    textStyle: FlutterFlowTheme.of(context).titleSmall.override(
-                          fontFamily:
-                              FlutterFlowTheme.of(context).titleSmallFamily,
-                          color: FlutterFlowTheme.of(context).primaryText,
-                          letterSpacing: 0.0,
-                          fontWeight: FontWeight.w600,
-                          useGoogleFonts:
-                              !FlutterFlowTheme.of(context).titleSmallIsCustom,
-                        ),
-                    elevation: 0.0,
-                    borderSide: BorderSide(
-                      color: Colors.transparent,
-                      width: 1.0,
-                    ),
-                    borderRadius: BorderRadius.circular(50.0),
-                  ),
                 ),
               ),
               Padding(
                 padding: EdgeInsetsDirectional.fromSTEB(0.0, 8.0, 0.0, 0.0),
-                child: FFButtonWidget(
+                child: AppButton(
+                  label: FFLocalizations.of(context).getText(
+                    '9lehmzbk' /* Cancel */,
+                  ),
+                  variant: AppButtonVariant.secondary,
                   onPressed: () async {
                     HapticFeedback.lightImpact();
                     Navigator.pop(context);
                   },
-                  text: FFLocalizations.of(context).getText(
-                    '9lehmzbk' /* Cancel */,
-                  ),
-                  options: FFButtonOptions(
-                    width: double.infinity,
-                    height: 55.0,
-                    padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                    iconPadding:
-                        EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                    color: FlutterFlowTheme.of(context).info,
-                    textStyle: FlutterFlowTheme.of(context).titleSmall.override(
-                          fontFamily:
-                              FlutterFlowTheme.of(context).titleSmallFamily,
-                          color: FlutterFlowTheme.of(context).primaryText,
-                          letterSpacing: 0.0,
-                          fontWeight: FontWeight.w600,
-                          useGoogleFonts:
-                              !FlutterFlowTheme.of(context).titleSmallIsCustom,
-                        ),
-                    elevation: 0.0,
-                    borderSide: BorderSide(
-                      color: FlutterFlowTheme.of(context).info,
-                      width: 1.0,
-                    ),
-                    borderRadius: BorderRadius.circular(50.0),
-                  ),
                 ),
               ),
             ],
           ),
-        ),
-      ),
     );
   }
 }

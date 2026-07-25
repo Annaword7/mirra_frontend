@@ -1,3 +1,4 @@
+import '/auth/supabase_auth/auth_util.dart';
 import '/backend/supabase/supabase.dart';
 import '/boards/edit_album/edit_album_widget.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
@@ -30,35 +31,56 @@ class _ImagesbyAlbumWidgetState extends State<ImagesbyAlbumWidget> {
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
+  late Future<List<AlbumRow>> _albumFuture;
+  late Future<List<ImagesRow>> _imagesFuture;
+
   @override
   void initState() {
     super.initState();
     _model = createModel(context, () => ImagesbyAlbumModel());
+    _albumFuture = AlbumTable().querySingleRow(
+      queryFn: (q) => q.eqOrNull('id', widget.albumid),
+    );
+    _imagesFuture = _loadImages();
+  }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
+  Future<List<ImagesRow>> _loadImages() async {
+    final connections = await ImagesAlbumsConnectionTable().queryRows(
+      queryFn: (q) => q
+          .eqOrNull('album_id', widget.albumid)
+          .eqOrNull('user', currentUserUid),
+    );
+    if (connections.isEmpty) return [];
+    final ids = connections
+        .map((c) => c.imageId)
+        .whereType<int>()
+        .toList();
+    if (ids.isEmpty) return [];
+    return ImagesTable().queryRows(
+      queryFn: (q) => q.inFilter('id', ids),
+    );
+  }
+
+  void _refresh() {
+    safeSetState(() {
+      _imagesFuture = _loadImages();
+    });
   }
 
   @override
   void dispose() {
     _model.dispose();
-
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<AlbumRow>>(
-      future: AlbumTable().querySingleRow(
-        queryFn: (q) => q.eqOrNull(
-          'id',
-          widget.albumid,
-        ),
-      ),
-      builder: (context, snapshot) {
-        // Customize what your widget looks like when it's loading.
-        if (!snapshot.hasData) {
+      future: _albumFuture,
+      builder: (context, albumSnapshot) {
+        if (!albumSnapshot.hasData) {
           return Scaffold(
-            backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+            backgroundColor: Colors.white,
             body: Center(
               child: SizedBox(
                 width: 50.0,
@@ -72,11 +94,7 @@ class _ImagesbyAlbumWidgetState extends State<ImagesbyAlbumWidget> {
             ),
           );
         }
-        List<AlbumRow> imagesbyAlbumAlbumRowList = snapshot.data!;
-
-        final imagesbyAlbumAlbumRow = imagesbyAlbumAlbumRowList.isNotEmpty
-            ? imagesbyAlbumAlbumRowList.first
-            : null;
+        final album = albumSnapshot.data?.firstOrNull;
 
         return GestureDetector(
           onTap: () {
@@ -85,17 +103,17 @@ class _ImagesbyAlbumWidgetState extends State<ImagesbyAlbumWidget> {
           },
           child: Scaffold(
             key: scaffoldKey,
-            backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+            backgroundColor: Colors.white,
             appBar: AppBar(
-              backgroundColor: FlutterFlowTheme.of(context).primary,
+              backgroundColor: Colors.white,
               iconTheme: IconThemeData(
                   color: FlutterFlowTheme.of(context).primaryText),
               automaticallyImplyLeading: false,
               leading: Align(
                 alignment: AlignmentDirectional(0.0, 0.0),
                 child: FlutterFlowIconButton(
-                  borderRadius: 20.0,
-                  buttonSize: 40.0,
+                  borderRadius: 24.0,
+                  buttonSize: 48.0,
                   icon: Icon(
                     Icons.arrow_back_outlined,
                     color: FlutterFlowTheme.of(context).primaryBackground,
@@ -114,7 +132,7 @@ class _ImagesbyAlbumWidgetState extends State<ImagesbyAlbumWidget> {
                       mainAxisSize: MainAxisSize.max,
                       children: [
                         Text(
-                          imagesbyAlbumAlbumRow!.name!,
+                          album?.name ?? '',
                           style: FlutterFlowTheme.of(context)
                               .titleLarge
                               .override(
@@ -140,9 +158,9 @@ class _ImagesbyAlbumWidgetState extends State<ImagesbyAlbumWidget> {
                     padding:
                         EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 16.0, 0.0),
                     child: FlutterFlowIconButton(
-                      borderRadius: 20.0,
+                      borderRadius: 24.0,
                       borderWidth: 1.0,
-                      buttonSize: 40.0,
+                      buttonSize: 48.0,
                       icon: Icon(
                         Icons.edit,
                         color: FlutterFlowTheme.of(context).primaryBackground,
@@ -173,7 +191,7 @@ class _ImagesbyAlbumWidgetState extends State<ImagesbyAlbumWidget> {
                               ),
                             );
                           },
-                        ).then((value) => safeSetState(() {}));
+                        ).then((_) => _refresh());
                       },
                     ),
                   ),
@@ -194,15 +212,9 @@ class _ImagesbyAlbumWidgetState extends State<ImagesbyAlbumWidget> {
                 decoration: BoxDecoration(),
                 child: Padding(
                   padding: EdgeInsets.all(16.0),
-                  child: FutureBuilder<List<AlbumImagesRow>>(
-                    future: AlbumImagesTable().queryRows(
-                      queryFn: (q) => q.eqOrNull(
-                        'album_id',
-                        widget.albumid,
-                      ),
-                    ),
+                  child: FutureBuilder<List<ImagesRow>>(
+                    future: _imagesFuture,
                     builder: (context, snapshot) {
-                      // Customize what your widget looks like when it's loading.
                       if (!snapshot.hasData) {
                         return Center(
                           child: SizedBox(
@@ -216,8 +228,41 @@ class _ImagesbyAlbumWidgetState extends State<ImagesbyAlbumWidget> {
                           ),
                         );
                       }
-                      List<AlbumImagesRow> staggeredViewAlbumImagesRowList =
-                          snapshot.data!;
+                      final images = snapshot.data!;
+
+                      if (images.isEmpty) {
+                        return Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.photo_library_outlined,
+                                size: 64,
+                                color:
+                                    FlutterFlowTheme.of(context).secondaryText,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                FFLocalizations.of(context).getText(
+                                  'iba_empty',
+                                ),
+                                style: FlutterFlowTheme.of(context)
+                                    .bodyMedium
+                                    .override(
+                                      fontFamily: FlutterFlowTheme.of(context)
+                                          .bodyMediumFamily,
+                                      color: FlutterFlowTheme.of(context)
+                                          .secondaryText,
+                                      letterSpacing: 0.0,
+                                      useGoogleFonts:
+                                          !FlutterFlowTheme.of(context)
+                                              .bodyMediumIsCustom,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
 
                       return MasonryGridView.builder(
                         gridDelegate:
@@ -226,11 +271,9 @@ class _ImagesbyAlbumWidgetState extends State<ImagesbyAlbumWidget> {
                         ),
                         crossAxisSpacing: 10.0,
                         mainAxisSpacing: 10.0,
-                        itemCount: staggeredViewAlbumImagesRowList.length,
-                        itemBuilder: (context, staggeredViewIndex) {
-                          final staggeredViewAlbumImagesRow =
-                              staggeredViewAlbumImagesRowList[
-                                  staggeredViewIndex];
+                        itemCount: images.length,
+                        itemBuilder: (context, index) {
+                          final row = images[index];
                           return InkWell(
                             splashColor: Colors.transparent,
                             focusColor: Colors.transparent,
@@ -241,7 +284,7 @@ class _ImagesbyAlbumWidgetState extends State<ImagesbyAlbumWidget> {
                                 Itemcard2Widget.routeName,
                                 queryParameters: {
                                   'imageid': serializeParam(
-                                    staggeredViewAlbumImagesRow.imageId,
+                                    row.id,
                                     ParamType.int,
                                   ),
                                 }.withoutNulls,
@@ -249,14 +292,16 @@ class _ImagesbyAlbumWidgetState extends State<ImagesbyAlbumWidget> {
                             },
                             child: ImagedetailedMainWidget(
                               key: Key(
-                                  'Keyk9r_${staggeredViewIndex}_of_${staggeredViewAlbumImagesRowList.length}'),
-                              imageUrl: staggeredViewAlbumImagesRow.imageUrl,
-                              brand: staggeredViewAlbumImagesRow.brand,
-                              name: staggeredViewAlbumImagesRow.productName,
-                              score: (staggeredViewAlbumImagesRow.saCompositeScore ?? staggeredViewAlbumImagesRow.score ?? 0.0).roundToDouble(),
-                              imageID: staggeredViewAlbumImagesRow.imageId,
-                              tags: staggeredViewAlbumImagesRow.saBestForTags,
-                              stars: staggeredViewAlbumImagesRow.starsFromUser,
+                                  'Keyk9r_${index}_of_${images.length}'),
+                              imageUrl: row.imageUrl,
+                              brand: row.brand,
+                              name: row.productName,
+                              score: (row.saCompositeScore ?? 0.0)
+                                  .roundToDouble(),
+                              imageID: row.id,
+                              tags: row.saBestForTags,
+                              hasSpf: row.saHasSpf,
+                              stars: row.starsFromUser,
                             ),
                           );
                         },

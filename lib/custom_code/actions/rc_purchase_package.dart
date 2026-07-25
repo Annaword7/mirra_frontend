@@ -23,10 +23,15 @@ Future<dynamic> rcPurchasePackage(
   String appUserId,
 ) async {
   try {
-    // Логиним пользователя
-    final current = await Purchases.appUserID;
-    if (current != appUserId) {
-      await Purchases.logIn(appUserId);
+    // Логиним пользователя (пропускаем если ID пустой — например, до создания аккаунта)
+    if (appUserId.isNotEmpty) {
+      final current = await Purchases.appUserID;
+      if (current != appUserId) {
+        await Purchases.logIn(appUserId);
+      }
+      // Anchor identity so every webhook (incl. renewals with an anonymous
+      // app_user_id) carries the Supabase UUID for the backend to match.
+      await Purchases.setAttributes({'supabase_uid': appUserId});
     }
 
     // Получаем офферинг и пакет

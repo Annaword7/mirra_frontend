@@ -1,0 +1,120 @@
+/* Mirra design tokens — CSS custom properties
+ * Derived from the Flutter implementation (mi_r_r_a_dev v2.4.0+102).
+ * Single light theme (the app has no dark mode). Values seeded from existing UI. */
+
+:root {
+  /* ---------- Color · brand ---------- */
+  --ff-color-primary:          #5C85D9;
+  --ff-color-primary-variant:  #3B6FCC;
+  --ff-color-secondary:        #F2EBB4;
+  --ff-color-tertiary:         #F4CFBC;
+
+  /* ---------- Color · text ---------- */
+  --ff-color-text-primary:     #1A1A1A;
+  --ff-color-text-secondary:   #6B6B6B; /* darkened from #929292 for WCAG AA */
+  --ff-color-text-tertiary:    #555555;
+  --ff-color-text-disabled:    #AFAFB0;
+  --ff-color-text-on-primary:  #FFFFFF;
+
+  /* ---------- Color · surface / border ---------- */
+  --ff-color-surface:            #FFFFFF;
+  --ff-color-surface-muted:      #F3F4F6;
+  --ff-color-background:         #EBF0FC;
+  --ff-color-background-raised:  #CBDDFE;
+  --ff-color-border:             #E0E0E0;
+  --ff-color-divider:            #E6E6E6;
+
+  /* ---------- Color · semantic ---------- */
+  --ff-color-success:     #2E7D32;
+  --ff-color-success-bg:  #E8F5E9;
+  --ff-color-warning:     #F9A825;
+  --ff-color-warning-bg:  #FFF3E0;
+  --ff-color-error:       #E53935;
+  --ff-color-error-bg:    #FFEBEE;
+  --ff-color-info:        #5C85D9;
+
+  /* ---------- Color · overlays ---------- */
+  --ff-overlay-08: rgba(0,0,0,0.08);
+  --ff-overlay-10: rgba(0,0,0,0.10);
+  --ff-overlay-20: rgba(0,0,0,0.20);
+  --ff-overlay-27: rgba(0,0,0,0.27);
+
+  /* ---------- Typography ---------- */
+  --ff-font-family: 'Raleway', sans-serif;
+  --ff-font-regular: 400;
+  --ff-font-medium: 500;
+  --ff-font-semibold: 600;
+  --ff-font-bold: 700;
+
+  --ff-text-display-lg:   57px;
+  --ff-text-display-md:   45px;
+  --ff-text-display-sm:   36px;
+  --ff-text-headline-lg:  32px;
+  --ff-text-headline-md:  24px;
+  --ff-text-headline-sm:  22px;
+  --ff-text-title-lg:     20px;
+  --ff-text-title-md:     18px;
+  --ff-text-title-sm:     16px;
+  --ff-text-body-lg:      16px;
+  --ff-text-body-md:      14px;
+  --ff-text-body-sm:      12px;
+  --ff-text-label-lg:     16px;
+  --ff-text-label-md:     14px;
+  --ff-text-label-sm:     12px;
+
+  /* ---------- Spacing ---------- */
+  --ff-space-xxs: 2px;
+  --ff-space-xs:  4px;
+  --ff-space-sm:  8px;
+  --ff-space-md:  12px;
+  --ff-space-lg:  16px;
+  --ff-space-xl:  20px;
+  --ff-space-2xl: 24px;
+  --ff-space-3xl: 32px;
+  --ff-space-4xl: 40px;
+  --ff-space-5xl: 48px;
+  --ff-space-6xl: 64px;
+
+  /* ---------- Radius ---------- */
+  --ff-radius-xs:   4px;
+  --ff-radius-sm:   8px;
+  --ff-radius-md:   12px;
+  --ff-radius-lg:   16px;
+  --ff-radius-xl:   24px;
+  --ff-radius-2xl:  32px;
+  --ff-radius-full: 9999px;
+
+  /* ---------- Border widths ---------- */
+  --ff-border-hairline: 1px;
+  --ff-border-thick:    2px;
+
+  /* ---------- Shadows (color #0000001A) ---------- */
+  --ff-shadow-sm: 0 1px 3px rgba(0,0,0,0.10);
+  --ff-shadow-md: 0 3px 6px rgba(0,0,0,0.10);
+  --ff-shadow-lg: 0 8px 15px rgba(0,0,0,0.10);
+  --ff-shadow-xl: 0 16px 25px rgba(0,0,0,0.10);
+
+  /* ---------- Opacity ---------- */
+  --ff-opacity-04: 0.04;
+  --ff-opacity-08: 0.08;
+  --ff-opacity-12: 0.12;
+  --ff-opacity-16: 0.16;
+  --ff-opacity-24: 0.24;
+  --ff-opacity-32: 0.32;
+  --ff-opacity-48: 0.48;
+  --ff-opacity-64: 0.64;
+  --ff-opacity-80: 0.80;
+  --ff-opacity-92: 0.92;
+
+  /* ---------- Component sizes ---------- */
+  --ff-icon-xs: 16px; --ff-icon-sm: 20px; --ff-icon-md: 24px;
+  --ff-icon-lg: 28px; --ff-icon-xl: 32px; --ff-icon-2xl: 48px;
+
+  --ff-button-sm: 36px; --ff-button-md: 44px; --ff-button-lg: 52px;
+  --ff-input-height: 52px;
+
+  --ff-avatar-xs: 24px; --ff-avatar-sm: 32px; --ff-avatar-md: 40px;
+  --ff-avatar-lg: 56px; --ff-avatar-xl: 80px;
+
+  --ff-blur-backdrop: 18px;
+}

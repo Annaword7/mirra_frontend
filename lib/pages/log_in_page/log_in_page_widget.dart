@@ -5,6 +5,8 @@ import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
+import '/design_system/components/app_text_field.dart';
+import '/design_system/components/app_button.dart';
 import 'dart:async';
 import '/index.dart';
 import 'dart:math' as math;
@@ -120,68 +122,6 @@ class _LogInPageWidgetState extends State<LogInPageWidget>
   }
 
   // ── Shared input decoration ───────────────────────────────────────────────
-
-  InputDecoration _inputDecoration(String hint, {Widget? suffix}) {
-    return InputDecoration(
-      hintText: hint,
-      hintStyle: FlutterFlowTheme.of(context).bodyMedium.override(
-            fontFamily: FlutterFlowTheme.of(context).bodyMediumFamily,
-            letterSpacing: 0.0,
-            useGoogleFonts:
-                !FlutterFlowTheme.of(context).bodyMediumIsCustom,
-          ),
-      enabledBorder: OutlineInputBorder(
-        borderSide: BorderSide(
-          color: FlutterFlowTheme.of(context).alternate,
-          width: 1.0,
-        ),
-        borderRadius: BorderRadius.circular(16.0),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderSide: BorderSide(
-          color: FlutterFlowTheme.of(context).secondaryBackground,
-          width: 1.0,
-        ),
-        borderRadius: BorderRadius.circular(16.0),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderSide: BorderSide(
-          color: FlutterFlowTheme.of(context).error,
-          width: 1.0,
-        ),
-        borderRadius: BorderRadius.circular(16.0),
-      ),
-      focusedErrorBorder: OutlineInputBorder(
-        borderSide: BorderSide(
-          color: FlutterFlowTheme.of(context).error,
-          width: 1.0,
-        ),
-        borderRadius: BorderRadius.circular(16.0),
-      ),
-      filled: true,
-      fillColor: FlutterFlowTheme.of(context).alternate,
-      suffixIcon: suffix,
-    );
-  }
-
-  TextStyle get _inputTextStyle =>
-      FlutterFlowTheme.of(context).bodyMedium.override(
-            fontFamily: FlutterFlowTheme.of(context).bodyMediumFamily,
-            color: FlutterFlowTheme.of(context).primaryText,
-            fontSize: 16.0,
-            letterSpacing: 0.0,
-            useGoogleFonts: !FlutterFlowTheme.of(context).bodyMediumIsCustom,
-          );
-
-  Widget _visibilityIcon(bool visible, VoidCallback onTap) => InkWell(
-        onTap: onTap,
-        focusNode: FocusNode(skipTraversal: true),
-        child: Icon(
-          visible ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-          color: FlutterFlowTheme.of(context).secondaryText,
-          size: 18.0,
-        ),
-      );
 
   // ── Terms footer ──────────────────────────────────────────────────────────
 
@@ -351,20 +291,15 @@ class _LogInPageWidgetState extends State<LogInPageWidget>
             // Email
             Padding(
               padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 16.0),
-              child: TextFormField(
+              child: AppTextField(
                 key: const ValueKey('emailAddress_jmyt'),
                 controller: _model.emailAddressTextController,
                 focusNode: _model.emailAddressFocusNode,
-                autofocus: false,
-                autofillHints: const [AutofillHints.email],
-                textInputAction: TextInputAction.next,
-                obscureText: false,
-                decoration: _inputDecoration(
-                  FFLocalizations.of(context).getText('v6o9xcii' /* Email address */),
-                ),
-                style: _inputTextStyle,
+                hintText: FFLocalizations.of(context)
+                    .getText('v6o9xcii' /* Email address */),
                 keyboardType: TextInputType.emailAddress,
-                cursorColor: FlutterFlowTheme.of(context).primary,
+                textInputAction: TextInputAction.next,
+                autofillHints: const [AutofillHints.email],
                 validator: _model.emailAddressTextControllerValidator
                     .asValidator(context),
               ),
@@ -372,23 +307,13 @@ class _LogInPageWidgetState extends State<LogInPageWidget>
             // Password
             Padding(
               padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 16.0),
-              child: TextFormField(
+              child: AppTextField.password(
                 controller: _model.passwordTextController,
                 focusNode: _model.passwordFocusNode,
-                autofocus: false,
-                autofillHints: const [AutofillHints.password],
+                hintText: FFLocalizations.of(context)
+                    .getText('8o8sm32x' /* Password */),
                 textInputAction: TextInputAction.done,
-                obscureText: !_model.passwordVisibility,
-                decoration: _inputDecoration(
-                  FFLocalizations.of(context).getText('8o8sm32x' /* Password */),
-                  suffix: _visibilityIcon(
-                    _model.passwordVisibility,
-                    () => safeSetState(
-                        () => _model.passwordVisibility = !_model.passwordVisibility),
-                  ),
-                ),
-                style: _inputTextStyle,
-                cursorColor: FlutterFlowTheme.of(context).primary,
+                autofillHints: const [AutofillHints.password],
                 validator: _model.passwordTextControllerValidator
                     .asValidator(context),
               ),
@@ -396,8 +321,10 @@ class _LogInPageWidgetState extends State<LogInPageWidget>
             // Log in button
             Padding(
               padding: EdgeInsetsDirectional.fromSTEB(0.0, 8.0, 0.0, 8.0),
-              child: FFButtonWidget(
+              child: AppButton(
                 key: const ValueKey('Button_mqqr'),
+                label: FFLocalizations.of(context)
+                    .getText('jvlhc56j' /* Log in */),
                 onPressed: () async {
                   HapticFeedback.lightImpact();
                   GoRouter.of(context).prepareAuthEvent();
@@ -412,28 +339,6 @@ class _LogInPageWidgetState extends State<LogInPageWidget>
                     context.goNamedAuth(HomeWidget.routeName, context.mounted);
                   }
                 },
-                text: FFLocalizations.of(context).getText('jvlhc56j' /* Log in */),
-                options: FFButtonOptions(
-                  width: double.infinity,
-                  height: 55.0,
-                  padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                  iconPadding:
-                      EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                  color: FlutterFlowTheme.of(context).primary,
-                  textStyle: FlutterFlowTheme.of(context).titleSmall.override(
-                        fontFamily:
-                            FlutterFlowTheme.of(context).titleSmallFamily,
-                        color: Colors.white,
-                        letterSpacing: 0.0,
-                        fontWeight: FontWeight.w600,
-                        useGoogleFonts:
-                            !FlutterFlowTheme.of(context).titleSmallIsCustom,
-                      ),
-                  elevation: 0.0,
-                  borderSide:
-                      const BorderSide(color: Colors.transparent, width: 1.0),
-                  borderRadius: BorderRadius.circular(50.0),
-                ),
               ),
             ),
             // Apple sign-in (iOS only)
@@ -525,19 +430,14 @@ class _LogInPageWidgetState extends State<LogInPageWidget>
               // Email
               Padding(
                 padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 16.0),
-                child: TextFormField(
+                child: AppTextField(
                   controller: _model.emailRegisterTextController,
                   focusNode: _model.emailRegisterFocusNode,
-                  autofocus: false,
-                  autofillHints: const [AutofillHints.email],
-                  textInputAction: TextInputAction.next,
-                  obscureText: false,
-                  decoration: _inputDecoration(
-                    FFLocalizations.of(context).getText('fzz6pquo' /* Email address */),
-                  ),
-                  style: _inputTextStyle,
+                  hintText: FFLocalizations.of(context)
+                      .getText('fzz6pquo' /* Email address */),
                   keyboardType: TextInputType.emailAddress,
-                  cursorColor: FlutterFlowTheme.of(context).primary,
+                  textInputAction: TextInputAction.next,
+                  autofillHints: const [AutofillHints.email],
                   validator: _model.emailRegisterTextControllerValidator
                       .asValidator(context),
                 ),
@@ -545,23 +445,13 @@ class _LogInPageWidgetState extends State<LogInPageWidget>
               // Password
               Padding(
                 padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 16.0),
-                child: TextFormField(
+                child: AppTextField.password(
                   controller: _model.passwordRegisterTextController,
                   focusNode: _model.passwordRegisterFocusNode,
-                  autofocus: false,
-                  autofillHints: const [AutofillHints.newPassword],
+                  hintText: FFLocalizations.of(context)
+                      .getText('jl6rrleg' /* Password */),
                   textInputAction: TextInputAction.done,
-                  obscureText: !_model.passwordRegisterVisibility,
-                  decoration: _inputDecoration(
-                    FFLocalizations.of(context).getText('jl6rrleg' /* Password */),
-                    suffix: _visibilityIcon(
-                      _model.passwordRegisterVisibility,
-                      () => safeSetState(() => _model.passwordRegisterVisibility =
-                          !_model.passwordRegisterVisibility),
-                    ),
-                  ),
-                  style: _inputTextStyle,
-                  cursorColor: FlutterFlowTheme.of(context).primary,
+                  autofillHints: const [AutofillHints.newPassword],
                   validator: _model.passwordRegisterTextControllerValidator
                       .asValidator(context),
                 ),
@@ -569,7 +459,9 @@ class _LogInPageWidgetState extends State<LogInPageWidget>
               // Create account button
               Padding(
                 padding: EdgeInsetsDirectional.fromSTEB(0.0, 8.0, 0.0, 8.0),
-                child: FFButtonWidget(
+                child: AppButton(
+                  label: FFLocalizations.of(context)
+                      .getText('o5q6qmi9' /* Create account */),
                   onPressed: () async {
                     HapticFeedback.lightImpact();
                     if (_model.formKeyRegister.currentState == null ||
@@ -597,31 +489,6 @@ class _LogInPageWidgetState extends State<LogInPageWidget>
                       );
                     }
                   },
-                  text: FFLocalizations.of(context)
-                      .getText('o5q6qmi9' /* Create account */),
-                  options: FFButtonOptions(
-                    width: double.infinity,
-                    height: 55.0,
-                    padding:
-                        EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                    iconPadding:
-                        EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                    color: FlutterFlowTheme.of(context).primary,
-                    textStyle:
-                        FlutterFlowTheme.of(context).titleSmall.override(
-                              fontFamily:
-                                  FlutterFlowTheme.of(context).titleSmallFamily,
-                              color: Colors.white,
-                              letterSpacing: 0.0,
-                              fontWeight: FontWeight.w600,
-                              useGoogleFonts: !FlutterFlowTheme.of(context)
-                                  .titleSmallIsCustom,
-                            ),
-                    elevation: 0.0,
-                    borderSide:
-                        const BorderSide(color: Colors.transparent, width: 1.0),
-                    borderRadius: BorderRadius.circular(50.0),
-                  ),
                 ),
               ),
               // Apple sign-up (iOS only)
@@ -660,7 +527,14 @@ class _LogInPageWidgetState extends State<LogInPageWidget>
                 size: 30.0,
               ),
               onPressed: () async {
-                context.pushNamed(NewblankWidget.routeName);
+                // Return to wherever we came from (e.g. a scan result for an
+                // anonymous user) instead of always jumping to the welcome
+                // screen, which would strand the user's accumulated scans.
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.goNamed(NewblankWidget.routeName);
+                }
               },
             ),
             bottom: PreferredSize(

@@ -124,12 +124,62 @@ class ImagesRow extends SupabaseDataRow {
   set saScoringLog(dynamic value) =>
       setField<dynamic>('sa_scoring_log', value);
 
+  /// INCI position of the first ≤1% marker (phenoxyethanol, carbomer, …)
+  int? get saOnePercentLinePos => getField<int>('sa_one_percent_line_pos');
+  set saOnePercentLinePos(int? value) =>
+      setField<int>('sa_one_percent_line_pos', value);
+
+  String? get saOnePercentLineMarker =>
+      getField<String>('sa_one_percent_line_marker');
+  set saOnePercentLineMarker(String? value) =>
+      setField<String>('sa_one_percent_line_marker', value);
+
+  /// Honest analysis confidence: high / medium / low
+  String? get saConfidenceLevel => getField<String>('sa_confidence_level');
+  set saConfidenceLevel(String? value) =>
+      setField<String>('sa_confidence_level', value);
+
+  /// Full confidence object: {level, score, composite_range, composite_delta, reasons}
+  dynamic get saConfidence => getField<dynamic>('sa_confidence');
+  set saConfidence(dynamic value) =>
+      setField<dynamic>('sa_confidence', value);
+
+  /// Goal → {score, evidence[]} table for client-side fit composition
+  dynamic get saGoalSupport => getField<dynamic>('sa_goal_support');
+  set saGoalSupport(dynamic value) =>
+      setField<dynamic>('sa_goal_support', value);
+
+  /// Claim audit: [{claim, verdict, support_score, evidence[]}]
+  dynamic get saClaimAudit => getField<dynamic>('sa_claim_audit');
+  set saClaimAudit(dynamic value) =>
+      setField<dynamic>('sa_claim_audit', value);
+
+  /// Pre-parsed INCI list in position order (jsonb array of strings).
+  /// Authoritative split source for the 1% line; empty on pre-v2 records.
+  List<String> get saInciList => getListField<String>('sa_inci_list');
+  set saInciList(List<String>? value) =>
+      setListField<String>('sa_inci_list', value);
+
   String? get productCategory => getField<String>('product_category');
   set productCategory(String? value) =>
       setField<String>('product_category', value);
 
   String? get productType => getField<String>('product_type');
   set productType(String? value) => setField<String>('product_type', value);
+
+  /// M0 «Понимание продукта»: факты о продукте (активы + свойства состава),
+  /// формат см. mirra/product_facts.py в бэкенде.
+  dynamic get pfFacts => getField<dynamic>('pf_facts');
+  set pfFacts(dynamic value) => setField<dynamic>('pf_facts', value);
+
+  /// True when the product contains UV filters (read from sa_scoring_log.spf_info.has_spf).
+  bool get saHasSpf {
+    final log = saScoringLog;
+    if (log == null) return false;
+    final spfInfo = (log is Map) ? log['spf_info'] : null;
+    if (spfInfo == null) return false;
+    return spfInfo['has_spf'] == true;
+  }
 
   // Legacy aliases — columns removed from DB, mapped to nearest equivalents.
   double? get score => saCompositeScore;

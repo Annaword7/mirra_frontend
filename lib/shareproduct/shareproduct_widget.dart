@@ -23,6 +23,7 @@ class ShareproductWidget extends StatefulWidget {
 
 class _ShareproductWidgetState extends State<ShareproductWidget> {
   late ShareproductModel _model;
+  late final Future<_ShareData> _dataFuture;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -30,8 +31,31 @@ class _ShareproductWidgetState extends State<ShareproductWidget> {
   void initState() {
     super.initState();
     _model = createModel(context, () => ShareproductModel());
-
+    _dataFuture = _loadShareData();
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
+  }
+
+  Future<_ShareData> _loadShareData() async {
+    final results = await Future.wait([
+      ImagesTable().querySingleRow(
+        queryFn: (q) => q.eqOrNull('id', widget.imageid),
+      ),
+      ImageTopIngredientsTable().queryRows(
+        queryFn: (q) => q.eqOrNull('image_id', widget.imageid),
+      ),
+      ImageIngredientIssuesTable().queryRows(
+        queryFn: (q) => q.eqOrNull('image_id', widget.imageid),
+      ),
+    ]);
+    return _ShareData(
+      imageRow: (results[0] as List<ImagesRow>).firstOrNull,
+      topIngredients: (results[1] as List<ImageTopIngredientsRow>)
+          .map((r) => r.ingredientName.toLowerCase().trim())
+          .toList(),
+      issueIngredients: (results[2] as List<ImageIngredientIssuesRow>)
+          .map((r) => r.ingredientName.toLowerCase().trim())
+          .toList(),
+    );
   }
 
   @override
@@ -53,15 +77,9 @@ class _ShareproductWidgetState extends State<ShareproductWidget> {
         backgroundColor: FlutterFlowTheme.of(context).alternate,
         body: SafeArea(
           top: true,
-          child: FutureBuilder<List<ImagesRow>>(
-            future: ImagesTable().querySingleRow(
-              queryFn: (q) => q.eqOrNull(
-                'id',
-                widget.imageid,
-              ),
-            ),
+          child: FutureBuilder<_ShareData>(
+            future: _dataFuture,
             builder: (context, snapshot) {
-              // Customize what your widget looks like when it's loading.
               if (!snapshot.hasData) {
                 return Center(
                   child: SizedBox(
@@ -75,11 +93,8 @@ class _ShareproductWidgetState extends State<ShareproductWidget> {
                   ),
                 );
               }
-              List<ImagesRow> containerImagesRowList = snapshot.data!;
-
-              final containerImagesRow = containerImagesRowList.isNotEmpty
-                  ? containerImagesRowList.first
-                  : null;
+              final data = snapshot.data!;
+              final containerImagesRow = data.imageRow;
 
               return Container(
                 width: MediaQuery.sizeOf(context).width * 1.0,
@@ -106,152 +121,37 @@ class _ShareproductWidgetState extends State<ShareproductWidget> {
                               onTap: () async {
                                 context.safePop();
                               },
-                              child: Icon(
-                                Icons.arrow_back,
-                                color: FlutterFlowTheme.of(context).primaryText,
-                                size: 24.0,
+                              child: SizedBox(
+                                width: 44.0,
+                                height: 44.0,
+                                child: Align(
+                                  alignment: AlignmentDirectional.centerStart,
+                                  child: Icon(
+                                    Icons.arrow_back,
+                                    color:
+                                        FlutterFlowTheme.of(context).primaryText,
+                                    size: 24.0,
+                                  ),
+                                ),
                               ),
                             ),
                           ],
                         ),
                       ),
-                      Align(
-                        alignment: AlignmentDirectional(-1.0, 0.0),
-                        child: Padding(
-                          padding: EdgeInsetsDirectional.fromSTEB(
-                              16.0, 24.0, 0.0, 0.0),
-                          child: Text(
-                            FFLocalizations.of(context).getText(
-                              'zgq2b7dh' /* Выберите формат карточки проду... */,
-                            ),
-                            textAlign: TextAlign.start,
-                            style: FlutterFlowTheme.of(context)
-                                .bodyMedium
-                                .override(
-                                  fontFamily: FlutterFlowTheme.of(context)
-                                      .bodyMediumFamily,
-                                  letterSpacing: 0.0,
-                                  fontWeight: FontWeight.w500,
-                                  useGoogleFonts: !FlutterFlowTheme.of(context)
-                                      .bodyMediumIsCustom,
-                                ),
-                          ),
-                        ),
-                      ),
                       Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.max,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            InkWell(
-                              splashColor: Colors.transparent,
-                              focusColor: Colors.transparent,
-                              hoverColor: Colors.transparent,
-                              highlightColor: Colors.transparent,
-                              onTap: () async {
-                                _model.isStory = false;
-                                safeSetState(() {});
-                              },
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: valueOrDefault<Color>(
-                                    _model.isStory
-                                        ? Color(0xFFAFAFB0)
-                                        : FlutterFlowTheme.of(context).primary,
-                                    FlutterFlowTheme.of(context).primary,
-                                  ),
-                                  borderRadius: BorderRadius.circular(16.0),
-                                  border: Border.all(
-                                    color: valueOrDefault<Color>(
-                                      _model.isStory
-                                          ? Color(0xFFAFAFB0)
-                                          : FlutterFlowTheme.of(context).primary,
-                                      FlutterFlowTheme.of(context).primary,
-                                    ),
-                                  ),
-                                ),
-                                child: Padding(
-                                  padding: EdgeInsetsDirectional.fromSTEB(
-                                      16.0, 8.0, 16.0, 8.0),
-                                  child: Text(
-                                    FFLocalizations.of(context).getText(
-                                      '731ycgiu' /* Квадрат */,
-                                    ),
-                                    style: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .override(
-                                          fontFamily:
-                                              FlutterFlowTheme.of(context)
-                                                  .bodyMediumFamily,
-                                          color: FlutterFlowTheme.of(context)
-                                              .alternate,
-                                          letterSpacing: 0.0,
-                                          useGoogleFonts:
-                                              !FlutterFlowTheme.of(context)
-                                                  .bodyMediumIsCustom,
-                                        ),
-                                  ),
-                                ),
-                              ),
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20.0),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.12),
+                              blurRadius: 16,
+                              offset: const Offset(0, 4),
                             ),
-                            InkWell(
-                              splashColor: Colors.transparent,
-                              focusColor: Colors.transparent,
-                              hoverColor: Colors.transparent,
-                              highlightColor: Colors.transparent,
-                              onTap: () async {
-                                _model.isStory = true;
-                                safeSetState(() {});
-                              },
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: valueOrDefault<Color>(
-                                    _model.isStory
-                                        ? FlutterFlowTheme.of(context).primary
-                                        : Color(0xFFAFAFB0),
-                                    Color(0xFFAFAFB0),
-                                  ),
-                                  borderRadius: BorderRadius.circular(16.0),
-                                  border: Border.all(
-                                    color: valueOrDefault<Color>(
-                                      _model.isStory
-                                          ? FlutterFlowTheme.of(context).primary
-                                          : Color(0xFFAFAFB0),
-                                      Color(0xFFAFAFB0),
-                                    ),
-                                  ),
-                                ),
-                                child: Padding(
-                                  padding: EdgeInsetsDirectional.fromSTEB(
-                                      16.0, 8.0, 16.0, 8.0),
-                                  child: Text(
-                                    FFLocalizations.of(context).getText(
-                                      'c72tq9qs' /* Сториз */,
-                                    ),
-                                    style: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .override(
-                                          fontFamily:
-                                              FlutterFlowTheme.of(context)
-                                                  .bodyMediumFamily,
-                                          color: FlutterFlowTheme.of(context)
-                                              .alternate,
-                                          letterSpacing: 0.0,
-                                          useGoogleFonts:
-                                              !FlutterFlowTheme.of(context)
-                                                  .bodyMediumIsCustom,
-                                        ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ].divide(SizedBox(width: 10.0)),
+                          ],
                         ),
-                      ),
-                      Container(
-                        width: MediaQuery.sizeOf(context).width * 1.0,
-                        height: MediaQuery.sizeOf(context).height * 1.0,
+                        clipBehavior: Clip.antiAlias,
                         child: custom_widgets.ShareCardWidget(
                           width: MediaQuery.sizeOf(context).width * 1.0,
                           height: MediaQuery.sizeOf(context).height * 1.0,
@@ -271,26 +171,25 @@ class _ShareproductWidgetState extends State<ShareproductWidget> {
                             containerImagesRow?.saCompositeScore,
                             0.00,
                           ),
-                          safetyScore: valueOrDefault<double>(
-                            containerImagesRow?.saSafetyScore,
-                            0.00,
-                          ),
-                          efficacyScore: valueOrDefault<double>(
-                            containerImagesRow?.saEfficacyScore,
-                            0.00,
-                          ),
-                          isStory: _model.isStory,
-                          tags: containerImagesRow!.skinTypeTags,
+                          safetyScore: containerImagesRow?.saSafetyScore ?? 0.0,
+                          efficacyScore: containerImagesRow?.saEfficacyScore ?? 0.0,
+                          stabilityScore: containerImagesRow?.saStabilityScore,
+                          uxScore: containerImagesRow?.saUxScore,
+                          comedogenicityScore: containerImagesRow?.saComedogenicityScore,
+                          ingredients: containerImagesRow?.ingredients ?? '',
+                          topIngredients: data.topIngredients,
+                          issueIngredients: data.issueIngredients,
+                          isStory: false,
+                          tags: containerImagesRow?.skinTypeTags ?? const [],
                           verdict: valueOrDefault<String>(
-                            containerImagesRow.saRatingText,
+                            containerImagesRow?.saRatingText,
                             '',
                           ),
                           lang: FFLocalizations.of(context).languageCode,
                           imageId: widget.imageid ?? 0,
-                          quickSummary: containerImagesRow.saQuickSummary ?? '',
-                          bestForTags: containerImagesRow.saBestForTags ?? const [],
-                          expertAnalysis: containerImagesRow.saExpertAnalysis ?? '',
+                          bestForTags: containerImagesRow?.saBestForTags ?? const [],
                         ),
+                      ),
                       ),
                     ],
                   ),
@@ -302,4 +201,16 @@ class _ShareproductWidgetState extends State<ShareproductWidget> {
       ),
     );
   }
+}
+
+class _ShareData {
+  final ImagesRow? imageRow;
+  final List<String> topIngredients;
+  final List<String> issueIngredients;
+
+  const _ShareData({
+    required this.imageRow,
+    required this.topIngredients,
+    required this.issueIngredients,
+  });
 }

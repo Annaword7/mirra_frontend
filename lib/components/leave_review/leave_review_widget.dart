@@ -2,7 +2,7 @@ import '/auth/supabase_auth/auth_util.dart';
 import '/backend/api_requests/api_calls.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
+import '/design_system/components/app_button.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -119,15 +119,7 @@ class _LeaveReviewWidgetState extends State<LeaveReviewWidget> {
                       ),
                       textAlign: TextAlign.center,
                       style:
-                          FlutterFlowTheme.of(context).headlineSmall.override(
-                                fontFamily: FlutterFlowTheme.of(context)
-                                    .headlineSmallFamily,
-                                fontSize: 26.0,
-                                letterSpacing: 0.0,
-                                fontWeight: FontWeight.bold,
-                                useGoogleFonts: !FlutterFlowTheme.of(context)
-                                    .headlineSmallIsCustom,
-                              ),
+                          FlutterFlowTheme.of(context).displayXS,
                     ),
                   ),
                   Text(
@@ -156,7 +148,7 @@ class _LeaveReviewWidgetState extends State<LeaveReviewWidget> {
                             controller: _model.folderTitleTextController,
                             focusNode: _model.folderTitleFocusNode,
                             autofocus: true,
-                            textCapitalization: TextCapitalization.words,
+                            textCapitalization: TextCapitalization.sentences,
                             textInputAction: TextInputAction.done,
                             obscureText: false,
                             decoration: InputDecoration(
@@ -229,7 +221,7 @@ class _LeaveReviewWidgetState extends State<LeaveReviewWidget> {
                                   return TextEditingValue(
                                     selection: newValue.selection,
                                     text: newValue.text.toCapitalization(
-                                        TextCapitalization.words),
+                                        TextCapitalization.sentences),
                                   );
                                 }),
                             ],
@@ -241,7 +233,10 @@ class _LeaveReviewWidgetState extends State<LeaveReviewWidget> {
                   if (!(isWeb
                       ? MediaQuery.viewInsetsOf(context).bottom > 0
                       : _isKeyboardVisible))
-                    FFButtonWidget(
+                    AppButton(
+                      label: FFLocalizations.of(context).getText(
+                        '0n0273ug' /* Send */,
+                      ),
                       onPressed: () async {
                         HapticFeedback.lightImpact();
                         if (_model.formKey.currentState == null ||
@@ -255,35 +250,6 @@ class _LeaveReviewWidgetState extends State<LeaveReviewWidget> {
 
                         Navigator.pop(context);
                       },
-                      text: FFLocalizations.of(context).getText(
-                        '0n0273ug' /* Send */,
-                      ),
-                      options: FFButtonOptions(
-                        width: double.infinity,
-                        height: 55.0,
-                        padding:
-                            EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                        iconPadding:
-                            EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                        color: FlutterFlowTheme.of(context).primary,
-                        textStyle: FlutterFlowTheme.of(context)
-                            .titleSmall
-                            .override(
-                              fontFamily:
-                                  FlutterFlowTheme.of(context).titleSmallFamily,
-                              color: Colors.white,
-                              letterSpacing: 0.0,
-                              fontWeight: FontWeight.w600,
-                              useGoogleFonts: !FlutterFlowTheme.of(context)
-                                  .titleSmallIsCustom,
-                            ),
-                        elevation: 0.0,
-                        borderSide: BorderSide(
-                          color: Colors.transparent,
-                          width: 1.0,
-                        ),
-                        borderRadius: BorderRadius.circular(50.0),
-                      ),
                     ),
                 ].divide(SizedBox(height: 15.0)),
               ),

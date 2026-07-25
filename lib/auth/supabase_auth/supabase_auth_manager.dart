@@ -183,18 +183,41 @@ class SupabaseAuthManager extends AuthManager
     try {
       await SupaFlow.client
           .rpc('claim_anonymous_scans', params: {'anon_uid': anonUid});
-    } catch (_) {
+    } catch (e) {
       // Migration is best-effort; never block the sign-in flow.
+      debugPrint('claim_anonymous_scans failed for anon_uid=$anonUid: $e');
     }
   }
 
   @override
-  Future<BaseAuthUser?> signInWithApple(BuildContext context) =>
-      _signInOrCreateAccount(context, appleSignInFunc);
+  Future<BaseAuthUser?> signInWithApple(BuildContext context) async {
+    // If the current session is anonymous, capture the UID so we can
+    // reassign its scans to the real account after sign-in.
+    final anonUid = _anonUidIfAnonymous();
+
+    final result = await _signInOrCreateAccount(context, appleSignInFunc);
+
+    if (result != null && anonUid != null) {
+      await _claimAnonScans(anonUid);
+    }
+
+    return result;
+  }
 
   @override
   Future<BaseAuthUser?> signInAnonymously(BuildContext context) async {
     try {
+      // Re-use the live session if there is one: supabase's signInAnonymously()
+      // ALWAYS mints a brand-new user, so calling it twice (e.g. scan flow's
+      // _ensureCountrySet followed by GuestPrefsSheet save) orphaned the first
+      // anonymous account on every guest onboarding.
+      final existing = SupaFlow.client.auth.currentUser;
+      if (existing != null) {
+        final authUser = MiRRADevSupabaseUser(existing);
+        currentUser = authUser;
+        AppStateNotifier.instance.update(authUser);
+        return authUser;
+      }
       final response = await SupaFlow.client.auth.signInAnonymously();
       final user = response.user;
       final authUser = user == null ? null : MiRRADevSupabaseUser(user);

@@ -11,6 +11,7 @@ import '/flutter_flow/flutter_flow_widgets.dart';
 import '/backend/schema/structs/index.dart';
 import '/custom_code/actions/index.dart' as actions;
 import '/flutter_flow/revenue_cat_util.dart' as revenue_cat;
+import '/design_system/components/pro_pill.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -33,15 +34,25 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
+  bool _offeringsLoading = false;
+
   @override
   void initState() {
     super.initState();
     _model = createModel(context, () => PaywallpageModel());
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       // Default to annual plan (better value)
       FFAppState().subscriptionmonth = false;
       safeSetState(() {});
+
+      // Load offerings if not already available
+      if (revenue_cat.offerings?.current?.weekly == null ||
+          revenue_cat.offerings?.current?.annual == null) {
+        safeSetState(() => _offeringsLoading = true);
+        await revenue_cat.loadOfferings();
+        if (mounted) safeSetState(() => _offeringsLoading = false);
+      }
     });
   }
 
@@ -50,6 +61,65 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
     _model.dispose();
 
     super.dispose();
+  }
+
+  bool get _offeringsReady =>
+      revenue_cat.offerings?.current?.weekly != null &&
+      revenue_cat.offerings?.current?.annual != null;
+
+  // Single RevenueCat purchase flow for both plans (was copy-pasted per card).
+  Future<void> _purchasePlan({
+    required bool isMonth,
+    required String package,
+    required int durationDays,
+    required String telegramForm,
+    required String telegramMessage,
+  }) async {
+    FFAppState().subscriptionmonth = isMonth;
+    safeSetState(() {});
+    await actions.rcEnsureLogin(context, currentUserUid);
+    final payment = await actions.rcPurchasePackage(
+      context,
+      'defaultmirra',
+      package,
+      currentUserUid,
+    );
+    if (MessegefrompaymentStruct.maybeFromMap(payment)?.hasOk() == true) {
+      final refreshed =
+          await actions.rcRefreshEntitlement(context, 'EntitlementMirra');
+      if (refreshed!) {
+        FFAppState().isprouser = true;
+        safeSetState(() {});
+        await SubscriptionupgradeNEWBCNDCall.call(
+          host: FFDevEnvironmentValues().backendhost,
+          durationDays: durationDays,
+          userId: currentUserUid,
+        );
+        await TelegrammessegeCall.call(
+          email: currentUserEmail,
+          form: telegramForm,
+          messega: telegramMessage,
+        );
+      }
+    }
+    {
+      final _r = MessegefrompaymentStruct.maybeFromMap(payment!);
+      if (_r != null && !_r.ok) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _r.cancelled
+                  ? FFLocalizations.of(context).getText('pu7x1ck3')
+                  : FFLocalizations.of(context).getText('pe2n5jf8'),
+              style: TextStyle(color: FlutterFlowTheme.of(context).primaryText),
+            ),
+            duration: const Duration(milliseconds: 4000),
+            backgroundColor: FlutterFlowTheme.of(context).secondary,
+          ),
+        );
+      }
+    }
+    safeSetState(() {});
   }
 
   @override
@@ -73,9 +143,10 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
             SafeArea(
           top: true,
           child: Align(
-            alignment: AlignmentDirectional(0.0, 1.0),
+            alignment: AlignmentDirectional(0.0, 0.0),
             child: Container(
               width: double.infinity,
+              height: double.infinity,
               constraints: BoxConstraints(
                 maxWidth: 600.0,
               ),
@@ -87,9 +158,9 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                   width: 1.0,
                 ),
               ),
-              child: Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(16.0, 12.0, 16.0, 32.0),
-                child: SingleChildScrollView(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: EdgeInsetsDirectional.fromSTEB(16.0, 12.0, 16.0, 32.0),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -114,27 +185,9 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                               }
                             },
                           ),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: FlutterFlowTheme.of(context).primary,
-                              borderRadius: BorderRadius.circular(40.0),
-                            ),
-                            child: Padding(
-                              padding: EdgeInsetsDirectional.fromSTEB(12.0, 8.0, 12.0, 8.0),
-                              child: Text(
-                                FFLocalizations.of(context).getText('7n2kv1iq' /* UPGRADE TO PRO */),
-                                style: FlutterFlowTheme.of(context).labelSmall.override(
-                                      font: GoogleFonts.plusJakartaSans(
-                                        fontWeight: FontWeight.bold,
-                                        fontStyle: FlutterFlowTheme.of(context).labelSmall.fontStyle,
-                                      ),
-                                      color: FlutterFlowTheme.of(context).alternate,
-                                      letterSpacing: 1.0,
-                                      fontWeight: FontWeight.bold,
-                                      fontStyle: FlutterFlowTheme.of(context).labelSmall.fontStyle,
-                                    ),
-                              ),
-                            ),
+                          ProPill(
+                            label: FFLocalizations.of(context)
+                                .getText('7n2kv1iq' /* UPGRADE TO PRO */),
                           ),
                           // Spacer to balance the close button
                           SizedBox(width: 44.0),
@@ -156,7 +209,7 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                                 color: Colors.white,
                                 fontSize: 22.0,
                                 letterSpacing: 0.0,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w700,
                                 useGoogleFonts: !FlutterFlowTheme.of(context)
                                     .headlineSmallIsCustom,
                               ),
@@ -167,6 +220,12 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                         updateCallback: () => safeSetState(() {}),
                         child: PremiumFeaturesListWidget(),
                       ).animate().fadeIn(duration: 500.ms, delay: 160.ms).slideY(begin: 0.12, end: 0.0, duration: 500.ms, delay: 160.ms, curve: Curves.easeOut),
+                      if (_offeringsLoading || !_offeringsReady)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 40),
+                          child: CircularProgressIndicator(color: Colors.white),
+                        )
+                      else ...[
                       InkWell(
                         splashColor: Colors.transparent,
                         focusColor: Colors.transparent,
@@ -386,77 +445,14 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                                       padding: EdgeInsetsDirectional.fromSTEB(
                                           0.0, 12.0, 0.0, 0.0),
                                       child: FFButtonWidget(
-                                        onPressed: () async {
-                                          FFAppState().subscriptionmonth = true;
-                                          safeSetState(() {});
-                                          _model.rCUserID =
-                                              await actions.rcEnsureLogin(
-                                            context,
-                                            currentUserUid,
-                                          );
-                                          _model.rCPayment =
-                                              await actions.rcPurchasePackage(
-                                            context,
-                                            'defaultmirra',
-                                            '\$rc_weekly',
-                                            currentUserUid,
-                                          );
-                                          if (MessegefrompaymentStruct
-                                                      .maybeFromMap(
-                                                          _model.rCPayment)
-                                                  ?.hasOk() ==
-                                              true) {
-                                            _model.rcRefreshEntitlement =
-                                                await actions
-                                                    .rcRefreshEntitlement(
-                                              context,
-                                              'EntitlementMirra',
-                                            );
-                                            if (_model.rcRefreshEntitlement!) {
-                                              FFAppState().isprouser = true;
-                                              safeSetState(() {});
-                                              await SubscriptionupgradeNEWBCNDCall
-                                                  .call(
-                                                host: FFDevEnvironmentValues()
-                                                    .backendhost,
-                                                durationDays: 7,
-                                                userId: currentUserUid,
-                                              );
-
-                                              _model.subscriptionmonth =
-                                                  await TelegrammessegeCall
-                                                      .call(
-                                                email: currentUserEmail,
-                                                form: 'Monthpayment',
-                                                messega:
-                                                    'Wow! You have a new month subscription!',
-                                              );
-                                            }
-                                          }
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                MessegefrompaymentStruct
-                                                        .maybeFromMap(
-                                                            _model.rCPayment!)!
-                                                    .message,
-                                                style: TextStyle(
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .primaryText,
-                                                ),
-                                              ),
-                                              duration:
-                                                  Duration(milliseconds: 4000),
-                                              backgroundColor:
-                                                  FlutterFlowTheme.of(context)
-                                                      .secondary,
-                                            ),
-                                          );
-
-                                          safeSetState(() {});
-                                        },
+                                        onPressed: () => _purchasePlan(
+                                          isMonth: true,
+                                          package: '\$rc_weekly',
+                                          durationDays: 7,
+                                          telegramForm: 'Monthpayment',
+                                          telegramMessage:
+                                              'Wow! You have a new month subscription!',
+                                        ),
                                         text:
                                             FFLocalizations.of(context).getText(
                                           '1g94zlat' /* Continue */,
@@ -562,14 +558,14 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                                       child: Padding(
                                         padding: EdgeInsetsDirectional.fromSTEB(12.0, 6.0, 12.0, 6.0),
                                         child: Text(
-                                          'BEST VALUE',
+                                          FFLocalizations.of(context).getText('bv3k9mp1'),
                                           textAlign: TextAlign.center,
                                           style: FlutterFlowTheme.of(context).labelSmall.override(
                                                 fontFamily: FlutterFlowTheme.of(context).labelSmallFamily,
                                                 color: FlutterFlowTheme.of(context).alternate,
-                                                fontSize: 11.0,
+                                                fontSize: 12.0,
                                                 letterSpacing: 1.0,
-                                                fontWeight: FontWeight.bold,
+                                                fontWeight: FontWeight.w700,
                                                 useGoogleFonts: !FlutterFlowTheme.of(context).labelSmallIsCustom,
                                               ),
                                         ),
@@ -839,85 +835,14 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                                                 EdgeInsetsDirectional.fromSTEB(
                                                     0.0, 12.0, 0.0, 0.0),
                                             child: FFButtonWidget(
-                                              onPressed: () async {
-                                                FFAppState().subscriptionmonth =
-                                                    false;
-                                                safeSetState(() {});
-                                                _model.rCUserID2 =
-                                                    await actions.rcEnsureLogin(
-                                                  context,
-                                                  currentUserUid,
-                                                );
-                                                _model.rCPayment2 =
-                                                    await actions
-                                                        .rcPurchasePackage(
-                                                  context,
-                                                  'defaultmirra',
-                                                  '\$rc_annual',
-                                                  currentUserUid,
-                                                );
-                                                if (MessegefrompaymentStruct
-                                                            .maybeFromMap(_model
-                                                                .rCPayment2)
-                                                        ?.hasOk() ==
-                                                    true) {
-                                                  _model.rcRefreshEntitlement2 =
-                                                      await actions
-                                                          .rcRefreshEntitlement(
-                                                    context,
-                                                    'EntitlementMirra',
-                                                  );
-                                                  if (_model
-                                                      .rcRefreshEntitlement2!) {
-                                                    FFAppState().isprouser =
-                                                        true;
-                                                    safeSetState(() {});
-                                                    await SubscriptionupgradeNEWBCNDCall
-                                                        .call(
-                                                      host:
-                                                          FFDevEnvironmentValues()
-                                                              .backendhost,
-                                                      durationDays: 365,
-                                                      userId: currentUserUid,
-                                                    );
-
-                                                    _model.yearsubscription =
-                                                        await TelegrammessegeCall
-                                                            .call(
-                                                      email: currentUserEmail,
-                                                      form: 'subscription year',
-                                                      messega:
-                                                          'Wow! You have a new YEAR subscription!',
-                                                    );
-                                                  }
-                                                }
-                                                ScaffoldMessenger.of(context)
-                                                    .showSnackBar(
-                                                  SnackBar(
-                                                    content: Text(
-                                                      MessegefrompaymentStruct
-                                                              .maybeFromMap(_model
-                                                                  .rCPayment2!)!
-                                                          .hasMessage()
-                                                          .toString(),
-                                                      style: TextStyle(
-                                                        color:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .primaryText,
-                                                      ),
-                                                    ),
-                                                    duration: Duration(
-                                                        milliseconds: 4000),
-                                                    backgroundColor:
-                                                        FlutterFlowTheme.of(
-                                                                context)
-                                                            .secondary,
-                                                  ),
-                                                );
-
-                                                safeSetState(() {});
-                                              },
+                                              onPressed: () => _purchasePlan(
+                                                isMonth: false,
+                                                package: '\$rc_annual',
+                                                durationDays: 365,
+                                                telegramForm: 'subscription year',
+                                                telegramMessage:
+                                                    'Wow! You have a new YEAR subscription!',
+                                              ),
                                               text: FFLocalizations.of(context)
                                                   .getText(
                                                 'ps8msu6e' /* Continue */,
@@ -981,14 +906,15 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                           ),
                         ),
                       ).animate().fadeIn(duration: 500.ms, delay: 320.ms).slideY(begin: 0.12, end: 0.0, duration: 500.ms, delay: 320.ms, curve: Curves.easeOut),
+                      ], // end of offerings-ready block
                       Padding(
                         padding: EdgeInsetsDirectional.fromSTEB(0.0, 16.0, 0.0, 0.0),
                         child: Text(
-                          'Cancel anytime · Secure payment via App Store',
+                          FFLocalizations.of(context).getText('ca7s2xqt'),
                           textAlign: TextAlign.center,
                           style: FlutterFlowTheme.of(context).bodySmall.override(
                                 fontFamily: FlutterFlowTheme.of(context).bodySmallFamily,
-                                color: Colors.white.withOpacity(0.45),
+                                color: Colors.white.withOpacity(0.6),
                                 fontSize: 12.0,
                                 letterSpacing: 0.0,
                                 useGoogleFonts: !FlutterFlowTheme.of(context).bodySmallIsCustom,
@@ -1020,7 +946,7 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    'You\'ve Successfuly RetrivedYour Subscription',
+                                    FFLocalizations.of(context).getText('rs4p1dq2'),
                                     style: TextStyle(
                                       color: FlutterFlowTheme.of(context)
                                           .primaryText,
@@ -1035,7 +961,7 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    'Something went wrong. We were unable to restore your purchases.',
+                                    FFLocalizations.of(context).getText('rf9m3wk5'),
                                     style: TextStyle(
                                       color: FlutterFlowTheme.of(context)
                                           .primaryText,
@@ -1063,7 +989,7 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                                       .bodyMediumFamily,
                                   color: FlutterFlowTheme.of(context).primary,
                                   letterSpacing: 0.0,
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w700,
                                   useGoogleFonts: !FlutterFlowTheme.of(context)
                                       .bodyMediumIsCustom,
                                 ),
@@ -1084,7 +1010,7 @@ It is a sy... */,
                               .override(
                                 fontFamily: FlutterFlowTheme.of(context)
                                     .bodyMediumFamily,
-                                color: Colors.white.withOpacity(0.35),
+                                color: Colors.white.withOpacity(0.6),
                                 fontSize: 12.0,
                                 letterSpacing: 0.0,
                                 fontWeight: FontWeight.w500,
@@ -1120,7 +1046,7 @@ It is a sy... */,
                                       color:
                                           FlutterFlowTheme.of(context).primary,
                                       letterSpacing: 0.0,
-                                      fontWeight: FontWeight.bold,
+                                      fontWeight: FontWeight.w700,
                                       useGoogleFonts:
                                           !FlutterFlowTheme.of(context)
                                               .bodyMediumIsCustom,
@@ -1148,7 +1074,7 @@ It is a sy... */,
                                       color:
                                           FlutterFlowTheme.of(context).primary,
                                       letterSpacing: 0.0,
-                                      fontWeight: FontWeight.bold,
+                                      fontWeight: FontWeight.w700,
                                       useGoogleFonts:
                                           !FlutterFlowTheme.of(context)
                                               .bodyMediumIsCustom,

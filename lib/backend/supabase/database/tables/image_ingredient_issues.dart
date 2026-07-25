@@ -37,4 +37,10 @@ class ImageIngredientIssuesRow extends SupabaseDataRow {
 
   DateTime? get createdAt => getField<DateTime>('created_at');
   set createdAt(DateTime? value) => setField<DateTime>('created_at', value);
+
+  /// Skin profiles this warning addresses (e.g. ['sensitive']);
+  /// ['all'] = everyone; empty = informational note.
+  List<String> get relevantFor => getListField<String>('relevant_for');
+  set relevantFor(List<String>? value) =>
+      setListField<String>('relevant_for', value);
 }

@@ -1,8 +1,11 @@
 import 'dart:io';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:timezone/data/latest_all.dart' as tzdata;
+import 'package:timezone/timezone.dart' as tz;
 
 // Top-level handler for background messages (required by firebase_messaging)
 @pragma('vm:entry-point')
@@ -52,6 +55,10 @@ class NotificationService {
 
     await _setupLocalNotifications();
 
+    // Local scheduling for routine reminders (isolated from the FCM path;
+    // failures here must never break push delivery).
+    await _initScheduling();
+
     if (!await _waitForApnsToken()) return;
 
     final token = await _fcm.getToken();
@@ -77,8 +84,14 @@ class NotificationService {
       _saveToken(newToken);
     });
 
-    // Foreground: show as local notification
+    // Foreground: if message carries image_id (analysis complete), navigate immediately.
+    // Otherwise show as local notification so user can tap at their convenience.
     FirebaseMessaging.onMessage.listen((message) {
+      final imageId = message.data['image_id'];
+      if (imageId != null) {
+        _onTap?.call(message.data);
+        return;
+      }
       final n = message.notification;
       if (n == null) return;
       _localNotifications.show(
@@ -98,7 +111,7 @@ class NotificationService {
             presentSound: true,
           ),
         ),
-        payload: message.data['image_id'],
+        payload: imageId,
       );
     });
 
@@ -138,8 +151,8 @@ class NotificationService {
           .update({'is_active': false})
           .eq('user_id', userId)
           .eq('token', token);
-    } catch (e) {
-      debugPrint('[Push] Failed to deactivate token: $e');
+    } catch (e, s) {
+      FirebaseCrashlytics.instance.recordError(e, s, fatal: false, reason: 'deactivate push token failed');
     }
   }
 
@@ -160,8 +173,8 @@ class NotificationService {
         onConflict: 'user_id,token',
       );
       debugPrint('[Push] Token saved for user $userId');
-    } catch (e) {
-      debugPrint('[Push] Failed to save token: $e');
+    } catch (e, s) {
+      FirebaseCrashlytics.instance.recordError(e, s, fatal: false, reason: 'save push token failed');
     }
   }
 
@@ -176,10 +189,115 @@ class NotificationService {
         android: AndroidInitializationSettings('@mipmap/ic_launcher'),
         iOS: DarwinInitializationSettings(),
       ),
-      onDidReceiveNotificationResponse: (response) {
-        final imageId = response.payload;
-        if (imageId != null) _onTap?.call({'image_id': imageId});
-      },
+      onDidReceiveNotificationResponse: (response) =>
+          _routeLocalPayload(response.payload),
     );
+
+    // App launched from a terminated state by tapping a local notification.
+    final launch =
+        await _localNotifications.getNotificationAppLaunchDetails();
+    if (launch?.didNotificationLaunchApp ?? false) {
+      final payload = launch!.notificationResponse?.payload;
+      if (payload != null) {
+        await Future.delayed(const Duration(milliseconds: 1200));
+        _routeLocalPayload(payload);
+      }
+    }
+  }
+
+  // Local-notification payloads carry an image id. Stale 'routine' payloads
+  // from the removed experiment are ignored (non-numeric id → no navigation).
+  void _routeLocalPayload(String? payload) {
+    if (payload == null || payload == 'routine' || payload == 'care') return;
+    _onTap?.call({'image_id': payload});
+  }
+
+  // ── Scheduled local reminders (generic weekly mechanism) ────────────────────
+
+  bool _schedulingReady = false;
+
+  Future<void> _initScheduling() async {
+    try {
+      tzdata.initializeTimeZones();
+      tz.setLocalLocation(_resolveLocalLocation());
+      if (Platform.isIOS) {
+        await _localNotifications
+            .resolvePlatformSpecificImplementation<
+                IOSFlutterLocalNotificationsPlugin>()
+            ?.requestPermissions(alert: true, badge: true, sound: true);
+      }
+      _schedulingReady = true;
+    } catch (e, s) {
+      FirebaseCrashlytics.instance
+          .recordError(e, s, fatal: false, reason: 'init scheduling failed');
+    }
+  }
+
+  /// Best-effort local timezone. Uses the current UTC offset mapped to an
+  /// Etc/GMT zone. Caveat: whole-hour offsets only; DST shifts are not tracked
+  /// (a fixed-offset zone). Half-hour zones fall back to UTC.
+  tz.Location _resolveLocalLocation() {
+    try {
+      final offset = DateTime.now().timeZoneOffset;
+      if (offset.inMinutes % 60 == 0) {
+        final h = offset.inHours;
+        // Etc/GMT signs are inverted relative to the UTC offset.
+        final name = h == 0 ? 'UTC' : 'Etc/GMT${h > 0 ? '-' : '+'}${h.abs()}';
+        return tz.getLocation(name);
+      }
+    } catch (_) {}
+    return tz.getLocation('UTC');
+  }
+
+  tz.TZDateTime _nextInstanceOf(int weekday, int hour, int minute) {
+    final now = tz.TZDateTime.now(tz.local);
+    var scheduled =
+        tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
+    while (scheduled.weekday != weekday || !scheduled.isAfter(now)) {
+      scheduled = scheduled.add(const Duration(days: 1));
+    }
+    return scheduled;
+  }
+
+  /// Schedule a weekly-repeating reminder for each weekday (1=Mon..7=Sun).
+  /// Per-weekday notification ids derive from [baseId] so they can be cancelled.
+  Future<void> scheduleWeeklyReminders({
+    required int baseId,
+    required List<int> weekdays,
+    required int hour,
+    required int minute,
+    required String title,
+    required String body,
+    String? payload,
+  }) async {
+    if (!_schedulingReady) return;
+    for (final wd in weekdays) {
+      await _localNotifications.zonedSchedule(
+        baseId * 10 + wd,
+        title,
+        body,
+        _nextInstanceOf(wd, hour, minute),
+        NotificationDetails(
+          android: AndroidNotificationDetails(
+            _androidChannel.id,
+            _androidChannel.name,
+            channelDescription: _androidChannel.description,
+            icon: '@mipmap/ic_launcher',
+          ),
+          iOS: const DarwinNotificationDetails(),
+        ),
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+        matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
+        payload: payload,
+      );
+    }
+  }
+
+  Future<void> cancelReminders(int baseId) async {
+    for (var wd = 1; wd <= 7; wd++) {
+      await _localNotifications.cancel(baseId * 10 + wd);
+    }
   }
 }

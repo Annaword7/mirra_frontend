@@ -77,14 +77,14 @@ class _UpgradeWidgetState extends State<UpgradeWidget> {
                   ),
                   style: FlutterFlowTheme.of(context).labelMedium.override(
                         font: GoogleFonts.plusJakartaSans(
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w700,
                           fontStyle: FlutterFlowTheme.of(context)
                               .labelMedium
                               .fontStyle,
                         ),
                         color: FlutterFlowTheme.of(context).alternate,
                         letterSpacing: 0.0,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                         fontStyle:
                             FlutterFlowTheme.of(context).labelMedium.fontStyle,
                       ),

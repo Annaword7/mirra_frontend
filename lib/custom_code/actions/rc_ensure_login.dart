@@ -15,14 +15,21 @@ import 'dart:async';
 import 'package:purchases_flutter/purchases_flutter.dart';
 
 Future<String> rcEnsureLogin(BuildContext context, String appUserId) async {
+  // Skip login when no valid user ID (e.g. paywall shown before account creation)
+  if (appUserId.isEmpty) {
+    return await Purchases.appUserID;
+  }
   try {
     final current = await Purchases.appUserID;
     if (current != appUserId) {
       await Purchases.logIn(appUserId);
     }
+    // Anchor identity in every webhook (incl. store-driven renewals that carry
+    // the original/anonymous app_user_id): the backend reads supabase_uid.
+    await Purchases.setAttributes({'supabase_uid': appUserId});
   } catch (e) {
     debugPrint('rcEnsureLogin error: $e');
-    rethrow;
+    // Don't rethrow — a login failure shouldn't block the purchase UI
   }
   return await Purchases.appUserID;
 }

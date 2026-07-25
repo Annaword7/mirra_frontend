@@ -24,9 +24,17 @@
 			<string>en</string>
 			<string>ru</string>
 			<string>es</string>
+			<string>de</string>
+			<string>fr</string>
+			<string>it</string>
+			<string>pt</string>
+			<string>tr</string>
+			<string>ja</string>
+			<string>ko</string>
+			<string>zh</string>
 		</array>
 		<key>CFBundleName</key>
-		<string>MiRRA dev</string>
+		<string>MiRRA</string>
 		<key>CFBundlePackageType</key>
 		<string>APPL</string>
 		<key>CFBundleShortVersionString</key>
@@ -97,7 +105,7 @@
 						<key>UISceneConfigurationName</key>
 						<string>flutter</string>
 						<key>UISceneDelegateClassName</key>
-						<string>FlutterSceneDelegate</string>
+						<string>MirraSceneDelegate</string>
 						<key>UISceneStoryboardFile</key>
 						<string>Main</string>
 					</dict>

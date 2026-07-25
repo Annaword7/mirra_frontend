@@ -1,0 +1,618 @@
+# Design Review — Track 2 Progress
+
+Governs execution of [DESIGN_REVIEW.md](DESIGN_REVIEW.md) (the source of truth). Work proceeds
+**one initiative at a time**; each is planned and approved before implementation, then lands in small,
+analyze-verified commits. Every Design Review finding must end as **implemented**, **intentionally
+rejected (with justification)**, or **superseded by another implemented change** — nothing skipped.
+
+**Legend:** Status = Not Started / In Progress / Completed. Findings are referenced as
+`C<cluster>·<Screen>·#<row>` (e.g. `C1·Log In·#2`).
+
+## Initiatives (planned order)
+
+| # | Initiative | Backlog | Status | Priority | Est. effort |
+|---|---|---|---|---|---|
+| 1 | **Inputs** — `AppTextField` (visible focus, one fill/border/radius, password toggle) | B10 | **Completed** | High | S–M |
+| 2 | Button system — `AppButton` (primary/secondary/outline/text/destructive, pill) | B1 | **Completed** | High | L |
+| 3 | Accessibility pass — contrast, 12px floor, 44px targets, non-color cues | B3 | **Completed** | High | M |
+| 4 | Semantic color + score system — `semanticScoreColor()`/`statusColor()`/legend | B2 | **Completed** | High | M |
+| 5 | Empty vs loading — `SkeletonGrid` + `MirraEmptyState` | B4 | **Completed** | High | M |
+| 6 | Sheets & dialogs — `MirraBottomSheet`/`MirraDialogCard`/`MirraDragHandle` | B5 | **In Progress** | High | M |
+| 7 | Product surfaces — `ProductTile`/`MirraInfoCard`/`MirraChip`/`ScoreBadge` | B6 | **In Progress** | High | L |
+| 8 | Confirmation & limit consolidation — `ConfirmationSheet`/`ConfirmDialog`/`LimitReached`; delete `makepubluc` | B7 | **Completed** | High | S |
+| 9 | Settings & rows — `SettingsRow`/`SelectableRow`/`SettingsList` | B8 | **In Progress** | Medium | M |
+| 10 | Paywall — `PlanCard`/`FeatureRow`/`ProPill`/dark palette | B9 | **In Progress** | Medium | M |
+| 11 | Typography hygiene — roles over raw TextStyle, `displayXS`, kill local scales | B11 | **In Progress** | Medium | M |
+| 12 | Localization & dead-code cleanup — inline strings→FFLocalizations, remove dead code | B12 | **In Progress** | Medium | S |
+| 13 | Layout constants — `kNavBarHeight`, spacing tokens for magic offsets | B13 | **In Progress** | Low | S |
+
+## ⚠ Repo change — modules deleted (commit `12de10f`, 2026-07-23)
+Four experimental modules were removed by the team mid-Track-2. Their Design Review findings are
+**OBSOLETE (module deleted)** — not to be implemented:
+- **`compatibility_result`** → Cluster 4 findings #1–#7 obsolete (score ring, conflict severity, etc.).
+- **`cosmetic_bag`** + **`cosmetic_bag_intro`** → Cluster 6 findings for those two screens obsolete.
+- **`routine_calendar`** → Cluster 5 routine findings obsolete.
+- **`home_pipeline_widget`** → Cluster 2 pipeline findings obsolete.
+- `navbar_widget` was also heavily modified by the team — re-review before touching (Cluster 2 navbar findings may be stale).
+
+Also: commit `5f59d40` landed the previously-uncommitted in-flight work (search / guest_prefs /
+ingredient_bubbles), so those files are now **unblocked** for migration.
+
+## Coverage note
+Each initiative's detail section (added as it starts) enumerates the exact findings it resolves.
+A finding touched by an earlier initiative is marked **superseded** in the later one rather than
+re-done. The Design Review's **report-only flags** (dead code, null-success bugs, `print()` stubs)
+are tracked under Initiative 12 for a resolve/reject decision — none are silently dropped.
+
+---
+
+## Initiative 1 — Inputs (`AppTextField`)  ·  Status: ✅ Completed
+
+**Goal:** one text-field component with a **visible focus state**, consistent fill/border/radius,
+and a built-in password-visibility toggle with a 44px tap target. Replaces the divergent inline
+`InputDecoration`s and fixes the app-wide invisible-focus bug.
+
+**Decision (approved):** start with Inputs; canonical style = **filled + focus ring** (`surfaceMuted`
+fill, 1px `border` resting, **1.5px `primary` focus**, radius 16, hint `secondaryText`).
+
+**Commit plan:** 1.1 create component · 1.2 auth (log_in, create_account, forgot_password) ·
+1.3 onboarding (onboarding_profile, onboarding_quiz) · 1.4 profile & albums (edit_profile,
+edit_album, new_album) · 1.5 sheet field (link_telegram).
+
+**Commits:**
+- ✅ **1.1** `feat(ds): add AppTextField component` — new `lib/design_system/components/app_text_field.dart`. No migration. `flutter analyze`: clean. Resolves nothing yet (component only; findings resolve as sites migrate in 1.2–1.5).
+- ✅ **1.2** `refactor(auth): migrate auth forms to AppTextField` — log_in (4 fields, incl. removing the `_inputDecoration`/`_inputTextStyle`/`_visibilityIcon` helpers), create_account (2), forgot_password (1). 7 fields → AppTextField. `flutter analyze`: 0 new issues (2 pre-existing `dart:math` unused_import left untouched). **Resolved:** C1·Log In·#2, #4; Create Account·#1, #2; Forgot Password·#1. **Superseded:** password-toggle tap-target (now the component's job). **Still open (not this commit):** Create Account·#5 (double autofocus — behavior, deferred to a11y/UX); Forgot Password·#2,#3,#4,#5,#6 (non-input findings).
+- ✅ **1.3** `refactor(onboarding): migrate onboarding fields to AppTextField` — onboarding_profile (firstName/lastName via `nameField` helper + nickname; removed `_fieldDecoration` + orphaned `theme` local), onboarding_quiz (brands autocomplete field). Also extended AppTextField: **input text → 16px `bodyLarge`** (canonical; makes all inputs consistent — auth create_account/forgot were 14, now 16, log_in already 16), plus `maxLengthEnforcement` + `showCounter` for the nickname's hidden counter. `flutter analyze`: 0 new issues. **Resolved:** C1·Onboarding Profile·#3 (input radius 14→16); Onboarding Quiz·#5 (brands field had no focus). **Note:** Onboarding Profile·#3 also mentioned the section-card radius 20 (a card, not input) — remains for the cards/typography work.
+- ✅ **1.4** `refactor(profile+albums): migrate to AppTextField` — edit_profile (firstName + lastName, preserving the lastName `onFieldSubmitted` DB-save and both capitalization formatters), edit_album (folder title, preserving unfocus-on-submit), new_album (album name). 4 fields. `flutter analyze`: **No issues found**. **Resolved:** C5·Edit Profile·#2 (duplicate decoration), #5 (invisible focus → primary; fill `alternate`→`surfaceMuted`); C6·Edit Album·#1 (decoration dup), #2 (radius 16 vs 24 — now unified 16); New Album·#2 (dup + focus `primaryBackground`→`primary`), #5 (`info` overloaded as field bg → `surfaceMuted`). **Note:** edit_profile·#4 (three-path save logic) is preserved as-is (behavior, out of scope).
+- ✅ **1.5** `refactor(link-telegram): migrate field to AppTextField` — the code/link `TextField` (border: none, radius 12) → AppTextField (radius 16 + visible focus ring); `enabled`/`autofocus`/submit behaviour preserved. `flutter analyze`: **No issues found**. **Resolved:** C8·Group A·#4 (field part). **Note:** #4's non-field parts (raw-hex title/handle colors) and #1,#2,#3,#5,#6,#7,#8 (sheet shell, drag handle, button shape, i18n) belong to the Sheets initiative (#6).
+
+### Initiative 1 — completion summary
+**Delivered:** `AppTextField` (+ `.password`) consumed by **13 fields across 9 screens** (log_in ×4, create_account ×2, forgot_password, onboarding_profile ×2, onboarding_quiz, edit_profile ×2, edit_album, new_album, link_telegram). Every form field now has one filled style, a **visible focus ring**, 16px text, radius 16, and password toggles in a 44px target.
+**Findings resolved:** C1 Log In #2,#4 · Create Account #1,#2 · Forgot Password #1 · Onboarding Profile #3 · Onboarding Quiz #5 · C5 Edit Profile #2,#5 · C6 Edit Album #1,#2 · New Album #2,#5 · C8 Group A #4 (field part). Password-toggle tap-target **superseded** (component-owned).
+**Carried forward (tracked, not dropped):** search bar → future `AppSearchField`; `guest_prefs` dropdown → future dropdown component; Create Account #5 (double autofocus) & Edit Profile #4 (three-path save) → Initiative 3 (a11y/UX); password-toggle a11y label localization → Initiative 12.
+
+**Deferred within this initiative (tracked, not dropped):** Search bar (C3·Search·#1) → future `AppSearchField`; `guest_prefs` dropdown → future dropdown component. Password-toggle label localization → Initiative 12.
+
+---
+
+## Initiative 2 — Button system (`AppButton`)  ·  Status: ✅ Completed
+
+**Decision (approved):** canonical shape = **Pill (radius full / StadiumBorder)**. Variants
+primary/secondary/outline/text/destructive; sizes sm 36 / md 44 / lg 52; built-in loading spinner;
+new `onPrimary` token (white).
+
+**Scope:** all standalone page/form buttons (56 FFButtonWidget, 48 ElevatedButton, 21 TextButton,
+6 OutlinedButton across ~40 files). **Excluded (consume AppButton in their own initiative):** paywall
+`PlanCard`/`ProPill` (→ I10), confirmation-sheet consolidation (→ I8), sheet/dialog shells (→ I6);
+navbar center FAB stays bespoke.
+
+**Findings:** C1·Log In #7,#8 · Onboarding Quiz #4 · C2·Home #7 · startanalys #6 · capture #4 ·
+C3·Search #7 · C5·Profile #8 · Edit Profile #8 · Routine #7 · C6·boards #3 · newboardempty #3 ·
+new_album #3 · cosmetic_bag_intro #4 · C7·confirmation sheets #8 · limit_out #4 · C8·Group A #1(btn) ·
+Group B #11 · dialogs #21 · newblank #40.
+
+**Commit plan:** 2.1 component + token · 2.2 auth · 2.3 onboarding · 2.4 home/capture/search ·
+2.5 profile/routine/settings · 2.6 bag/boards · 2.7 limits + standalone dialog/sheet CTAs · 2.8 misc.
+(Split auth vs onboarding for reviewability — onboarding_quiz has 7 buttons via `_primaryBtn`/`_secondaryBtn` builders.)
+
+**Apple sign-in buttons are intentionally excluded** (Apple HIG requires their own branded style) — kept as `FFButtonWidget`; tracked for a future dedicated `AppleButton` if desired.
+
+**Commits:**
+- ✅ **2.1** `feat(ds): add AppButton component + onPrimary token` — new `lib/design_system/components/app_button.dart` (pill, 5 variants, 3 sizes, loading); added `onPrimary` (white) field to `LightModeTheme`. No migration. `flutter analyze`: **No issues found**. Resolves nothing yet (findings resolve as buttons migrate).
+- ✅ **2.2** `refactor(auth): migrate auth CTAs to AppButton` — log_in (Log in + Create account), create_account (Create account), forgot_password (Send reset). 4 primary CTAs: height 55 → lg (52), radius 50 → pill token; async `onPressed` + loading preserved (`FFButtonWidget` default `showLoadingIndicator: true` ≙ AppButton spinner). Removed the orphaned `flutter_flow_widgets` import in forgot_password. `flutter analyze`: 0 new issues (2 pre-existing `dart:math` untouched). **Resolved (button parts):** C1·Log In·#8 (height 55) and #7 (button radius 50 → pill; the tab-pill/icon-button radii remain — not button-family); Forgot Password·#5 (the 55/50 CTA part; back button remains for an icon-button pass). **Excluded:** Apple sign-in buttons (branded).
+- ✅ **2.3** `refactor(onboarding): migrate onboarding buttons to AppButton` — onboarding_quiz (7 buttons: consolidated the `_primaryBtn`/`_secondaryBtn` FFButtonOptions builders — heights 52/46/55 → lg/md, `_secondaryBtn` → outline variant, disabled-goals via null onPressed) + onboarding_profile (Continue). Removed both builders and the orphaned `flutter_flow_widgets` imports. `flutter analyze`: 0 new issues (1 pre-existing `withOpacity` info). **Resolved:** C1·Onboarding Quiz·#4 (button-height proliferation → lg/md). **Left as-is:** the step "skip/none/change" `TextButton`s are link-style secondary actions (not FFButtonWidget, not a specific finding) — a future `AppButton.text` pass could adopt them.
+- ✅ **2.4** `refactor(home+capture): migrate CTAs to AppButton` — home (PRO chip: 35/18 → `sm` pill w/ crown icon, `fullWidth:false`; empty-state CTA: 50/50 → pill, nav via void onPressed to avoid a spinner-during-navigation regression), takeor_upload (Take a photo + Choose from gallery capture CTAs: 65/36 → pill lg, dropping the alpha-baked `0xD25C85D9` fill → solid `primary`). `flutter analyze`: **0 errors** project-wide (isolated-file analysis shows false package-import errors — verified against full analyze). **Resolved:** C2·Home·#7 (button heights/radii), capture·#4 (capture CTAs) + #2 (alpha-baked primary → token). **Excluded/deferred:** `search_widget` (still your uncommitted in-flight work — deferred until it lands); `startanalys` (print() stub, likely orphaned → I12 dead-code); takeor_upload's info-dialog `ElevatedButton` → I6 (dialog shell); home `TextButton` links left as-is.
+- ✅ **2.5** `refactor(profile): migrate profile+edit_profile buttons to AppButton` — [branch `track2-design`] profile ×5 (anon Create account → **primary** [was cream `secondary` — approved brand change], Sign in → secondary, End session → text/sm, Log out → secondary, Delete account → text/sm [kept quiet, approved]) + edit_profile Save → primary. Removed orphaned `flutter_flow_widgets` imports. `flutter analyze`: **0 errors** project-wide. **Resolved:** C5·Profile·#8 (button height/radius mix), #4 (button-color part: `#E7E8EB` sign-in/out → secondary variant); Edit Profile·#8 (Save radius 50 → pill). **Note:** settings (countries/langs) have no buttons; routine deleted. Profile·#1 (settings-**row** pattern) is InkWell rows → Initiative 9.
+- ✅ **2.6** `refactor(boards): migrate boards buttons to AppButton` — boards New board (40/24 → primary md, icon, `fullWidth:false`), albumslist Apply (55/30 → primary), newboardempty Create collection (52/24 → primary, icon), edit_album Save (→ primary) + **Delete (`tertiary`/peach → destructive/error)**, new_album Create (→ primary) + Cancel (`info` fill → secondary). 7 buttons; removed 5 orphaned `flutter_flow_widgets` imports. `flutter analyze`: **0 errors** project-wide. **Resolved:** C6·boards·#3, newboardempty·#3, new_album·#3 + #5 (Cancel `info` overload), edit_album·#3 (delete `tertiary`→destructive) + #4, albumslist·#4. **Left for I8:** edit_album's AlertDialog `TextButton`s (Cancel/Delete, hardcoded 'Delete' string + `#D32F2F`).
+- ✅ **2.7** `refactor(search): migrate search buttons to AppButton` — the "AI" parse button (`ElevatedButton` r12/44, isParsing spinner → `AppButton` md pill, `loading:`, `fullWidth:false`) and the Search button (`ElevatedButton` r14/52, isSearching spinner → `AppButton` lg pill, `loading:`). Both loading states map to AppButton's `loading` param. `flutter analyze`: **0 errors** project-wide. **Resolved:** C3·Search·#7 (AI 44 / Search 52 button heights → pill). **Remains:** Search·#8 (two overlapping search triggers) is a UX-flow finding, not a button-style one.
+- ✅ **2.8** `refactor(itemcard2+toprated): migrate anon-prompt + filter buttons to AppButton` — itemcard2 ×3 (anon-gate Create account → primary, Sign in `OutlinedButton` → outline, copy-login Sign in → primary), toprated filter-sheet Apply (`ElevatedButton` r14/52 → primary pill). `flutter analyze`: **0 errors** project-wide (pre-existing unused_element/null-aware warnings untouched). **Resolved:** C3·toprated·#3 (Apply button 52 → pill); itemcard2 anon-prompt CTAs consolidated. TextButton links in both left as-is.
+- ✅ **2.9** `refactor(newblank): migrate CTA to AppButton + reformat` — added `AppButton.trailingIcon` (leading-icon sibling, for CTA arrows); newblank "Try free" CTA (`ElevatedButton` r30 + trailing arrow) → AppButton primary pill with `trailingIcon`. `dart format`ed the file (545 → 331 lines). Void `onPressed` so the guest-prefs sheet doesn't trigger the button spinner. `flutter analyze`: **No issues found**. **Resolved:** C8·newblank·#40 (button radius 30 → pill), #42 (FlutterFlow blank-line formatting). **Remains:** newblank·#39 (silent return on null context — UX/I3) and #41 (raw `Colors.black/white` — color/I4).
+
+### Initiative 2 — completion summary
+**Delivered:** `AppButton` (pill; 5 variants, 3 sizes, loading spinner, leading + `trailingIcon`) + `onPrimary` token, consumed by **~30 buttons across 15 screens** (auth ×4, onboarding ×8, home/capture ×4, profile+edit ×6, boards ×7, search ×2, itemcard2 ×3, toprated, newblank).
+**Findings resolved:** Log In #7,#8 · Forgot Password #5(CTA) · Onboarding Quiz #4 · Home #7 · capture #4,#2 · Search #7 · Profile #8,#4(btn) · Edit Profile #8 · boards #3 · newboardempty #3 · new_album #3,#5 · edit_album #3,#4 · albumslist #4 · toprated #3 · newblank #40,#42.
+**Excluded (owned by later initiatives, will consume AppButton):** Apple sign-in buttons (branded) · paywall PlanCard/ProPill → I10 · confirmation/limit surfaces (limit_out, out_of_generations, make*/copyitem/hidenavailability, deleteitem, markasspam, delete_confirmation, edit_album AlertDialog) → I8 · error_popup + takeor_upload info-dialog → I6 · navbar FAB stays bespoke · startanalys print() stub → I12 · TextButton link-style actions left as-is.
+
+- ✅ **2.10** `refactor(sheets): migrate simple sheet CTAs to AppButton` — follow-up after a review noted the `link_telegram` "Привязать" button still looked different (rounded-rect r14 among pills). Pulled the button-part of the simple sheet CTAs forward from I6: **link_telegram** (Привязать, `loading:_submitting`), **guest_prefs** (Continue, `loading:_saving`) — both were `ElevatedButton` r14 rectangles; **leave_review** (Send) + **negative_feedback** (submit) — `FFButtonWidget` r50. All → `AppButton` primary pill. Removed 2 orphaned `flutter_flow_widgets` imports. `flutter analyze`: **0 errors**. **Resolved:** C8·Group A·#1 (button part), Group B·#11 (button-shape r14/r50 → unified pill). The **sheet shells** (radius/handle/padding/dialog structure) still land in I6.
+
+---
+
+## Initiative 8 — Confirmation & limits  ·  Status: In Progress (button-only pass)
+
+**Scope decision (approved):** **button-only** — migrate the remaining CTAs in confirmation
+dialogs / visibility sheets / limit surfaces to `AppButton` to finish the button consistency.
+**Consolidation is deferred** (one `ConfirmationSheet`/`ConfirmDialog`/`LimitReached`, deleting
+`makepubluc`, rewriting call-sites) — a separate dedicated effort, since `topratings` is the team's
+active area. Layout is preserved; only the button widgets change.
+
+**Commits:**
+- ✅ **8.1** `refactor(dialogs): confirm-dialog buttons → AppButton` — deleteitem (Delete → **destructive**, Cancel → text), markasspam (Cancel → secondary, Hide `#1976D2` → **primary**; both wrapped in `Expanded` to fix the fixed-140 overflow), delete_confirmation (Delete `tertiary` → **destructive**, Cancel `info` → secondary; nested error `AlertDialog` preserved). Removed 2 orphaned `flutter_flow_widgets` imports. `flutter analyze`: **0 errors**. **Resolved (button parts):** C3·deleteitem·#2,#4; markasspam·#1 (blue→primary),#4 (Expanded); delete_confirmation·#15 (destructive now red). **Not done (button-only scope):** dialog **consolidation** (deleteitem+markasspam+delete_confirmation → one `ConfirmDialog`); markasspam·#5 copy comment; delete_confirmation·#14 (null-success bug → UX/I12).
+- ✅ **8.2** `refactor(topratings): visibility-sheet buttons → AppButton` — makepublic / makepubluc / makeprivate (single «Ok» → primary md), hidenavailability («Go PRO» → primary md), copyitem (Cancel → secondary, Copy → primary + `loading:_isLoading`). All `fullWidth:false` (centered). Removed 5 orphaned `flutter_flow_widgets` imports. `flutter analyze`: **0 errors**. **Resolved (button parts):** the 140×44/r8 buttons → pill md across all 5 sheets. **Not done (button-only scope):** consolidation into one `ConfirmationSheet` + **deleting the `makepubluc` twin** (still present) — deferred.
+- ✅ **8.3** `refactor(limits): limit_out + out_of_generations buttons → AppButton` — limit_out (Pro «Got it» + non-Pro «Upgrade to Pro», both → primary), out_of_generations («Got it» → primary, page-load animation preserved). Removed 2 orphaned `flutter_flow_widgets` imports. `flutter analyze`: **0 errors**. **Resolved (button parts):** limit_out·#2 (two identical buttons now consistent). **Not done:** merging limit_out + out_of_generations into one `LimitReached` — deferred (button-only scope).
+- ✅ **8.4 / I6.1** `refactor(popups): dialog buttons → AppButton` — error_popup (4 dialog CTAs across its 3 dialogs: OK/Analyze → primary, Close/Continue-anyway → secondary), takeor_upload info-dialog («button» → primary). All `SizedBox`+`ElevatedButton` r14 → AppButton pill. `flutter analyze`: **0 errors**. **Resolved (button parts):** C8·Group B·#11 (dialog button shape) for these; the I6 **shells** (`MirraDialogCard`/`MirraBottomSheet`/drag-handle) remain.
+
+### I6/I8 button-only pass — summary
+Every remaining sheet/dialog/confirmation/limit **CTA** is now `AppButton` (pill): confirm dialogs, topratings visibility sheets, limits, error_popup, info-dialog, + the 2.10 sheet CTAs. **No old-styled buttons remain** except the intentional exclusions: **paywall** (→ I10 `PlanCard`/`ProPill`), **startanalys** print()-stub (→ I12), **Apple** sign-in (branded), **navbar FAB** (bespoke). Structural work still owed by I6 (shells) and I8 (consolidation + delete `makepubluc`).
+
+---
+
+## Initiative 3 — Accessibility  ·  Status: ✅ Completed
+
+**Goal:** meet a baseline: AA text contrast, a ≥12px type floor, ≥44–48px tap targets, and
+non-color status cues. Source: DESIGN_REVIEW cluster **B3** + per-screen a11y rows.
+
+**Scope boundaries (agreed):** pure-a11y only. **Deferred to owning initiatives** (tracked, not
+skipped): **non-color status cues** (score rings / ingredient highlights / status dots) → **I4**
+(built with `statusColor`/`ScoreRing`/`StatusLegend`); **painter-embedded sub-12** (radar 9.5/9/8,
+share-card 7.5px mini-bars) → **I4** (painters rebuilt there); **untranslated strings** → I12; field
+**focus states** → already delivered in Initiative 1.
+
+**Commit plan:** 3.1 contrast (secondaryText token) · 3.2 12px floor (simple `Text`) ·
+3.3 min tap targets (44–48px) · 3.4 behavior a11y (autofocus).
+
+**Commits:**
+- ✅ **3.1** `fix(a11y): secondaryText #929292 → #6B6B6B (WCAG AA)` — darkened the single
+  `secondaryText` token in `LightModeTheme` from `#929292` (~2.8:1 on white, **fails AA**) to
+  **`#6B6B6B`** (~4.9:1, **passes AA** for normal text). One-line token change; all ~70
+  `.secondaryText` sites (body copy, hints, chevrons, and `secondaryText.withOpacity(0.5)`
+  placeholders) inherit the fix. `flutter analyze`: **0 errors / 0 warnings**. **Resolved:** B3
+  contrast; C1·Log In (helper #6), Search·#301 (faded placeholder), Profile/settings chevron-label
+  rows, forgot-password body #6 — the app-wide body-copy contrast failure. **Note:** this is an
+  intentional global visual change (all secondary text darkens) — approved.
+- ✅ **3.2** `fix(a11y): raise sub-12 Text to 12px floor` — bumped `fontSize:11 → 12` on 7 plain leaf
+  `Text` widgets: search selection-count chip (487), imagedetailed SPF badge (190), ingridients
+  status label (193), login_feature_cards score `94/100` (120) + scan subtitle (265) + pill label
+  (373), profile env badge (136), ingredient_bubbles legend status-label (394) + concentration (404).
+  1px bumps, no layout risk. `flutter analyze`: **0 errors / 0 warnings**. **Resolved (font-size
+  part):** C·ingredient_bubbles legend, feature-card sub-12, search count. **Excluded/deferred:**
+  **paywall** 587 → I10; **startanalys** 253 → **I12** (widget is unrouted/dead — no route or
+  external instantiation); **share_card** (7.5/9) + **score_breakdown** (8/9/9.5) → **I4** (text
+  inside `CustomPaint`/`TextPainter` — rebuilt with the score system, changing size now risks
+  painter layout). Non-color status cue on the ingredient_bubbles label stays for **I4**.
+- ✅ **3.3** `fix(a11y): enforce >=44-48px tap targets` — (a) **app-bar icon-button fleet**: all
+  `FlutterFlowIconButton buttonSize:40 → 48` (+ `borderRadius:20 → 24` to keep the circle), 7 buttons
+  across 5 files (langs, countries, imagesby_album ×2, forgot_password, edit_profile ×2) — Material
+  48 floor. (b) **shareproduct** back: bare `InkWell`+`Icon(24)` → 44×44 `SizedBox` hit area
+  (`Align.centerStart` keeps the arrow's visual position). (c) **search** filter chip (~32px) →
+  `minHeight:44` + center. (d) **onboarding_profile** preset-avatar tile 44×44 → 48×48.
+  `flutter analyze`: **0 errors / 0 warnings**; tests `+9 -1` (pre-existing boilerplate failure only).
+  **Resolved:** B3 tap-target rows — Search·#302 (chip), Onboarding Profile·#187 (avatars),
+  shareproduct/settings/albums back buttons·#450-type. **Excluded (verified):** share_card 45×45
+  avatar is **non-interactive** (static share image — N/A); routine step rows → module deleted;
+  navbar → team-modified (re-review); password toggles → already component-owned (Initiative 1).
+- ✅ **3.4** `fix(a11y): create_account autofocus email only` — the password field
+  (`AppTextField.password`) had `autofocus:true` alongside the email field's, so it silently won and
+  the screen opened focused on **password**. Set the password field to `autofocus:false`; email now
+  receives initial focus. `flutter analyze`: **0 errors / 0 warnings**. **Resolved:** Create
+  Account·#5 (double autofocus — the behavior finding deferred back in Initiative 1.2).
+
+### Initiative 3 — completion summary
+**Delivered a11y baseline:** (1) **contrast** — `secondaryText` #929292→#6B6B6B (AA) app-wide;
+(2) **12px floor** — 7 sub-12 leaf `Text` widgets bumped to 12; (3) **tap targets** — icon-button
+fleet 40→48, shareproduct/search/onboarding hit areas to ≥44–48; (4) **behavior** — create_account
+autofocus fixed. `flutter analyze` clean throughout; tests `+9 -1` (pre-existing boilerplate only).
+**Findings resolved:** B3 (contrast, 12px floor, min tap targets) + Create Account·#5.
+**Explicitly carried forward (tracked, not skipped):**
+- **Non-color status cues** (score rings / ingredient-highlight / status dots = color-only) → **I4**
+  (built with `statusColor`/`ScoreRing`/`StatusLegend`).
+- **Painter-embedded sub-12** (share_card 7.5/9px, score_breakdown 8/9/9.5px, radar) → **I4**.
+- **paywall** sub-12 → **I10**; **startanalys** sub-12 → **I12** (unrouted/dead).
+- **Untranslated a11y strings** (`'Retry'`, `'Delete'`, `'Active'/'Issues'`, forgot-pw feedback) → **I12**.
+
+---
+
+## Initiative 4 — Semantic color + score system  ·  Status: ✅ Completed
+
+**Goal:** one score ramp + one status palette + non-color cues, replacing the copy-pasted and
+**contradictory** score/status logic. Source: DESIGN_REVIEW cluster **B2** + score/status a11y rows
+(incl. the non-color-cue + painter sub-12 items **deferred here from Initiative 3**).
+
+**Contradictions found (evidence):**
+- **Score ramp** — identical 5-tier `_scoreColor`(0–100) + A–F grade copy-pasted in **3 files**
+  (share_card, imagedetailed_main, imagedetailed_top_raited): `≥75 #1B5E20 · ≥65 #43A047 · ≥55
+  #C0CA33 · ≥45 #FFB300 · ≥35 #FF7043 · <35 #D32F2F`.
+- **Status palette** — 3 mappings for the same `working`/`borderline`/`decorative`: product_card_v2
+  (working **green**, borderline amber, decorative grey), score_breakdown painter (working **green**
+  #2E7D32, amber #F9A825, grey #9E9E9E), ingredient_bubbles (working **amber** #FFB300, borderline
+  steel #78909C, decorative muted #90A4AE) — ingredient_bubbles inverts the meaning.
+- product_card_v2 `_fitColor` uses a different 3-tier cutoff (75/60) + dead dark-mode branches
+  (app has no dark mode); painters add more ad-hoc greens/ambers/slate-blues.
+
+**Decisions (approved):** adopt the **majority 5-tier ramp** as canonical; **status semantics:
+working = good → GREEN**, borderline amber, decorative & unknown grey. Non-color cues: score uses
+the **grade letter** (already redundant); status gets an **icon** (`statusIcon`). Single light-mode
+palette (no dark branching). API lives in `lib/design_system/foundations/score_status.dart` as pure,
+context-free functions (painters need it without `BuildContext`).
+
+**Commit plan:** 4.1 foundation file · 4.2 migrate the 3 score-ramp sites · 4.3 reconcile status
+palette (product_card_v2 + ingredient_bubbles) · 4.4 painters (score_breakdown / radar: shared colors
++ sub-12 fix) · 4.5 non-color status cues (icons).
+
+**Commits:**
+- ✅ **4.1** `feat(ds): add score_status foundation` — new
+  `lib/design_system/foundations/score_status.dart`: `semanticScoreColor(score)` + `scoreGrade(score)`
+  (5-tier canonical ramp, A–F), `statusColor(status)` + `statusIcon(status)` (working green / borderline
+  amber / decorative & unknown grey), with `k*` const palette. Pure/context-free (single light mode).
+  No migration yet — findings resolve as sites route through it in 4.2–4.5. `flutter analyze`: **No
+  issues found** (file); project **0 errors / 0 warnings**.
+- ✅ **4.2** `refactor(score): route 3 score-ramp sites through score_status` — replaced the copy-pasted
+  ramp with the shared foundation: **share_card** (`_scoreColor`+`_scoreGrade` top-level fns deleted;
+  `_miniBar`/badge call `semanticScoreColor`/`scoreGrade`), **imagedetailed_main** (`_scoreColor` fn
+  deleted; bg-tint + badge + `_ScoreBadge._grade` getter now call the shared fns), **imagedetailed_top_raited**
+  (`_ScoreBadge._color`/`_grade` getters collapsed to shared-fn one-liners). **Value-identical** — same
+  thresholds (75/65/55/45/35) and colors, zero visual change; pure de-duplication. `flutter analyze`:
+  **0 errors / 0 warnings**; tests `+9 -1` (pre-existing only). **Resolved:** B2 score-ramp
+  duplication (3 sites → 1). **Note:** a separate `greenText #1B5E20` const in share_card (positive-delta
+  text, not the ramp) is left untouched — belongs to the later share_card raw-hex cleanup.
+- ✅ **4.3** `refactor(status): reconcile status palette via score_status` — routed both status
+  surfaces through the shared `statusColor()`, resolving the 3-way contradiction. **ingredient_bubbles**:
+  deleted local `_kWorking/_kBorderline/_kDecorative/_kUnknown` + `_statusColor` → bubbles now
+  **working green (was amber), borderline amber (was steel), decorative grey** (intentional recolor per
+  the approved decision). **product_card_v2**: deleted local `_statusColor`; dropped the dead
+  brightness-aware branches (`_isDark` + dark variants — app has no dark mode), `_goodColor/_warnColor/
+  _badColor` now light-only `static const` (value-identical, still feed `_fitColor` + severity), ring
+  shadow opacity `_isDark?0.22:0.28 → 0.28`. Status dot (396) + label (761) call `statusColor()`.
+  `flutter analyze`: **0 errors / 0 warnings**; tests `+9 -1`. **Resolved:** B2 status-palette
+  contradiction (working=green everywhere). **Deferred to 4.5:** status **label text** is still colored
+  by status (pre-existing amber-on-white + the decorative grey shifted #6B6B6B→#9E9E9E) — 4.5 switches
+  status labels to legible ink + an icon cue, removing color-from-text. **Note:** `_fitColor`'s 3-tier
+  75/60 cutoff is untouched (score-scale reconciliation, not status) — tracked for a later look.
+- ✅ **4.4** `refactor(radar): unify score_breakdown status colors + legend text` — the radar
+  (`_RadarPainter` + `_RadarLegend` in score_breakdown) now draws **dose-status dots** via the shared
+  `statusColor()` (active-dots switch collapsed to `statusColor(ing.status)` + `filled = status !=
+  'decorative'`; legend dots use `kStatusWorking/kStatusBorderline/kStatusDecorative`) — working green
+  #2E7D32→#1B5E20, borderline #F9A825→#FFB300, decorative #9E9E9E (unchanged), unknown default
+  green→grey. Legend widget-text 9.5→**12** (reflowing `Wrap`, safe). `flutter analyze`: **0 errors /
+  0 warnings**; tests `+9 -1`. **Resolved:** B2 status colors in the radar (now unified with
+  product_card_v2 + ingredient_bubbles). **Intentionally left (per paused color-tokenization track +
+  not-status):** radar **chrome** — grid `#14/1A000000`, score polygon `#3B6FCC`/`#4E7FE8`, slate-blue
+  axis labels `#445588`/`#667799`, 1%-line gold `#B8860B`/`#CCF9A825`; and **issue-severity reds**
+  `#C62828`/`#E53935` (a separate severity axis, no status token).
+  **⏸ Deferred (needs on-device radar-layout verification):** the **in-painter** sub-12 text — axis
+  label 9.5, per-axis score 9, '1%' 8 — sit at computed polar positions with left/right/center
+  alignment; raising to 12 risks clipping/overlap of long localized labels (DE/RU). Flagged in B3/B2
+  #400, to be done with a device check (not dropped). **share_card painter sub-12** (7.5/9px mini-bars)
+  similarly deferred to a device-verified pass.
+- ✅ **4.5** `feat(a11y): non-color status cues (icon + ink label)` — status meaning no longer carried
+  by color alone. **product_card_v2**: the color-only compatibility **dot** → `Icon(statusIcon(status))`
+  (check/warning/dash shape + color); the meta line (`~conc · mechanism · statusLabel`) recolored from
+  status-color → **`secondaryText` ink** (fixes the amber-on-white legibility fail; the status **word**
+  is the non-color cue). **ingredient_bubbles** tooltip: dot → `Icon(statusIcon(bubble.status))`, label
+  text `bubble.color` → **ink `#444444`**. `flutter analyze`: **0 errors / 0 warnings**; tests `+9 -1`.
+  **Resolved:** B3 non-color-cue rows (deferred here from Initiative 3) — C·ingredient_bubbles·#411
+  (status + tooltip), product-card status dot/label. **Accepted limitation:** the radar **bubbles**
+  themselves stay color-coded, but each already draws the ingredient **name** and the legend + tooltip
+  now carry icon + word (per-bubble status icons would be visually noisy — out of scope).
+
+### Initiative 4 — completion summary
+**Delivered:** one foundation (`score_status.dart`) — `semanticScoreColor`/`scoreGrade` (5-tier ramp,
+A–F) + `statusColor`/`statusIcon` (working 🟢 / borderline 🟡 / decorative & unknown ⚪ + icon cue).
+The copy-pasted score ramp (3 files) and the 3 contradictory status palettes are gone; **share_card,
+imagedetailed_main, imagedetailed_top_raited, product_card_v2, ingredient_bubbles, score_breakdown**
+all route through it. Status meaning is now icon + word, not color-only.
+**Findings resolved:** B2 score-ramp duplication + status-palette contradiction (working=green
+everywhere); B3 non-color status cues (from I3).
+**Carried forward (tracked, not skipped):**
+- ⏸ **In-painter sub-12 text** (radar axis 9.5 / score 9 / '1%' 8; share_card mini-bars 7.5/9) —
+  needs on-device layout verification (risk of clipping long localized labels).
+- **Radar chrome** raw hex (grid / blue polygon / slate labels / 1%-gold) — belongs to the **paused**
+  color-tokenization track, not I4.
+- **Issue-severity reds** (`#C62828`/`#E53935`) — a separate severity axis; no status token (could get
+  a `severity*` token later).
+- **`_fitColor` 3-tier 75/60 cutoff** (product_card_v2) — score-scale reconciliation vs the 5-tier
+  ramp; left for a dedicated look.
+- **share_card `greenText #1B5E20`** const (positive-delta text) — share_card raw-hex cleanup.
+
+---
+
+## Initiative 10 — Paywall  ·  Status: In Progress
+
+**Goal:** kill the paywall duplication — one `PlanCard`, one data-driven `FeatureRow`, one `ProPill`,
+a grouped dark palette. Source: DESIGN_REVIEW Cluster 7 (paywallpage 1184 lines; premium_features_list
+8 dup rows; paywall_confirmation dup rows + shell; 3 PRO-pill variants). **Note:** raw-hex→theme-token
+color work stays on the paused track — the paywall dark palette is grouped **locally** (`_PaywallDark`),
+not added to the global theme.
+
+**Commit plan:** 10.1 `FeatureRow` + premium_features_list · 10.1b paywall_confirmation rows ·
+10.2 `ProPill` · 10.3 `PlanCard` (weekly/annual → 1 + hoist purchase + fix selection-purchase UX #7)
+· 10.4 local dark palette + a11y (disclaimer opacity, badge 12) + `PriceApproxRow` + "Update a Pro"
+typo + `LinkText`.
+**Out of I10 (→ I8):** out_of_generations / limit_out → `LimitReached`.
+
+**Commits:**
+- ✅ **10.1** `refactor(paywall): data-drive premium features via FeatureRow` — new
+  `lib/design_system/components/feature_row.dart` (circular icon badge + label; Material/FaIcon;
+  configurable badge/icon/text colors for the dark paywall vs the confirmation sheet). Migrated
+  **premium_features_list**: 8 hand-repeated rows → a `_features` data list mapped to `FeatureRow`
+  (**390 → 74 lines**), preserving icons/keys/FaIcon(eyeSlash@18)/spacing (`.divide(8)` + 16 ends).
+  Removed orphaned `flutter_flow_theme` import. `flutter analyze`: **0 errors / 0 warnings**; tests
+  `+9 -1`. **Resolved:** C7·PremiumFeaturesList·#1,#4. **Next:** paywall_confirmation's 4 rows (10.1b).
+- ✅ **10.1b** `refactor(paywall): confirmation feature rows → FeatureRow` — migrated
+  paywall_confirmation's 4 rows to `FeatureRow` (extended with `fontSize`/`lineHeight` params, defaults
+  15/1.3; confirmation uses `secondaryText` + 16/1.1, download icon 22), preserving the per-row
+  `animateOnPageLoad` + paddings. **467 → 348 lines.** `flutter analyze`: **0 errors / 0 warnings**;
+  tests `+9 -1`. **Resolved:** C7·PremiumFeaturesList·#2 (shared FeatureRow), PaywallConfirmation·#2.
+  **Note:** paywall_confirmation's sheet **shell** (100×5 handle, r24) + PRO pill remain for I6/10.2.
+- ✅ **10.2** `feat(paywall): ProPill + migrate 2 badges` — new
+  `lib/design_system/components/pro_pill.dart` (primary-filled r40 pill, bold Plus-Jakarta-Sans label,
+  optional leading icon; `contentColor`/`height`/`fontSize`/`letterSpacing`/`padding` params). Migrated
+  the **paywallpage** header "UPGRADE TO PRO" pill (text-only, `alternate`) and the
+  **paywall_confirmation** "PRO" pill (icon + `info`-colored, h40, 14/ls0) to it. `flutter analyze`:
+  **0 errors / 0 warnings**; tests `+9 -1`. **Resolved:** C7·PaywallPage·#6, PaywallConfirmation·#5
+  (unified PRO badge). **Not done:** upgrade_widget's 55-high "pill" is really a **CTA button**
+  (→ AppButton/I2, not a badge) — left with a note; it's Low-priority (#3).
+- ✅ **10.3** `refactor(paywall): hoist purchase into one _purchasePlan method` — the two copy-pasted
+  ~67-line RevenueCat handlers (weekly/annual `Continue` buttons) → one
+  `_purchasePlan({isMonth, package, durationDays, telegramForm, telegramMessage})`. Verified the only
+  differences were those 5 params + the per-plan model fields (`rCPayment`/`rCPayment2` etc.), which are
+  **paywall-local & write-only-ish** (0 external reads) → safely folded to locals; `FFAppState()`
+  flags (`subscriptionmonth`, `isprouser`) preserved exactly. `flutter analyze`: **0 errors / 0
+  warnings** (full project); tests `+9 -1`. **Resolved (logic part of):** C7·PaywallPage·#1 (hoist
+  purchase). **⏸ Deferred (approved):** the visual `PlanCard` extraction (weekly/annual ~340 lines
+  each) — blind refactor of a purchase-critical screen; do in a **device-verified** session.
+  **Note:** #7 (selection-purchase bug) is **N/A** — cards are direct tap-to-buy, no selection state.
+- ✅ **10.4** `fix(paywall a11y): disclaimer opacity + sub-12 badge` — disclaimer text
+  `white.withOpacity(0.45/0.35) → 0.6` (2 texts, better legibility on dark; the `0.3` at line 502 is a
+  **shimmer** effect, left as-is), annual badge `fontSize 11 → 12`. `flutter analyze`: **0 errors / 0
+  warnings**; tests `+9 -1`. **Resolved:** C7·PaywallPage·#4 (disclaimer contrast), #5 (sub-12 badge).
+
+### Initiative 10 — status (largely done; visual PlanCard deferred)
+**Delivered:** `FeatureRow` (premium_features_list 390→74 + paywall_confirmation 467→348), `ProPill`
+(2 badges unified), one `_purchasePlan` method (2 copy-pasted RC handlers → 1), paywall a11y
+(disclaimer opacity, badge 12). **Findings resolved:** C7 PremiumFeaturesList #1,#2,#4; PaywallPage
+#1(logic),#4,#5,#6; PaywallConfirmation #2,#5.
+**Deferred / not done (tracked):**
+- ⏸ **Visual `PlanCard`** extraction (weekly/annual ~340 lines each) — blind refactor of a
+  purchase-critical screen; needs a **device-verified** session. #7 selection bug N/A (tap-to-buy).
+- **`PriceApproxRow`** (#2, 3× "≈/month" row), **`LinkText`** (#8 Privacy/Terms/Restore) — Medium/Low
+  dedup, not yet done.
+- **`_PaywallDark` local palette grouping** (#3 inline darks) — deferred (adjacent to the paused
+  color-tokenization track).
+- **"Update a Pro" → "Upgrade to Pro"** (upgrade #1) — localized key `rl28xdip` → **I12** (i18n edit).
+- **upgrade_widget 55-high "pill"** is a CTA → AppButton/I2 (Low).
+
+---
+
+## Initiative 7 — Product surfaces  ·  Status: In Progress
+
+**Goal:** dedup the product-tile family — shared `ScoreBadge`, `formatPrice`, and (where safe)
+`ProductTile`. Source: DESIGN_REVIEW item_card cluster (tiles A `imagedetailed_main` / B
+`imagedetailed_top_raited` are "the same card": duplicate `_scoreColor` [done I4.2], `_grade`,
+`_formatCardPrice`, `_ScoreBadge`, image block).
+
+**Liveness:** tile A used in **4 screens** (home, search, toprated, imagesby_album); tile B in **1**
+(toprated). Both live.
+
+**Commit plan:** 7.1 `formatPrice` util · 7.2 `ScoreBadge` component · 7.3 assess `ProductTile` merge.
+
+**Commits:**
+- ✅ **7.1** `refactor(product): shared formatPrice util` — new
+  `lib/design_system/foundations/format_price.dart` (`currencySymbol` + `formatPrice`). Replaced the
+  byte-identical `_formatCardPrice` in both tiles and itemcard2's `_currencySymbol`+`_formatPrice`
+  (same symbol table) — 3 copies → 1. `flutter analyze`: **0 errors / 0 warnings** (full project);
+  tests `+9 -1`. **Resolved (part of):** item_card Tiles·#1 (`_formatCardPrice` dup).
+- ✅ **7.2** `feat(product): shared ScoreBadge component` — new
+  `lib/design_system/components/score_badge.dart` (white pill, circular grade ring + "N/100" via
+  `semanticScoreColor`/`scoreGrade`; null → "···" placeholder). The two near-identical `_ScoreBadge`
+  widgets differed only by tile A's extra score-colored **glow** shadow → now the `glow` flag
+  (review #4 shadow-drift becomes a deliberate variant). Deleted both local classes; main passes
+  `glow: true`, top_raited default. Removed orphaned `percent_indicator` (both) + `score_status`
+  (top_raited) imports; the new component uses `withValues` (−7 deprecation infos). `flutter analyze`:
+  **0 errors / 0 warnings**; tests `+9 -1`. **Resolved:** item_card Tiles·#1 (`_ScoreBadge`+`_grade`
+  dup), #4 (shadow drift).
+
+### Initiative 7 — status (helpers extracted; visual merge deferred)
+**Delivered:** `formatPrice` util (3 copies → 1) + `ScoreBadge` component (2 `_ScoreBadge` → 1, glow
+variant), on top of I4.2's shared score ramp — this captures the bulk of the "tiles A & B are the same
+card" duplication (`_scoreColor`/`_grade`/`_formatCardPrice`/`_ScoreBadge`). **Findings resolved:**
+item_card Tiles #1 (helpers), #4 (shadow variant).
+**Deferred / not done (tracked):**
+- ⏸ **Full `ProductTile` merge** (tiles A+B → one `ProductTile(showStars, showSpf, variant)`, delete B;
+  also fixes #2 ListView→Column root) — a **blind visual refactor of the main product tile** (A is used
+  in home/search/toprated/imagesby_album); needs a **device-verified** session (same call as the paywall
+  PlanCard). Tiles #2,#3(SPF/price hex),#5(stars a11y),#6(radii) ride along with that merge.
+- **`MirraChip`/`MirraInfoCard`** — no clean cross-file duplication found (search `_chip` is local;
+  toprated `_chipLabel` is a string helper). Not extracted.
+- **INCI status palette** (ingridients `_greenText/_greenBg/_redText/_redBg`, review INCI #1) — belongs
+  to the **paused** color-tokenization track (needs `success/error(+Bg)` tokens).
+- **`ConfirmDialog`** (deleteitem/markasspam) → **I8** (confirmation consolidation).
+
+---
+
+## Initiative 8 — Confirmation & limit consolidation (structural)  ·  Status: In Progress
+Buttons-only pass done earlier (8.1–8.4, all AppButton on `track2-design`). Structural consolidation:
+- ✅ **8.5** `chore: delete makepubluc twin` — the misspelled `makepubluc` visibility sheet was
+  **orphaned** (0 external refs; only an i18n comment) — deleted widget + model. `flutter analyze`:
+  **0 errors / 0 warnings**. **Resolved:** B7 "delete `makepubluc`". The live visibility sheets
+  (makepublic / makeprivate / hidenavailability / copyitem) are all shown from itemcard2.
+- ⏸ **ConfirmationSheet / ConfirmDialog / LimitReached** — the fuller consolidation naturally builds on
+  the **I6 shells** (`MirraBottomSheet`/`MirraDialogCard`), which are currently stranded on
+  `rewrite/care-domain`. Doing it standalone now would duplicate I6. **Blocked on the branch move.**
+
+---
+
+## Initiative 5 — Empty vs loading  ·  Status: ✅ Completed
+_(commits cherry-picked from `rewrite/care-domain` onto `track2-design`; detailed per-commit notes
+live in those commits.)_ **Delivered:** `SkeletonGrid`/`SkeletonTile` (loading) + `MirraEmptyState`
+(empty, modeled on the collections empty). Loaders → SkeletonGrid: album_list_loading **1207→69**,
+loading_styles 440→114, loading_recent 237→48, gallery_loading 193→60, gallery_image_loading 179→48
+(analysis_loading kept — unique). newboardempty → MirraEmptyState (CTA = AppButton pill). **9 orphaned
+empty/loading widgets deleted** (18 files). Key finding: the B4 "empty-reads-as-loading" bug was
+already fixed live (boards branches skeleton vs empty). **Carried forward:** unused i18n keys for
+deleted widgets → I12.
+
+## Initiative 6 — Sheets & dialogs  ·  Status: In Progress
+_(6.1/6.2 cherry-picked from `rewrite/care-domain`.)_ **Decision:** canonical drag handle = **40×4 grey
+`border`**; sheet surface `secondaryBackground`.
+- ✅ **6.1** `MirraDragHandle` (40×4 border) + `MirraBottomSheet` (top-r24 surface + handle + standard
+  padding + keyboard inset).
+- ✅ **6.2** `MirraDialogCard` + `MirraDialogIcon` (transparent Dialog, r20 surface + soft shadow +
+  optional tinted icon badge).
+- ⬜ **6.3+** migrate the ~11 live sheets → `MirraBottomSheet` + error_popup → `MirraDialogCard`
+  (not yet done). Now unblocked on `track2-design`.
+
+### ⓘ Branch reconciliation (I5/I6 → track2-design)
+I5/I6 were accidentally committed to `rewrite/care-domain`; the 9 commits (`f475ce0`..`6b5b7bf`) were
+**cherry-picked onto `track2-design`** (new hashes `…`→`87e1642`). Conflicts were tracker-only except
+newboardempty (took the MirraEmptyState version). `rewrite/care-domain` still holds the originals
+(user may reset it to `c46c8ef` separately). `flutter analyze` after cherry-pick: **0 errors / 0
+warnings**; tests `+9 -1`.
+- ✅ **8.6** `feat(dialogs): ConfirmDialog + migrate deleteitem/markasspam` — new
+  `lib/design_system/components/confirm_dialog.dart` (centered card via the MirraDialogCard shell +
+  `MirraDialogIcon` badge, optional icon, title/body, **side-by-side Cancel/Confirm** — Cancel first so
+  a destructive action isn't the most prominent). Migrated **deleteitem** (149→65; icon + destructive,
+  delete+go-home action) and **markasspam** (162→69; no icon, Hide=primary, spam+pop(true)) — both now
+  one component. Removed orphaned imports. `flutter analyze`: **0 errors / 0 warnings**; tests `+9 -1`.
+  **Resolved:** item_card ConfirmDialogs·#1 (unify), #3 (deleteitem stacked→side-by-side, Cancel first),
+  #4 (markasspam Expanded — already), #2 (destructive/primary via AppButton variants). **Note:**
+  markasspam shell unified to r20/blur24/secondaryBackground (was r16/blur12/white); body → secondaryText.
+- ✅ **8.7** `refactor(topratings): visibility sheets → ConfirmDialog` — extended `ConfirmDialog` with
+  optional `cancelLabel` (null → single centered confirm button), `confirmLoading`, and `onBackgroundTap`
+  (scrim tap-to-dismiss). Migrated the 4 live visibility sheets (all shown from itemcard2):
+  **makepublic** (108→46), **makeprivate** (134→51), **hidenavailability** (145→57, Go PRO → paywall +
+  scrim dismiss), **copyitem** (188→99, Cancel + Copy with `confirmLoading`, copy action preserved).
+  One `ConfirmDialog` now backs all 6 confirm/visibility surfaces. `flutter analyze`: **0 errors / 0
+  warnings**; tests `+9 -1`. **Resolved:** B7 ConfirmationSheet (folded into ConfirmDialog — no separate
+  component needed; the sheets are centered cards, not drag-handle sheets). Shell unified to
+  r20/blur24/secondaryBackground.
+- ✅ **8.8** `refactor(limits): out_of_generations → MirraBottomSheet; reject LimitReached merge` —
+  migrated **out_of_generations** onto the I6 `MirraBottomSheet` shell (handle 100×5 `info` → canonical
+  40×4 `border`; surface `alternate` → `secondaryBackground`; keeps the error icon, title, body, Got-it
+  CTA + page-load animations). **LimitReached full merge — REJECTED (justified):** limit_out is a
+  centered card with **dynamic RichText** (limit/date) + **isPro-conditional** CTAs; out_of_generations
+  is an **animated bottom sheet** with a single CTA. Folding two structurally-different surfaces into one
+  `variant` component is over-abstraction (simplicity-first) — the shared surface (title + one CTA) is
+  too thin to justify it. limit_out left as its own card. `flutter analyze`: **0 errors / 0 warnings**;
+  tests `+9 -1`. **Resolved:** out_of_generations·#2 (shared sheet shell → MirraBottomSheet);
+  LimitReached (B7) rejected-with-justification.
+
+### Initiative 8 — completion summary
+**Delivered:** deleted the dead `makepubluc` twin; **`ConfirmDialog`** now backs **all 6** confirm /
+visibility surfaces (deleteitem, markasspam, makepublic, makeprivate, hidenavailability, copyitem —
+optional icon / cancel / loading / scrim-dismiss); **out_of_generations → MirraBottomSheet**.
+**Findings resolved:** B7 (delete makepubluc ✔, ConfirmDialog ✔, ConfirmationSheet folded into
+ConfirmDialog ✔, LimitReached **rejected-with-justification**); item_card ConfirmDialogs #1–#4;
+out_of_generations #2. Net across 8.5–8.8: **~800 lines removed**, 8 surfaces → 2 components.
+- ✅ **6.3** `refactor(sheets): Group A → MirraBottomSheet` — link_telegram (210→194) + guest_prefs
+  (233→217) migrated onto `MirraBottomSheet` (dropped their inline white/r24 shell + 40×4 handle +
+  manual `bottomPad`). Handle unified (guest_prefs `#E0E0E0` → canonical `border`); surface white →
+  `secondaryBackground`. Content/behaviour unchanged. `flutter analyze`: **0 errors / 0 warnings**;
+  tests `+9 -1`. **Resolved:** C8·Group A·#1 (shared shell), #2 (handle → border).
+- ✅ **6.4** `refactor(sheets): album sheets → MirraBottomSheet` — new_album (181→160), edit_album
+  (241→222), albumslist (201→183) migrated onto `MirraBottomSheet` (dropped the `Align`/alternate/r24
+  shell + 100×5 `info` handle). `crossAxisAlignment: center`, `addBottomInset: false` (all call sites
+  wrap in `viewInsets` Padding — verified), `handleGap` tuned per sheet (12/10/20) to match the old
+  handle→content gap. Handle unified 100×5 `info` → 40×4 `border`; surface `alternate` →
+  `secondaryBackground`. `flutter analyze`: **0 errors / 0 warnings**; tests `+9 -1`. **Resolved:**
+  C6·#1 (albumslist/edit_album/new_album shared sheet chrome → BottomSheetScaffold).
+- ✅ **6.5** `refactor(sheets): delete_confirmation → MirraBottomSheet` — migrated delete_confirmation
+  (181→160) onto `MirraBottomSheet` (Group B pattern; `handleGap: 0`, `addBottomInset: false`, center).
+  Handle `info`+redundant-border → canonical 40×4 `border`; surface `alternate` → `secondaryBackground`.
+  Nested error `AlertDialog` (in a button handler) preserved. `flutter analyze`: **0 errors / 0
+  warnings**; tests `+9 -1`. **Resolved:** C8·Group B·#9 (shell), #10 (redundant-border handle).
+  **⏸ Deferred (device-verify):** **leave_review** + **negative_feedback** have **internal keyboard-inset
+  logic** (`viewInsetsOf().bottom > 0` conditional layout) — blind shell-migration risks breaking their
+  keyboard-aware layout; needs an on-device check.
+- ✅ **6.6** `refactor(sheets): paywall_confirmation → MirraBottomSheet` — migrated paywall_confirmation
+  (348→297) onto `MirraBottomSheet` (Group B; `handleGap: 0`, center, `addBottomInset: false`;
+  page-load animations on content preserved). Handle 100×5 `info` → 40×4 `border`; surface `alternate`
+  → `secondaryBackground`. `flutter analyze`: **0 errors / 0 warnings** (isolated `google_fonts`
+  unused-import is a false positive — used 2×); tests `+9 -1`. **Resolved:** C7·PaywallConfirmation·#1
+  (shared BottomSheetScaffold).
+
+### Initiative 6 — status (8 sheets migrated; complex remainder device-verify)
+**Delivered:** `MirraDragHandle` + `MirraBottomSheet` + `MirraDialogCard`/`MirraDialogIcon` (6.1/6.2),
+and **8 live sheets migrated to `MirraBottomSheet`**: link_telegram, guest_prefs (Group A); new_album,
+edit_album, albumslist, delete_confirmation, paywall_confirmation (Group B); + out_of_generations (8.8).
+The 3 competing handles → one 40×4 `border`; two shells → one `secondaryBackground`/r24 scaffold.
+**Findings resolved:** C8 Group A #1,#2 · Group B #9,#10 · C6 #1 · C7 PaywallConfirmation #1;
+`MirraDragHandle` (#751), `MirraBottomSheet` (#738/#750), `MirraDialogCard` (#255).
+**⏸ Deferred (device-verify — blind-refactor risk):**
+- **leave_review**, **negative_feedback** — internal keyboard-inset conditional layout.
+- **error_popup** (3 dialogs) → `MirraDialogCard` — complex stateful widget (expandable field, 3
+  variants); shells match MirraDialogCard but migration needs a device check.
+- **share_card_sheet** — Story/Square toggle + live preview (non-standard sheet).
+
+---
+
+## Initiative 9 — Settings & rows  ·  Status: In Progress
+**Goal:** `SettingsRow` (collapse the ~7 hand-copied profile rows) + `SelectableRow`/`SettingsList`
+(Langs/Countries near-verbatim rows). Source: DESIGN_REVIEW Cluster 5 (Profile #1,#2; Langs/Countries #1).
+- ✅ **9.1** `feat(ds): add SettingsRow` — new `lib/design_system/components/settings_row.dart`:
+  tappable `primaryBackground` pill (55h, r16), leading icon + label, optional trailing current-value,
+  chevron; light haptic on tap. No migration yet. `flutter analyze`: **No issues found**.
+- ✅ **9.2** `refactor(profile): 7 settings rows → SettingsRow` — replaced the 7 hand-copied `InkWell`
+  rows (~594 lines) in profile_widget with `SettingsRow` calls (Try premium / Edit Profile / Link
+  Telegram / Share / Leave a Review / App language / Your Region), preserving all conditionals
+  (`!currentUserIsAnonymous`, `showLinkTelegram`, `!isWeb` Builder) + onTap actions (pushNamed /
+  showModalBottomSheet / Share.share). The "Your Region" row's nested Expanded+Column flattens to the
+  standard row (fixes C5·#2 misalignment). **profile_widget ~1000 → 649 lines.** `flutter analyze`:
+  **0 errors / 0 warnings**; tests `+9 -1`. **Resolved:** C5·Profile·#1 (7 rows → SettingsRow), #2
+  (Region row normalized). **Note:** the Share row now also fires a light haptic (SettingsRow bakes it
+  in) — it previously didn't; consistent with the others.
+- ✅ **9.3** `feat(ds): SelectableRow + migrate Langs/Countries` — new
+  `lib/design_system/components/selectable_row.dart` (`surfaceMuted` r12 pill, label + check/radio
+  icon, 2px `primary` border when selected). Migrated **langs** (189→142) and **countries** (330→228)
+  selectable rows to it (countries' flag+locale-name folded into one `label`; onTap actions preserved).
+  `flutter analyze`: **0 errors / 0 warnings**; tests `+9 -1`. **Resolved:** C5·Countries·#1,
+  Langs·#1 (shared SelectableRow).
+
+### Initiative 9 — status (core delivered)
+**Delivered:** `SettingsRow` (profile 7 rows → 1 component, ~594 lines removed, Region row fixed) +
+`SelectableRow` (langs/countries rows unified). **Findings resolved:** C5 Profile #1,#2; Countries #1;
+Langs #1. **Remaining (minor, low-value):** `SettingsList` wrapper (Langs `Expanded+ListView.divide`
+vs Countries `SingleChildScrollView+ListView.separated` — two idioms, both work) + `SettingsScaffold`
+shared title style (Langs #2, #4) — cosmetic, not blocking.
+
+---
+
+## Initiative 11 — Typography hygiene  ·  Status: In Progress
+**Goal:** add a `displayXS` role, route raw `TextStyle`/magic sizes through theme roles (Raleway), kill
+local type scales. Source: DESIGN_REVIEW B11. **Note:** the review flags B11–B13 as needing
+**screen-by-screen Xcode verification** (line 96) — so the broad font/size changes are device-verify;
+this initiative lands the safe/additive core.
+- ✅ **11.1** `feat(type): add displayXS role + route the 26px sheet titles` — added
+  `displayXS`/`displayXSFamily`/`displayXSIsCustom` to `FlutterFlowTheme` (= `headlineSmall` @ 26px,
+  w700, ls0 — the exact ad-hoc style the sheet titles used). Routed **6** sheet titles
+  (out_of_generations, new_album, delete_confirmation, leave_review, negative_feedback,
+  paywall_confirmation) from `headlineSmall.override(fontSize: 26, w700)` → `theme.displayXS`.
+  **Value-identical** (invisible); kills the `fontSize: 26` magic. `flutter analyze`: **0 errors / 0
+  warnings**; tests `+9 -1`. **Resolved:** B11 displayXS role + the sheet-title magic-26.
+  **⏸ Deferred (device-verify, per review line 96):** raw `TextStyle`→roles (login_feature_cards 26/13/11
+  no-Raleway, quota text, step labels…); **Sora/Roboto → Raleway** (langs/countries titles, region
+  picker); **kill local scales** (`_fsTitle/_fsBody/_fsSub` in onboarding_profile/quiz;
+  `_kTextPrimary/_kTextSecondary` in login_feature_cards) — all visible font/size changes.
+
+---
+
+## Initiative 12 — Localization & dead-code cleanup  ·  Status: In Progress
+**Goal:** remove dead code; move inline strings/maps into `FFLocalizations`. Source: DESIGN_REVIEW B12
++ report-only flags. Also the home for items deferred here through the session (startanalys stub, unused
+i18n keys, untranslated strings).
+- ✅ **12.1** `chore: delete dead widgets + fix "Update a Pro" typo` — deleted **light_dark_toggle**
+  (review says delete #801) and **startanalys** (orphaned `print()`-stub, unrouted — confirmed 0 refs);
+  fixed the "Update a Pro" → **"Upgrade to Pro"** English string (key `rl28xdip`, upgrade #1). `flutter
+  analyze`: **0 errors / 0 warnings**; tests `+9 -1`. **Resolved:** B12 dead-code (light_dark_toggle,
+  startanalys); upgrade·#1 typo. Product_card_v2's dead dark-branch was already removed in **4.3**.
+  **Kept (verified live, not dead):** `score_card` (empty-build stub but referenced by index.dart +
+  log_in/create_account/login_feature_cards — flag only, per review #419).
+  **⏸ Deferred (needs your 11-language translation process — I won't invent translations):** inline
+  hardcoded strings → `FFLocalizations` ('Retry', 'Active'/'Issues', 'Untitled', 'Failed to copy
+  product', forgot-pw 'Email required!'/'Success…', weekday labels missing Spanish). Adding these keys
+  + translations is the tracked add-language workflow. **Unused i18n keys** from session-deleted widgets
+  (empty_gallery/no_images/nounsorteditems/blank_album/makepubluc/gallery_loading/…, `gzohwfxg`) —
+  harmless; pruning the generated table is error-prone, left as optional.
+
+---
+
+## Initiative 13 — Layout constants  ·  Status: In Progress
+**Goal:** a shared `kNavBarHeight` + spacing tokens for the magic navbar-coupled offsets. Source: B13
+(Low; review says device-verify, line 96). **Reality:** the team rewrote the navbar since the review —
+its height is now **121** (not the review's 108), so those findings are stale.
+- ✅ **13.1** `feat(layout): kNavBarHeight constant` — new `lib/design_system/foundations/layout.dart`
+  (`kNavBarHeight = 121.0`); routed navbar_widget's `height: 121.0` → `kNavBarHeight` (value-identical,
+  single source of truth). `flutter analyze`: **0 errors / 0 warnings**; tests `+9 -1`. **Resolved:**
+  B13 `kNavBarHeight`. **⏸ Deferred (navbar re-review + device-verify, per review line 96):** re-deriving
+  takeor_upload's hand-tuned capture offsets (`bottom: 320` illustration, `bottom: 100 + safeArea` action
+  zone) from `kNavBarHeight` — they don't cleanly derive from 121 and touching the capture-screen layout
+  blind is unsafe; left untouched.

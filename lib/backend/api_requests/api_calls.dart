@@ -298,6 +298,43 @@ class CloneimageandparamsCall {
   }
 }
 
+class LinkTelegramCall {
+  static Future<ApiCallResponse> call({
+    String? token = '',
+    String? code = '',
+  }) async {
+    final ffApiRequestBody = '''
+{
+  "code": "${code}"
+}''';
+    return ApiManager.instance.makeApiCall(
+      callName: 'linkTelegram',
+      apiUrl:
+          'https://pjapsfbztorijypnldam.supabase.co/functions/v1/link-telegram',
+      callType: ApiCallType.POST,
+      headers: {
+        'Authorization': 'Bearer ${token}',
+        'Content-Type': 'application/json',
+      },
+      params: {},
+      body: ffApiRequestBody,
+      bodyType: BodyType.JSON,
+      returnBody: true,
+      encodeBodyUtf8: false,
+      decodeUtf8: false,
+      cache: false,
+      isStreamingApi: false,
+      alwaysAllowBody: false,
+    );
+  }
+
+  static bool? ok(dynamic response) =>
+      castToType<bool>(getJsonField(response, r'''$.ok'''));
+
+  static String? errorCode(dynamic response) =>
+      castToType<String>(getJsonField(response, r'''$.code'''));
+}
+
 class LinkitemtoalbumsCall {
   static Future<ApiCallResponse> call({
     String? token = '',
@@ -577,6 +614,14 @@ class SearchingredientsNEWBCNDCall {
       cache: false,
       isStreamingApi: false,
       alwaysAllowBody: false,
+    ).timeout(
+      // Bound the request: the server's own ceiling is gunicorn --timeout 120,
+      // so no response by then means the socket is silently stuck. Return the
+      // same shape makeApiCall produces on a network error (statusCode -1 ->
+      // unmatched status) so the caller's catch-all error branch resets the
+      // "Ищем состав" state instead of spinning forever.
+      const Duration(seconds: 120),
+      onTimeout: () => ApiCallResponse(null, const <String, String>{}, -1),
     );
   }
 
@@ -599,6 +644,94 @@ class SearchingredientsNEWBCNDCall {
   static String? details(dynamic response) => castToType<String>(getJsonField(
         response,
         r'''$.details''',
+      ));
+  static String? code(dynamic response) => castToType<String>(getJsonField(
+        response,
+        r'''$.code''',
+      ));
+  static String? ingredientsStatus(dynamic response) =>
+      castToType<String>(getJsonField(
+        response,
+        r'''$.ingredients_status''',
+      ));
+}
+
+class SetProductIngredientsCall {
+  static Future<ApiCallResponse> call({
+    String? host,
+    int? imageId,
+    String? ingredients = '',
+    String? token = '',
+  }) async {
+    host ??= FFDevEnvironmentValues().backendhost;
+
+    final ffApiRequestBody = '''
+{
+  "ingredients": "${escapeStringForJson(ingredients)}",
+  "normalize": true
+}''';
+    return ApiManager.instance.makeApiCall(
+      callName: 'set product ingredients',
+      apiUrl: '${host}api/mirra/product/${imageId}/ingredients',
+      callType: ApiCallType.PATCH,
+      headers: {
+        'Authorization': 'Bearer ${token}',
+        'Content-Type': 'application/json',
+      },
+      params: {},
+      body: ffApiRequestBody,
+      bodyType: BodyType.JSON,
+      returnBody: true,
+      encodeBodyUtf8: false,
+      decodeUtf8: false,
+      cache: false,
+      isStreamingApi: false,
+      alwaysAllowBody: false,
+    );
+  }
+}
+
+class SubmitIngredientsPhotoCall {
+  static Future<ApiCallResponse> call({
+    String? host,
+    int? imageId,
+    String? photoUrl = '',
+    String? token = '',
+  }) async {
+    host ??= FFDevEnvironmentValues().backendhost;
+
+    final ffApiRequestBody = '''
+{
+  "photo_url": "${escapeStringForJson(photoUrl)}"
+}''';
+    return ApiManager.instance.makeApiCall(
+      callName: 'submit ingredients photo',
+      apiUrl: '${host}api/mirra/product/${imageId}/ingredients-photo',
+      callType: ApiCallType.POST,
+      headers: {
+        'Authorization': 'Bearer ${token}',
+        'Content-Type': 'application/json',
+      },
+      params: {},
+      body: ffApiRequestBody,
+      bodyType: BodyType.JSON,
+      returnBody: true,
+      encodeBodyUtf8: false,
+      decodeUtf8: false,
+      cache: false,
+      isStreamingApi: false,
+      alwaysAllowBody: false,
+    ).timeout(
+      // GPT-4o Vision OCR takes ~10-20s; bound the wait like the search call.
+      const Duration(seconds: 60),
+      onTimeout: () => ApiCallResponse(null, const <String, String>{}, -1),
+    );
+  }
+
+  static String? ingredients(dynamic response) =>
+      castToType<String>(getJsonField(
+        response,
+        r'''$.ingredients''',
       ));
   static String? code(dynamic response) => castToType<String>(getJsonField(
         response,
@@ -982,6 +1115,14 @@ class ExtractproductinfoNEWBCNDCopyCall {
       cache: false,
       isStreamingApi: false,
       alwaysAllowBody: false,
+    ).timeout(
+      // Bound the request: the server's own ceiling is gunicorn --timeout 120,
+      // so no response by then means the socket is silently stuck. Return the
+      // same shape makeApiCall produces on a network error (statusCode -1 ->
+      // succeeded == false) so the caller's existing error branch resets the
+      // "Распознаём продукт" state instead of spinning forever.
+      const Duration(seconds: 120),
+      onTimeout: () => ApiCallResponse(null, const <String, String>{}, -1),
     );
   }
 
@@ -1000,6 +1141,89 @@ class ExtractproductinfoNEWBCNDCopyCall {
   static String? langcode(dynamic response) => castToType<String>(getJsonField(
         response,
         r'''$.language_code''',
+      ));
+
+  // Quota fields — only present on 429 SCAN_QUOTA_EXCEEDED responses.
+  static int? quotaUsed(dynamic response) => castToType<int>(getJsonField(
+        response,
+        r'''$.limit''',
+      ));
+  static String? resetTime(dynamic response) => castToType<String>(getJsonField(
+        response,
+        r'''$.reset_time''',
+      ));
+  static String? quotaCode(dynamic response) => castToType<String>(getJsonField(
+        response,
+        r'''$.code''',
+      ));
+  static int? remaining(dynamic response) => castToType<int>(getJsonField(
+        response,
+        r'''$.remaining''',
+      ));
+  static String? resetAt(dynamic response) => castToType<String>(getJsonField(
+        response,
+        r'''$.reset_at''',
+      ));
+  static int? retryAfterSeconds(dynamic response) =>
+      castToType<int>(getJsonField(
+        response,
+        r'''$.retry_after_seconds''',
+      ));
+}
+
+/// GET /api/mirra/quota — returns the authenticated user's current scan quota state.
+class GetScanQuotaCall {
+  static Future<ApiCallResponse> call({
+    String? host,
+    String? token = '',
+  }) async {
+    host ??= FFDevEnvironmentValues().backendhost;
+
+    return ApiManager.instance.makeApiCall(
+      callName: 'getScanQuota',
+      apiUrl: '${host}api/mirra/quota',
+      callType: ApiCallType.GET,
+      headers: {
+        'Authorization': 'Bearer ${token}',
+      },
+      params: {},
+      returnBody: true,
+      encodeBodyUtf8: false,
+      decodeUtf8: false,
+      cache: false,
+      isStreamingApi: false,
+      alwaysAllowBody: false,
+    );
+  }
+
+  static String? plan(dynamic response) => castToType<String>(getJsonField(
+        response,
+        r'''$.plan''',
+      ));
+  static bool? isUnlimited(dynamic response) => castToType<bool>(getJsonField(
+        response,
+        r'''$.is_unlimited''',
+      ));
+  static int? quotaUsed(dynamic response) => castToType<int>(getJsonField(
+        response,
+        r'''$.quota_used''',
+      ));
+  static int? quotaLimit(dynamic response) => castToType<int>(getJsonField(
+        response,
+        r'''$.quota_limit''',
+      ));
+  static int? remaining(dynamic response) => castToType<int>(getJsonField(
+        response,
+        r'''$.remaining''',
+      ));
+  static String? resetAt(dynamic response) => castToType<String>(getJsonField(
+        response,
+        r'''$.reset_at''',
+      ));
+  static int? retryAfterSeconds(dynamic response) =>
+      castToType<int>(getJsonField(
+        response,
+        r'''$.retry_after_seconds''',
       ));
 }
 
@@ -1252,4 +1476,95 @@ String? escapeStringForJson(String? input) {
       .replaceAll('"', '\\"')
       .replaceAll('\n', '\\n')
       .replaceAll('\t', '\\t');
+}
+
+// ── B3: NL phrase → facets ────────────────────────────────────────────────────
+
+class ParseSearchPhraseCall {
+  static Future<ApiCallResponse> call({
+    String? host,
+    String? token = '',
+    String? phrase = '',
+    String? lang = 'en',
+  }) async {
+    host ??= FFDevEnvironmentValues().backendhost;
+    final body = json.encode({'phrase': phrase, 'lang': lang});
+    return ApiManager.instance.makeApiCall(
+      callName: 'parse search phrase',
+      apiUrl: '${host}api/mirra/search/parse',
+      callType: ApiCallType.POST,
+      headers: {
+        'Authorization': 'Bearer ${token}',
+        'Content-Type': 'application/json',
+      },
+      params: {},
+      body: body,
+      bodyType: BodyType.JSON,
+      returnBody: true,
+      encodeBodyUtf8: false,
+      decodeUtf8: false,
+      cache: false,
+      isStreamingApi: false,
+      alwaysAllowBody: false,
+    );
+  }
+
+  static List? facets(dynamic response) =>
+      getJsonField(response, r'$.facets') as List?;
+  static String? unparsed(dynamic response) =>
+      castToType<String>(getJsonField(response, r'$.unparsed'));
+  static String? sort(dynamic response) =>
+      castToType<String>(getJsonField(response, r'$.sort'));
+}
+
+// ── B4: Faceted product search ────────────────────────────────────────────────
+
+class SearchProductsCall {
+  static Future<ApiCallResponse> call({
+    String? host,
+    String? token = '',
+    Map<String, List<String>>? facets,
+    String? sort = 'fit',
+    Map<String, dynamic>? profile,
+    String? cursor,
+    int? limit = 20,
+  }) async {
+    host ??= FFDevEnvironmentValues().backendhost;
+    final body = json.encode({
+      'facets':  facets  ?? {},
+      'sort':    sort,
+      'profile': profile ?? {},
+      'cursor':  cursor,
+      'limit':   limit,
+    });
+    return ApiManager.instance.makeApiCall(
+      callName: 'search products',
+      apiUrl: '${host}api/mirra/search',
+      callType: ApiCallType.POST,
+      headers: {
+        'Authorization': 'Bearer ${token}',
+        'Content-Type': 'application/json',
+      },
+      params: {},
+      body: body,
+      bodyType: BodyType.JSON,
+      returnBody: true,
+      encodeBodyUtf8: false,
+      decodeUtf8: false,
+      cache: false,
+      isStreamingApi: false,
+      alwaysAllowBody: false,
+    );
+  }
+
+  static List? results(dynamic response) =>
+      getJsonField(response, r'$.results') as List?;
+  static int? total(dynamic response) =>
+      castToType<int>(getJsonField(response, r'$.total'));
+  static String? cursor(dynamic response) =>
+      castToType<String>(getJsonField(response, r'$.cursor'));
+  static bool? hasMore(dynamic response) =>
+      castToType<bool>(getJsonField(response, r'$.has_more'));
+  static String? narrowestFacet(dynamic response) =>
+      castToType<String>(getJsonField(response, r'$.narrowest_facet'));
 }

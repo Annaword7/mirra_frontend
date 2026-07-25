@@ -1,3 +1,4 @@
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:http/http.dart' as http;
@@ -16,11 +17,9 @@ Future<String?> geminiGenerateText(
   try {
     final response = await model.generateContent(content);
     return response.text;
-  } catch (e) {
-    showSnackbar(
-      context,
-      e.toString(),
-    );
+  } catch (e, s) {
+    FirebaseCrashlytics.instance.recordError(e, s, fatal: false, reason: 'geminiGenerateText failed');
+    showSnackbar(context, e.toString());
     return null;
   }
 }
@@ -36,11 +35,9 @@ Future<String?> geminiCountTokens(
   try {
     final response = await model.countTokens(content);
     return response.totalTokens.toString();
-  } catch (e) {
-    showSnackbar(
-      context,
-      e.toString(),
-    );
+  } catch (e, s) {
+    FirebaseCrashlytics.instance.recordError(e, s, fatal: false, reason: 'geminiCountTokens failed');
+    showSnackbar(context, e.toString());
     return null;
   }
 }
@@ -81,11 +78,9 @@ Future<String?> geminiTextFromImage(
   try {
     final response = await model.generateContent(content);
     return response.text;
-  } catch (e) {
-    showSnackbar(
-      context,
-      e.toString(),
-    );
+  } catch (e, s) {
+    FirebaseCrashlytics.instance.recordError(e, s, fatal: false, reason: 'geminiTextFromImage failed');
+    showSnackbar(context, e.toString());
     return null;
   }
 }
