@@ -5,7 +5,6 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/design_system/components/selectable_row.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'countries_model.dart';
 export 'countries_model.dart';
 
@@ -103,11 +102,13 @@ class _CountriesWidgetState extends State<CountriesWidget> {
                     '8pwht5ld' /* Your Region */,
                   ),
                   style: FlutterFlowTheme.of(context).titleLarge.override(
-                        font: GoogleFonts.sora(fontWeight: FontWeight.w500),
+                        fontFamily: FlutterFlowTheme.of(context).titleLargeFamily,
                         color: FlutterFlowTheme.of(context).primaryText,
                         fontSize: 24.0,
                         letterSpacing: 0.0,
                         fontWeight: FontWeight.w500,
+                        useGoogleFonts:
+                            !FlutterFlowTheme.of(context).titleLargeIsCustom,
                       ),
                 ),
               ),

@@ -126,7 +126,7 @@ class _OnboardingProfileWidgetState extends State<OnboardingProfileWidget>
       allowPhoto: true,
       backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
       textColor: FlutterFlowTheme.of(context).primaryText,
-      pickerFontFamily: 'Sora',
+      pickerFontFamily: 'Raleway',
     );
     if (selectedMedia == null) return;
     if (!selectedMedia

@@ -280,7 +280,7 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
                                           textColor:
                                               FlutterFlowTheme.of(context)
                                                   .primaryText,
-                                          pickerFontFamily: 'Sora',
+                                          pickerFontFamily: 'Raleway',
                                         );
                                         if (selectedMedia != null &&
                                             selectedMedia.every((m) =>
