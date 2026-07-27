@@ -125,6 +125,14 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
   Widget build(BuildContext context) {
     context.watch<FFAppState>();
 
+    // Paywall dark-surface palette (Initiative 10) — grouped file-locally;
+    // the color-token track is paused, so these are not theme tokens yet.
+    const paywallScaffold = Color(0xFF060D1E);
+    final paywallShell = const Color(0xFF0C1A35).withValues(alpha: 0.80);
+    final paywallShellBorder = Colors.white.withValues(alpha: 0.09);
+    final paywallIconMuted = Colors.white.withValues(alpha: 0.8);
+    final paywallTextMuted = Colors.white.withValues(alpha: 0.6);
+
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
@@ -132,7 +140,7 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
       },
       child: Scaffold(
         key: scaffoldKey,
-        backgroundColor: const Color(0xFF060D1E),
+        backgroundColor: paywallScaffold,
         body: Stack(
           children: [
             custom_widgets.AnimatedPaywallBg(
@@ -150,10 +158,10 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                     maxWidth: 600.0,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0C1A35).withOpacity(0.80),
+                    color: paywallShell,
                     borderRadius: BorderRadius.circular(28.0),
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.09),
+                      color: paywallShellBorder,
                       width: 1.0,
                     ),
                   ),
@@ -174,7 +182,7 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                                 buttonSize: 44.0,
                                 icon: Icon(
                                   Icons.close,
-                                  color: Colors.white.withOpacity(0.8),
+                                  color: paywallIconMuted,
                                   size: 20.0,
                                 ),
                                 onPressed: () async {
@@ -367,7 +375,7 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                                   .override(
                                     fontFamily: FlutterFlowTheme.of(context)
                                         .bodySmallFamily,
-                                    color: Colors.white.withOpacity(0.6),
+                                    color: paywallTextMuted,
                                     fontSize: 12.0,
                                     letterSpacing: 0.0,
                                     useGoogleFonts:
@@ -472,7 +480,7 @@ It is a sy... */
                                   .override(
                                     fontFamily: FlutterFlowTheme.of(context)
                                         .bodyMediumFamily,
-                                    color: Colors.white.withOpacity(0.6),
+                                    color: paywallTextMuted,
                                     fontSize: 12.0,
                                     letterSpacing: 0.0,
                                     fontWeight: FontWeight.w500,
