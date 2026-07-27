@@ -616,3 +616,49 @@ its height is now **121** (not the review's 108), so those findings are stale.
   takeor_upload's hand-tuned capture offsets (`bottom: 320` illustration, `bottom: 100 + safeArea` action
   zone) from `kNavBarHeight` — they don't cleanly derive from 121 and touching the capture-screen layout
   blind is unsafe; left untouched.
+
+---
+
+## Track 3 (branch `track3-design`, 2026-07-27) — closing the deferred backlog
+
+- ✅ **6.3–6.6** `refactor(sheets/dialogs): complex sheets onto the I6 shells` — **leave_review** +
+  **negative_feedback** → `MirraBottomSheet` (dropped the per-sheet Stack + full-screen dismiss layer —
+  the modal barrier already covers it — and the divergent alternate/100×5-`info`-handle shell; the
+  internal keyboard-hide-CTA logic is untouched); **error_popup**'s 3 hand-rolled Dialog shells →
+  `MirraDialogCard`/`MirraDialogIcon` + shared `_DialogTitleBody`, the two 'Photograph ingredients'
+  `ElevatedButton.icon` → `AppButton(icon:)`; **share_card_sheet** (full-screen, no handle) → shell only.
+  **I6 = Completed.**
+- ✅ **7.3** `feat(product): ProductTile` — tiles A+B merged into
+  `design_system/components/product_tile.dart` with a **main/plain variant** (glow shadow + image
+  gradient + stars + SPF vs flat); root ListView→Column (Tiles·#2), stars loop + `Semantics` label
+  (Tiles·#5), SPF/price hexes named (Tiles·#3). Both old widgets/models deleted; 5 call sites swapped;
+  dead `tags`/`imageID` params dropped. **I7 = Completed.**
+- ✅ **10.2** `feat(paywall): PlanCard` — weekly/annual cards (~680 lines) →
+  `design_system/components/plan_card.dart` (ribbon/savings variants, monthly-equivalent row, CTA
+  FFButton 55/r50 → `AppButton` lg pill + shimmer); paywall 1099→~510 lines. **10.3** dark palette
+  grouped into named `paywall*` locals (withOpacity→withValues). **I10 = Completed** (visual PlanCard
+  device-check rides the next Xcode run).
+- ✅ **11.2** `refactor(type)`: **login_feature_cards** raw TextStyles → theme roles ('A' 26/w700 →
+  `displayXS`; titles/subtitles/pills → bodyMedium/bodySmall Raleway on primaryText/secondaryText;
+  `_kTextPrimary/_kTextSecondary` deleted). **11.3** **Sora → Raleway**: langs/countries 24/w500 titles →
+  `titleLarge`; media-picker sheets `pickerFontFamily` 'Sora'→'Raleway'. **REJECTED (justified):**
+  killing the onboarding `_fsTitle/_fsBody/_fsSub` scale — it is named, documented, single-source and
+  already routes through Raleway theme roles; remapping to role sizes (16→14, 13→12) would be a blind
+  visual change to the fresh M1 flow with no consolidation win. **⏸ Still deferred:** radar in-painter
+  sub-12 text (8/9/9.5px) — a 12px floor shifts painter geometry (`labelDist` tuned); needs its own
+  on-device radar design pass. **I11 = Completed (with the two dispositions above).**
+- ✅ **12.2** `feat(i18n)`: new 11-language keys `album_untitled`, `copy_failed`,
+  `inci_legend_active/issues`, `fp_email_required`, `fp_reset_sent`; 'Retry' ×5 reuses `care_retry`.
+  Weekday labels were already locale-aware (`DateFormat.E`) — the "missing Spanish" note was stale.
+  Translations are mine — **proofread ru/es at minimum**. Unused-key pruning stays optional/skipped.
+  **I12 = Completed.**
+- ✅ **13.2** capture offsets: left hand-tuned **by design** (device-verified as-is post-merge); pointer
+  comments at both offsets reference the `kNavBarHeight` note in `foundations/layout.dart`. A formula
+  (e.g. `kNavBarHeight − 21`) would encode the same numbers with false precision. **I13 = Completed.**
+
+**Verification:** every commit passed full-project `flutter analyze` (0 errors / 0 warnings) and
+`flutter test` (+9 −1 baseline). **Device-check list for the next Xcode run:** migrated sheets
+(leave_review / negative_feedback / error_popup dialogs / share_card_sheet — surfaces now
+`secondaryBackground` per the I6 canon), ProductTile on home/search/toprated/imagesby_album (plain
+variant now carries the image gradient? — no: gradient is main-only; check toprated), PlanCard on
+paywall, settings titles in Raleway.

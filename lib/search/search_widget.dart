@@ -5,7 +5,7 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/design_system/components/app_button.dart';
 import '/index.dart';
-import '/item_card/imagedetailed_main/imagedetailed_main_widget.dart';
+import '/design_system/components/product_tile.dart';
 import 'search_model.dart';
 export 'search_model.dart';
 
@@ -606,12 +606,11 @@ class _SearchWidgetState extends State<SearchWidget> {
                     'imageid': serializeParam(imageId, ParamType.int),
                   }.withoutNulls,
                 ),
-                child: ImagedetailedMainWidget(
+                child: ProductTile(
                   imageUrl:  r['image_url']    as String?,
                   brand:     r['brand']        as String?,
                   name:      r['product_name'] as String?,
                   score:     fitScore != null ? (fitScore as num).toDouble() : null,
-                  imageID:   imageId,
                 ),
               ),
             );

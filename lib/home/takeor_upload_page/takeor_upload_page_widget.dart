@@ -1418,6 +1418,9 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                 child: Padding(
                   padding: EdgeInsets.only(
                     top: MediaQuery.of(context).padding.top + 56,
+                    // Hand-tuned around the navbar + action zone; see the
+                    // kNavBarHeight note in design_system/foundations/layout.dart
+                    // before changing.
                     bottom: 320,
                   ),
                   child: const _ScannerIllustration(),
@@ -1429,6 +1432,8 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
               Positioned(
                 left: 16,
                 right: 16,
+                // Hand-tuned thumb-reach offset above the navbar (see the
+                // kNavBarHeight note in design_system/foundations/layout.dart).
                 bottom: 100.0 + MediaQuery.of(context).padding.bottom,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,

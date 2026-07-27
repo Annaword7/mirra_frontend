@@ -92,7 +92,7 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
                   const SizedBox(height: 16),
                   TextButton(
                     onPressed: () => safeSetState(() {}),
-                    child: const Text('Retry'),
+                    child: Text(FFLocalizations.of(context).getText('care_retry')),
                   ),
                 ],
               ),
@@ -280,7 +280,7 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
                                           textColor:
                                               FlutterFlowTheme.of(context)
                                                   .primaryText,
-                                          pickerFontFamily: 'Sora',
+                                          pickerFontFamily: 'Raleway',
                                         );
                                         if (selectedMedia != null &&
                                             selectedMedia.every((m) =>

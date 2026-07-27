@@ -6,8 +6,6 @@ import '/flutter_flow/flutter_flow_util.dart';
 
 // Shared card style
 const _kCardBg = Color(0xFFF5F8FF);
-const _kTextPrimary = Color(0xFF1A1F2E);
-const _kTextSecondary = Color(0xFF6B7280);
 
 BoxDecoration _cardDecoration(Color primary) => BoxDecoration(
       color: _kCardBg,
@@ -93,32 +91,38 @@ class _FeatureScoreCardState extends State<FeatureScoreCard>
               circularStrokeCap: CircularStrokeCap.round,
               animation: true,
               animationDuration: 1200,
-              center: const Text(
+              center: Text(
                 'A',
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w700,
-                  color: _scoreColor,
-                ),
+                style: FlutterFlowTheme.of(context)
+                    .displayXS
+                    .override(color: _scoreColor),
               ),
             ),
           ),
           const SizedBox(height: 12),
           Text(
             FFLocalizations.of(context).getText('lfc_score_label'),
-            style: const TextStyle(
-              color: _kTextPrimary,
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-            ),
+            style: FlutterFlowTheme.of(context).bodyMedium.override(
+                  fontFamily: FlutterFlowTheme.of(context).bodyMediumFamily,
+                  color: FlutterFlowTheme.of(context).primaryText,
+                  fontSize: 13.0,
+                  letterSpacing: 0.0,
+                  fontWeight: FontWeight.w600,
+                  useGoogleFonts:
+                      !FlutterFlowTheme.of(context).bodyMediumIsCustom,
+                ),
           ),
           const SizedBox(height: 2),
-          const Text(
+          Text(
             '94 / 100',
-            style: TextStyle(
-              color: _kTextSecondary,
-              fontSize: 12,
-            ),
+            style: FlutterFlowTheme.of(context).bodySmall.override(
+                  fontFamily: FlutterFlowTheme.of(context).bodySmallFamily,
+                  color: FlutterFlowTheme.of(context).secondaryText,
+                  fontSize: 12.0,
+                  letterSpacing: 0.0,
+                  useGoogleFonts:
+                      !FlutterFlowTheme.of(context).bodySmallIsCustom,
+                ),
           ),
         ],
       ),
@@ -251,19 +255,27 @@ class _FeatureScanCardState extends State<FeatureScanCard>
           const SizedBox(height: 6),
           Text(
             FFLocalizations.of(context).getText('lfc_scan_title'),
-            style: const TextStyle(
-              color: _kTextPrimary,
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-            ),
+            style: FlutterFlowTheme.of(context).bodyMedium.override(
+                  fontFamily: FlutterFlowTheme.of(context).bodyMediumFamily,
+                  color: FlutterFlowTheme.of(context).primaryText,
+                  fontSize: 13.0,
+                  letterSpacing: 0.0,
+                  fontWeight: FontWeight.w600,
+                  useGoogleFonts:
+                      !FlutterFlowTheme.of(context).bodyMediumIsCustom,
+                ),
           ),
           const SizedBox(height: 2),
           Text(
             FFLocalizations.of(context).getText('lfc_scan_subtitle'),
-            style: TextStyle(
-              color: _kTextSecondary,
-              fontSize: 12,
-            ),
+            style: FlutterFlowTheme.of(context).bodySmall.override(
+                  fontFamily: FlutterFlowTheme.of(context).bodySmallFamily,
+                  color: FlutterFlowTheme.of(context).secondaryText,
+                  fontSize: 12.0,
+                  letterSpacing: 0.0,
+                  useGoogleFonts:
+                      !FlutterFlowTheme.of(context).bodySmallIsCustom,
+                ),
           ),
         ],
       ),
@@ -325,11 +337,15 @@ class _FeatureIngredientsCardState extends State<FeatureIngredientsCard>
         children: [
           Text(
             FFLocalizations.of(context).getText('lfc_ingredients_title'),
-            style: const TextStyle(
-              color: _kTextPrimary,
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-            ),
+            style: FlutterFlowTheme.of(context).bodyMedium.override(
+                  fontFamily: FlutterFlowTheme.of(context).bodyMediumFamily,
+                  color: FlutterFlowTheme.of(context).primaryText,
+                  fontSize: 13.0,
+                  letterSpacing: 0.0,
+                  fontWeight: FontWeight.w600,
+                  useGoogleFonts:
+                      !FlutterFlowTheme.of(context).bodyMediumIsCustom,
+                ),
           ),
           const SizedBox(height: 12),
           AnimatedBuilder(
@@ -368,11 +384,20 @@ class _FeatureIngredientsCardState extends State<FeatureIngredientsCard>
                             const SizedBox(width: 6),
                             Text(
                               pill.label,
-                              style: const TextStyle(
-                                color: _kTextPrimary,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                              ),
+                              style: FlutterFlowTheme.of(context)
+                                  .bodySmall
+                                  .override(
+                                    fontFamily: FlutterFlowTheme.of(context)
+                                        .bodySmallFamily,
+                                    color: FlutterFlowTheme.of(context)
+                                        .primaryText,
+                                    fontSize: 12.0,
+                                    letterSpacing: 0.0,
+                                    fontWeight: FontWeight.w500,
+                                    useGoogleFonts:
+                                        !FlutterFlowTheme.of(context)
+                                            .bodySmallIsCustom,
+                                  ),
                             ),
                           ],
                         ),

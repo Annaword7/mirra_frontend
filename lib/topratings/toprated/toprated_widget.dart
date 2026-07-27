@@ -7,8 +7,7 @@ import '/components/navbar/navbar_widget.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/design_system/components/app_button.dart';
-import '/item_card/imagedetailed_main/imagedetailed_main_widget.dart';
-import '/item_card/imagedetailed_top_raited/imagedetailed_top_raited_widget.dart';
+import '/design_system/components/product_tile.dart';
 import '/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -583,12 +582,11 @@ class _TopratedWidgetState extends State<TopratedWidget> {
                                                   'imageid': serializeParam(imageId, ParamType.int),
                                                 }.withoutNulls,
                                               ),
-                                              child: ImagedetailedMainWidget(
+                                              child: ProductTile(
                                                 imageUrl:  r['image_url']    as String?,
                                                 brand:     r['brand']        as String?,
                                                 name:      r['product_name'] as String?,
                                                 score:     ((r['sa_composite_score'] ?? r['fit_score']) as num?)?.toDouble(),
-                                                imageID:   imageId,
                                               ),
                                             ),
                                           );
@@ -660,15 +658,14 @@ class _TopratedWidgetState extends State<TopratedWidget> {
                                             }.withoutNulls,
                                           );
                                         },
-                                        child: ImagedetailedTopRaitedWidget(
+                                        child: ProductTile(
                                           key: Key(
                                               'Keyytw_${index}_of_${images.length}'),
                                           imageUrl: item.imageUrl,
                                           brand: item.brand,
                                           name: item.productName,
                                           score: item.saCompositeScore,
-                                          imageID: item.id,
-                                          tags: item.saBestForTags,
+                                          variant: ProductTileVariant.plain,
                                           avgPrice: _model.priceMap['${(item.productName ?? '').toLowerCase().trim()}|${(item.brand ?? '').toLowerCase().trim()}']?.avgPrice,
                                           priceCurrencyCode: _model.priceMap['${(item.productName ?? '').toLowerCase().trim()}|${(item.brand ?? '').toLowerCase().trim()}']?.priceCurrencyCode,
                                         ),

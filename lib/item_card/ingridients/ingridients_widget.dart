@@ -149,10 +149,10 @@ class _IngridientsWidgetState extends State<IngridientsWidget> {
               Row(
                 children: [
                   _LegendDot(color: _greenBg, textColor: _greenText,
-                      label: 'Active'),
+                      label: FFLocalizations.of(context).getText('inci_legend_active')),
                   const SizedBox(width: 12),
                   _LegendDot(color: _redBg, textColor: _redText,
-                      label: 'Issues'),
+                      label: FFLocalizations.of(context).getText('inci_legend_issues')),
                 ],
               ),
           ].divide(const SizedBox(height: 12.0)),
