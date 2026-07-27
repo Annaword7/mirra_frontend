@@ -10,7 +10,7 @@ import '/flutter_flow/flutter_flow_widgets.dart';
 import '/design_system/components/app_button.dart';
 import '/design_system/components/pro_hero_button.dart';
 import '/design_system/components/skeleton_line.dart';
-import '/item_card/imagedetailed_main/imagedetailed_main_widget.dart';
+import '/design_system/components/product_tile.dart';
 import 'dart:async';
 import '/index.dart';
 import 'package:flutter/material.dart';
@@ -909,7 +909,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                 }.withoutNulls,
                                               );
                                             },
-                                            child: ImagedetailedMainWidget(
+                                            child: ProductTile(
                                               key: Key(
                                                   'Keyoxp_${staggeredViewIndex}_of_${staggeredViewImagesRowList.length}'),
                                               imageUrl: valueOrDefault<String>(
@@ -928,12 +928,8 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                               score: staggeredViewImagesRow
                                                   .saCompositeScore,
                                               stars: 0,
-                                              tags: staggeredViewImagesRow
-                                                  .saBestForTags,
                                               hasSpf: staggeredViewImagesRow
                                                   .saHasSpf,
-                                              imageID:
-                                                  staggeredViewImagesRow.id,
                                               avgPrice: _model
                                                   .priceMap[
                                                       '${(staggeredViewImagesRow.productName ?? '').toLowerCase().trim()}|${(staggeredViewImagesRow.brand ?? '').toLowerCase().trim()}']

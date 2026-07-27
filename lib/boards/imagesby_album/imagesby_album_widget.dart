@@ -4,7 +4,7 @@ import '/boards/edit_album/edit_album_widget.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/item_card/imagedetailed_main/imagedetailed_main_widget.dart';
+import '/design_system/components/product_tile.dart';
 import '/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
@@ -290,7 +290,7 @@ class _ImagesbyAlbumWidgetState extends State<ImagesbyAlbumWidget> {
                                 }.withoutNulls,
                               );
                             },
-                            child: ImagedetailedMainWidget(
+                            child: ProductTile(
                               key: Key(
                                   'Keyk9r_${index}_of_${images.length}'),
                               imageUrl: row.imageUrl,
@@ -298,8 +298,6 @@ class _ImagesbyAlbumWidgetState extends State<ImagesbyAlbumWidget> {
                               name: row.productName,
                               score: (row.saCompositeScore ?? 0.0)
                                   .roundToDouble(),
-                              imageID: row.id,
-                              tags: row.saBestForTags,
                               hasSpf: row.saHasSpf,
                               stars: row.starsFromUser,
                             ),
