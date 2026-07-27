@@ -3,6 +3,7 @@ import '/backend/api_requests/api_calls.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/design_system/components/app_button.dart';
+import '/design_system/components/mirra_bottom_sheet.dart';
 import 'dart:async';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
@@ -30,7 +31,8 @@ class _NegativeFeedbackWidgetState extends State<NegativeFeedbackWidget> {
   void initState() {
     super.initState();
     if (!isWeb) {
-      _keyboardSubscription = KeyboardVisibilityController().onChange.listen((visible) {
+      _keyboardSubscription =
+          KeyboardVisibilityController().onChange.listen((visible) {
         safeSetState(() => _isKeyboardVisible = visible);
       });
     }
@@ -48,199 +50,198 @@ class _NegativeFeedbackWidgetState extends State<NegativeFeedbackWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        // Tap outside to dismiss
-        Align(
-          alignment: AlignmentDirectional(-1.0, 1.0),
-          child: GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: Container(
-              width: MediaQuery.sizeOf(context).width,
-              height: MediaQuery.sizeOf(context).height,
-              color: Colors.transparent,
+    return MirraBottomSheet(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      addBottomInset: false,
+      handleGap: 12.0,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(0.0, 24.0, 0.0, 0.0),
+            child: Text(
+              FFLocalizations.of(context).getText('fc_neg_title'),
+              textAlign: TextAlign.start,
+              style: FlutterFlowTheme.of(context).displayXS,
             ),
           ),
-        ),
-        Align(
-          alignment: AlignmentDirectional(0.0, 1.0),
-          child: Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: FlutterFlowTheme.of(context).alternate,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(24.0),
-                topRight: Radius.circular(24.0),
-              ),
-              border: Border.all(color: FlutterFlowTheme.of(context).alternate),
-            ),
-            child: Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(16.0, 12.0, 16.0, 32.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Drag handle
-                  Container(
-                    width: 100.0,
-                    height: 5.0,
-                    decoration: BoxDecoration(
-                      color: FlutterFlowTheme.of(context).info,
-                      borderRadius: BorderRadius.circular(12.0),
+          Text(
+            FFLocalizations.of(context).getText('fc_neg_subtitle'),
+            textAlign: TextAlign.start,
+            style: FlutterFlowTheme.of(context).bodyMedium.override(
+                  fontFamily: FlutterFlowTheme.of(context).bodyMediumFamily,
+                  letterSpacing: 0.0,
+                  lineHeight: 1.1,
+                  useGoogleFonts:
+                      !FlutterFlowTheme.of(context).bodyMediumIsCustom,
+                ),
+          ),
+          Form(
+            key: _formKey,
+            autovalidateMode: AutovalidateMode.disabled,
+            child: Column(
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                // Comment field (required)
+                SizedBox(
+                  width: double.infinity,
+                  child: TextFormField(
+                    controller: _commentController,
+                    focusNode: _commentFocusNode,
+                    autofocus: false,
+                    textCapitalization: TextCapitalization.sentences,
+                    textInputAction: TextInputAction.next,
+                    obscureText: false,
+                    maxLines: 4,
+                    minLines: 3,
+                    maxLength: 1000,
+                    maxLengthEnforcement: MaxLengthEnforcement.enforced,
+                    decoration: InputDecoration(
+                      hintText:
+                          FFLocalizations.of(context).getText('fc_neg_hint'),
+                      hintStyle: FlutterFlowTheme.of(context)
+                          .bodyMedium
+                          .override(
+                            fontFamily:
+                                FlutterFlowTheme.of(context).bodyMediumFamily,
+                            letterSpacing: 0.0,
+                            useGoogleFonts: !FlutterFlowTheme.of(context)
+                                .bodyMediumIsCustom,
+                          ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color: FlutterFlowTheme.of(context).info,
+                            width: 1.0),
+                        borderRadius: BorderRadius.circular(16.0),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color:
+                                FlutterFlowTheme.of(context).primaryBackground,
+                            width: 1.0),
+                        borderRadius: BorderRadius.circular(16.0),
+                      ),
+                      errorBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color: FlutterFlowTheme.of(context).error,
+                            width: 1.0),
+                        borderRadius: BorderRadius.circular(16.0),
+                      ),
+                      focusedErrorBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color: FlutterFlowTheme.of(context).error,
+                            width: 1.0),
+                        borderRadius: BorderRadius.circular(16.0),
+                      ),
+                      filled: true,
+                      fillColor: FlutterFlowTheme.of(context).info,
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsetsDirectional.fromSTEB(0.0, 24.0, 0.0, 0.0),
-                    child: Text(
-                      FFLocalizations.of(context).getText('fc_neg_title'),
-                      textAlign: TextAlign.start,
-                      style: FlutterFlowTheme.of(context).displayXS,
-                    ),
-                  ),
-                  Text(
-                    FFLocalizations.of(context).getText('fc_neg_subtitle'),
-                    textAlign: TextAlign.start,
                     style: FlutterFlowTheme.of(context).bodyMedium.override(
-                          fontFamily: FlutterFlowTheme.of(context).bodyMediumFamily,
+                          fontFamily:
+                              FlutterFlowTheme.of(context).bodyMediumFamily,
+                          color: FlutterFlowTheme.of(context).primaryText,
                           letterSpacing: 0.0,
-                          lineHeight: 1.1,
-                          useGoogleFonts: !FlutterFlowTheme.of(context).bodyMediumIsCustom,
+                          useGoogleFonts:
+                              !FlutterFlowTheme.of(context).bodyMediumIsCustom,
                         ),
+                    cursorColor: FlutterFlowTheme.of(context).primary,
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return FFLocalizations.of(context)
+                            .getText('fc_neg_validator');
+                      }
+                      return null;
+                    },
                   ),
-                  Form(
-                    key: _formKey,
-                    autovalidateMode: AutovalidateMode.disabled,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
-                        // Comment field (required)
-                        SizedBox(
-                          width: double.infinity,
-                          child: TextFormField(
-                            controller: _commentController,
-                            focusNode: _commentFocusNode,
-                            autofocus: false,
-                            textCapitalization: TextCapitalization.sentences,
-                            textInputAction: TextInputAction.next,
-                            obscureText: false,
-                            maxLines: 4,
-                            minLines: 3,
-                            maxLength: 1000,
-                            maxLengthEnforcement: MaxLengthEnforcement.enforced,
-                            decoration: InputDecoration(
-                              hintText: FFLocalizations.of(context).getText('fc_neg_hint'),
-                              hintStyle: FlutterFlowTheme.of(context).bodyMedium.override(
-                                    fontFamily: FlutterFlowTheme.of(context).bodyMediumFamily,
-                                    letterSpacing: 0.0,
-                                    useGoogleFonts: !FlutterFlowTheme.of(context).bodyMediumIsCustom,
-                                  ),
-                              enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide(color: FlutterFlowTheme.of(context).info, width: 1.0),
-                                borderRadius: BorderRadius.circular(16.0),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(color: FlutterFlowTheme.of(context).primaryBackground, width: 1.0),
-                                borderRadius: BorderRadius.circular(16.0),
-                              ),
-                              errorBorder: OutlineInputBorder(
-                                borderSide: BorderSide(color: FlutterFlowTheme.of(context).error, width: 1.0),
-                                borderRadius: BorderRadius.circular(16.0),
-                              ),
-                              focusedErrorBorder: OutlineInputBorder(
-                                borderSide: BorderSide(color: FlutterFlowTheme.of(context).error, width: 1.0),
-                                borderRadius: BorderRadius.circular(16.0),
-                              ),
-                              filled: true,
-                              fillColor: FlutterFlowTheme.of(context).info,
-                            ),
-                            style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                  fontFamily: FlutterFlowTheme.of(context).bodyMediumFamily,
-                                  color: FlutterFlowTheme.of(context).primaryText,
-                                  letterSpacing: 0.0,
-                                  useGoogleFonts: !FlutterFlowTheme.of(context).bodyMediumIsCustom,
-                                ),
-                            cursorColor: FlutterFlowTheme.of(context).primary,
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return FFLocalizations.of(context).getText('fc_neg_validator');
-                              }
-                              return null;
-                            },
+                ),
+                // Email field (optional)
+                SizedBox(
+                  width: double.infinity,
+                  child: TextFormField(
+                    controller: _emailController,
+                    focusNode: _emailFocusNode,
+                    keyboardType: TextInputType.emailAddress,
+                    textInputAction: TextInputAction.done,
+                    obscureText: false,
+                    decoration: InputDecoration(
+                      hintText:
+                          FFLocalizations.of(context).getText('fc_neg_email'),
+                      hintStyle: FlutterFlowTheme.of(context)
+                          .bodyMedium
+                          .override(
+                            fontFamily:
+                                FlutterFlowTheme.of(context).bodyMediumFamily,
+                            letterSpacing: 0.0,
+                            useGoogleFonts: !FlutterFlowTheme.of(context)
+                                .bodyMediumIsCustom,
                           ),
-                        ),
-                        // Email field (optional)
-                        SizedBox(
-                          width: double.infinity,
-                          child: TextFormField(
-                            controller: _emailController,
-                            focusNode: _emailFocusNode,
-                            keyboardType: TextInputType.emailAddress,
-                            textInputAction: TextInputAction.done,
-                            obscureText: false,
-                            decoration: InputDecoration(
-                              hintText: FFLocalizations.of(context).getText('fc_neg_email'),
-                              hintStyle: FlutterFlowTheme.of(context).bodyMedium.override(
-                                    fontFamily: FlutterFlowTheme.of(context).bodyMediumFamily,
-                                    letterSpacing: 0.0,
-                                    useGoogleFonts: !FlutterFlowTheme.of(context).bodyMediumIsCustom,
-                                  ),
-                              enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide(color: FlutterFlowTheme.of(context).info, width: 1.0),
-                                borderRadius: BorderRadius.circular(16.0),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(color: FlutterFlowTheme.of(context).primaryBackground, width: 1.0),
-                                borderRadius: BorderRadius.circular(16.0),
-                              ),
-                              errorBorder: OutlineInputBorder(
-                                borderSide: BorderSide(color: FlutterFlowTheme.of(context).error, width: 1.0),
-                                borderRadius: BorderRadius.circular(16.0),
-                              ),
-                              focusedErrorBorder: OutlineInputBorder(
-                                borderSide: BorderSide(color: FlutterFlowTheme.of(context).error, width: 1.0),
-                                borderRadius: BorderRadius.circular(16.0),
-                              ),
-                              filled: true,
-                              fillColor: FlutterFlowTheme.of(context).info,
-                            ),
-                            style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                  fontFamily: FlutterFlowTheme.of(context).bodyMediumFamily,
-                                  color: FlutterFlowTheme.of(context).primaryText,
-                                  letterSpacing: 0.0,
-                                  useGoogleFonts: !FlutterFlowTheme.of(context).bodyMediumIsCustom,
-                                ),
-                            cursorColor: FlutterFlowTheme.of(context).primary,
-                          ),
-                        ),
-                      ].divide(const SizedBox(height: 12.0)),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color: FlutterFlowTheme.of(context).info,
+                            width: 1.0),
+                        borderRadius: BorderRadius.circular(16.0),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color:
+                                FlutterFlowTheme.of(context).primaryBackground,
+                            width: 1.0),
+                        borderRadius: BorderRadius.circular(16.0),
+                      ),
+                      errorBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color: FlutterFlowTheme.of(context).error,
+                            width: 1.0),
+                        borderRadius: BorderRadius.circular(16.0),
+                      ),
+                      focusedErrorBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color: FlutterFlowTheme.of(context).error,
+                            width: 1.0),
+                        borderRadius: BorderRadius.circular(16.0),
+                      ),
+                      filled: true,
+                      fillColor: FlutterFlowTheme.of(context).info,
                     ),
+                    style: FlutterFlowTheme.of(context).bodyMedium.override(
+                          fontFamily:
+                              FlutterFlowTheme.of(context).bodyMediumFamily,
+                          color: FlutterFlowTheme.of(context).primaryText,
+                          letterSpacing: 0.0,
+                          useGoogleFonts:
+                              !FlutterFlowTheme.of(context).bodyMediumIsCustom,
+                        ),
+                    cursorColor: FlutterFlowTheme.of(context).primary,
                   ),
-                  if (!(isWeb
-                      ? MediaQuery.viewInsetsOf(context).bottom > 0
-                      : _isKeyboardVisible))
-                    AppButton(
-                      label: FFLocalizations.of(context).getText('fc_neg_submit'),
-                      onPressed: () async {
-                        HapticFeedback.lightImpact();
-                        if (_formKey.currentState == null || !_formKey.currentState!.validate()) {
-                          return;
-                        }
-                        final email = _emailController.text.trim().isNotEmpty
-                            ? _emailController.text.trim()
-                            : currentUserEmail;
-                        await TelegrammessegeCall.call(
-                          messega: _commentController.text,
-                          email: email,
-                        );
-                        await FirebaseAnalytics.instance.logEvent(name: 'feedback_submitted');
-                        if (context.mounted) Navigator.pop(context);
-                      },
-                    ),
-                ].divide(const SizedBox(height: 15.0)),
-              ),
+                ),
+              ].divide(const SizedBox(height: 12.0)),
             ),
           ),
-        ),
-      ],
+          if (!(isWeb
+              ? MediaQuery.viewInsetsOf(context).bottom > 0
+              : _isKeyboardVisible))
+            AppButton(
+              label: FFLocalizations.of(context).getText('fc_neg_submit'),
+              onPressed: () async {
+                HapticFeedback.lightImpact();
+                if (_formKey.currentState == null ||
+                    !_formKey.currentState!.validate()) {
+                  return;
+                }
+                final email = _emailController.text.trim().isNotEmpty
+                    ? _emailController.text.trim()
+                    : currentUserEmail;
+                await TelegrammessegeCall.call(
+                  messega: _commentController.text,
+                  email: email,
+                );
+                await FirebaseAnalytics.instance
+                    .logEvent(name: 'feedback_submitted');
+                if (context.mounted) Navigator.pop(context);
+              },
+            ),
+        ].divide(const SizedBox(height: 15.0)),
+      ),
     );
   }
 }
