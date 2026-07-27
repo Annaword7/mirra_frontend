@@ -413,7 +413,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                         const SizedBox(height: 16),
                         TextButton(
                           onPressed: () => _refreshImages(),
-                          child: const Text('Retry'),
+                          child: Text(FFLocalizations.of(context).getText('care_retry')),
                         ),
                       ],
                     ),
@@ -709,7 +709,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                               const SizedBox(height: 16),
                                               TextButton(
                                                 onPressed: () => _refreshImages(),
-                                                child: const Text('Retry'),
+                                                child: Text(FFLocalizations.of(context).getText('care_retry')),
                                               ),
                                             ],
                                           ),

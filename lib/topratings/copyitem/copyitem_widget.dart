@@ -73,8 +73,9 @@ class _CopyitemWidgetState extends State<CopyitemWidget> {
         debugPrint(
             '[CopyProduct] ERROR: new_image_id is null, cannot navigate');
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to copy product. Please try again.'),
+          SnackBar(
+            content:
+                Text(FFLocalizations.of(context).getText('copy_failed')),
             behavior: SnackBarBehavior.floating,
           ),
         );

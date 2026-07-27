@@ -72,7 +72,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                   const SizedBox(height: 16),
                   TextButton(
                     onPressed: () => safeSetState(() {}),
-                    child: const Text('Retry'),
+                    child: Text(FFLocalizations.of(context).getText('care_retry')),
                   ),
                 ],
               ),

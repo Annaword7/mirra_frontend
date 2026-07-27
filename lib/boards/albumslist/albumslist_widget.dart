@@ -130,7 +130,7 @@ class _AlbumslistWidgetState extends State<AlbumslistWidget> {
                           children: [
                             Expanded(
                               child: Text(
-                                valueOrDefault<String>(album.name, 'Untitled'),
+                                valueOrDefault<String>(album.name, FFLocalizations.of(context).getText('album_untitled')),
                                 style: FlutterFlowTheme.of(context)
                                     .bodyMedium
                                     .override(

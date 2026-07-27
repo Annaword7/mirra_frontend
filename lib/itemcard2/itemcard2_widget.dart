@@ -287,7 +287,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                   const SizedBox(height: 16),
                   TextButton(
                     onPressed: () => safeSetState(() {}),
-                    child: const Text('Retry'),
+                    child: Text(FFLocalizations.of(context).getText('care_retry')),
                   ),
                 ],
               ),

@@ -286,7 +286,7 @@ class _AlbumCardState extends State<_AlbumCard> {
         ),
         const SizedBox(height: 6),
         Text(
-          valueOrDefault<String>(widget.album.name, 'Untitled'),
+          valueOrDefault<String>(widget.album.name, FFLocalizations.of(context).getText('album_untitled')),
           style: FlutterFlowTheme.of(context).bodyMedium.override(
                 fontFamily: FlutterFlowTheme.of(context).bodyMediumFamily,
                 color: FlutterFlowTheme.of(context).primaryText,

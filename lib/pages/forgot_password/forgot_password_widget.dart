@@ -187,7 +187,8 @@ class _ForgotPasswordWidgetState extends State<ForgotPasswordWidget>
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(
-                                'Email required!',
+                                FFLocalizations.of(context)
+                                    .getText('fp_email_required'),
                               ),
                             ),
                           );
@@ -200,7 +201,8 @@ class _ForgotPasswordWidgetState extends State<ForgotPasswordWidget>
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(
-                              'Success! Check your inbox for an email.',
+                              FFLocalizations.of(context)
+                                  .getText('fp_reset_sent'),
                               style: FlutterFlowTheme.of(context)
                                   .bodyMedium
                                   .override(
