@@ -138,6 +138,7 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
       mainAxisSize: MainAxisSize.min,
       children: [
         _buildVerdict(theme),
+        _buildPregnancy(theme),
         _buildMatrix(theme),
         if (widget.topIngredients.isNotEmpty) _buildActives(theme),
         if (widget.topIngredients.isNotEmpty)
@@ -448,6 +449,124 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
             ),
           ),
       ],
+    );
+  }
+
+  // ── Pregnancy safety ──────────────────────────────────────────────────────
+
+  List<Map<String, dynamic>> get _pregFlags {
+    final raw = widget.image.saPregnancyFlags;
+    if (raw is List) {
+      return raw
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
+    }
+    return const [];
+  }
+
+  String _pregClassLabel(String cls) {
+    const keys = {
+      'retinoid': 'preg_class_retinoid',
+      'hydroquinone': 'preg_class_hydroquinone',
+      'arbutin': 'preg_class_arbutin',
+      'bha': 'preg_class_bha',
+    };
+    final key = keys[cls];
+    return key != null ? _t(key) : cls;
+  }
+
+  /// Product-intrinsic pregnancy verdict (backend knowledge.pregnancy_verdict).
+  /// Only a limited set of contraindicated actives is screened — the always-on
+  /// methodology block (preg_how_body) states that explicitly, so the badge is
+  /// never read as a complete safety guarantee. Hidden until computed (null).
+  Widget _buildPregnancy(FlutterFlowTheme theme) {
+    final safe = widget.image.saPregnancySafe;
+    if (safe == null) return const SizedBox.shrink();
+    final flags = _pregFlags;
+    final ok = safe && flags.isEmpty;
+    final accent = ok ? _goodColor : _warnColor;
+
+    return Padding(
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 16, 0),
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: accent.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: accent.withOpacity(0.30)),
+        ),
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  ok
+                      ? Icons.check_circle_rounded
+                      : Icons.warning_amber_rounded,
+                  size: 18,
+                  color: accent,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    ok ? _t('preg_safe') : _t('preg_caution'),
+                    style: theme.bodyMedium.override(
+                      fontFamily: theme.bodyMediumFamily,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.0,
+                      useGoogleFonts: !theme.bodyMediumIsCustom,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            if (flags.isNotEmpty)
+              Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(28, 6, 0, 0),
+                child: Text(
+                  '${_t('preg_contains')} '
+                  '${flags.map((f) => _pregClassLabel('${f['class']}')).join(', ')}',
+                  style: theme.bodySmall.override(
+                    fontFamily: theme.bodySmallFamily,
+                    letterSpacing: 0.0,
+                    useGoogleFonts: !theme.bodySmallIsCustom,
+                  ),
+                ),
+              ),
+            Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(28, 10, 0, 2),
+              child: Text(
+                _t('preg_how_title'),
+                style: theme.labelSmall.override(
+                  fontFamily: theme.labelSmallFamily,
+                  color: theme.secondaryText,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.0,
+                  useGoogleFonts: !theme.labelSmallIsCustom,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(28, 0, 0, 0),
+              child: Text(
+                _t('preg_how_body'),
+                style: theme.bodySmall.override(
+                  fontFamily: theme.bodySmallFamily,
+                  color: theme.secondaryText,
+                  fontSize: 12,
+                  letterSpacing: 0.0,
+                  useGoogleFonts: !theme.bodySmallIsCustom,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

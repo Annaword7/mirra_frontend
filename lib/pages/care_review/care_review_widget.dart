@@ -1,6 +1,7 @@
 import '/backend/supabase/database/database.dart';
 import '/design_system/components/app_button.dart';
 import '/domain/care_planning/care_planning_service.dart';
+import '/domain/cosmetic_bag/cosmetic_bag_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'package:flutter/material.dart';
@@ -33,11 +34,96 @@ class _CareReviewWidgetState extends State<CareReviewWidget> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _compose();
+      if (mounted) _load();
     });
   }
 
   String _t(String key) => FFLocalizations.of(context).getText(key);
+
+  /// Открытие разбора: если режим уже собран и состав Косметички не изменился —
+  /// показываем его без пересчёта; пересобираем только когда состав изменился
+  /// или режима ещё нет. Сам compose детерминированный, но каждый вызов плодит
+  /// запись режима — поэтому не гоняем его на каждый вход.
+  Future<void> _load() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final resp = await CarePlanningService.instance.current();
+      if (resp.succeeded && resp.jsonBody is Map) {
+        final map = (resp.jsonBody as Map).cast<String, dynamic>();
+        final regimen = (map['regimen'] as Map?)?.cast<String, dynamic>();
+        final prescriptions = (map['prescriptions'] as List?) ?? const [];
+        if (regimen != null && prescriptions.isNotEmpty) {
+          final bag = await _bagImageIds();
+          final composed = _composedSet(prescriptions, regimen);
+          final unchanged =
+              composed.length == bag.length && composed.containsAll(bag);
+          if (unchanged) {
+            await _applyRegimen(
+              regimenId: regimen['id'] as String?,
+              status: (regimen['status'] as String?) ?? 'proposed',
+              prescriptions: prescriptions,
+              warnings: (regimen['warnings'] as List?) ?? const [],
+            );
+            return;
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('care: current fetch failed, recomposing: $e');
+    }
+    await _compose();
+  }
+
+  Future<Set<int>> _bagImageIds() async {
+    final items = await CosmeticBagService.instance.items();
+    return items.map((i) => i.imageId).whereType<int>().toSet();
+  }
+
+  /// Продукты, из которых собран режим: назначения плюс исключённые
+  /// противопоказанием (они не сохраняются как назначения). Совпадение с
+  /// составом Косметички = «ничего не менялось».
+  Set<int> _composedSet(
+      List<dynamic> prescriptions, Map<String, dynamic> regimen) {
+    final s = <int>{};
+    for (final p in prescriptions) {
+      final id = p is Map ? p['image_id'] : null;
+      if (id is int) s.add(id);
+    }
+    for (final w in (regimen['warnings'] as List?) ?? const []) {
+      final id = w is Map ? w['product_id'] : null;
+      if (id is int) s.add(id);
+    }
+    return s;
+  }
+
+  Future<void> _applyRegimen({
+    required String? regimenId,
+    required String status,
+    required List<dynamic> prescriptions,
+    required List<dynamic> warnings,
+  }) async {
+    final ids =
+        prescriptions.map((p) => p['image_id']).whereType<int>().toSet().toList();
+    var images = <int, ImagesRow>{};
+    if (ids.isNotEmpty) {
+      final rows = await ImagesTable().queryRows(
+        queryFn: (q) => q.inFilterOrNull('id', ids),
+      );
+      images = {for (final r in rows) r.id: r};
+    }
+    if (!mounted) return;
+    setState(() {
+      _images = images;
+      _regimenId = regimenId;
+      _regimenStatus = status;
+      _prescriptions = prescriptions;
+      _warnings = warnings;
+      _loading = false;
+    });
+  }
 
   /// Набор = содержимое Косметички (курируемое «чем я пользуюсь») —
   /// image_ids не передаём, сервер берёт bag_items сам.
@@ -59,28 +145,12 @@ class _CareReviewWidgetState extends State<CareReviewWidget> {
         throw Exception('compose failed: ${resp.statusCode}');
       }
       final map = (resp.jsonBody as Map).cast<String, dynamic>();
-      final prescriptions = (map['prescriptions'] as List?) ?? [];
-      final ids = prescriptions
-          .map((p) => p['image_id'])
-          .whereType<int>()
-          .toSet()
-          .toList();
-      var images = <int, ImagesRow>{};
-      if (ids.isNotEmpty) {
-        final rows = await ImagesTable().queryRows(
-          queryFn: (q) => q.inFilterOrNull('id', ids),
-        );
-        images = {for (final r in rows) r.id: r};
-      }
-      if (!mounted) return;
-      setState(() {
-        _images = images;
-        _regimenId = map['regimen_id'] as String?;
-        _regimenStatus = 'proposed';
-        _prescriptions = prescriptions;
-        _warnings = (map['warnings'] as List?) ?? [];
-        _loading = false;
-      });
+      await _applyRegimen(
+        regimenId: map['regimen_id'] as String?,
+        status: 'proposed',
+        prescriptions: (map['prescriptions'] as List?) ?? const [],
+        warnings: (map['warnings'] as List?) ?? const [],
+      );
     } catch (e) {
       debugPrint('care compose failed: $e');
       if (mounted)
@@ -220,7 +290,9 @@ class _CareReviewWidgetState extends State<CareReviewWidget> {
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
                 child: AppButton(
-                  label: _t('care_accept'),
+                  label: _regimenStatus == 'accepted'
+                      ? _t('care_accepted')
+                      : _t('care_accept'),
                   onPressed: _regimenStatus == 'proposed' ? _accept : null,
                 ),
               ),
@@ -521,6 +593,29 @@ class _WarningCard extends StatelessWidget {
   final dynamic warning;
   final String? productName;
 
+  /// Localize the knowledge-rule explanation by its subject (active class /
+  /// formulation property). The backend `explanation` is English-only static
+  /// data; the subject is a stable key. Falls back to the raw explanation for
+  /// any subject without a localized string yet.
+  String _localizedExplanation(BuildContext context) {
+    const keys = {
+      'retinoid': 'warn_expl_retinoid',
+      'hydroquinone': 'warn_expl_hydroquinone',
+      'arbutin': 'warn_expl_arbutin',
+      'bha': 'warn_expl_bha',
+      'fragrance': 'warn_expl_fragrance',
+      'drying_alcohols': 'warn_expl_drying_alcohols',
+      'fungal_triggers': 'warn_expl_fungal_triggers',
+    };
+    if (warning['kind']?.toString() == 'missing_spf') {
+      return FFLocalizations.of(context).getText('warn_missing_spf');
+    }
+    final subject = warning['subject']?.toString();
+    final key = subject != null ? keys[subject] : null;
+    if (key != null) return FFLocalizations.of(context).getText(key);
+    return warning['explanation']?.toString() ?? '';
+  }
+
   @override
   Widget build(BuildContext context) {
     final severity = warning['severity']?.toString() ?? 'advisory';
@@ -558,7 +653,7 @@ class _WarningCard extends StatelessWidget {
                     ),
                   ),
                 Text(
-                  warning['explanation']?.toString() ?? '',
+                  _localizedExplanation(context),
                   style: TextStyle(color: fg, fontSize: 13),
                 ),
               ],

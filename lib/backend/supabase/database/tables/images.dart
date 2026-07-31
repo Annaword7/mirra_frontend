@@ -23,6 +23,12 @@ class ImagesRow extends SupabaseDataRow {
   String get imageUrl => getField<String>('image_url')!;
   set imageUrl(String value) => setField<String>('image_url', value);
 
+  // Каталожное фото (бренд/производитель), заполняется фоновым пайплайном.
+  // Публичное — в отличие от image_url (приватный скан владельца).
+  String? get catalogImageUrl => getField<String>('catalog_image_url');
+  set catalogImageUrl(String? value) =>
+      setField<String>('catalog_image_url', value);
+
   String? get user => getField<String>('user');
   set user(String? value) => setField<String>('user', value);
 
@@ -119,6 +125,14 @@ class ImagesRow extends SupabaseDataRow {
   String? get saLanguageCode => getField<String>('sa_language_code');
   set saLanguageCode(String? value) =>
       setField<String>('sa_language_code', value);
+
+  bool? get saPregnancySafe => getField<bool>('sa_pregnancy_safe');
+  set saPregnancySafe(bool? value) =>
+      setField<bool>('sa_pregnancy_safe', value);
+
+  dynamic get saPregnancyFlags => getField<dynamic>('sa_pregnancy_flags');
+  set saPregnancyFlags(dynamic value) =>
+      setField<dynamic>('sa_pregnancy_flags', value);
 
   dynamic get saScoringLog => getField<dynamic>('sa_scoring_log');
   set saScoringLog(dynamic value) =>

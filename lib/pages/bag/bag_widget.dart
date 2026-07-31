@@ -3,6 +3,7 @@ import '/backend/supabase/database/database.dart';
 import '/components/navbar/navbar_widget.dart';
 import '/components/profile_summary_card.dart';
 import '/design_system/components/app_button.dart';
+import '/domain/care_planning/care_planning_service.dart';
 import '/domain/cosmetic_bag/cosmetic_bag_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -31,6 +32,10 @@ class _BagWidgetState extends State<BagWidget> {
   List<BagItemsRow> _items = [];
   Map<int, ImagesRow> _images = {};
   UsersRow? _profile;
+  // Последний собранный режим (GET care/regimen/current) — для сводки
+  // совместимости и детекта «состав косметички изменился».
+  Map<String, dynamic>? _regimen;
+  List<dynamic> _regimenPrescriptions = const [];
 
   @override
   void initState() {
@@ -60,11 +65,26 @@ class _BagWidgetState extends State<BagWidget> {
         );
         profile = rows.isEmpty ? null : rows.first;
       }
+      // Текущий режим (не критично: при ошибке сводка просто «не проверено»).
+      Map<String, dynamic>? regimen;
+      List<dynamic> prescriptions = const [];
+      try {
+        final resp = await CarePlanningService.instance.current();
+        if (resp.succeeded && resp.jsonBody is Map) {
+          final map = (resp.jsonBody as Map).cast<String, dynamic>();
+          regimen = (map['regimen'] as Map?)?.cast<String, dynamic>();
+          prescriptions = (map['prescriptions'] as List?) ?? const [];
+        }
+      } catch (e) {
+        debugPrint('bag: current regimen fetch failed: $e');
+      }
       if (!mounted) return;
       setState(() {
         _items = items;
         _images = images;
         _profile = profile;
+        _regimen = regimen;
+        _regimenPrescriptions = prescriptions;
         _loading = false;
       });
     } catch (e) {
@@ -121,6 +141,184 @@ class _BagWidgetState extends State<BagWidget> {
     _load();
   }
 
+  Set<int> get _bagSet =>
+      _items.map((i) => i.imageId).whereType<int>().toSet();
+
+  List<dynamic> get _regimenWarnings =>
+      (_regimen?['warnings'] as List?) ?? const [];
+
+  /// Продукты, из которых собран текущий режим: его назначения плюс продукты,
+  /// исключённые противопоказанием (исключённые не сохраняются как назначения).
+  /// Позволяет заметить, что состав косметички больше не соответствует режиму.
+  Set<int> get _composedSet {
+    final s = <int>{};
+    for (final p in _regimenPrescriptions) {
+      final id = p is Map ? p['image_id'] : null;
+      if (id is int) s.add(id);
+    }
+    for (final w in _regimenWarnings) {
+      final id = w is Map ? w['product_id'] : null;
+      if (id is int) s.add(id);
+    }
+    return s;
+  }
+
+  bool get _compatStale {
+    if (_regimen == null) return false;
+    final composed = _composedSet, bag = _bagSet;
+    return composed.length != bag.length || !composed.containsAll(bag);
+  }
+
+  /// Сводка совместимости над продуктами: состояние последней проверки
+  /// + заметная кнопка. Заменяет прежнюю кнопку внизу экрана.
+  Widget _compatCard(FlutterFlowTheme theme) {
+    if (_items.length < 2) {
+      return Container(
+        width: double.infinity,
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF3F4F6),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Text(
+          _t('cb_compat_need_more'),
+          style: const TextStyle(color: Colors.black54, fontSize: 13),
+        ),
+      );
+    }
+
+    final hasRegimen = _regimen != null;
+    final warnings = _regimenWarnings.length;
+    final stale = _compatStale;
+
+    final Color accent;
+    final IconData icon;
+    final String status;
+    final String button;
+    if (!hasRegimen) {
+      accent = theme.primary;
+      icon = Icons.rule_rounded;
+      status = _t('cb_compat_unchecked');
+      button = _t('cb_compat_check');
+    } else if (stale) {
+      accent = const Color(0xFFFFB300);
+      icon = Icons.sync_problem_rounded;
+      status = _t('cb_compat_stale');
+      button = _t('cb_compat_recalc');
+    } else if (warnings > 0) {
+      accent = const Color(0xFFFFB300);
+      icon = Icons.info_rounded;
+      status = _t('cb_compat_warnings').replaceAll('{n}', '$warnings');
+      button = _t('cb_compat_open');
+    } else {
+      accent = const Color(0xFF1B5E20);
+      icon = Icons.check_circle_rounded;
+      status = _t('cb_compat_ok');
+      button = _t('cb_compat_open');
+    }
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: accent.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: accent.withOpacity(0.30)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 18, color: accent),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _t('cb_compat_title'),
+                      style:
+                          const TextStyle(fontSize: 12, color: Colors.black54),
+                    ),
+                    Text(
+                      status,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          AppButton(
+            label: button,
+            onPressed: () async {
+              await context.pushNamed(CareReviewWidget.routeName);
+              if (mounted) _load();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Bag-level pregnancy roll-up over items whose verdict is computed
+  /// (sa_pregnancy_safe != null). Screens only the limited contraindicated
+  /// set — the per-product card carries the full methodology disclosure.
+  Widget _pregnancySummary(FlutterFlowTheme theme) {
+    final computed = _items
+        .map((it) => _images[it.imageId])
+        .whereType<ImagesRow>()
+        .where((img) => img.saPregnancySafe != null)
+        .toList();
+    if (computed.isEmpty) return const SizedBox.shrink();
+    final caution =
+        computed.where((img) => img.saPregnancySafe == false).length;
+    final ok = caution == 0;
+    final accent = ok ? const Color(0xFF1B5E20) : const Color(0xFFFFB300);
+    final text = ok
+        ? _t('preg_bag_all_safe')
+        : _t('preg_bag_caution').replaceAll('{n}', '$caution');
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(top: 16),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: accent.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: accent.withOpacity(0.30)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            ok ? Icons.check_circle_rounded : Icons.warning_amber_rounded,
+            size: 18,
+            color: accent,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
@@ -155,6 +353,7 @@ class _BagWidgetState extends State<BagWidget> {
                   style: const TextStyle(color: Colors.black54, fontSize: 13.5),
                 ),
                 const SizedBox(height: 16),
+                _compatCard(theme),
                 GridView.count(
                   crossAxisCount: 3,
                   shrinkWrap: true,
@@ -177,22 +376,7 @@ class _BagWidgetState extends State<BagWidget> {
                             ),
                   ],
                 ),
-                const SizedBox(height: 24),
-                if (filled >= 2)
-                  AppButton(
-                    label: _t('bag_cta'),
-                    onPressed: () async {
-                      await context.pushNamed(CareReviewWidget.routeName);
-                      if (mounted) _load();
-                    },
-                  )
-                else
-                  Text(
-                    _t('bag_need_more'),
-                    textAlign: TextAlign.center,
-                    style:
-                        const TextStyle(color: Colors.black54, fontSize: 13),
-                  ),
+                _pregnancySummary(theme),
               ],
             ),
     );
