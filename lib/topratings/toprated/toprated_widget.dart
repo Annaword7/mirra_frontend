@@ -343,8 +343,10 @@ class _TopratedWidgetState extends State<TopratedWidget> {
       // Load top-rated images once — filtered client-side afterwards.
       if (!mounted) return;
       _model.allImages = await ImagesTable().queryRows(
+        // Чужие продукты: показываем каталожное фото (публичное), а не
+        // приватный скан владельца (image_url). Нет каталожного → заплатка.
         columns:
-            'id,image_url,product_name,brand,sa_composite_score,user,language_code,product_type,sa_best_for_tags',
+            'id,catalog_image_url,product_name,brand,sa_composite_score,user,language_code,product_type,sa_best_for_tags',
         queryFn: (q) => q
             .neqOrNull('user', currentUserUid)
             .gteOrNull('sa_composite_score', 70.0)
@@ -565,29 +567,33 @@ class _TopratedWidgetState extends State<TopratedWidget> {
                                           ),
                                         ),
                                       )
-                                    : ListView.builder(
+                                    : MasonryGridView.builder(
                                         shrinkWrap: true,
                                         padding: EdgeInsets.zero,
                                         physics: const NeverScrollableScrollPhysics(),
+                                        gridDelegate:
+                                            SliverSimpleGridDelegateWithFixedCrossAxisCount(
+                                          crossAxisCount: 2,
+                                        ),
+                                        crossAxisSpacing: 10.0,
+                                        mainAxisSpacing: 10.0,
                                         itemCount: _searchResults!.length,
                                         itemBuilder: (context, i) {
                                           final r = _searchResults![i];
                                           final imageId = r['image_id'] as int?;
-                                          return Padding(
-                                            padding: const EdgeInsets.only(bottom: 12),
-                                            child: GestureDetector(
-                                              onTap: imageId == null ? null : () => context.pushNamed(
-                                                Itemcard2Widget.routeName,
-                                                queryParameters: {
-                                                  'imageid': serializeParam(imageId, ParamType.int),
-                                                }.withoutNulls,
-                                              ),
-                                              child: ProductTile(
-                                                imageUrl:  r['image_url']    as String?,
-                                                brand:     r['brand']        as String?,
-                                                name:      r['product_name'] as String?,
-                                                score:     ((r['sa_composite_score'] ?? r['fit_score']) as num?)?.toDouble(),
-                                              ),
+                                          return GestureDetector(
+                                            onTap: imageId == null ? null : () => context.pushNamed(
+                                              Itemcard2Widget.routeName,
+                                              queryParameters: {
+                                                'imageid': serializeParam(imageId, ParamType.int),
+                                              }.withoutNulls,
+                                            ),
+                                            child: ProductTile(
+                                              imageUrl:  r['image_url']    as String?,
+                                              brand:     r['brand']        as String?,
+                                              name:      r['product_name'] as String?,
+                                              score:     ((r['composite_score'] ?? r['fit_score']) as num?)?.toDouble(),
+                                              variant: ProductTileVariant.plain,
                                             ),
                                           );
                                         },
@@ -661,7 +667,7 @@ class _TopratedWidgetState extends State<TopratedWidget> {
                                         child: ProductTile(
                                           key: Key(
                                               'Keyytw_${index}_of_${images.length}'),
-                                          imageUrl: item.imageUrl,
+                                          imageUrl: item.catalogImageUrl,
                                           brand: item.brand,
                                           name: item.productName,
                                           score: item.saCompositeScore,

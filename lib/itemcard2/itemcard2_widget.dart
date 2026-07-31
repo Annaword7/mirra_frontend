@@ -263,6 +263,22 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
     );
   }
 
+  /// Фото продукта для слайдера: каталожное (публичное) первым, затем скан
+  /// самого пользователя — но ТОЛЬКО если это его продукт. На чужих продуктах
+  /// (top rated, user_id не совпадает) приватный скан не показываем — лишь
+  /// каталожное фото, а если его нет — заплатку (пустой список).
+  List<String> _productPhotos() {
+    final row = _model.imageraw?.firstOrNull;
+    if (row == null) return const [];
+    final out = <String>[];
+    final catalog = row.catalogImageUrl;
+    if (catalog != null && catalog.isNotEmpty) out.add(catalog);
+    if (row.user == currentUserUid && row.imageUrl.isNotEmpty) {
+      out.add(row.imageUrl);
+    }
+    return out;
+  }
+
   @override
   Widget build(BuildContext context) {
     final appState = context.watch<FFAppState>();
@@ -687,57 +703,14 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                   mainAxisSize: MainAxisSize.max,
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    // Full-bleed image — overlaps status bar
-                                    Stack(
-                                      children: [
-                                        SizedBox(
-                                          width:
-                                              MediaQuery.sizeOf(context).width,
-                                          height: MediaQuery.sizeOf(context)
-                                                  .height *
-                                              0.5,
-                                          child: OctoImage(
-                                            placeholderBuilder: (_) =>
-                                                SizedBox.expand(
-                                              child: Image(
-                                                image: BlurHashImage(
-                                                    'L6PZfSi_.AyE_3t7t7R**0o#DgR4'),
-                                                fit: BoxFit.cover,
-                                              ),
-                                            ),
-                                            // Cap decode resolution: a huge
-                                            // source image otherwise decodes at
-                                            // full size and OOM-kills the app.
-                                            image: ResizeImage(
-                                              NetworkImage(
-                                                _model.imageraw!.firstOrNull!
-                                                    .imageUrl,
-                                              ),
-                                              width: 1080,
-                                            ),
-                                            fit: BoxFit.cover,
-                                          ),
-                                        ),
-                                        // Top gradient for status bar readability
-                                        Positioned(
-                                          top: 0,
-                                          left: 0,
-                                          right: 0,
-                                          child: Container(
-                                            height: 100,
-                                            decoration: BoxDecoration(
-                                              gradient: LinearGradient(
-                                                begin: Alignment.topCenter,
-                                                end: Alignment.bottomCenter,
-                                                colors: [
-                                                  Colors.black.withAlpha(80),
-                                                  Colors.transparent,
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
+                                    // Full-bleed фото: каталожное (публичное) +
+                                    // скан владельца (приватный, только для
+                                    // своего продукта). Слайдер, если фото больше
+                                    // одного; иначе одно фото или заплатка.
+                                    _ProductPhotos(
+                                      photos: _productPhotos(),
+                                      height: MediaQuery.sizeOf(context).height *
+                                          0.5,
                                     ),
                                     Padding(
                                       padding: EdgeInsets.all(16.0),
@@ -2006,6 +1979,108 @@ class _SpfLegendRow extends StatelessWidget {
             ),
           ),
         ),
+      ],
+    );
+  }
+}
+
+/// Full-bleed фото продукта: одно фото, слайдер (если фото больше одного) или
+/// заплатка (если список пуст). Верхний градиент — для читаемости статус-бара.
+class _ProductPhotos extends StatefulWidget {
+  const _ProductPhotos({required this.photos, required this.height});
+
+  final List<String> photos;
+  final double height;
+
+  @override
+  State<_ProductPhotos> createState() => _ProductPhotosState();
+}
+
+class _ProductPhotosState extends State<_ProductPhotos> {
+  final PageController _controller = PageController();
+  int _page = 0;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Widget _photo(String url) => OctoImage(
+        placeholderBuilder: (_) => SizedBox.expand(
+          child: Image(
+            image: BlurHashImage('L6PZfSi_.AyE_3t7t7R**0o#DgR4'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        // Cap decode resolution: a huge source image otherwise decodes at
+        // full size and OOM-kills the app.
+        image: ResizeImage(NetworkImage(url), width: 1080),
+        fit: BoxFit.cover,
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    final photos = widget.photos;
+    return Stack(
+      children: [
+        SizedBox(
+          width: MediaQuery.sizeOf(context).width,
+          height: widget.height,
+          child: photos.isEmpty
+              ? Container(
+                  color: const Color(0xFFF2F2F2),
+                  child: const Center(
+                    child: Icon(Icons.image_not_supported_outlined,
+                        color: Colors.black26, size: 48),
+                  ),
+                )
+              : PageView.builder(
+                  controller: _controller,
+                  itemCount: photos.length,
+                  onPageChanged: (i) => setState(() => _page = i),
+                  itemBuilder: (_, i) => _photo(photos[i]),
+                ),
+        ),
+        // Top gradient for status bar readability
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          child: Container(
+            height: 100,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Colors.black.withAlpha(80), Colors.transparent],
+              ),
+            ),
+          ),
+        ),
+        // Page dots — only when there is more than one photo.
+        if (photos.length > 1)
+          Positioned(
+            bottom: 12,
+            left: 0,
+            right: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(photos.length, (i) {
+                final active = i == _page;
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  margin: const EdgeInsets.symmetric(horizontal: 3),
+                  width: active ? 18 : 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: active ? Colors.white : Colors.white54,
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                );
+              }),
+            ),
+          ),
       ],
     );
   }
