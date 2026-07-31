@@ -233,6 +233,23 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
         return;
       }
       if (!mounted) return;
+      // Keep users.language_code in sync with the interface language: the
+      // backend sources the analysis/description language strictly from
+      // users.language_code (see scientific_analysis), not the request
+      // payload. Without this, users whose language_code was never written
+      // (null → 'en') get English descriptions despite a localized UI.
+      final interfaceLang = FFLocalizations.of(context).languageCode;
+      final dbLang = _model.usersanswer?.firstOrNull?.languageCode;
+      if (interfaceLang.isNotEmpty && dbLang != interfaceLang) {
+        try {
+          await UsersTable().update(
+            data: {'language_code': interfaceLang},
+            matchingRows: (rows) => rows.eqOrNull('id', currentUserUid),
+          );
+        } catch (e) {
+          debugPrint('Home initState: language_code sync failed: $e');
+        }
+      }
       final profileImageUrl =
           _model.usersanswer?.firstOrNull?.profileImage ?? '';
       if (profileImageUrl.isNotEmpty) {
@@ -490,14 +507,21 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                       mainAxisSize: MainAxisSize.max,
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
                                       children: [
+                                        // Кнопка PRO (только free) и лимиты — в
+                                        // одной колонке: у PRO кнопки нет, и
+                                        // строка «безлимит» встаёт на её место,
+                                        // чтобы ряд не пустовал рядом с профилем.
                                         Flexible(
-                                          child: Row(
+                                          child: Column(
                                             mainAxisSize: MainAxisSize.min,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             children: [
-                                              if (!appState.isprouser)
-                                                Flexible(
-                                                    child: ProHeroButton(
+                                              if (!appState.isprouser) ...[
+                                                ProHeroButton(
                                                   label: FFLocalizations.of(
                                                           context)
                                                       .getText(
@@ -508,8 +532,36 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                         PaywallpageWidget
                                                             .routeName);
                                                   },
-                                                )),
-                                            ].divide(SizedBox(width: 16.0)),
+                                                ),
+                                                const SizedBox(height: 12.0),
+                                              ],
+                                              _model.usersanswer == null
+                                                  ? Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: const [
+                                                        SkeletonLine(
+                                                            width: 210.0,
+                                                            height: 14.0),
+                                                        SizedBox(height: 10.0),
+                                                        SkeletonLine(
+                                                            width: double
+                                                                .infinity,
+                                                            height: 8.0,
+                                                            radius: 4.0),
+                                                      ],
+                                                    )
+                                                  : _HomeQuotaBar(
+                                                      isPro: appState.isprouser,
+                                                      scansUsed:
+                                                          appState.analysesused,
+                                                      weekResetDate: appState
+                                                          .weekResetDate,
+                                                      weekLimit: appState
+                                                          .freeScanLimit,
+                                                    ),
+                                            ],
                                           ),
                                         ),
                                         InkWell(
@@ -540,34 +592,6 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                     ),
                                   ),
                                 ),
-                              ),
-                              // ── Scan quota bar ─────────────────────────────
-                              Padding(
-                                padding: EdgeInsetsDirectional.fromSTEB(
-                                    20.0,
-                                    FlutterFlowTheme.of(context).space.s24,
-                                    20.0,
-                                    0.0),
-                                child: _model.usersanswer == null
-                                    ? Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: const [
-                                          SkeletonLine(
-                                              width: 210.0, height: 14.0),
-                                          SizedBox(height: 10.0),
-                                          SkeletonLine(
-                                              width: double.infinity,
-                                              height: 8.0,
-                                              radius: 4.0),
-                                        ],
-                                      )
-                                    : _HomeQuotaBar(
-                                        isPro: appState.isprouser,
-                                        scansUsed: appState.analysesused,
-                                        weekResetDate: appState.weekResetDate,
-                                        weekLimit: appState.freeScanLimit,
-                                      ),
                               ),
                               if (containerImagesRowList.length != 0)
                                 Align(

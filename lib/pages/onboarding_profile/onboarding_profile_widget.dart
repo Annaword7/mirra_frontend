@@ -602,6 +602,8 @@ class _OnboardingProfileWidgetState extends State<OnboardingProfileWidget>
                             'last_name': _model.lastNameTextController.text,
                             'profile_image': _model.profilePicture,
                             'nickname': _model.nicknameTextController.text,
+                            'language_code':
+                                FFLocalizations.of(context).languageCode,
                             'onboarded': true,
                           },
                           matchingRows: (rows) =>
