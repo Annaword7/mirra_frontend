@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:ui';
 import '/auth/supabase_auth/auth_util.dart';
 import '/backend/api_requests/api_calls.dart';
 import '/components/premium_features_list/premium_features_list_widget.dart';
 import '/custom_code/widgets/index.dart' as custom_widgets;
+import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -52,6 +54,13 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
         await revenue_cat.loadOfferings();
         if (mounted) safeSetState(() => _offeringsLoading = false);
       }
+
+      // loadOfferings() swallows its errors, so the only signal that the
+      // paywall is a dead end is the state it leaves behind.
+      unawaited(AnalyticsService.instance.trackPaywallOfferingsLoaded(
+        ready: _offeringsReady,
+        configured: revenue_cat.isConfigured,
+      ));
     });
   }
 
@@ -77,6 +86,7 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
     FFAppState().subscriptionmonth = isMonth;
     safeSetState(() {});
     await actions.rcEnsureLogin(context, currentUserUid);
+    unawaited(AnalyticsService.instance.trackPurchaseStarted(package: package));
     final payment = await actions.rcPurchasePackage(
       context,
       'defaultmirra',
@@ -86,6 +96,20 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
     if (MessegefrompaymentStruct.maybeFromMap(payment)?.hasOk() == true) {
       final refreshed =
           await actions.rcRefreshEntitlement(context, 'EntitlementMirra');
+      if (MessegefrompaymentStruct.maybeFromMap(payment)?.ok == true) {
+        if (refreshed) {
+          unawaited(AnalyticsService.instance
+              .trackPurchaseCompleted(package: package));
+        } else {
+          // Charged by the store but the entitlement never turned on — the
+          // user paid and stays on free.
+          unawaited(AnalyticsService.instance.trackPurchaseFailed(
+            package: package,
+            code: 'entitlement_not_active',
+            cancelled: false,
+          ));
+        }
+      }
       if (refreshed!) {
         FFAppState().isprouser = true;
         safeSetState(() {});
@@ -104,6 +128,11 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
     {
       final _r = MessegefrompaymentStruct.maybeFromMap(payment!);
       if (_r != null && !_r.ok) {
+        unawaited(AnalyticsService.instance.trackPurchaseFailed(
+          package: package,
+          code: _r.code.isNotEmpty ? _r.code : 'unknown',
+          cancelled: _r.cancelled,
+        ));
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(

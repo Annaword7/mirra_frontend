@@ -1,3 +1,5 @@
+import 'dart:async';
+import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/design_system/components/confirm_dialog.dart';
 import '/index.dart';
@@ -31,6 +33,8 @@ class _HidenavailabilityWidgetState extends State<HidenavailabilityWidget> {
   void initState() {
     super.initState();
     _model = createModel(context, () => HidenavailabilityModel());
+    unawaited(AnalyticsService.instance
+        .trackUpgradePromptShown(trigger: 'hide_from_top_rated'));
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
   }
 
@@ -49,6 +53,8 @@ class _HidenavailabilityWidgetState extends State<HidenavailabilityWidget> {
       confirmLabel: loc.getText('02k9xvmr' /* Go PRO */),
       onBackgroundTap: () => Navigator.pop(context),
       onConfirm: () {
+        unawaited(AnalyticsService.instance
+            .trackUpgradePromptTapped(trigger: 'hide_from_top_rated'));
         Navigator.pop(context);
         context.pushNamed(PaywallpageWidget.routeName);
       },

@@ -1,3 +1,5 @@
+import 'dart:async';
+import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_animations.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -39,6 +41,9 @@ class _OutOfGenerationsWidgetState extends State<OutOfGenerationsWidget>
     SchedulerBinding.instance.addPostFrameCallback((_) async {
       HapticFeedback.vibrate();
     });
+
+    unawaited(AnalyticsService.instance
+        .trackUpgradePromptShown(trigger: 'out_of_generations'));
 
     animationsMap.addAll({
       'textOnPageLoadAnimation': AnimationInfo(
@@ -130,6 +135,10 @@ class _OutOfGenerationsWidgetState extends State<OutOfGenerationsWidget>
                   ),
                   onPressed: () async {
                     HapticFeedback.lightImpact();
+
+                    unawaited(AnalyticsService.instance
+                        .trackUpgradePromptTapped(
+                            trigger: 'out_of_generations'));
 
                     context.pushNamed(PaywallpageWidget.routeName);
 

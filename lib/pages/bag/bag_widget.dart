@@ -1,5 +1,7 @@
+import 'dart:async';
 import '/auth/supabase_auth/auth_util.dart';
 import '/backend/supabase/database/database.dart';
+import '/flutter_flow/analytics_service.dart';
 import '/components/navbar/navbar_widget.dart';
 import '/components/profile_summary_card.dart';
 import '/design_system/components/app_button.dart';
@@ -103,6 +105,8 @@ class _BagWidgetState extends State<BagWidget> {
     HapticFeedback.lightImpact();
     // Пейволл: 4-й продукт — Pro (коммерческое правило).
     if (!FFAppState().isprouser && _items.length >= kFreeBagSlots) {
+      unawaited(AnalyticsService.instance
+          .trackUpgradePromptTapped(trigger: 'bag_add_from_bag'));
       context.pushNamed(PaywallpageWidget.routeName);
       return;
     }

@@ -1,5 +1,7 @@
+import 'dart:async';
 import '/auth/supabase_auth/auth_util.dart';
 import '/backend/supabase/supabase.dart';
+import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/design_system/components/app_text_field.dart';
@@ -308,10 +310,17 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
     }
     app.onboardingDone = true;
     if (!mounted) return;
-    context.goNamed(dest ??
+    final route = dest ??
         (currentUserUid.isNotEmpty
             ? HomeWidget.routeName
-            : PaywallpageWidget.routeName));
+            : PaywallpageWidget.routeName);
+    // Auto-redirect, not a tap: anonymous users land on the paywall straight
+    // out of onboarding.
+    if (route == PaywallpageWidget.routeName) {
+      unawaited(AnalyticsService.instance
+          .trackUpgradePromptShown(trigger: 'onboarding_finish'));
+    }
+    context.goNamed(route);
   }
 
   Future<void> _confirmSkip() async {

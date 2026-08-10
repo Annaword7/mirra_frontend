@@ -90,6 +90,40 @@ class AnalyticsService {
   Future<void> trackUpgradePromptTapped({required String trigger}) =>
       _log('upgrade_prompt_tapped', {'trigger': trigger});
 
+  // ── Paywall & purchase ────────────────────────────────────────────────────
+
+  /// Logged every time the paywall finishes resolving RevenueCat offerings.
+  /// [ready] is false when the plan cards cannot be rendered — the paywall is
+  /// then a dead end, which is otherwise invisible in analytics.
+  Future<void> trackPaywallOfferingsLoaded({
+    required bool ready,
+    required bool configured,
+  }) =>
+      _log('paywall_offerings_loaded', {
+        'ready': ready ? 1 : 0,
+        'configured': configured ? 1 : 0,
+      });
+
+  Future<void> trackPurchaseStarted({required String package}) =>
+      _log('purchase_started', {'package': package});
+
+  Future<void> trackPurchaseCompleted({required String package}) =>
+      _log('purchase_completed', {'package': package});
+
+  /// [code] is the RevenueCat `PurchasesErrorCode` string, or
+  /// `entitlement_not_active` when the store charged but the entitlement did
+  /// not turn on.
+  Future<void> trackPurchaseFailed({
+    required String package,
+    required String code,
+    required bool cancelled,
+  }) =>
+      _log('purchase_failed', {
+        'package': package,
+        'code': code,
+        'cancelled': cancelled ? 1 : 0,
+      });
+
   // ── Internal ──────────────────────────────────────────────────────────────
 
   Future<void> _log(String name,

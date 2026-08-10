@@ -1,6 +1,8 @@
+import 'dart:async';
 import '/auth/supabase_auth/auth_util.dart';
 import '/backend/supabase/supabase.dart';
 import '/components/delete_confirmation/delete_confirmation_widget.dart';
+import '/flutter_flow/analytics_service.dart';
 import '/components/leave_review/leave_review_widget.dart';
 import '/components/link_telegram_sheet/link_telegram_sheet_widget.dart';
 import '/components/navbar/navbar_widget.dart';
@@ -219,8 +221,13 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                 icon: Icons.workspace_premium,
                                 label: FFLocalizations.of(context)
                                     .getText('1g4dikoz' /* Try premium */),
-                                onTap: () => context
-                                    .pushNamed(PaywallpageWidget.routeName),
+                                onTap: () {
+                                  unawaited(AnalyticsService.instance
+                                      .trackUpgradePromptTapped(
+                                          trigger: 'profile_try_premium'));
+                                  context.pushNamed(
+                                      PaywallpageWidget.routeName);
+                                },
                               ),
                               if (!currentUserIsAnonymous)
                                 SettingsRow(

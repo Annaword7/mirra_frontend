@@ -1,3 +1,5 @@
+import 'dart:async';
+import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/design_system/components/app_button.dart';
@@ -37,6 +39,10 @@ class _LimitOutWidgetState extends State<LimitOutWidget> {
   void initState() {
     super.initState();
     _model = createModel(context, () => LimitOutModel());
+    if (!(widget.isPro ?? false)) {
+      unawaited(AnalyticsService.instance
+          .trackUpgradePromptShown(trigger: 'scan_limit'));
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
   }
 
@@ -124,6 +130,8 @@ class _LimitOutWidgetState extends State<LimitOutWidget> {
                     AppButton(
                       label: loc.getText('cscoyn8e' /* Upgrade to Pro */),
                       onPressed: () async {
+                        unawaited(AnalyticsService.instance
+                            .trackUpgradePromptTapped(trigger: 'scan_limit'));
                         Navigator.pop(context);
                         context.pushNamed(PaywallpageWidget.routeName);
                       },
