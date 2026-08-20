@@ -23,9 +23,12 @@ BoxDecoration glowCardDecoration(FlutterFlowTheme theme) => BoxDecoration(
 /// "Твой профиль" summary card: shows the user's skin type / flags / goals from
 /// onboarding, or a CTA to complete it. Tapping re-opens the skin-type quiz.
 class ProfileSummaryCard extends StatelessWidget {
-  const ProfileSummaryCard({super.key, required this.profileRow});
+  const ProfileSummaryCard({super.key, required this.profileRow, this.returnTo});
 
   final UsersRow? profileRow;
+
+  /// Куда вернуть пользователя после анкеты (по умолчанию — на Главную).
+  final String? returnTo;
 
   static const _typeKeys = {
     'dry': 'obq_type_dry',
@@ -42,8 +45,13 @@ class ProfileSummaryCard extends StatelessWidget {
     'pores': 'obq_goal_pores',
   };
 
-  void _open(BuildContext context) =>
-      context.pushNamed(OnboardingQuizWidget.routeName);
+  void _open(BuildContext context) => context.pushNamed(
+        OnboardingQuizWidget.routeName,
+        queryParameters: {
+          if (returnTo != null)
+            'returnTo': serializeParam(returnTo, ParamType.String),
+        }.withoutNulls,
+      );
 
   @override
   Widget build(BuildContext context) {

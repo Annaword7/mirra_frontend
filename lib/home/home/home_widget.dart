@@ -1,3 +1,4 @@
+import '/design_system/components/screen_loader.dart';
 import '/app_state.dart';
 import '/auth/supabase_auth/auth_util.dart';
 import '/backend/api_requests/api_calls.dart';
@@ -80,6 +81,13 @@ class HomeWidget extends StatefulWidget {
 
 class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
   late HomeModel _model;
+
+  /// Лента, загруженная в этой сессии. Экран (и модель вместе с ним)
+  /// пересоздаётся при каждом возврате на вкладку, поэтому кэш переживает
+  /// State, а не живёт в нём. Ключ — владелец: это личные сканы, и после
+  /// выхода и входа другим аккаунтом чужая лента показаться не должна.
+  static List<ImagesRow>? _sessionImages;
+  static String _sessionImagesUser = '';
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
   late StreamSubscription<bool> _keyboardVisibilitySubscription;
@@ -180,7 +188,6 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
           'skin_goals': app.obGoals,
           'age_range': app.obAgeRange,
           'budget_range': app.obBudgetRange,
-          'trusted_brands': app.obTrustedBrands,
           'onboarded': true,
         },
         matchingRows: (rows) => rows.eqOrNull('id', currentUserUid),
@@ -195,6 +202,12 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     _model = createModel(context, () => HomeModel());
+    // Лента из прошлой загрузки показывается сразу, свежая подъезжает фоном:
+    // экран пересоздаётся на каждом возврате на вкладку, и без этого он
+    // каждый раз пустеет до спиннера.
+    if (_sessionImagesUser == currentUserUid) {
+      _model.loadedImages = _sessionImages;
+    }
     _model.imagesFuture = _fetchImages();
 
     // On page load action.
@@ -325,8 +338,11 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
 
   Future<List<ImagesRow>> _fetchImages() => ImagesTable()
       .queryRows(
+        // Ровно то, что рисует лента. sa_scoring_log здесь не читается, а это
+        // ~85% веса ответа (≈1 МБ на активном аккаунте) — за ним ходит только
+        // карточка продукта, когда её открывают.
         columns:
-            'id,image_url,product_name,brand,sa_composite_score,sa_best_for_tags,sa_scoring_log,created_at,product_type',
+            'id,image_url,product_name,brand,sa_composite_score,created_at,product_type',
         queryFn: (q) => q
             .eqOrNull('user', currentUserUid)
             .order('created_at', ascending: false),
@@ -438,20 +454,12 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                 }
                 // Customize what your widget looks like when it's loading.
                 if (!snapshot.hasData && _model.loadedImages == null) {
-                  return Center(
-                    child: SizedBox(
-                      width: 50.0,
-                      height: 50.0,
-                      child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          FlutterFlowTheme.of(context).primary,
-                        ),
-                      ),
-                    ),
-                  );
+                  return const ScreenLoader();
                 }
                 if (snapshot.hasData) {
                   _model.loadedImages = snapshot.data;
+                  _sessionImages = snapshot.data;
+                  _sessionImagesUser = currentUserUid;
                 }
                 List<ImagesRow> containerImagesRowList =
                     snapshot.data ?? _model.loadedImages!;
@@ -741,19 +749,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                       }
                                       if (!snapshot.hasData &&
                                           _model.loadedImages == null) {
-                                        return Center(
-                                          child: SizedBox(
-                                            width: 50.0,
-                                            height: 50.0,
-                                            child: CircularProgressIndicator(
-                                              valueColor:
-                                                  AlwaysStoppedAnimation<Color>(
-                                                FlutterFlowTheme.of(context)
-                                                    .primary,
-                                              ),
-                                            ),
-                                          ),
-                                        );
+                                        return const ScreenLoader();
                                       }
                                       final allRows = snapshot.data ??
                                           _model.loadedImages!;

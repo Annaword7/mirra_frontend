@@ -137,7 +137,9 @@ GoRouter createRouter(AppStateNotifier appStateNotifier, [Widget? entryPage]) =>
         FFRoute(
           name: OnboardingQuizWidget.routeName,
           path: OnboardingQuizWidget.routePath,
-          builder: (context, params) => OnboardingQuizWidget(),
+          builder: (context, params) => OnboardingQuizWidget(
+            returnTo: params.getParam('returnTo', ParamType.String),
+          ),
         ),
         FFRoute(
           name: BoardsWidget.routeName,

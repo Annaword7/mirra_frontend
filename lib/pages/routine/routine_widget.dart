@@ -1,3 +1,5 @@
+import '/design_system/foundations/image_thumb.dart';
+import '/design_system/components/screen_loader.dart';
 import '/backend/supabase/database/database.dart';
 import '/components/navbar/navbar_widget.dart';
 import '/design_system/components/app_button.dart';
@@ -32,6 +34,10 @@ class _RoutineWidgetState extends State<RoutineWidget> {
   Map<int, ImagesRow> _images = {};
   int _selectedDay = DateTime.now().weekday; // 1=Пн..7=Вс
 
+  /// Средства прошлой загрузки: расписание кэшируется в сервисе, а картинки к
+  /// нему — здесь, иначе календарь из кэша рисовался бы без миниатюр.
+  static Map<int, ImagesRow> _sessionImages = {};
+
   // Дайджест-напоминания: два локальных пуша (утро/вечер).
   static const int _amBase = 990001;
   static const int _pmBase = 990002;
@@ -41,9 +47,31 @@ class _RoutineWidgetState extends State<RoutineWidget> {
   @override
   void initState() {
     super.initState();
+    // Расписание из этой сессии рисуется сразу: экран пересоздаётся на каждом
+    // переключении вкладки, а меняет календарь только команда — и она сама
+    // сбрасывает кэш.
+    final cached = CarePlanningService.instance.cachedTimetable;
+    if (cached != null) {
+      if (cached['regimen'] == null) {
+        _noRegimen = true;
+      } else {
+        _apply(cached, _sessionImages);
+      }
+      _loading = false;
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _load();
     });
+  }
+
+  /// Раскладывает ответ проектора по полям экрана (без setState — вызывается и
+  /// до первого кадра, и из загрузки).
+  void _apply(Map<String, dynamic> map, Map<int, ImagesRow> images) {
+    _days = (map['days'] as Map?)?.cast<String, dynamic>() ?? {};
+    _assignments = (map['assignments'] as Map?)?.cast<String, dynamic>() ?? {};
+    _prescriptions = (map['prescriptions'] as List?) ?? [];
+    _images = images;
+    _noRegimen = false;
   }
 
   String _t(String key) => FFLocalizations.of(context).getText(key);
@@ -56,12 +84,14 @@ class _RoutineWidgetState extends State<RoutineWidget> {
         7, (i) => fmt.format(DateTime(2024, 1, 1 + i)).replaceAll('.', ''));
   }
 
-  Future<void> _load() async {
-    setState(() => _loading = true);
+  /// [refresh] — после команды, изменившей режим: кэш сессии больше не годится.
+  Future<void> _load({bool refresh = false}) async {
+    if (!CarePlanningService.instance.hasTimetable || refresh) {
+      setState(() => _loading = true);
+    }
     try {
-      final resp = await CarePlanningService.instance.timetable();
-      if (!resp.succeeded) throw Exception('timetable ${resp.statusCode}');
-      final map = (resp.jsonBody as Map).cast<String, dynamic>();
+      final map =
+          await CarePlanningService.instance.timetableCached(refresh: refresh);
       if (map['regimen'] == null) {
         if (mounted) {
           setState(() {
@@ -71,28 +101,25 @@ class _RoutineWidgetState extends State<RoutineWidget> {
         }
         return;
       }
-      _days = (map['days'] as Map?)?.cast<String, dynamic>() ?? {};
-      _assignments =
-          (map['assignments'] as Map?)?.cast<String, dynamic>() ?? {};
-      _prescriptions = (map['prescriptions'] as List?) ?? [];
-
-      final ids = _prescriptions
+      final prescriptions = (map['prescriptions'] as List?) ?? [];
+      final ids = prescriptions
           .map((p) => p['image_id'])
           .whereType<int>()
           .toSet()
           .toList();
-      var images = <int, ImagesRow>{};
-      if (ids.isNotEmpty) {
+      // Картинки к тому же расписанию уже загружены — второй раз не ходим.
+      var images = _sessionImages;
+      if (ids.any((id) => !images.containsKey(id))) {
         final rows = await ImagesTable().queryRows(
           queryFn: (q) => q.inFilterOrNull('id', ids),
         );
         images = {for (final r in rows) r.id: r};
+        _sessionImages = images;
       }
       if (!mounted) return;
       setState(() {
-        _images = images;
+        _apply(map, images);
         _loading = false;
-        _noRegimen = false;
       });
       await _syncDigests();
     } catch (e) {
@@ -181,7 +208,8 @@ class _RoutineWidgetState extends State<RoutineWidget> {
         weekdayLabels: _weekdayLabels,
       ),
     );
-    if (changed == true && mounted) _load();
+    // Директиву уточнили — раскладка пересчитана на сервере.
+    if (changed == true && mounted) _load(refresh: true);
   }
 
   @override
@@ -216,7 +244,7 @@ class _RoutineWidgetState extends State<RoutineWidget> {
         ],
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const ScreenLoader(hasAppBar: true, hasBottomNavBar: true)
           : _noRegimen
               ? _EmptyState(
                   primary: theme.primary,
@@ -427,8 +455,11 @@ class _Section extends StatelessWidget {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(10),
                       child: (img != null && img.imageUrl.isNotEmpty)
-                          ? Image.network(img.imageUrl,
-                              width: 44, height: 44, fit: BoxFit.cover)
+                          ? Image(
+                              image: thumbProvider(img.imageUrl, width: 200),
+                              width: 44,
+                              height: 44,
+                              fit: BoxFit.cover)
                           : Container(
                               width: 44,
                               height: 44,
@@ -587,8 +618,12 @@ class _PrescriptionSheetState extends State<_PrescriptionSheet> {
                   borderRadius: BorderRadius.circular(10),
                   child: (widget.image != null &&
                           widget.image!.imageUrl.isNotEmpty)
-                      ? Image.network(widget.image!.imageUrl,
-                          width: 44, height: 44, fit: BoxFit.cover)
+                      ? Image(
+                          image:
+                              thumbProvider(widget.image!.imageUrl, width: 200),
+                          width: 44,
+                          height: 44,
+                          fit: BoxFit.cover)
                       : Container(
                           width: 44,
                           height: 44,

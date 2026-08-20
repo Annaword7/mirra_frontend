@@ -1096,7 +1096,8 @@ class ExtractproductinfoNEWBCNDCopyCall {
   "image_url": "${escapeStringForJson(imageUrl)}",
   "user_id": "${escapeStringForJson(userId)}",
   "language_code": "${escapeStringForJson(languageCode)}",
-  "country": "${escapeStringForJson(country)}"
+  "country": "${escapeStringForJson(country)}",
+  "scan_source": "app"
 }''';
     return ApiManager.instance.makeApiCall(
       callName: 'extractproductinfo NEW BCND Copy',

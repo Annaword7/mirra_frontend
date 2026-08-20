@@ -1,3 +1,5 @@
+import '/design_system/foundations/image_thumb.dart';
+import '/design_system/components/screen_loader.dart';
 import 'dart:async';
 import '/auth/supabase_auth/auth_util.dart';
 import '/backend/supabase/database/database.dart';
@@ -5,12 +7,15 @@ import '/flutter_flow/analytics_service.dart';
 import '/components/navbar/navbar_widget.dart';
 import '/components/profile_summary_card.dart';
 import '/design_system/components/app_button.dart';
+import '/design_system/components/pro_pill.dart';
 import '/domain/care_planning/care_planning_service.dart';
 import '/domain/cosmetic_bag/cosmetic_bag_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
+import '/flutter_flow/plural.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/paywall/paywallpage/paywallpage_widget.dart';
 import '/pages/care_review/care_review_widget.dart';
+import '/pages/onboarding_quiz/onboarding_quiz_widget.dart' show kPregnancyPregnantOrNursing;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -35,9 +40,22 @@ class _BagWidgetState extends State<BagWidget> {
   Map<int, ImagesRow> _images = {};
   UsersRow? _profile;
   // Последний собранный режим (GET care/regimen/current) — для сводки
-  // совместимости и детекта «состав косметички изменился».
-  Map<String, dynamic>? _regimen;
-  List<dynamic> _regimenPrescriptions = const [];
+  // совместимости и детекта «состав косметички изменился». Грузится отдельно:
+  // это сетевой вызов к бэкенду, экран не должен его ждать.
+  // Стартуем из сессионного кэша: при повторном открытии экрана статус готов
+  // сразу, «проверяем» показывается только когда режим правда не загружен.
+  Map<String, dynamic>? _regimen = CarePlanningService.instance.cachedRegimen;
+  bool _regimenLoading = !CarePlanningService.instance.hasCurrentRegimen;
+
+  /// Колонки images, которые нужны косметичке. Разбор состава и тексты анализа
+  /// здесь не выводятся, а весят в разы больше остального.
+  static const _imageColumns = 'id,image_url,product_name,brand';
+
+  /// Вердикт «безопасно при беременности» по продуктам набора. Живёт отдельно:
+  /// колонку добавляет миграция 20260730_pregnancy_verdict, и там, где она ещё
+  /// не применена, запрос обязан провалиться сам по себе, а не утащить за собой
+  /// всю загрузку косметички.
+  Map<int, bool> _pregnancySafe = const {};
 
   @override
   void initState() {
@@ -53,61 +71,106 @@ class _BagWidgetState extends State<BagWidget> {
     try {
       final items = await CosmeticBagService.instance.items();
       final ids = items.map((i) => i.imageId).whereType<int>().toList();
-      var images = <int, ImagesRow>{};
-      if (ids.isNotEmpty) {
-        final rows = await ImagesTable().queryRows(
-          queryFn: (q) => q.inFilterOrNull('id', ids),
-        );
-        images = {for (final r in rows) r.id: r};
-      }
-      UsersRow? profile;
-      if (currentUserUid.isNotEmpty) {
-        final rows = await UsersTable().queryRows(
-          queryFn: (q) => q.eqOrNull('id', currentUserUid),
-        );
-        profile = rows.isEmpty ? null : rows.first;
-      }
-      // Текущий режим (не критично: при ошибке сводка просто «не проверено»).
-      Map<String, dynamic>? regimen;
-      List<dynamic> prescriptions = const [];
-      try {
-        final resp = await CarePlanningService.instance.current();
-        if (resp.succeeded && resp.jsonBody is Map) {
-          final map = (resp.jsonBody as Map).cast<String, dynamic>();
-          regimen = (map['regimen'] as Map?)?.cast<String, dynamic>();
-          prescriptions = (map['prescriptions'] as List?) ?? const [];
-        }
-      } catch (e) {
-        debugPrint('bag: current regimen fetch failed: $e');
-      }
+      // Продукты и профиль независимы — тянем их разом, а не друг за другом.
+      final results = await Future.wait([
+        if (ids.isNotEmpty)
+          ImagesTable().queryRows(
+            queryFn: (q) => q.inFilterOrNull('id', ids),
+            columns: _imageColumns,
+          )
+        else
+          Future.value(<ImagesRow>[]),
+        if (currentUserUid.isNotEmpty)
+          UsersTable().queryRows(queryFn: (q) => q.eqOrNull('id', currentUserUid))
+        else
+          Future.value(<UsersRow>[]),
+      ]);
       if (!mounted) return;
       setState(() {
         _items = items;
-        _images = images;
-        _profile = profile;
-        _regimen = regimen;
-        _regimenPrescriptions = prescriptions;
+        _images = {
+          for (final r in (results[0] as List<ImagesRow>)) r.id: r
+        };
+        _profile = (results[1] as List<UsersRow>).firstOrNull;
         _loading = false;
       });
+      unawaited(_loadRegimen());
+      unawaited(_loadPregnancy(ids));
     } catch (e) {
       debugPrint('bag load failed: $e');
       if (mounted) setState(() => _loading = false);
     }
   }
 
+  Future<void> _loadPregnancy(List<int> ids) async {
+    if (ids.isEmpty) return;
+    try {
+      final rows = await ImagesTable().queryRows(
+        queryFn: (q) => q.inFilterOrNull('id', ids),
+        columns: 'id,sa_pregnancy_safe',
+      );
+      if (!mounted) return;
+      setState(() {
+        _pregnancySafe = {
+          for (final r in rows)
+            if (r.saPregnancySafe != null) r.id: r.saPregnancySafe!
+        };
+      });
+    } catch (e) {
+      debugPrint('bag: pregnancy verdicts unavailable: $e');
+    }
+  }
+
+  /// Сводка совместимости догружается после отрисовки набора: экран остаётся
+  /// быстрым, а карточка сама переключается из «проверяем» в результат. Если
+  /// режим уже загружен в этой сессии, он отдаётся из кэша — без сети и без
+  /// мигания статуса при каждом открытии экрана.
+  /// Ошибка не критична — сводка просто останется «не проверено».
+  Future<void> _loadRegimen() async {
+    final cached = CarePlanningService.instance.hasCurrentRegimen;
+    if (mounted && !cached) setState(() => _regimenLoading = true);
+    Map<String, dynamic>? regimen;
+    try {
+      regimen = await CarePlanningService.instance.currentRegimen();
+    } catch (e) {
+      debugPrint('bag: current regimen fetch failed: $e');
+    }
+    if (!mounted) return;
+    setState(() {
+      _regimen = regimen;
+      _regimenLoading = false;
+    });
+  }
+
   int get _slotCount {
-    // Free: ровно 3 слота. Pro: все продукты + 1 пустой «добавить».
-    if (!FFAppState().isprouser) return kFreeBagSlots;
-    return _items.length + 1;
+    // Pro: все продукты + пустой слот «добавить».
+    if (FFAppState().isprouser) return _items.length + 1;
+    // Free: пока есть свободные слоты — ровно три.
+    if (_items.length < kFreeBagSlots) return kFreeBagSlots;
+    // Лимит выбран — добавляем слот с замком, иначе упереться в потолок можно
+    // только вслепую: свободных слотов нет и нажать не на что.
+    if (_items.length == kFreeBagSlots) return kFreeBagSlots + 1;
+    // Продуктов больше лимита (набирали на Pro, подписка кончилась) —
+    // показываем и лишние: разбор их не учитывает, и это должно быть видно.
+    return _items.length;
+  }
+
+  /// Продукт сверх бесплатного лимита: в разбор не идёт, пока нет Pro.
+  bool _overLimit(int index) =>
+      !FFAppState().isprouser && index >= kFreeBagSlots;
+
+  void _openPaywall({String trigger = 'bag_add_from_bag'}) {
+    HapticFeedback.lightImpact();
+    unawaited(
+        AnalyticsService.instance.trackUpgradePromptTapped(trigger: trigger));
+    context.pushNamed(PaywallpageWidget.routeName);
   }
 
   Future<void> _addFlow() async {
     HapticFeedback.lightImpact();
     // Пейволл: 4-й продукт — Pro (коммерческое правило).
     if (!FFAppState().isprouser && _items.length >= kFreeBagSlots) {
-      unawaited(AnalyticsService.instance
-          .trackUpgradePromptTapped(trigger: 'bag_add_from_bag'));
-      context.pushNamed(PaywallpageWidget.routeName);
+      _openPaywall();
       return;
     }
     final inBag = _items.map((i) => i.imageId).whereType<int>().toSet();
@@ -117,6 +180,7 @@ class _BagWidgetState extends State<BagWidget> {
           .not('sa_analyzed_at', 'is', null)
           .order('id', ascending: false),
       limit: 50,
+      columns: _imageColumns,
     );
     final candidates =
         scans.where((s) => !inBag.contains(s.id)).toList();
@@ -151,25 +215,21 @@ class _BagWidgetState extends State<BagWidget> {
   List<dynamic> get _regimenWarnings =>
       (_regimen?['warnings'] as List?) ?? const [];
 
-  /// Продукты, из которых собран текущий режим: его назначения плюс продукты,
-  /// исключённые противопоказанием (исключённые не сохраняются как назначения).
-  /// Позволяет заметить, что состав косметички больше не соответствует режиму.
-  Set<int> get _composedSet {
-    final s = <int>{};
-    for (final p in _regimenPrescriptions) {
-      final id = p is Map ? p['image_id'] : null;
-      if (id is int) s.add(id);
-    }
-    for (final w in _regimenWarnings) {
-      final id = w is Map ? w['product_id'] : null;
-      if (id is int) s.add(id);
-    }
-    return s;
+  /// Набор, из которого собран текущий режим (сервер запоминает его при
+  /// составлении). Продукты без фактов состава в режим не попадают, поэтому
+  /// восстанавливать состав по назначениям нельзя — сводка врала бы
+  /// «набор изменился» на каждом открытии.
+  Set<int>? get _composedSet {
+    final ids = _regimen?['source_image_ids'];
+    if (ids is! List) return null;
+    return ids.map((e) => e is int ? e : int.tryParse('$e')).whereType<int>().toSet();
   }
 
   bool get _compatStale {
     if (_regimen == null) return false;
-    final composed = _composedSet, bag = _bagSet;
+    final composed = _composedSet;
+    if (composed == null) return false;
+    final bag = _bagSet;
     return composed.length != bag.length || !composed.containsAll(bag);
   }
 
@@ -200,7 +260,12 @@ class _BagWidgetState extends State<BagWidget> {
     final IconData icon;
     final String status;
     final String button;
-    if (!hasRegimen) {
+    if (_regimenLoading) {
+      accent = theme.primary;
+      icon = Icons.hourglass_empty_rounded;
+      status = _t('cb_compat_loading');
+      button = _t('cb_compat_open');
+    } else if (!hasRegimen) {
       accent = theme.primary;
       icon = Icons.rule_rounded;
       status = _t('cb_compat_unchecked');
@@ -213,7 +278,7 @@ class _BagWidgetState extends State<BagWidget> {
     } else if (warnings > 0) {
       accent = const Color(0xFFFFB300);
       icon = Icons.info_rounded;
-      status = _t('cb_compat_warnings').replaceAll('{n}', '$warnings');
+      status = pluralText(context, 'cb_compat_warnings', warnings);
       button = _t('cb_compat_open');
     } else {
       accent = const Color(0xFF1B5E20);
@@ -273,23 +338,25 @@ class _BagWidgetState extends State<BagWidget> {
     );
   }
 
-  /// Bag-level pregnancy roll-up over items whose verdict is computed
-  /// (sa_pregnancy_safe != null). Screens only the limited contraindicated
-  /// set — the per-product card carries the full methodology disclosure.
+  /// Сводка по беременности над набором: только для тех, кто отметил это в
+  /// анкете — остальным она отвечает на незаданный вопрос. Считается по
+  /// продуктам с вычисленным вердиктом (sa_pregnancy_safe != null); полная
+  /// методика — на карточке продукта.
   Widget _pregnancySummary(FlutterFlowTheme theme) {
+    if (_profile?.pregnancyStatus != kPregnancyPregnantOrNursing) {
+      return const SizedBox.shrink();
+    }
     final computed = _items
-        .map((it) => _images[it.imageId])
-        .whereType<ImagesRow>()
-        .where((img) => img.saPregnancySafe != null)
+        .map((it) => _pregnancySafe[it.imageId])
+        .whereType<bool>()
         .toList();
     if (computed.isEmpty) return const SizedBox.shrink();
-    final caution =
-        computed.where((img) => img.saPregnancySafe == false).length;
+    final caution = computed.where((safe) => !safe).length;
     final ok = caution == 0;
     final accent = ok ? const Color(0xFF1B5E20) : const Color(0xFFFFB300);
     final text = ok
         ? _t('preg_bag_all_safe')
-        : _t('preg_bag_caution').replaceAll('{n}', '$caution');
+        : pluralText(context, 'preg_bag_caution', caution);
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(top: 16),
@@ -346,31 +413,40 @@ class _BagWidgetState extends State<BagWidget> {
       ),
       bottomNavigationBar: const NavbarWidget(activePage: 3),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const ScreenLoader(hasAppBar: true, hasBottomNavBar: true)
           : ListView(
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 130),
               children: [
                 // «Твой профиль»: саммари онбординга, тап → квиз (изменить).
-                ProfileSummaryCard(profileRow: _profile),
+                ProfileSummaryCard(
+                    profileRow: _profile, returnTo: BagWidget.routeName),
                 Text(
                   _t('bag_subtitle'),
                   style: const TextStyle(color: Colors.black54, fontSize: 13.5),
                 ),
                 const SizedBox(height: 16),
                 _compatCard(theme),
+                _pregnancySummary(theme),
                 GridView.count(
                   crossAxisCount: 3,
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   mainAxisSpacing: 12,
                   crossAxisSpacing: 12,
-                  childAspectRatio: 0.78,
+                  // Слот вытянут так, чтобы область под фото была 3:4
+                  // (kThumbAspect) с учётом подписи снизу: снимки продуктов
+                  // вертикальные, в квадрате от них оставался средний обрезок.
+                  childAspectRatio: 0.63,
                   children: [
                     for (var i = 0; i < _slotCount; i++)
                       i < filled
                           ? _FilledSlot(
                               image: _images[_items[i].imageId],
                               onRemove: () => _remove(_items[i].imageId!),
+                              overLimit: _overLimit(i),
+                              onLockedTap: () =>
+                                  _openPaywall(trigger: 'bag_over_limit'),
+                              lockedHint: _t('cb_slot_over_limit'),
                             )
                           : _EmptySlot(
                               primary: theme.primary,
@@ -380,7 +456,6 @@ class _BagWidgetState extends State<BagWidget> {
                             ),
                   ],
                 ),
-                _pregnancySummary(theme),
               ],
             ),
     );
@@ -388,9 +463,20 @@ class _BagWidgetState extends State<BagWidget> {
 }
 
 class _FilledSlot extends StatelessWidget {
-  const _FilledSlot({required this.image, required this.onRemove});
+  const _FilledSlot({
+    required this.image,
+    required this.onRemove,
+    this.overLimit = false,
+    this.onLockedTap,
+    this.lockedHint = '',
+  });
   final ImagesRow? image;
   final VoidCallback onRemove;
+
+  /// Продукт сверх бесплатного лимита: остаётся в наборе, но в разбор не идёт.
+  final bool overLimit;
+  final VoidCallback? onLockedTap;
+  final String lockedHint;
 
   @override
   Widget build(BuildContext context) {
@@ -408,8 +494,10 @@ class _FilledSlot extends StatelessWidget {
                 children: [
                   Expanded(
                     child: (image != null && image!.imageUrl.isNotEmpty)
-                        ? Image.network(image!.imageUrl,
-                            width: double.infinity, fit: BoxFit.cover)
+                        ? Image(
+                            image: thumbProvider(image!.imageUrl, width: 400),
+                            width: double.infinity,
+                            fit: BoxFit.cover)
                         : Container(
                             color: const Color(0xFFF2F2F2),
                             child: const Center(
@@ -452,6 +540,42 @@ class _FilledSlot extends StatelessWidget {
             ),
           ),
         ),
+        // Сверх лимита: продукт виден, но помечен как не участвующий в разборе.
+        if (overLimit)
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: onLockedTap,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.72),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                padding: const EdgeInsets.all(8),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const ProPill(
+                      label: 'PRO',
+                      fontSize: 10,
+                      padding: EdgeInsetsDirectional.fromSTEB(10, 4, 10, 4),
+                    ),
+                    if (lockedHint.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        lockedHint,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                            fontSize: 10.5,
+                            height: 1.25,
+                            color: Colors.black54,
+                            fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ),
       ],
     );
   }
@@ -472,19 +596,39 @@ class _EmptySlot extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
+        padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: const Color(0xFFFAFAFA),
+          // Закрытый слот — не «отключённый» серый, а приглашение: та же
+          // подсветка primary, что у карточек Косметички.
+          color: locked
+              ? primary.withValues(alpha: 0.06)
+              : const Color(0xFFFAFAFA),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: const Color(0xFFE0E0E0),
+            color: locked
+                ? primary.withValues(alpha: 0.35)
+                : const Color(0xFFE0E0E0),
           ),
         ),
-        child: Center(
-          child: Icon(
-            locked ? Icons.lock_outline_rounded : Icons.add_rounded,
-            color: locked ? Colors.black26 : primary,
-            size: 28,
-          ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.add_rounded,
+              color: locked ? primary.withValues(alpha: 0.55) : primary,
+              size: 28,
+            ),
+            // Фирменный бейдж вместо замка с подписью: он уже говорит «нужен
+            // Pro» одним взглядом и совпадает с пейволлом.
+            if (locked) ...[
+              const SizedBox(height: 8),
+              const ProPill(
+                label: 'PRO',
+                fontSize: 10,
+                padding: EdgeInsetsDirectional.fromSTEB(10, 4, 10, 4),
+              ),
+            ],
+          ],
         ),
       ),
     );
@@ -527,21 +671,51 @@ class _PickScanSheet extends StatelessWidget {
             else
               ConstrainedBox(
                 constraints: const BoxConstraints(maxHeight: 380),
+                // Три в ряд, а не четыре: под фото нужна подпись — по одному
+                // снимку продукт не узнаётся, особенно среди похожих флаконов.
                 child: GridView.count(
-                  crossAxisCount: 4,
+                  crossAxisCount: 3,
                   shrinkWrap: true,
-                  mainAxisSpacing: 10,
+                  mainAxisSpacing: 12,
                   crossAxisSpacing: 10,
+                  childAspectRatio: 0.58,
                   children: [
                     for (final img in candidates)
                       GestureDetector(
                         onTap: () => Navigator.of(context).pop(img.id),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: img.imageUrl.isNotEmpty
-                              ? Image.network(img.imageUrl,
-                                  fit: BoxFit.cover)
-                              : Container(color: const Color(0xFFF2F2F2)),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: img.imageUrl.isNotEmpty
+                                    ? Image(
+                                        image: thumbProvider(img.imageUrl,
+                                            width: 200),
+                                        width: double.infinity,
+                                        fit: BoxFit.cover)
+                                    : Container(
+                                        color: const Color(0xFFF2F2F2)),
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            if ((img.brand ?? '').isNotEmpty)
+                              Text(
+                                img.brand!,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                    fontSize: 10, color: Colors.black45),
+                              ),
+                            Text(
+                              img.productName ?? '—',
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                  fontSize: 11, fontWeight: FontWeight.w600),
+                            ),
+                          ],
                         ),
                       ),
                   ],

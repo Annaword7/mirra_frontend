@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import '/design_system/components/screen_loader.dart';
 import '/app_state.dart';
 import '/auth/supabase_auth/auth_util.dart';
 import '/backend/api_requests/api_calls.dart';
@@ -47,6 +50,13 @@ const _kSheetFacets = [
   ('composition_flags', ['no_fragrance','no_essential_oils','no_denat_alcohol']),
 ];
 
+// Всё, что не буква и не цифра, схлопывается в пробел: 'dr. althea' и
+// 'dr.althea', 'pdrn 100+' и 'pdrn 100' должны давать один ключ дедупа.
+final RegExp _kNonAlnum = RegExp(r'[^\p{L}\p{N}]+', unicode: true);
+
+// Сколько карточек добавляем за один «догруз» при скролле.
+const int _kPageSize = 40;
+
 const _kSortOptions = [
   ('fit',        'По совместимости', 'Best match'),
   ('formula',    'По формуле',       'By formula'),
@@ -69,11 +79,22 @@ class _TopratedWidgetState extends State<TopratedWidget> {
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
+  /// Подборка, загруженная в этой сессии: экран пересоздаётся при каждом
+  /// переключении вкладки, а модель вместе с ним — без этого кэша выдача
+  /// перезагружается с нуля каждый раз. Ключ — язык: выборка отфильтрована
+  /// по нему на сервере.
+  static List<ImagesRow>? _sessionImages;
+  static String _sessionImagesLang = '';
+
   // ── Filter state ──────────────────────────────────────────────────────────
   Map<String, Set<String>> _activeFacets = {};
   String _filterSort = 'fit';
   List<Map<String, dynamic>>? _searchResults;
   bool _isSearching = false;
+
+  // Список отдаётся целиком, но рендерим порциями по мере скролла.
+  int _visibleCount = _kPageSize;
+  int _totalCount = 0;
 
   bool get _hasFilters => _activeFacets.values.any((s) => s.isNotEmpty);
 
@@ -84,11 +105,19 @@ class _TopratedWidgetState extends State<TopratedWidget> {
     });
 
     if (!_hasFilters) {
-      setState(() { _searchResults = null; _isSearching = false; });
+      setState(() {
+        _searchResults = null;
+        _isSearching = false;
+        _visibleCount = _kPageSize;
+      });
       return;
     }
 
-    setState(() { _isSearching = true; _searchResults = null; });
+    setState(() {
+      _isSearching = true;
+      _searchResults = null;
+      _visibleCount = _kPageSize;
+    });
     try {
       final facetsBody = {
         for (final e in facets.entries)
@@ -98,12 +127,22 @@ class _TopratedWidgetState extends State<TopratedWidget> {
         token: currentJwtToken,
         facets: facetsBody,
         sort: sort,
-        limit: 50,
+        // Потолок поискового индекса — берём выдачу целиком, одной страницей;
+        // на экран она выдаётся порциями по мере скролла.
+        limit: 1000,
       );
       if (!mounted) return;
       if (resp.succeeded) {
+        // Порядок сортировки задан бэкендом — из дублей остаётся первый,
+        // то есть лучший по выбранной сортировке.
+        final seen = <String>{};
         final rows = ((resp.jsonBody as Map)['results'] as List? ?? [])
-            .cast<Map<String, dynamic>>();
+            .cast<Map<String, dynamic>>()
+            // Каталожное фото отсекает бэкенд; страховка на случай старой версии.
+            .where((r) => (r['image_url'] as String? ?? '').isNotEmpty)
+            .where((r) => seen.add(
+                _dedupKey(r['brand'] as String?, r['product_name'] as String?)))
+            .toList();
         setState(() { _searchResults = rows; _isSearching = false; });
       } else {
         setState(() => _isSearching = false);
@@ -321,8 +360,21 @@ class _TopratedWidgetState extends State<TopratedWidget> {
   void initState() {
     super.initState();
     _model = createModel(context, () => TopratedModel());
+    _model.listViewController?.addListener(_onScroll);
+
+    // Прошлая выдача показывается сразу, обновление идёт фоном: подборка
+    // меняется медленно, а спиннер на каждый вход по ней — самое заметное
+    // ожидание на вкладке. Язык здесь ещё не прочитать (нет доступа к
+    // InheritedWidget), поэтому несовпадение отсекается кадром позже.
+    _model.allImages = _sessionImages;
 
     SchedulerBinding.instance.addPostFrameCallback((_) async {
+      if (_sessionImagesLang != FFLocalizations.of(context).languageCode) {
+        _model.allImages = null;
+        safeSetState(() {});
+      }
+      // Один запрос профиля на оба использования: раньше строка юзера
+      // читалась дважды подряд одним и тем же запросом.
       _model.userrow = await UsersTable().queryRows(
         queryFn: (q) => q.eqOrNull('id', currentUserUid),
       );
@@ -331,9 +383,7 @@ class _TopratedWidgetState extends State<TopratedWidget> {
         FFAppState().userProfilePicture = profileImg;
       }
 
-      _model.usersanswer2 = await UsersTable().queryRows(
-        queryFn: (q) => q.eqOrNull('id', currentUserUid),
-      );
+      _model.usersanswer2 = _model.userrow;
       if (!mounted) return;
       if (_model.usersanswer2!.length <= 0) {
         context.pushNamed(LogInPageWidget.routeName);
@@ -344,22 +394,26 @@ class _TopratedWidgetState extends State<TopratedWidget> {
       if (!mounted) return;
       _model.allImages = await ImagesTable().queryRows(
         // Чужие продукты: показываем каталожное фото (публичное), а не
-        // приватный скан владельца (image_url). Нет каталожного → заплатка.
+        // приватный скан владельца (image_url). Без каталожного фото продукт
+        // в Top Rated не попадает — заплатки не показываем.
         columns:
-            'id,catalog_image_url,product_name,brand,sa_composite_score,user,language_code,product_type,sa_best_for_tags',
+            'id,catalog_image_url,product_name,brand,sa_composite_score,product_type',
         queryFn: (q) => q
             .neqOrNull('user', currentUserUid)
+            .not('catalog_image_url', 'is', null)
+            .neq('catalog_image_url', '')
             .gteOrNull('sa_composite_score', 70.0)
             .eqOrNull('language_code', FFLocalizations.of(context).languageCode)
             .order('sa_composite_score', ascending: false),
-        limit: 50,
       );
 
-      if (FFAppState().countrycodeiso.isNotEmpty && _model.allImages != null) {
-        await _loadPriceMap(_model.allImages!);
-      }
+      _sessionImages = _model.allImages;
+      _sessionImagesLang = FFLocalizations.of(context).languageCode;
 
       safeSetState(() {});
+
+      // Цены не держат выдачу: карточки уже видны, цена появляется следом.
+      unawaited(_loadPricesForVisible());
 
       if (_model.listViewController?.hasClients == true) {
         await _model.listViewController?.animateTo(
@@ -375,9 +429,33 @@ class _TopratedWidgetState extends State<TopratedWidget> {
 
   @override
   void dispose() {
+    _model.listViewController?.removeListener(_onScroll);
     _model.dispose();
     super.dispose();
   }
+
+  void _onScroll() {
+    final ctrl = _model.listViewController;
+    if (ctrl == null || !ctrl.hasClients || _visibleCount >= _totalCount) return;
+    final pos = ctrl.position;
+    if (pos.pixels < pos.maxScrollExtent - 600) return;
+    safeSetState(() {
+      _visibleCount = (_visibleCount + _kPageSize).clamp(0, _totalCount);
+    });
+    unawaited(_loadPricesForVisible());
+  }
+
+  /// Цены для показанной порции выдачи. Раньше запрашивались сразу для всей
+  /// подборки (сотни товаров, несколько запросов подряд) и держали экран, хотя
+  /// на первом экране видно два десятка карточек.
+  Future<void> _loadPricesForVisible() async {
+    if (_model.allImages == null) return;
+    // Именно показанные карточки: выдача проходит дедуп и фильтр по категории.
+    await _loadPriceMap(_filteredImages().take(_visibleCount).toList());
+    if (mounted) safeSetState(() {});
+  }
+
+  final Set<String> _pricedKeys = {};
 
   Future<void> _loadPriceMap(List<ImagesRow> images) async {
     final countryCode = FFAppState().countrycodeiso;
@@ -385,22 +463,45 @@ class _TopratedWidgetState extends State<TopratedWidget> {
 
     final nameKeys = images
         .map((r) => (r.productName ?? '').toLowerCase().trim())
-        .where((s) => s.isNotEmpty)
+        .where((s) => s.isNotEmpty && !_pricedKeys.contains(s))
         .toSet()
         .toList();
 
     if (nameKeys.isEmpty) return;
+    _pricedKeys.addAll(nameKeys);
 
-    final prices = await ProductPricesTable().queryRows(
-      queryFn: (q) => q
-          .eqOrNull('country_code', countryCode)
-          .inFilterOrNull('product_name_key', nameKeys),
-    );
+    // Ключей могут быть сотни — режем на пачки, иначе in-фильтр не влезает в URL.
+    const chunkSize = 100;
+    final prices = <ProductPricesRow>[];
+    for (var i = 0; i < nameKeys.length; i += chunkSize) {
+      final chunk = nameKeys.sublist(
+          i, (i + chunkSize).clamp(0, nameKeys.length));
+      prices.addAll(await ProductPricesTable().queryRows(
+        queryFn: (q) => q
+            .eqOrNull('country_code', countryCode)
+            .inFilterOrNull('product_name_key', chunk),
+      ));
+      if (!mounted) return;
+    }
 
-    if (!mounted) return;
     _model.priceMap = {
+      ..._model.priceMap,
       for (final p in prices) '${p.productNameKey}|${p.brandKey}': p,
     };
+  }
+
+  static String _normalized(String? s) =>
+      (s ?? '').toLowerCase().replaceAll(_kNonAlnum, ' ').trim();
+
+  // Ключ дедупа: нормализованный бренд + название без дублирующего
+  // бренд-префикса ('celimax | celimax pore cream' == 'celimax | pore cream').
+  static String _dedupKey(String? rawBrand, String? rawName) {
+    final brand = _normalized(rawBrand);
+    var name = _normalized(rawName);
+    if (brand.isNotEmpty && name.startsWith('$brand ')) {
+      name = name.substring(brand.length + 1);
+    }
+    return '$brand|$name';
   }
 
   List<ImagesRow> _filteredImages() {
@@ -411,8 +512,7 @@ class _TopratedWidgetState extends State<TopratedWidget> {
     final seen = <String>{};
     final deduped = _model.allImages!
         .where((row) => !spamIds.contains(row.id))
-        .where((row) => seen.add(
-            '${(row.brand ?? '').toLowerCase()}|${(row.productName ?? '').toLowerCase()}'))
+        .where((row) => seen.add(_dedupKey(row.brand, row.productName)))
         .toList();
 
     if (_model.selectedCategory == 'all') return deduped;
@@ -444,6 +544,11 @@ class _TopratedWidgetState extends State<TopratedWidget> {
 
     final images = _filteredImages();
     final isLoading = _model.allImages == null;
+
+    // Порционный рендер общий для обоих списков — какой показан, тот и считаем.
+    final showingSearch = _hasFilters && _searchResults != null;
+    _totalCount = showingSearch ? _searchResults!.length : images.length;
+    final visible = _visibleCount < _totalCount ? _visibleCount : _totalCount;
 
     return GestureDetector(
       onTap: () {
@@ -542,13 +647,11 @@ class _TopratedWidgetState extends State<TopratedWidget> {
                       Padding(
                         padding: EdgeInsetsDirectional.fromSTEB(
                             16.0, 0.0, 16.0, 0.0),
+                        // Спиннер поиска рисуется поверх экрана (см. Stack ниже),
+                        // а не в потоке списка — иначе его положение зависело бы
+                        // от высоты шапки и фильтров.
                         child: _isSearching
-                            ? const Center(
-                                child: Padding(
-                                  padding: EdgeInsets.only(top: 60),
-                                  child: CircularProgressIndicator(),
-                                ),
-                              )
+                            ? const SizedBox.shrink()
                             : _hasFilters && _searchResults != null
                                 ? _searchResults!.isEmpty
                                     ? Center(
@@ -577,7 +680,7 @@ class _TopratedWidgetState extends State<TopratedWidget> {
                                         ),
                                         crossAxisSpacing: 10.0,
                                         mainAxisSpacing: 10.0,
-                                        itemCount: _searchResults!.length,
+                                        itemCount: visible,
                                         itemBuilder: (context, i) {
                                           final r = _searchResults![i];
                                           final imageId = r['image_id'] as int?;
@@ -599,16 +702,7 @@ class _TopratedWidgetState extends State<TopratedWidget> {
                                         },
                                       )
                                 : isLoading
-                            ? Center(
-                                child: Padding(
-                                  padding: EdgeInsets.only(top: 60.0),
-                                  child: CircularProgressIndicator(
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      FlutterFlowTheme.of(context).primary,
-                                    ),
-                                  ),
-                                ),
-                              )
+                            ? const SizedBox.shrink()
                             : images.isEmpty
                                 ? Center(
                                     child: Padding(
@@ -642,7 +736,7 @@ class _TopratedWidgetState extends State<TopratedWidget> {
                                     ),
                                     crossAxisSpacing: 10.0,
                                     mainAxisSpacing: 10.0,
-                                    itemCount: images.length,
+                                    itemCount: visible,
                                     shrinkWrap: true,
                                     controller:
                                         _model.staggeredViewController,
@@ -683,6 +777,8 @@ class _TopratedWidgetState extends State<TopratedWidget> {
                   ),
                 ),
               ),
+              if (_isSearching || isLoading)
+                const Positioned.fill(child: ScreenLoader()),
               Align(
                 alignment: AlignmentDirectional(0.0, 1.0),
                 child: wrapWithModel(

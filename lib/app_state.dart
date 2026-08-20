@@ -106,9 +106,6 @@ class FFAppState extends ChangeNotifier {
       _obBudgetRange = prefs.getString('ff_obBudgetRange') ?? _obBudgetRange;
     });
     _safeInit(() {
-      _obTrustedBrands = prefs.getStringList('ff_obTrustedBrands') ?? _obTrustedBrands;
-    });
-    _safeInit(() {
       _obPendingFlush = prefs.getBool('ff_obPendingFlush') ?? _obPendingFlush;
     });
     _safeInit(() {
@@ -460,13 +457,6 @@ class FFAppState extends ChangeNotifier {
         : prefs.setString('ff_obBudgetRange', value);
   }
 
-  List<String> _obTrustedBrands = [];
-  List<String> get obTrustedBrands => _obTrustedBrands;
-  set obTrustedBrands(List<String> value) {
-    _obTrustedBrands = value;
-    prefs.setStringList('ff_obTrustedBrands', value);
-  }
-
   bool _obPendingFlush = false;
   bool get obPendingFlush => _obPendingFlush;
   set obPendingFlush(bool value) {
@@ -494,7 +484,6 @@ class FFAppState extends ChangeNotifier {
     obGoals = [];
     obAgeRange = null;
     obBudgetRange = null;
-    obTrustedBrands = [];
     obPendingFlush = false;
     obStep = 0;
   }

@@ -299,7 +299,9 @@ class _FlutterFlowDropDownState<T> extends State<FlutterFlowDropDown<T>> {
       dropdownStyleData: DropdownStyleData(
         elevation: widget.elevation.toInt(),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(4.0),
+          // Список наследует скругление своего поля: прежние 4.0 выбивались из
+          // остального интерфейса и не настраивались с места вызова.
+          borderRadius: BorderRadius.circular(widget.borderRadius),
           color: widget.fillColor,
         ),
         isOverButton: widget.isOverButton,

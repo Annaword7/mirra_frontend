@@ -1,5 +1,6 @@
 import '/auth/supabase_auth/auth_util.dart';
 import '/backend/supabase/database/database.dart';
+import '/domain/care_planning/care_planning_service.dart';
 
 /// Косметичка — курируемый набор «чем я реально пользуюсь»
 /// (контекст «Понимание продукта», Architecture v1).
@@ -20,12 +21,16 @@ class CosmeticBagService {
     );
   }
 
+  /// Правка состава — единственное, что делает собранный режим устаревшим,
+  /// поэтому кэш разбора сбрасывается здесь: любой экран, добавляющий продукт,
+  /// получает это бесплатно.
   Future<void> add(int imageId) async {
     if (currentUserUid.isEmpty) return;
     await BagItemsTable().insert({
       'user_id': currentUserUid,
       'image_id': imageId,
     });
+    CarePlanningService.instance.invalidateCare();
   }
 
   Future<void> remove(int imageId) async {
@@ -34,5 +39,6 @@ class CosmeticBagService {
       matchingRows: (q) =>
           q.eqOrNull('user_id', currentUserUid).eqOrNull('image_id', imageId),
     );
+    CarePlanningService.instance.invalidateCare();
   }
 }

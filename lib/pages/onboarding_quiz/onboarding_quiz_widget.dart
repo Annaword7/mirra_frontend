@@ -4,7 +4,7 @@ import '/backend/supabase/supabase.dart';
 import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/design_system/components/app_text_field.dart';
+import '/domain/care_planning/care_planning_service.dart';
 import '/design_system/components/app_button.dart';
 import '/index.dart';
 import 'package:flutter/material.dart';
@@ -20,7 +20,11 @@ export 'onboarding_quiz_model.dart';
 /// after auth by HomeWidget; if the user is already logged in (re-edit from
 /// settings) the write happens immediately here.
 class OnboardingQuizWidget extends StatefulWidget {
-  const OnboardingQuizWidget({super.key});
+  const OnboardingQuizWidget({super.key, this.returnTo});
+
+  /// Экран, с которого пришли менять профиль: анкету открывают не только на
+  /// старте, и после сохранения логично вернуться туда же, а не на Главную.
+  final String? returnTo;
 
   static String routeName = 'OnboardingQuiz';
   static String routePath = '/onboardingQuiz';
@@ -105,7 +109,6 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
   final List<String> _goals = [];
   String? _ageRange;
   String? _budgetRange;
-  final List<String> _brands = [];
 
   // «Не знаю» sub-quiz
   bool _typeViaDetermine = false;
@@ -120,8 +123,6 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
   void initState() {
     super.initState();
     _model = createModel(context, () => OnboardingQuizModel());
-    _model.brandsTextController ??= TextEditingController();
-    _model.brandsFocusNode ??= FocusNode();
     // Повторное прохождение: welcome-шаг («настроим под тебя») не нужен —
     // стартуем сразу с первого вопроса, синхронно, без мигания welcome
     // на время асинхронного префилла.
@@ -155,9 +156,6 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
           ..addAll(row.skinGoals);
         _ageRange = row.ageRange;
         _budgetRange = row.budgetRange;
-        _brands
-          ..clear()
-          ..addAll(row.trustedBrands);
         if (_step == _Step.welcome) _step = _Step.type;
       });
     } catch (_) {}
@@ -222,51 +220,9 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
     }
   }
 
-  /// Selected brands + any text typed but not yet committed via select/enter.
-  List<String> _collectBrands() {
-    final pending = _model.brandsTextController?.text.trim() ?? '';
-    final out = List<String>.from(_brands);
-    if (pending.isNotEmpty &&
-        !out.any((b) => b.toLowerCase() == pending.toLowerCase())) {
-      out.add(pending);
-    }
-    return out;
-  }
-
-  void _addBrand(String raw) {
-    final v = raw.trim();
-    safeSetState(() {
-      if (v.isNotEmpty &&
-          !_brands.any((b) => b.toLowerCase() == v.toLowerCase())) {
-        _brands.add(v);
-      }
-      _model.brandsTextController?.clear();
-    });
-    _model.brandsFocusNode?.requestFocus();
-  }
-
-  Future<List<String>> _brandSuggestions(String query) async {
-    try {
-      final res = await SupaFlow.client.rpc(
-        'search_brands',
-        params: {'p_query': query.trim(), 'p_limit': 8},
-      );
-      final list =
-          (res as List).map((e) => (e as Map)['brand'] as String).toList();
-      // Drop already-selected brands.
-      return list
-          .where((b) =>
-              !_brands.any((sel) => sel.toLowerCase() == b.toLowerCase()))
-          .toList();
-    } catch (_) {
-      return const [];
-    }
-  }
-
   Future<void> _finish({required bool save, String? dest}) async {
     final app = FFAppState();
     if (save) {
-      final brands = _collectBrands();
       if (currentUserUid.isNotEmpty) {
         // Already authenticated (re-edit from settings): write now.
         await UsersTable().update(
@@ -282,11 +238,13 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
             'skin_goals': _goals,
             'age_range': _ageRange,
             'budget_range': _budgetRange,
-            'trusted_brands': brands,
             'onboarded': true,
           },
           matchingRows: (rows) => rows.eqOrNull('id', currentUserUid),
         );
+        // Анамнез и предпочтения — вход составителя режима: разбор,
+        // совместимость и рутина после правки профиля пересчитываются.
+        CarePlanningService.instance.invalidateCare();
         app.clearOnboardingBuffer();
       } else {
         // Pre-login: buffer and flush after auth (HomeWidget).
@@ -300,7 +258,6 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
           app.obGoals = List<String>.from(_goals);
           app.obAgeRange = _ageRange;
           app.obBudgetRange = _budgetRange;
-          app.obTrustedBrands = brands;
           app.obPendingFlush = true;
         });
       }
@@ -311,6 +268,7 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
     app.onboardingDone = true;
     if (!mounted) return;
     final route = dest ??
+        widget.returnTo ??
         (currentUserUid.isNotEmpty
             ? HomeWidget.routeName
             : PaywallpageWidget.routeName);
@@ -1025,91 +983,6 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
             pillRow(_ageOptions, _ageRange, (v) => _ageRange = v)),
         field('obq_opt_budget',
             pillRow(_budgetOptions, _budgetRange, (v) => _budgetRange = v)),
-        field('obq_opt_brands', _buildBrandsInput(theme)),
-      ],
-    );
-  }
-
-  // Brands: chips for chosen brands + a DB-backed typeahead to add more.
-  Widget _buildBrandsInput(FlutterFlowTheme theme) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (_brands.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: _brands
-                  .map((b) => Chip(
-                        label: Text(b,
-                            style: theme.bodyMedium
-                                .override(color: _ink, fontSize: _fsBody, letterSpacing: 0)),
-                        backgroundColor: _card,
-                        side: BorderSide(color: _border),
-                        onDeleted: () =>
-                            safeSetState(() => _brands.remove(b)),
-                        deleteIconColor: _muted,
-                      ))
-                  .toList(),
-            ),
-          ),
-        RawAutocomplete<String>(
-          textEditingController: _model.brandsTextController,
-          focusNode: _model.brandsFocusNode,
-          optionsBuilder: (v) async {
-            final q = v.text.trim();
-            if (q.isEmpty) return const <String>[];
-            return _brandSuggestions(q);
-          },
-          onSelected: _addBrand,
-          fieldViewBuilder:
-              (context, controller, focusNode, onFieldSubmitted) {
-            return AppTextField(
-              controller: controller,
-              focusNode: focusNode,
-              hintText: _t('obq_opt_brands_hint'),
-              textInputAction: TextInputAction.done,
-              onFieldSubmitted: (val) => _addBrand(val),
-              suffixIcon: Icon(Icons.add, color: _muted, size: 20),
-            );
-          },
-          optionsViewBuilder: (context, onSelected, options) {
-            return Align(
-              alignment: Alignment.topLeft,
-              child: Material(
-                elevation: 4,
-                borderRadius: BorderRadius.circular(12),
-                child: ConstrainedBox(
-                  constraints:
-                      const BoxConstraints(maxHeight: 220, maxWidth: 360),
-                  child: ListView.builder(
-                    padding: EdgeInsets.zero,
-                    shrinkWrap: true,
-                    itemCount: options.length,
-                    itemBuilder: (c, i) {
-                      final opt = options.elementAt(i);
-                      return InkWell(
-                        onTap: () => onSelected(opt),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 12),
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(opt,
-                                style: theme.bodyMedium
-                                    .override(color: _ink, fontSize: _fsBody, letterSpacing: 0)),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
       ],
     );
   }
@@ -1209,8 +1082,6 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
           onPressed: () {
             _ageRange = null;
             _budgetRange = null;
-            _brands.clear();
-            _model.brandsTextController?.clear();
             _go(_Step.result);
           },
           child: Text(_t('obq_opt_skip_all'),

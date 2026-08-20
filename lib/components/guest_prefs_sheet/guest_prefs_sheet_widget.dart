@@ -67,6 +67,9 @@ class _GuestPrefsSheetState extends State<GuestPrefsSheet> {
     final theme = FlutterFlowTheme.of(context);
 
     return MirraBottomSheet(
+      // Белый лист, как остальные окна приложения: дефолтный
+      // secondaryBackground — голубой, и на нём поля разъезжались по цвету.
+      surfaceColor: Colors.white,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -128,21 +131,24 @@ class _GuestPrefsSheetState extends State<GuestPrefsSheet> {
             ),
           ),
           const SizedBox(height: 10),
+          // Поля — по токенам дизайн-системы (как AppTextField): заливка
+          // surfaceMuted, рамка border, радиус r16. Регион ниже настроен так же.
           Container(
             height: 52,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
-              color: const Color(0xFFF2F2F2),
-              borderRadius: BorderRadius.circular(12),
+              color: theme.surfaceMuted,
+              borderRadius: BorderRadius.circular(theme.radii.r16),
+              border: Border.all(color: theme.border),
             ),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
                 isExpanded: true,
                 value: _lang,
-                icon: const Icon(Icons.keyboard_arrow_down_rounded,
-                    color: Color(0xFF555555)),
+                icon: Icon(Icons.keyboard_arrow_down_rounded,
+                    color: theme.textTertiary),
                 dropdownColor: Colors.white,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(theme.radii.r16),
                 items: kAppLanguages
                     .map((l) => DropdownMenuItem(
                           value: l.code,
@@ -187,13 +193,13 @@ class _GuestPrefsSheetState extends State<GuestPrefsSheet> {
           // the language dropdown, before the app locale is officially changed.
           CountryselectorWidget(
             languageCode: _lang,
-            fillColor: Colors.white,
+            fillColor: theme.surfaceMuted,
             textColor: Colors.black,
-            iconColor: const Color(0xFF555555),
+            iconColor: theme.textTertiary,
             textSize: 16,
-            borderRadius: 12,
-            borderColor: const Color(0xFFE0E0E0),
-            borderWidth: 1.5,
+            borderRadius: theme.radii.r16,
+            borderColor: theme.border,
+            borderWidth: 1,
             elevation: 0,
             onCountrySelected: (id) => _countryId = id,
           ),

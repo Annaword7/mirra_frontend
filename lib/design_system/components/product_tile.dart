@@ -3,6 +3,7 @@ import 'package:flutter_blurhash/flutter_blurhash.dart';
 import 'package:octo_image/octo_image.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
+import '/design_system/foundations/image_thumb.dart';
 import '/design_system/foundations/score_status.dart';
 import '/design_system/foundations/format_price.dart';
 import '/design_system/components/score_badge.dart';
@@ -102,10 +103,12 @@ class ProductTile extends StatelessWidget {
                             fit: BoxFit.cover,
                           ),
                         ),
-                        // Cap decode resolution: grid tiles otherwise decode
-                        // each photo at full source size and OOM-kill the app.
+                        // Уменьшенная версия с сервера (см. image_thumb): в
+                        // ленту незачем тянуть исходные снимки на мегабайты.
+                        // ResizeImage дополнительно ограничивает декодирование —
+                        // на полном размере сетка выедала память до вылета.
                         image: ResizeImage(
-                          NetworkImage(imageUrl),
+                          thumbProvider(imageUrl, width: 720),
                           width: 720,
                         ),
                         width: MediaQuery.sizeOf(context).width * 1.0,

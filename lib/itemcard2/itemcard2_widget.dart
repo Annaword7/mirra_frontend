@@ -10,8 +10,7 @@ import '/backend/api_requests/api_calls.dart';
 import '/backend/supabase/database/tables/product_prices.dart';
 import '/backend/supabase/supabase.dart';
 import '/app_state.dart';
-import '/boards/albumslist/albumslist_widget.dart';
-import '/components/new_album/new_album_widget.dart';
+import '/domain/cosmetic_bag/cosmetic_bag_service.dart';
 import '/flutter_flow/flutter_flow_animations.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -61,6 +60,11 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
   Timer? _pendingPollingTimer;
   final animationsMap = <String, AnimationInfo>{};
 
+  /// Этот продукт уже в Косметичке — тогда действие обратное: убрать. Для
+  /// чужого продукта всегда false: в набор попадает его копия с другим id, и
+  /// связать её с исходной карточкой нельзя.
+  bool _inBag = false;
+
   @override
   void initState() {
     super.initState();
@@ -73,6 +77,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
         source: 'direct',
       ));
       await _loadAnalysis();
+      await _refreshBagState();
       // Average price for this product × the user's country (needs the loaded
       // image row for the product/brand keys).
       final _img = _model.imageraw?.firstOrNull;
@@ -225,6 +230,93 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
         if (mounted) safeSetState(() {});
       }
     });
+  }
+
+  Future<void> _refreshBagState() async {
+    if (currentUserUid.isEmpty) return;
+    try {
+      final bag = await CosmeticBagService.instance.items();
+      if (!mounted) return;
+      safeSetState(() =>
+          _inBag = bag.any((i) => i.imageId == widget.imageid));
+    } catch (e) {
+      debugPrint('card: bag state unavailable: $e');
+    }
+  }
+
+  Future<void> _removeFromBag() async {
+    final id = widget.imageid;
+    if (id == null) return;
+    await CosmeticBagService.instance.remove(id);
+    if (!mounted) return;
+    safeSetState(() => _inBag = false);
+    _toast(FFLocalizations.of(context).getText('cb_removed_toast'));
+  }
+
+  void _toast(String text) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(text, style: const TextStyle(color: Colors.white)),
+      backgroundColor: FlutterFlowTheme.of(context).primary,
+      duration: const Duration(seconds: 2),
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+    ));
+  }
+
+  /// «Добавить в косметичку»: чужое средство сначала копируется в свои продукты,
+  /// затем копия кладётся в косметичку. Свой продукт копировать не нужно —
+  /// добавляем его как есть.
+  Future<void> _addToBag(bool isOwner) async {
+    // Гостю Косметичка доступна: анонимная сессия — полноценный auth.uid(), и
+    // RLS bag_items её принимает. Аккаунт нужен только там, где сессии нет
+    // вовсе.
+    if (currentUserUid.isEmpty) {
+      await showModalBottomSheet(
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        enableDrag: true,
+        context: context,
+        builder: (context) => const _LoginRequiredSheet(
+          titleKey: 'cb_login_title',
+          bodyKey: 'cb_login_body',
+        ),
+      );
+      return;
+    }
+    // Пейволл: у бесплатного тарифа косметичка ограничена kFreeBagSlots.
+    final bag = await CosmeticBagService.instance.items();
+    if (!FFAppState().isprouser && bag.length >= kFreeBagSlots) {
+      if (!context.mounted) return;
+      unawaited(AnalyticsService.instance
+          .trackUpgradePromptTapped(trigger: 'bag_add_from_card'));
+      context.pushNamed(PaywallpageWidget.routeName);
+      return;
+    }
+    int? targetId = widget.imageid;
+    if (!isOwner) {
+      final resp = await CopyproductNEWBCNDCall.call(
+        sourceImageId: widget.imageid,
+        targetUserId: currentUserUid,
+        token: currentJwtToken,
+      );
+      targetId = CopyproductNEWBCNDCall.newimageid(resp?.jsonBody ?? '');
+      if (targetId == null) {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content:
+              Text(FFLocalizations.of(context).getText('copy_failed')),
+          behavior: SnackBarBehavior.floating,
+        ));
+        return;
+      }
+    }
+    if (targetId == null) return;
+    await CosmeticBagService.instance.add(targetId);
+    if (!mounted) return;
+    // Свой продукт лежит в наборе под тем же id — кнопка сразу переключается
+    // на «убрать». У копии чужого id другой, и переключать нечего.
+    if (isOwner) safeSetState(() => _inBag = true);
+    _toast(FFLocalizations.of(context).getText('cb_added_toast'));
   }
 
 
@@ -404,46 +496,19 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                     );
                   },
                 ),
-                // Add to album
+                // Add to cosmetic bag (copies the product first, then adds
+                // the copy to the bag — заменяет прежнее «В коллекцию»).
                 SpeedDialChild(
-                  child: const Icon(Icons.add_box),
+                  child: Icon(
+                      _inBag ? Icons.spa_outlined : Icons.spa_rounded),
                   backgroundColor: FlutterFlowTheme.of(context).primary,
                   foregroundColor: Colors.white,
-                  label:
-                      FFLocalizations.of(context).getText('fab_add_to_album'),
+                  label: FFLocalizations.of(context).getText(
+                      _inBag ? 'cb_remove_from_bag' : 'cb_add_choice_title'),
                   labelStyle: FlutterFlowTheme.of(context).bodyMedium,
-                  onTap: () async {
-                    _model.albums = await AlbumTable().queryRows(
-                      queryFn: (q) => q.eqOrNull('user', currentUserUid),
-                    );
-                    if (!context.mounted) return;
-                    if (_model.albums?.length == 0) {
-                      await showModalBottomSheet(
-                        isScrollControlled: true,
-                        backgroundColor: Colors.transparent,
-                        enableDrag: false,
-                        context: context,
-                        builder: (context) => Padding(
-                          padding: MediaQuery.viewInsetsOf(context),
-                          child: NewAlbumWidget(),
-                        ),
-                      ).then((value) => safeSetState(() {}));
-                    } else {
-                      await showModalBottomSheet(
-                        isScrollControlled: true,
-                        backgroundColor: Colors.transparent,
-                        enableDrag: false,
-                        context: context,
-                        builder: (context) => Padding(
-                          padding: MediaQuery.viewInsetsOf(context),
-                          child: AlbumslistWidget(
-                            imageID: widget.imageid!,
-                            albums: _model.albums ?? [],
-                          ),
-                        ),
-                      ).then((value) => safeSetState(() {}));
-                    }
-                  },
+                  onTap: () => _inBag
+                      ? _removeFromBag()
+                      : _addToBag(itemcard2ImagesRow.user == currentUserUid),
                 ),
                 // Add to favourite (owner, not yet favourited)
                 SpeedDialChild(
@@ -1263,6 +1328,96 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                                 ),
                               );
                             }),
+                          Builder(builder: (context) {
+                            final expert =
+                                _model.imageraw?.firstOrNull?.saExpertAnalysis;
+                            if (expert == null || expert.trim().isEmpty) {
+                              return const SizedBox.shrink();
+                            }
+                            return Padding(
+                              padding: EdgeInsetsDirectional.fromSTEB(
+                                  16.0, 16.0, 16.0, 0.0),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF5F8FF),
+                                  borderRadius: BorderRadius.circular(24.0),
+                                  border: Border(
+                                    left: BorderSide(
+                                      color:
+                                          FlutterFlowTheme.of(context).primary,
+                                      width: 4.0,
+                                    ),
+                                  ),
+                                  boxShadow: const [
+                                    BoxShadow(
+                                      blurRadius: 8.0,
+                                      color: Color(0x14000000),
+                                      offset: Offset(0.0, 2.0),
+                                    ),
+                                  ],
+                                ),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.max,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Padding(
+                                      padding: EdgeInsetsDirectional.fromSTEB(
+                                          12.0, 16.0, 16.0, 16.0),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.max,
+                                        children: [
+                                          FaIcon(
+                                            FontAwesomeIcons.fire,
+                                            color: FlutterFlowTheme.of(context)
+                                                .primary,
+                                            size: 30.0,
+                                          ),
+                                          Text(
+                                            FFLocalizations.of(context).getText(
+                                              'cox122eb' /* Expert Analysis */,
+                                            ),
+                                            style: FlutterFlowTheme.of(context)
+                                                .bodyMedium
+                                                .override(
+                                                  fontFamily:
+                                                      FlutterFlowTheme.of(
+                                                              context)
+                                                          .bodyMediumFamily,
+                                                  fontSize: 18.0,
+                                                  letterSpacing: 0.0,
+                                                  fontWeight: FontWeight.w700,
+                                                  useGoogleFonts:
+                                                      !FlutterFlowTheme.of(
+                                                              context)
+                                                          .bodyMediumIsCustom,
+                                                ),
+                                          ),
+                                        ].divide(SizedBox(width: 12.0)),
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: EdgeInsetsDirectional.fromSTEB(
+                                          12.0, 0.0, 16.0, 16.0),
+                                      child: Text(
+                                        expert,
+                                        style: FlutterFlowTheme.of(context)
+                                            .bodyMedium
+                                            .override(
+                                              fontFamily:
+                                                  FlutterFlowTheme.of(context)
+                                                      .bodyMediumFamily,
+                                              letterSpacing: 0.0,
+                                              useGoogleFonts:
+                                                  !FlutterFlowTheme.of(context)
+                                                      .bodyMediumIsCustom,
+                                            ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }),
                           Padding(
                               padding: EdgeInsetsDirectional.fromSTEB(
                                   16.0, 16.0, 16.0, 0.0),
@@ -1682,8 +1837,17 @@ class _KeyFactRow extends StatelessWidget {
   }
 }
 
+/// Требование входа для действия, которому нужен аккаунт. Тексты приходят от
+/// вызывающего: один и тот же лист закрывает и копирование чужого продукта, и
+/// добавление в Косметичку, а объяснения у них разные.
 class _LoginRequiredSheet extends StatelessWidget {
-  const _LoginRequiredSheet();
+  const _LoginRequiredSheet({
+    this.titleKey = 'copy_login_title',
+    this.bodyKey = 'copy_login_body',
+  });
+
+  final String titleKey;
+  final String bodyKey;
 
   @override
   Widget build(BuildContext context) {
@@ -1712,8 +1876,7 @@ class _LoginRequiredSheet extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            FFLocalizations.of(context)
-                .getText('copy_login_title' /* Sign in to copy */),
+            FFLocalizations.of(context).getText(titleKey),
             style: FlutterFlowTheme.of(context).titleMedium.override(
                   fontFamily: FlutterFlowTheme.of(context).titleMediumFamily,
                   color: const Color(0xFF111111),
@@ -1725,8 +1888,7 @@ class _LoginRequiredSheet extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            FFLocalizations.of(context).getText(
-                'copy_login_body' /* Create a free account to copy products to your profile. */),
+            FFLocalizations.of(context).getText(bodyKey),
             textAlign: TextAlign.center,
             style: FlutterFlowTheme.of(context).bodyMedium.override(
                   fontFamily: FlutterFlowTheme.of(context).bodyMediumFamily,
