@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '/auth/auth_manager.dart';
 import '/backend/supabase/supabase.dart';
+import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'email_auth.dart';
 
@@ -180,6 +181,10 @@ class SupabaseAuthManager extends AuthManager
   /// Calls the Supabase RPC that reassigns scans owned by [anonUid] to the
   /// currently authenticated user. Non-fatal if the RPC doesn't exist yet.
   Future<void> _claimAnonScans(String anonUid) async {
+    // Reached only when a guest session has just become a real account, and
+    // from every sign-in path — so this is the one place anon→account
+    // conversion can be counted.
+    unawaited(AnalyticsService.instance.trackAnonConverted());
     try {
       await SupaFlow.client
           .rpc('claim_anonymous_scans', params: {'anon_uid': anonUid});

@@ -47,20 +47,24 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
       FFAppState().subscriptionmonth = false;
       safeSetState(() {});
 
-      // Load offerings if not already available
-      if (revenue_cat.offerings?.current?.weekly == null ||
-          revenue_cat.offerings?.current?.annual == null) {
-        safeSetState(() => _offeringsLoading = true);
-        await revenue_cat.loadOfferings();
-        if (mounted) safeSetState(() => _offeringsLoading = false);
+      try {
+        // Load offerings if not already available
+        if (revenue_cat.offerings?.current?.weekly == null ||
+            revenue_cat.offerings?.current?.annual == null) {
+          safeSetState(() => _offeringsLoading = true);
+          await revenue_cat.loadOfferings();
+          if (mounted) safeSetState(() => _offeringsLoading = false);
+        }
+      } finally {
+        // loadOfferings() only catches PlatformException, so anything else
+        // would abort this callback and lose the one event that reveals a
+        // dead-end paywall. Reporting from a finally makes the signal
+        // unconditional: the state it leaves behind is what we measure.
+        unawaited(AnalyticsService.instance.trackPaywallOfferingsLoaded(
+          ready: _offeringsReady,
+          configured: revenue_cat.isConfigured,
+        ));
       }
-
-      // loadOfferings() swallows its errors, so the only signal that the
-      // paywall is a dead end is the state it leaves behind.
-      unawaited(AnalyticsService.instance.trackPaywallOfferingsLoaded(
-        ready: _offeringsReady,
-        configured: revenue_cat.isConfigured,
-      ));
     });
   }
 
@@ -113,11 +117,12 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
       if (refreshed!) {
         FFAppState().isprouser = true;
         safeSetState(() {});
-        await SubscriptionupgradeNEWBCNDCall.call(
-          host: FFDevEnvironmentValues().backendhost,
-          durationDays: durationDays,
-          userId: currentUserUid,
-        );
+        // The premium row is written by the RevenueCat webhook, which is the
+        // only path that ever worked: /subscription/upgrade is guarded by
+        // @require_admin_secret and this client cannot send that header, so the
+        // call it used to make here always returned 401 — awaited, unchecked
+        // and purely a delay in the purchase flow. Shipping the admin secret in
+        // the app would reopen the self-serve premium hole, so it stays out.
         await TelegrammessegeCall.call(
           email: currentUserEmail,
           form: telegramForm,

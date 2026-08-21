@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/design_system/components/app_button.dart';
 import '/design_system/components/mirra_dialog_card.dart';
@@ -66,13 +69,18 @@ class ErrorPopupWidget extends StatelessWidget {
 
   final ErrorPopupType type;
 
-  static Future<void> show(BuildContext context, ErrorPopupType type) =>
-      showDialog(
-        context: context,
-        barrierDismissible: true,
-        barrierColor: Colors.black54,
-        builder: (ctx) => ErrorPopupWidget(type: type),
-      );
+  /// Every analysis failure surfaces through this dialog and nowhere else, so
+  /// this is the one place that can report the whole failure taxonomy without
+  /// instrumenting ~25 error branches across the two (mirrored) scan chains.
+  static Future<void> show(BuildContext context, ErrorPopupType type) {
+    unawaited(AnalyticsService.instance.trackAnalysisFailed(reason: type.name));
+    return showDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierColor: Colors.black54,
+      builder: (ctx) => ErrorPopupWidget(type: type),
+    );
+  }
 
   static Future<IngredientInputResult?> showIngredientInput(
           BuildContext context) =>

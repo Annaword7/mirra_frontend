@@ -781,6 +781,16 @@ class ScientificanalysisNEWBCNDCall {
         response,
         r'''$.analysis.consumer_summary''',
       ));
+  static double? compositescore(dynamic response) =>
+      castToType<double>(getJsonField(
+        response,
+        r'''$.analysis.scores.composite_score''',
+      ));
+  static String? producttype(dynamic response) =>
+      castToType<String>(getJsonField(
+        response,
+        r'''$.analysis.product_type''',
+      ));
   static double? coveragepercent(dynamic response) =>
       castToType<double>(getJsonField(
         response,

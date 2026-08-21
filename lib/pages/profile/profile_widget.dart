@@ -217,18 +217,19 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                           child: Column(
                             mainAxisSize: MainAxisSize.max,
                             children: [
-                              SettingsRow(
-                                icon: Icons.workspace_premium,
-                                label: FFLocalizations.of(context)
-                                    .getText('1g4dikoz' /* Try premium */),
-                                onTap: () {
-                                  unawaited(AnalyticsService.instance
-                                      .trackUpgradePromptTapped(
-                                          trigger: 'profile_try_premium'));
-                                  context.pushNamed(
-                                      PaywallpageWidget.routeName);
-                                },
-                              ),
+                              if (!FFAppState().isprouser)
+                                SettingsRow(
+                                  icon: Icons.workspace_premium,
+                                  label: FFLocalizations.of(context)
+                                      .getText('1g4dikoz' /* Try premium */),
+                                  onTap: () {
+                                    unawaited(AnalyticsService.instance
+                                        .trackUpgradePromptTapped(
+                                            trigger: 'profile_try_premium'));
+                                    context.pushNamed(
+                                        PaywallpageWidget.routeName);
+                                  },
+                                ),
                               if (!currentUserIsAnonymous)
                                 SettingsRow(
                                   icon: Icons.edit_outlined,

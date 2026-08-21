@@ -141,10 +141,18 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
       final resp = await GetScanQuotaCall.call(token: currentJwtToken);
       if (!mounted || !resp.succeeded) return;
       final body = resp.jsonBody;
+      final unlimited = GetScanQuotaCall.isUnlimited(body) ?? false;
       final used = GetScanQuotaCall.quotaUsed(body);
       final limit = GetScanQuotaCall.quotaLimit(body);
       final resetAt = DateTime.tryParse(GetScanQuotaCall.resetAt(body) ?? '');
-      if (used != null) FFAppState().analysesused = used;
+      // Premium gets nulls in every quota field, so assigning only non-nulls
+      // would leave analysesused at its pre-purchase value — and the local scan
+      // gate would keep blocking a user who has just paid.
+      if (unlimited) {
+        FFAppState().analysesused = 0;
+      } else if (used != null) {
+        FFAppState().analysesused = used;
+      }
       if (limit != null && limit > 0) FFAppState().freeScanLimit = limit;
       // The quota widgets derive the reset moment as weekResetDate + 7 days,
       // so store the window start (reset_at - 7d) to preserve that convention.
@@ -287,8 +295,14 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
         // привязана к Apple ID устройства, а не к аккаунту: fallback выдавал pro
         // ЛЮБОМУ профилю, вошедшему на устройстве с активной подпиской (в т.ч.
         // после logout и входа в другой аккаунт).
-        FFAppState().isprouser =
-            _model.usersanswer?.firstOrNull?.subscriptionPlan == 'premium';
+        // Mirror the server rule exactly (check_and_increment_scan_quota):
+        // premium counts only while it has not expired, NULL end date meaning
+        // "no expiry". Without the date check a lapsed subscriber saw
+        // "∞ Unlimited · Pro" while the server metered them as free.
+        final _planRow = _model.usersanswer?.firstOrNull;
+        final _planEnd = _planRow?.subscriptionEndDate;
+        FFAppState().isprouser = _planRow?.subscriptionPlan == 'premium' &&
+            (_planEnd == null || _planEnd.isAfter(DateTime.now()));
         final userRow = _model.usersanswer?.firstOrNull;
         final countryRow = _model.countrieshome?.firstOrNull;
 

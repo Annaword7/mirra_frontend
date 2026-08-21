@@ -30,14 +30,16 @@ class AnalyticsService {
   Future<void> trackAnalysisStarted({required String source}) =>
       _log('analysis_started', {'source': source}); // source: camera | gallery
 
+  /// [score] is null when the card is not scored yet — the 202 "research
+  /// pending" path still completes the scan from the user's point of view.
   Future<void> trackAnalysisCompleted({
     required int imageId,
-    required double score,
+    double? score,
     String? productType,
   }) =>
       _log('analysis_completed', {
         'image_id': imageId,
-        'score': score.round(),
+        if (score != null) 'score': score.round(),
         if (productType != null) 'product_type': productType,
       });
 

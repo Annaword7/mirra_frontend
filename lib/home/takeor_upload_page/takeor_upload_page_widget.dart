@@ -263,7 +263,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                       limit: ExtractproductinfoNEWBCNDCopyCall.quotaUsed(
                                 (_model.extractedproductGalary?.jsonBody ?? ''),
                               ) ??
-                          20,
+                          FFAppState().freeScanLimit,
                       date: ExtractproductinfoNEWBCNDCopyCall.resetTime(
                                 (_model.extractedproductGalary?.jsonBody ?? ''),
                               ) ??
@@ -336,6 +336,20 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
               ),
               languageCode: FFLocalizations.of(context).languageCode,
               token: currentJwtToken,
+            ));
+          }
+          final _completedImageId = ExtractproductinfoNEWBCNDCopyCall.iamgeID(
+            (_model.extractedproductGalary?.jsonBody ?? ''),
+          );
+          if (_completedImageId != null) {
+            unawaited(AnalyticsService.instance.trackAnalysisCompleted(
+              imageId: _completedImageId,
+              score: ScientificanalysisNEWBCNDCall.compositescore(
+                (_model.scientificanalysresultcamara?.jsonBody ?? ''),
+              ),
+              productType: ScientificanalysisNEWBCNDCall.producttype(
+                (_model.scientificanalysresultcamara?.jsonBody ?? ''),
+              ),
             ));
           }
           FFAppState().feedbackPendingScan = true;
@@ -731,6 +745,15 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
           token: currentJwtToken,
         ));
       }
+      unawaited(AnalyticsService.instance.trackAnalysisCompleted(
+        imageId: imageId,
+        score: ScientificanalysisNEWBCNDCall.compositescore(
+          analysisResult.jsonBody,
+        ),
+        productType: ScientificanalysisNEWBCNDCall.producttype(
+          analysisResult.jsonBody,
+        ),
+      ));
       FFAppState().feedbackPendingScan = true;
       if (!mounted) {
         FFAppState().uploadedimageurl = '';
@@ -788,43 +811,6 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
     super.dispose();
   }
 
-  /// Returns a formatted reset-date string from local app state, or ''.
-  String _resetDateString() {
-    final resetDate = FFAppState().weekResetDate;
-    if (resetDate == null) return '';
-    final resetAt = resetDate.add(const Duration(days: 7));
-    final diff = resetAt.difference(DateTime.now());
-    if (diff.isNegative) return '';
-    final days = diff.inDays;
-    if (days == 0) return resetAt.toLocal().toString().substring(0, 10);
-    return resetAt.toLocal().toString().substring(0, 10);
-  }
-
-  /// Shows LimitOutWidget as a bottom sheet. Returns after it's dismissed.
-  Future<void> _showLimitOut(BuildContext context) async {
-    final appState = context.read<FFAppState>();
-    await showModalBottomSheet(
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      enableDrag: false,
-      context: context,
-      builder: (ctx) => GestureDetector(
-        onTap: () {
-          FocusScope.of(ctx).unfocus();
-          FocusManager.instance.primaryFocus?.unfocus();
-        },
-        child: Padding(
-          padding: MediaQuery.viewInsetsOf(ctx),
-          child: LimitOutWidget(
-            limit: appState.analysesused,
-            date: _resetDateString(),
-            isPro: false,
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildCameraButton(BuildContext context) {
     return AppButton(
       label: FFLocalizations.of(context).getText(
@@ -832,11 +818,9 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
       ),
       icon: Icons.camera_alt,
       onPressed: () async {
-        final appState = context.read<FFAppState>();
-        if (appState.analysesused >= appState.freeScanLimit) {
-          await _showLimitOut(context);
-          return;
-        }
+        // No local quota gate: the server refuses over-quota scans with a 429
+        // on /extract-product-info, which is the single source of truth for
+        // both the limit and the reset date.
         var _shouldSetState = false;
         _shouldSetState = true;
         await _ensureCountrySet();
@@ -984,7 +968,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                                       (_model.extractedproductcamera?.jsonBody ??
                                           ''),
                                     ) ??
-                                20,
+                                FFAppState().freeScanLimit,
                             date: ExtractproductinfoNEWBCNDCopyCall.resetTime(
                                       (_model.extractedproductcamera?.jsonBody ??
                                           ''),
@@ -1060,6 +1044,21 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                     ),
                     languageCode: FFLocalizations.of(context).languageCode,
                     token: currentJwtToken,
+                  ));
+                }
+                final _completedImageId =
+                    ExtractproductinfoNEWBCNDCopyCall.iamgeID(
+                  (_model.extractedproductcamera?.jsonBody ?? ''),
+                );
+                if (_completedImageId != null) {
+                  unawaited(AnalyticsService.instance.trackAnalysisCompleted(
+                    imageId: _completedImageId,
+                    score: ScientificanalysisNEWBCNDCall.compositescore(
+                      (_model.scientificanalysresultgalary?.jsonBody ?? ''),
+                    ),
+                    productType: ScientificanalysisNEWBCNDCall.producttype(
+                      (_model.scientificanalysresultgalary?.jsonBody ?? ''),
+                    ),
                   ));
                 }
                 FFAppState().feedbackPendingScan = true;
@@ -1306,16 +1305,10 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
       ),
       icon: Icons.photo_library,
       onPressed: () async {
-        final appState = context.read<FFAppState>();
-        debugPrint('[gallery] tap: analysesused=${appState.analysesused} '
-            'freeScanLimit=${appState.freeScanLimit} '
+        debugPrint('[gallery] tap: '
             'host=${FFDevEnvironmentValues().backendhost} '
             'tokenEmpty=${currentJwtToken.isEmpty}');
-        if (appState.analysesused >= appState.freeScanLimit) {
-          debugPrint('[gallery] blocked by local quota gate → LimitOut');
-          await _showLimitOut(context);
-          return;
-        }
+        // No local quota gate — see _buildCameraButton.
         var _shouldSetState = false;
         _shouldSetState = true;
         await _ensureCountrySet();
