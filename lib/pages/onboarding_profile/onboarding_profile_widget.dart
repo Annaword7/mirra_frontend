@@ -237,7 +237,12 @@ class _OnboardingProfileWidgetState extends State<OnboardingProfileWidget>
                       image: hasPhoto
                           ? DecorationImage(
                               fit: BoxFit.cover,
-                              image: NetworkImage(_model.profilePicture!),
+                              // Кружок 80pt: снимок с камеры декодируем под
+                              // него, иначе распаковывается полный размер.
+                              image: ResizeImage(
+                                NetworkImage(_model.profilePicture!),
+                                width: 240,
+                              ),
                             )
                           : null,
                       border: Border.all(

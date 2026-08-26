@@ -80,6 +80,9 @@ class _AnalysisLoadingWidgetState extends State<AnalysisLoadingWidget> {
             child: appState.uploudedimagepath.isNotEmpty
                 ? Image.network(
                     appState.uploudedimagepath,
+                    // Только что снятое фото — полноразмерное с камеры.
+                    // Экран занимает половину высоты, 1080px хватает.
+                    cacheWidth: 1080,
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => Container(
                       color: FlutterFlowTheme.of(context).alternate,

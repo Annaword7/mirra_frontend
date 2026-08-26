@@ -1,6 +1,9 @@
 import '/auth/supabase_auth/auth_util.dart';
 import '/backend/supabase/supabase.dart';
 import '/boards/newboardempty/newboardempty_widget.dart';
+// Прямой импорт вместо '/index.dart': экраны Boards выведены из обращения и
+// больше оттуда не экспортируются.
+import '/boards/imagesby_album/imagesby_album_widget.dart';
 import '/components/album_list_loading_component/album_list_loading_component_widget.dart';
 import '/components/navbar/navbar_widget.dart';
 import '/components/new_album/new_album_widget.dart';
@@ -366,6 +369,10 @@ class _AlbumPreview extends StatelessWidget {
       borderRadius: BorderRadius.circular(8.0),
       child: Image.network(
         images[index].imageUrl!,
+        // Коллаж в сетке 2 колонки: ячейка ~90pt, а за экран их два десятка.
+        // Без предела каждый пользовательский снимок распаковывался целиком,
+        // и экран съедал память гигабайтами (EXC_RESOURCE в io.worker).
+        cacheWidth: 300,
         fit: BoxFit.cover,
         width: double.infinity,
         height: double.infinity,

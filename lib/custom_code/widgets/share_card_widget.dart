@@ -506,7 +506,7 @@ class _StoryCard extends StatelessWidget {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                Image.network(imageUrl, fit: BoxFit.cover),
+                Image.network(imageUrl, cacheWidth: 600, fit: BoxFit.cover),
                 Positioned(
                   left: 10,
                   top: 16,
@@ -609,7 +609,7 @@ class _SquareCard extends StatelessWidget {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                Image.network(imageUrl, fit: BoxFit.cover),
+                Image.network(imageUrl, cacheWidth: 600, fit: BoxFit.cover),
                 Positioned(
                   left: 10,
                   bottom: 10,

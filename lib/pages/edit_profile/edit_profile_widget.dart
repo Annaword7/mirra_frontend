@@ -360,8 +360,14 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
                                           image: FFAppState().userProfilePicture.isNotEmpty
                                               ? DecorationImage(
                                                   fit: BoxFit.cover,
-                                                  image: NetworkImage(
-                                                    FFAppState().userProfilePicture,
+                                                  // Кружок 120pt — снимок с
+                                                  // камеры декодируем под него,
+                                                  // а не в исходном размере.
+                                                  image: ResizeImage(
+                                                    NetworkImage(
+                                                      FFAppState().userProfilePicture,
+                                                    ),
+                                                    width: 360,
                                                   ),
                                                 )
                                               : null,
@@ -375,6 +381,7 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
                                                   editProfileUsersRow!.profileImage!,
                                                   width: 120.0,
                                                   height: 120.0,
+                                                  cacheWidth: 360,
                                                   fit: BoxFit.cover,
                                                   errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                                                 ),

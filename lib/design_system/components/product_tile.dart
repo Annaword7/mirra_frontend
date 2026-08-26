@@ -105,12 +105,8 @@ class ProductTile extends StatelessWidget {
                         ),
                         // Уменьшенная версия с сервера (см. image_thumb): в
                         // ленту незачем тянуть исходные снимки на мегабайты.
-                        // ResizeImage дополнительно ограничивает декодирование —
-                        // на полном размере сетка выедала память до вылета.
-                        image: ResizeImage(
-                          thumbProvider(imageUrl, width: 720),
-                          width: 720,
-                        ),
+                        // Предел на распаковку теперь внутри thumbProvider.
+                        image: thumbProvider(imageUrl, width: 720),
                         width: MediaQuery.sizeOf(context).width * 1.0,
                         height: 300.0,
                         fit: BoxFit.cover,

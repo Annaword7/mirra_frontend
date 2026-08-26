@@ -163,6 +163,11 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                   profileUsersRow?.profileImage,
                                   'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
                                 ),
+                                // Аватар — снимок с камеры произвольного
+                                // размера, а рисуется в кружке 120pt. Без
+                                // предела он распаковывается целиком: 12 Мп
+                                // это ~48 МБ на одну картинку.
+                                cacheWidth: 360,
                                 fit: BoxFit.cover,
                                 errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                               ),

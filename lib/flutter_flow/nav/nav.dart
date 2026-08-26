@@ -141,12 +141,9 @@ GoRouter createRouter(AppStateNotifier appStateNotifier, [Widget? entryPage]) =>
             returnTo: params.getParam('returnTo', ParamType.String),
           ),
         ),
-        FFRoute(
-          name: BoardsWidget.routeName,
-          path: BoardsWidget.routePath,
-          requireAuth: true,
-          builder: (context, params) => BoardsWidget(),
-        ),
+        // Boards и ImagesbyAlbum выведены из обращения: переходов из
+        // интерфейса на них нет, маршруты сняты, чтобы экраны нельзя было
+        // открыть и по прямой ссылке. Код остаётся в lib/boards/.
         FFRoute(
           name: HomeWidget.routeName,
           path: HomeWidget.routePath,
@@ -164,16 +161,6 @@ GoRouter createRouter(AppStateNotifier appStateNotifier, [Widget? entryPage]) =>
           path: ProfileWidget.routePath,
           requireAuth: true,
           builder: (context, params) => ProfileWidget(),
-        ),
-        FFRoute(
-          name: ImagesbyAlbumWidget.routeName,
-          path: ImagesbyAlbumWidget.routePath,
-          builder: (context, params) => ImagesbyAlbumWidget(
-            albumid: params.getParam(
-              'albumid',
-              ParamType.String,
-            ),
-          ),
         ),
         FFRoute(
           name: ForgotPasswordWidget.routeName,

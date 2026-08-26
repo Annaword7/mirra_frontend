@@ -6,11 +6,9 @@ export '/pages/onboarding_profile/onboarding_profile_widget.dart'
     show OnboardingProfileWidget;
 export '/pages/onboarding_quiz/onboarding_quiz_widget.dart'
     show OnboardingQuizWidget;
-export '/boards/boards/boards_widget.dart' show BoardsWidget;
+// Экраны Boards выведены из обращения — см. маршруты в nav.dart.
 export '/home/home/home_widget.dart' show HomeWidget;
 export '/pages/profile/profile_widget.dart' show ProfileWidget;
-export '/boards/imagesby_album/imagesby_album_widget.dart'
-    show ImagesbyAlbumWidget;
 export '/pages/forgot_password/forgot_password_widget.dart'
     show ForgotPasswordWidget;
 export '/pages/edit_profile/edit_profile_widget.dart' show EditProfileWidget;

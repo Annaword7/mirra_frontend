@@ -28,8 +28,15 @@ String thumbUrl(String url, {required int width, int quality = 75}) {
 
 /// Провайдер для [url]: уменьшенная версия, webp и кэш на диске между
 /// запусками — повторный показ той же карточки идёт без сети.
+///
+/// [ResizeImage] ограничивает уже распаковку. Это важно для внешних ссылок:
+/// их [thumbUrl] не переписывает, сервер отдаёт оригинал, и без предела
+/// каталожный снимок разворачивался в память целиком.
 ImageProvider thumbProvider(String url, {required int width, int quality = 75}) =>
-    CachedNetworkImageProvider(
-      thumbUrl(url, width: width, quality: quality),
-      headers: _webpHeaders,
+    ResizeImage(
+      CachedNetworkImageProvider(
+        thumbUrl(url, width: width, quality: quality),
+        headers: _webpHeaders,
+      ),
+      width: width,
     );
