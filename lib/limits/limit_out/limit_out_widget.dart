@@ -106,14 +106,20 @@ class _LimitOutWidgetState extends State<LimitOutWidget> {
                       children: [
                         TextSpan(text: loc.getText('5vf31bag' /* You've used  */)),
                         TextSpan(
-                          text: widget.limit!.toString(),
+                          text: (widget.limit ?? 0).toString(),
                           style: const TextStyle(fontWeight: FontWeight.w700),
                         ),
-                        TextSpan(text: loc.getText('9iwfkse3')),
-                        TextSpan(
-                          text: widget.date!,
-                          style: const TextStyle(fontWeight: FontWeight.w700),
-                        ),
+                        // «Ваш лимит будет обновлён {дата}» имеет смысл только
+                        // пока лимит вообще обновляется. Сервер отдаёт пустую
+                        // дату, когда обновления не будет, — без этой проверки
+                        // фраза обрывается на полуслове.
+                        if ((widget.date ?? '').isNotEmpty) ...[
+                          TextSpan(text: loc.getText('9iwfkse3')),
+                          TextSpan(
+                            text: widget.date!,
+                            style: const TextStyle(fontWeight: FontWeight.w700),
+                          ),
+                        ],
                       ],
                     ),
                   ),

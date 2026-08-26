@@ -117,14 +117,25 @@ class _LangsWidgetState extends State<LangsWidget> {
                                 _model.langcode = lang.code;
                                 safeSetState(() {});
                                 setAppLanguage(context, lang.code);
-                                if (currentUserUid.isNotEmpty) {
-                                  await UsersTable().update(
-                                    data: {'language_code': lang.code},
-                                    matchingRows: (q) =>
-                                        q.eq('id', currentUserUid),
-                                  );
-                                }
+                                // Экран закрывается сразу: язык уже сохранён
+                                // локально (storeLocale), а запись в users
+                                // нужна бэкенду и ждать её незачем. Раньше
+                                // context использовался после await — к этому
+                                // моменту экран мог быть уже снят.
                                 context.safePop();
+                                if (currentUserUid.isNotEmpty) {
+                                  try {
+                                    await UsersTable().update(
+                                      data: {'language_code': lang.code},
+                                      matchingRows: (q) =>
+                                          q.eq('id', currentUserUid),
+                                    );
+                                  } catch (e) {
+                                    // Не критично: Главная синхронизирует
+                                    // language_code при следующем открытии.
+                                    debugPrint('Langs: language_code sync failed: $e');
+                                  }
+                                }
                               },
                             );
                           }),
