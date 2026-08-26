@@ -25,6 +25,61 @@ double _parseConc(String? raw) {
   return digits.length == 1 ? digits[0] : (digits[0] + digits[1]) / 2;
 }
 
+// ── Label ──────────────────────────────────────────────────────────────────
+const double _labelLineHeight = 1.1;
+const double _labelMinFontSize = 8.0;
+
+// Laid out once per bubble (not per frame): the full name wrapped to at most
+// two lines, shrunk until the text block fits inside the circle.
+TextPainter _buildLabel(String text, double r, Color bubbleColor) {
+  // Dark ink derived from the bubble hue — readable on the light fill.
+  final ink = Color.lerp(bubbleColor, const Color(0xFF1A1A1A), 0.7)!;
+
+  TextPainter build(String body, double size, double maxW, {String? ellipsis}) =>
+      TextPainter(
+        text: TextSpan(
+          text: body,
+          style: TextStyle(
+            fontSize: size,
+            height: _labelLineHeight,
+            fontWeight: FontWeight.w700,
+            color: ink,
+            letterSpacing: -0.2,
+            shadows: const [Shadow(color: Color(0xCCFFFFFF), blurRadius: 3)],
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+        textAlign: TextAlign.center,
+        maxLines: 2,
+        ellipsis: ellipsis,
+      )..layout(maxWidth: maxW);
+
+  final words = text.split(' ').where((w) => w.isNotEmpty).toList();
+  if (words.isEmpty) return build('', _labelMinFontSize, 0);
+
+  // Widest a two-line block may be at this font size and still sit inside the
+  // circle: the chord at the block's half-height, kept off the rim by 8%.
+  double chord(double size) {
+    final halfH = _labelLineHeight * size;
+    return halfH >= r ? 0 : 2 * sqrt(r * r - halfH * halfH) * 0.92;
+  }
+
+  // Shrink until the name fits. Requiring every single word to fit on a line
+  // stops Flutter from breaking a long word mid-way.
+  for (var size = r * 0.40; size >= _labelMinFontSize; size -= 0.5) {
+    final maxW = chord(size);
+    if (maxW <= 0) continue;
+    final widestWord =
+        words.map((w) => build(w, size, double.infinity).width).reduce(max);
+    if (widestWord > maxW) continue;
+    final tp = build(text, size, maxW);
+    if (!tp.didExceedMaxLines) return tp;
+  }
+
+  // Long INCI name — ellipsize at the floor size; a tap shows it in full.
+  return build(text, _labelMinFontSize, chord(_labelMinFontSize), ellipsis: '…');
+}
+
 // ── Per-bubble state ───────────────────────────────────────────────────────
 class _Bubble {
   _Bubble({
@@ -33,6 +88,7 @@ class _Bubble {
     required this.conc,
     required this.radius,
     required this.color,
+    required this.label,
     required this.phase,
     required this.freqX,
     required this.freqY,
@@ -47,6 +103,7 @@ class _Bubble {
   final double conc;
   final double radius;
   final Color color;
+  final TextPainter label;
 
   // sine-wave params for gentle drift
   final double phase;
@@ -115,7 +172,8 @@ class _IngredientBubblesWidgetState extends State<IngredientBubblesWidget>
       final conc = _parseConc(ing.estimatedConcentration);
       if (conc > 0) base = (conc.clamp(0.5, 25) / 25 * 38 + 18).toDouble();
       if (ing.status == 'working') base *= 1.15;
-      return base.clamp(16.0, 52.0);
+      // Floor of 30 keeps every bubble big enough to hold its name.
+      return base.clamp(30.0, 52.0);
     }
 
     // Precompute radii, then sort biggest-first so large bubbles sit at
@@ -138,13 +196,15 @@ class _IngredientBubblesWidgetState extends State<IngredientBubblesWidget>
       final angle = i * goldenAngle;
       final bx = cx + cos(angle) * dist + (rng.nextDouble() * 10 - 5);
       final by = cy + sin(angle) * dist + (rng.nextDouble() * 10 - 5);
+      final color = statusColor(ing.status);
 
       return _Bubble(
         name: ing.ingredientName,
         status: ing.status,
         conc: _parseConc(ing.estimatedConcentration),
         radius: r,
-        color: statusColor(ing.status),
+        color: color,
+        label: _buildLabel(ing.ingredientName, r, color),
         phase: rng.nextDouble() * pi * 2,
         freqX: 0.24 + rng.nextDouble() * 0.14,
         freqY: 0.20 + rng.nextDouble() * 0.14,
@@ -262,45 +322,9 @@ class _BubblePainter extends CustomPainter {
         specPaint,
       );
 
-      // label inside bubble (only if big enough)
-      if (b.radius >= 22) {
-        _drawText(canvas, b.name.split(' ').first, pos, b.radius, b.color);
-      }
+      // label inside bubble — pre-laid-out in _layout()
+      b.label.paint(canvas, pos - Offset(b.label.width / 2, b.label.height / 2));
     }
-  }
-
-  void _drawText(
-      Canvas canvas, String text, Offset center, double r, Color bubbleColor) {
-    // Dark ink derived from the bubble hue — readable on the light fill.
-    final ink = Color.lerp(bubbleColor, const Color(0xFF1A1A1A), 0.7)!;
-    final maxW = r * 1.7; // stay inside the circle
-
-    TextPainter build(double size, {double? bound}) => TextPainter(
-          text: TextSpan(
-            text: text,
-            style: TextStyle(
-              fontSize: size,
-              fontWeight: FontWeight.w700,
-              color: ink,
-              letterSpacing: -0.2,
-              shadows: const [Shadow(color: Color(0xCCFFFFFF), blurRadius: 3)],
-            ),
-          ),
-          textDirection: TextDirection.ltr,
-          textAlign: TextAlign.center,
-          maxLines: 1,
-          ellipsis: '…',
-        )..layout(maxWidth: bound ?? double.infinity);
-
-    // Measure the natural single-line width, then shrink the font to fit.
-    double size = r * 0.42;
-    final natural = build(size);
-    if (natural.width > maxW) {
-      size = (size * maxW / natural.width).clamp(7.0, r * 0.42);
-    }
-    // Final constrained layout — ellipsizes only if still too wide at the floor.
-    final tp = build(size, bound: maxW);
-    tp.paint(canvas, center - Offset(tp.width / 2, tp.height / 2));
   }
 
   @override
