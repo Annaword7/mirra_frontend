@@ -131,8 +131,9 @@ class _NegativeFeedbackWidgetState extends State<NegativeFeedbackWidget> {
                 final email = _emailController.text.trim().isNotEmpty
                     ? _emailController.text.trim()
                     : currentUserEmail;
-                await TelegrammessegeCall.call(
-                  messega: _commentController.text,
+                await SendAppMessageCall.call(
+                  token: currentJwtToken,
+                  message: _commentController.text,
                   email: email,
                 );
                 await FirebaseAnalytics.instance

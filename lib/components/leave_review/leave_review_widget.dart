@@ -193,8 +193,9 @@ class _LeaveReviewWidgetState extends State<LeaveReviewWidget> {
                     !_model.formKey.currentState!.validate()) {
                   return;
                 }
-                await TelegrammessegeCall.call(
-                  messega: _model.folderTitleTextController.text,
+                await SendAppMessageCall.call(
+                  token: currentJwtToken,
+                  message: _model.folderTitleTextController.text,
                   email: currentUserEmail,
                 );
 

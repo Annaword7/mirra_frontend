@@ -123,10 +123,11 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
         // call it used to make here always returned 401 — awaited, unchecked
         // and purely a delay in the purchase flow. Shipping the admin secret in
         // the app would reopen the self-serve premium hole, so it stays out.
-        await TelegrammessegeCall.call(
+        await SendAppMessageCall.call(
+          token: currentJwtToken,
           email: currentUserEmail,
           form: telegramForm,
-          messega: telegramMessage,
+          message: telegramMessage,
         );
       }
     }

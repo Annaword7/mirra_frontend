@@ -277,8 +277,9 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
           }
           // No image was created (quota check ran before image creation).
         } else {
-          await TelegrammessegeCall.call(
-            messega:
+          await SendAppMessageCall.call(
+            token: currentJwtToken,
+            message:
                 '${_model.uploadedFileUrl_uploadImageSupabaseGallary} на этапе extract product info галерея. status=${_model.extractedproductGalary?.statusCode} body=${_model.extractedproductGalary?.jsonBody} tokenEmpty=${currentJwtToken.isEmpty}',
             email: 'from mobile app Extract Product Name Step',
             form: 'tech message',
@@ -394,8 +395,9 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
           if (statusCode == 422) {
             await ErrorPopupWidget.show(context, ErrorPopupType.unsupported);
           } else {
-            await TelegrammessegeCall.call(
-              messega:
+            await SendAppMessageCall.call(
+              token: currentJwtToken,
+              message:
                   '${_model.uploadedFileUrl_uploadImageSupabaseCamera} на этапе scientific research, gallary',
               email: 'from mobile app',
               form: 'tech message',
@@ -528,8 +530,9 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
             safeSetState(() {});
           }
         } else {
-          await TelegrammessegeCall.call(
-            messega:
+          await SendAppMessageCall.call(
+            token: currentJwtToken,
+            message:
                 '${_model.uploadedFileUrl_uploadImageSupabaseGallary} на этапе анализа, из галереи',
             email: 'from mobile app',
             form: 'tech message',
@@ -983,8 +986,9 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                 }
                 // No image was created (quota check ran before image creation).
               } else {
-                await TelegrammessegeCall.call(
-                  messega:
+                await SendAppMessageCall.call(
+                  token: currentJwtToken,
+                  message:
                       '${_model.uploadedFileUrl_uploadImageSupabaseCamera}на этапе extract product info, camera',
                   email: 'from mobile app',
                   form: 'tech message',
@@ -1103,8 +1107,9 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                 if (_cameraScientificStatusCode == 422) {
                   await ErrorPopupWidget.show(context, ErrorPopupType.unsupported);
                 } else {
-                  await TelegrammessegeCall.call(
-                    messega:
+                  await SendAppMessageCall.call(
+                    token: currentJwtToken,
+                    message:
                         '${_model.uploadedFileUrl_uploadImageSupabaseCamera} на этапе scientific research, camera',
                     email: 'from mobile app',
                     form: 'tech message',
@@ -1259,8 +1264,9 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                     if (_shouldSetState) safeSetState(() {});
                     return;
                   } else {
-                    await TelegrammessegeCall.call(
-                      messega:
+                    await SendAppMessageCall.call(
+                      token: currentJwtToken,
+                      message:
                           '${_model.uploadedFileUrl_uploadImageSupabaseCamera} на этапе поиска ингредиентов, с камеры',
                       email: 'from mobile app',
                       form: 'tech message',
