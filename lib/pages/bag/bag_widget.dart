@@ -363,7 +363,10 @@ class _BagWidgetState extends State<BagWidget> {
         : pluralText(context, 'preg_bag_caution', caution);
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.only(top: 16),
+      // Отступ снизу, а не сверху: на этом экране каждый блок отбивает себя от
+      // следующего (см. _compatCard). С верхним отступом плашка отбивалась от
+      // карточки совместимости дважды и слипалась с сеткой продуктов.
+      margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: accent.withOpacity(0.08),
