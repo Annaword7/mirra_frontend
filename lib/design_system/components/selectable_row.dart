@@ -43,16 +43,22 @@ class SelectableRow extends StatelessWidget {
             mainAxisSize: MainAxisSize.max,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                label,
-                style: theme.bodyMedium.override(
-                  fontFamily: theme.bodyMediumFamily,
-                  color: theme.primaryText,
-                  fontSize: 16.0,
-                  letterSpacing: 0.0,
-                  useGoogleFonts: !theme.bodyMediumIsCustom,
+              // Expanded, а не голый Text: у языков и стран подписи короткие, а
+              // ответы вроде «Да, беременна или кормлю» в других языках длиннее
+              // строки — без гибкости ряд ломался переполнением.
+              Expanded(
+                child: Text(
+                  label,
+                  style: theme.bodyMedium.override(
+                    fontFamily: theme.bodyMediumFamily,
+                    color: theme.primaryText,
+                    fontSize: 16.0,
+                    letterSpacing: 0.0,
+                    useGoogleFonts: !theme.bodyMediumIsCustom,
+                  ),
                 ),
               ),
+              const SizedBox(width: 12.0),
               Icon(
                 selected
                     ? Icons.check_circle_rounded

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/design_system/components/app_button.dart';
@@ -25,12 +27,15 @@ class ConfirmDialog extends StatelessWidget {
     this.icon,
     this.iconColor,
     this.onBackgroundTap,
+    this.surfaceColor,
   });
 
   final String title;
   final String? body;
   final String confirmLabel;
-  final VoidCallback onConfirm;
+
+  /// When it returns a Future, the confirm button shows a spinner while it runs.
+  final FutureOr<void> Function() onConfirm;
 
   /// When null, only the confirm button is shown (centered).
   final String? cancelLabel;
@@ -51,6 +56,9 @@ class ConfirmDialog extends StatelessWidget {
   /// When set, tapping the scrim (outside the card) runs this (tap-to-dismiss).
   final VoidCallback? onBackgroundTap;
 
+  /// Card surface. Defaults to white (`alternate`) — see [MirraDialogCard].
+  final Color? surfaceColor;
+
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
@@ -61,7 +69,7 @@ class ConfirmDialog extends StatelessWidget {
           padding: const EdgeInsets.all(24.0),
           child: Container(
             decoration: BoxDecoration(
-              color: theme.secondaryBackground,
+              color: surfaceColor ?? theme.alternate,
               borderRadius: BorderRadius.circular(20.0),
               boxShadow: const [
                 BoxShadow(

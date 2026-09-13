@@ -60,6 +60,11 @@ class MirraDialogCard extends StatelessWidget {
   final EdgeInsets insetPadding;
   final EdgeInsets padding;
   final CrossAxisAlignment crossAxisAlignment;
+
+  /// Подложка карточки. По умолчанию белая (`alternate`), как все остальные
+  /// поверхности приложения: `secondaryBackground` — насыщенно-голубой,
+  /// и диалоги на нём выглядели как чужие. Половина вызывающих и так
+  /// передавала белый руками — теперь это просто поведение по умолчанию.
   final Color? surfaceColor;
 
   @override
@@ -70,7 +75,7 @@ class MirraDialogCard extends StatelessWidget {
       insetPadding: insetPadding,
       child: Container(
         decoration: BoxDecoration(
-          color: surfaceColor ?? theme.secondaryBackground,
+          color: surfaceColor ?? theme.alternate,
           borderRadius: BorderRadius.circular(20.0),
           boxShadow: const [
             BoxShadow(

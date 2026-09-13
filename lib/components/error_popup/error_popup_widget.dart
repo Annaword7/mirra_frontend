@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/design_system/components/app_button.dart';
+import '/design_system/components/app_text_field.dart';
+import '/design_system/components/mirra_bottom_sheet.dart';
 import '/design_system/components/mirra_dialog_card.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 
@@ -41,22 +43,21 @@ class _DialogTitleBody extends StatelessWidget {
           title,
           textAlign: TextAlign.center,
           style: theme.headlineSmall.override(
-            fontFamily: theme.headlineSmallFamily,
+            color: theme.primaryText,
             fontSize: 18.0,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w700,
             letterSpacing: 0.0,
-            useGoogleFonts: !theme.headlineSmallIsCustom,
+            lineHeight: 1.25,
           ),
         ),
-        const SizedBox(height: 8.0),
+        SizedBox(height: theme.space.s8),
         Text(
           body,
           textAlign: TextAlign.center,
           style: theme.bodyMedium.override(
-            fontFamily: theme.bodyMediumFamily,
             color: theme.secondaryText,
             letterSpacing: 0.0,
-            useGoogleFonts: !theme.bodyMediumIsCustom,
+            lineHeight: 1.4,
           ),
         ),
       ],
@@ -82,14 +83,26 @@ class ErrorPopupWidget extends StatelessWidget {
     );
   }
 
+  /// Лист, а не центрированный диалог: здесь вводят состав, то есть поднимается
+  /// клавиатура. В диалоге она перекрывала кнопку «Анализировать» (та ещё и
+  /// появлялась только после ввода, ниже поля), свернуть клавиатуру было нечем,
+  /// а тап по затемнению закрывал окно вместе с уже вставленным составом — и
+  /// скан после этого удалялся. Лист поднимается над клавиатурой, содержимое
+  /// скроллится, закрыть можно только явной кнопкой.
   static Future<IngredientInputResult?> showIngredientInput(
-          BuildContext context) =>
-      showDialog<IngredientInputResult?>(
-        context: context,
-        barrierDismissible: true,
-        barrierColor: Colors.black54,
-        builder: (ctx) => const _IngredientsInputDialog(),
-      );
+      BuildContext context) {
+    // Клавиатура предыдущего шага остаётся поднятой и открывает лист уже
+    // наполовину перекрытым — гасим её перед показом.
+    FocusManager.instance.primaryFocus?.unfocus();
+    return showModalBottomSheet<IngredientInputResult?>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      isDismissible: false,
+      enableDrag: false,
+      builder: (ctx) => const _IngredientsInputSheet(),
+    );
+  }
 
   static Future<IngredientInputAction?> showLowConfidenceChoice(
           BuildContext context) =>
@@ -143,6 +156,7 @@ class ErrorPopupWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
     final cfg = _config(context);
 
     return MirraDialogCard(
@@ -150,7 +164,7 @@ class ErrorPopupWidget extends StatelessWidget {
       iconColor: cfg.iconColor,
       children: [
         _DialogTitleBody(title: cfg.title, body: cfg.body),
-        const SizedBox(height: 24.0),
+        SizedBox(height: theme.space.s24),
         AppButton(
           label: FFLocalizations.of(context).getText('err_ok_btn'),
           onPressed: () => Navigator.pop(context),
@@ -174,22 +188,37 @@ class _PopupConfig {
   final String body;
 }
 
-class _IngredientsInputDialog extends StatefulWidget {
-  const _IngredientsInputDialog();
+/// «Состав не найден» — единственный экран приложения, который просит что-то
+/// напечатать, и цена ошибки тут высокая: если закрыть его без состава, скан
+/// удаляется вместе с продуктом.
+///
+/// Поле показано сразу, без раскрывашки: вставить состав — ровно то, зачем сюда
+/// попадают, и прятать это за строкой-аккордеоном не за чем. Кнопка
+/// «Анализировать» стоит под полем всегда (пока пусто — неактивная), так что
+/// видно, чем закончится ввод.
+class _IngredientsInputSheet extends StatefulWidget {
+  const _IngredientsInputSheet();
 
   @override
-  State<_IngredientsInputDialog> createState() =>
-      _IngredientsInputDialogState();
+  State<_IngredientsInputSheet> createState() => _IngredientsInputSheetState();
 }
 
-class _IngredientsInputDialogState extends State<_IngredientsInputDialog> {
+class _IngredientsInputSheetState extends State<_IngredientsInputSheet> {
   final _controller = TextEditingController();
-  bool _expanded = false;
 
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  void _submit() {
+    final text = _controller.text.trim();
+    if (text.isEmpty) return;
+    Navigator.pop(
+      context,
+      IngredientInputResult(IngredientInputAction.manualText, text),
+    );
   }
 
   @override
@@ -198,101 +227,76 @@ class _IngredientsInputDialogState extends State<_IngredientsInputDialog> {
     final loc = FFLocalizations.of(context);
     final hasText = _controller.text.trim().isNotEmpty;
 
-    return MirraDialogCard(
-      icon: Icons.science_rounded,
-      iconColor: const Color(0xFF7B1FA2),
-      children: [
-        _DialogTitleBody(
-          title: loc.getText('err_ingredients_not_found_title'),
-          body: loc.getText('err_ingredients_not_found_body'),
+    return MirraBottomSheet(
+      surfaceColor: theme.alternate,
+      child: ConstrainedBox(
+        // Считаем от высоты БЕЗ клавиатуры: она съедает до половины экрана, и
+        // потолок от полной высоты сделал бы лист выше, чем остаётся места.
+        // Что не влезло — прокручивается, а не ломается.
+        constraints: BoxConstraints(
+          maxHeight: (MediaQuery.sizeOf(context).height -
+                  MediaQuery.viewInsetsOf(context).bottom) *
+              0.78,
         ),
-        const SizedBox(height: 16.0),
-        AppButton(
-          label: loc.getText('err_photograph_ingredients'),
-          icon: Icons.photo_camera_rounded,
-          onPressed: () => Navigator.pop(
-            context,
-            const IngredientInputResult(IngredientInputAction.photo),
-          ),
-        ),
-        const SizedBox(height: 4.0),
-        InkWell(
-          onTap: () => setState(() => _expanded = !_expanded),
-          borderRadius: BorderRadius.circular(8.0),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    loc.getText('err_enter_ingredients_manually'),
-                    style: theme.bodyMedium.override(
-                      fontFamily: theme.bodyMediumFamily,
-                      color: theme.primary,
-                      fontWeight: FontWeight.w500,
-                      letterSpacing: 0.0,
-                      useGoogleFonts: !theme.bodyMediumIsCustom,
-                    ),
-                  ),
-                ),
-                Icon(
-                  _expanded ? Icons.expand_less : Icons.expand_more,
-                  color: theme.primary,
-                  size: 20.0,
-                ),
-              ],
-            ),
-          ),
-        ),
-        if (_expanded) ...[
-          const SizedBox(height: 8.0),
-          TextField(
-            controller: _controller,
-            maxLines: 5,
-            minLines: 3,
-            onChanged: (_) => setState(() {}),
-            decoration: InputDecoration(
-              hintText: 'Water, Glycerin, Niacinamide...',
-              hintStyle: TextStyle(color: theme.secondaryText),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.0),
-                borderSide: BorderSide(color: theme.alternate),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.0),
-                borderSide: BorderSide(color: theme.alternate),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.0),
-                borderSide: BorderSide(color: theme.primary),
-              ),
-              contentPadding: const EdgeInsets.all(12.0),
-            ),
-          ),
-        ],
-        const SizedBox(height: 20.0),
-        if (hasText && _expanded)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8.0),
-            child: AppButton(
-              label: loc.getText('err_analyze_btn'),
-              onPressed: () => Navigator.pop(
-                context,
-                IngredientInputResult(
-                  IngredientInputAction.manualText,
-                  _controller.text.trim(),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Center(
+                child: MirraDialogIcon(
+                  icon: Icons.science_rounded,
+                  color: Color(0xFF7B1FA2),
                 ),
               ),
-            ),
+              SizedBox(height: theme.space.s16),
+              _DialogTitleBody(
+                title: loc.getText('err_ingredients_not_found_title'),
+                body: loc.getText('err_ingredients_not_found_body'),
+              ),
+              SizedBox(height: theme.space.s24),
+              AppButton(
+                label: loc.getText('err_photograph_ingredients'),
+                icon: Icons.photo_camera_rounded,
+                onPressed: () => Navigator.pop(
+                  context,
+                  const IngredientInputResult(IngredientInputAction.photo),
+                ),
+              ),
+              SizedBox(height: theme.space.s24),
+              Text(
+                loc.getText('err_enter_ingredients_manually'),
+                style: theme.titleSmall.override(
+                  color: theme.primaryText,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.0,
+                ),
+              ),
+              SizedBox(height: theme.space.s8),
+              AppTextField(
+                controller: _controller,
+                hintText: 'Water, Glycerin, Niacinamide…',
+                keyboardType: TextInputType.multiline,
+                minLines: 3,
+                maxLines: 6,
+                textCapitalization: TextCapitalization.sentences,
+                onChanged: (_) => setState(() {}),
+              ),
+              SizedBox(height: theme.space.s12),
+              AppButton(
+                label: loc.getText('err_analyze_btn'),
+                onPressed: hasText ? _submit : null,
+              ),
+              SizedBox(height: theme.space.s4),
+              AppButton(
+                label: loc.getText('err_close_btn'),
+                variant: AppButtonVariant.text,
+                onPressed: () => Navigator.pop(context, null),
+              ),
+            ],
           ),
-        AppButton(
-          label: hasText && _expanded
-              ? loc.getText('err_close_btn')
-              : loc.getText('err_ok_btn'),
-          variant: AppButtonVariant.secondary,
-          onPressed: () => Navigator.pop(context, null),
         ),
-      ],
+      ),
     );
   }
 }
