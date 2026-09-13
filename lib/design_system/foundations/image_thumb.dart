@@ -19,11 +19,17 @@ const _renderPath = '/storage/v1/render/image/public/';
 const Map<String, String> _webpHeaders = {'Accept': 'image/webp,*/*'};
 
 /// Ссылка на уменьшенную версию [url] шириной [width] (в пикселях устройства).
+///
+/// `resize=contain` обязателен. По умолчанию Storage режет в режиме `cover`, и
+/// с одним лишь `width` он понимает запрос как «вписать в рамку width × высота
+/// оригинала»: у снимка 4032×3024 это 720×4032 — вертикальная полоса из
+/// середины кадра. Именно она приезжала в ленту и в Косметичку, и никакой
+/// BoxFit на клиенте её уже не чинит, потому что обрезал сервер.
 String thumbUrl(String url, {required int width, int quality = 75}) {
   if (!url.contains(_objectPath)) return url;
   final base = url.replaceFirst(_objectPath, _renderPath);
   final separator = base.contains('?') ? '&' : '?';
-  return '$base${separator}width=$width&quality=$quality';
+  return '$base${separator}width=$width&resize=contain&quality=$quality';
 }
 
 /// Провайдер для [url]: уменьшенная версия, webp и кэш на диске между
