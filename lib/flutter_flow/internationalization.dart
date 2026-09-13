@@ -7560,7 +7560,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     'obq_welcome_time': {
       'en': 'About 40 seconds · 3 questions',
       'ru': '≈ 40 секунд · 3 вопроса',
-      'es': '≈ 40 segundos · 3 preguntas',
+      'es': 'Unos 40 segundos · 3 preguntas',
       'de': '≈ 40 Sekunden · 3 Fragen',
       'fr': '≈ 40 secondes · 3 questions',
       'it': '≈ 40 secondi · 3 domande',
@@ -7731,7 +7731,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     'obq_type_unknown': {
       'en': 'Not sure, let’s figure it out',
       'ru': 'Не знаю, определим вместе',
-      'es': 'No sé — lo averiguamos juntos',
+      'es': 'No sé, lo averiguamos juntos',
       'de': 'Weiß nicht — finden wir heraus',
       'fr': 'Je ne sais pas — trouvons-le ensemble',
       'it': 'Non so — scopriamolo insieme',
@@ -7745,7 +7745,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     'obq_det_title': {
       'en': 'Three steps to find out',
       'ru': 'Определим за три шага',
-      'es': 'Vale, lo vemos en 3 toques',
+      'es': 'Lo vemos en tres pasos',
       'de': 'OK, in 3 Tipps herausgefunden',
       'fr': 'OK, on le trouve en 3 touches',
       'it': 'Ok, lo scopriamo in 3 tocchi',
@@ -7823,7 +7823,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     'obq_det_q_tight': {
       'en': 'After washing…',
       'ru': 'После умывания…',
-      'es': 'Después de lavar…',
+      'es': 'Al lavarte la cara…',
       'de': 'Nach dem Waschen…',
       'fr': 'Après le nettoyage…',
       'it': 'Dopo la detersione…',
@@ -8073,7 +8073,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     'obq_preg_why': {
       'en': 'Some actives (like retinoids) aren’t recommended during this time, so I’ll keep them out of your routine.',
       'ru': 'Некоторые активы (например, ретиноиды) в этот период не рекомендуются, поэтому я не включу их в уход.',
-      'es': 'Algunos activos (como los retinoides) no se recomiendan en esta etapa — los dejaré fuera de tu rutina.',
+      'es': 'Algunos activos (como los retinoides) no se recomiendan en esta etapa, así que los dejaré fuera de tu rutina.',
       'de': 'Manche Wirkstoffe (z. B. Retinoide) sind in dieser Zeit nicht empfohlen — ich lasse sie aus deiner Routine heraus.',
       'fr': 'Certains actifs (comme les rétinoïdes) sont déconseillés pendant cette période — je les écarterai de ta routine.',
       'it': 'Alcuni attivi (come i retinoidi) non sono consigliati in questo periodo — li terrò fuori dalla tua routine.',
@@ -8086,7 +8086,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     'obq_preg_yes': {
       'en': 'Yes, pregnant or breastfeeding',
       'ru': 'Да, беременна или кормлю',
-      'es': 'Sí, embarazada o lactando',
+      'es': 'Sí, embarazada o en lactancia',
       'de': 'Ja, schwanger oder stillend',
       'fr': 'Oui, enceinte ou allaitante',
       'it': 'Sì, incinta o in allattamento',
@@ -8139,7 +8139,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     'obq_goals_sub': {
       'en': 'Pick up to three and I’ll focus the analysis there.',
       'ru': 'Выберите до трёх: на них сфокусирую разбор.',
-      'es': 'Elige hasta 3 — enfocaré el análisis ahí.',
+      'es': 'Elige hasta 3 y enfocaré ahí el análisis.',
       'de': 'Wähle bis zu 3 — darauf richte ich die Analyse aus.',
       'fr': 'Choisis jusqu’à 3 — je concentrerai l’analyse dessus.',
       'it': 'Scegline fino a 3 — concentrerò lì l’analisi.',
@@ -8324,7 +8324,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Now scan your first product and I’ll show if it suits you.',
       'ru':
           'Теперь сфотографируйте первый продукт, и я покажу, подойдёт ли он именно вам.',
-      'es': 'Ahora escanea tu primer producto — te diré si te conviene.',
+      'es': 'Ahora escanea tu primer producto y te diré si te conviene.',
       'de': 'Scanne jetzt dein erstes Produkt — ich zeige, ob es zu dir passt.',
       'fr': 'Scanne ton premier produit — je te dirai s’il te convient.',
       'it': 'Ora scansiona il primo prodotto — ti dirò se fa per te.',
@@ -8365,7 +8365,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'The app works without a profile. I’ll just show all skin types.',
       'ru':
           'Приложение работает и без профиля: просто покажу по всем типам кожи.',
-      'es': 'La app funciona sin perfil — mostraré todos los tipos de piel.',
+      'es': 'La aplicación funciona sin perfil, mostraré todos los tipos de piel.',
       'de': 'Die App funktioniert ohne Profil — ich zeige alle Hauttypen.',
       'fr': 'L’app fonctionne sans profil — j’afficherai tous les types de peau.',
       'it': 'L’app funziona senza profilo — mostrerò tutti i tipi di pelle.',
@@ -8420,7 +8420,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     'home_profile_cta_sub': {
       'en': 'Take a short setup and I’ll rate formulas for you',
       'ru': 'Пройдите короткий опрос, и я оценю составы под вас',
-      'es': 'Haz una configuración rápida — evaluaré las fórmulas para ti',
+      'es': 'Haz una configuración rápida y evaluaré las fórmulas para ti',
       'de': 'Kurze Einrichtung — ich bewerte Formeln für dich',
       'fr': 'Configuration rapide — j’évaluerai les formules pour toi',
       'it': 'Configura in breve — valuterò le formule per te',
@@ -8798,7 +8798,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     'cb_compat_error': {
       'en': "Couldn't analyze compatibility. Please try again.",
       'ru': 'Не удалось разобрать совместимость. Попробуйте ещё раз.',
-      'es': 'No se pudo analizar la compatibilidad. Inténtalo de nuevo.',
+      'es': 'No se pudo analizar la compatibilidad. Prueba otra vez.',
       'de': 'Verträglichkeit konnte nicht analysiert werden. Bitte versuche es erneut.',
       'fr': 'Impossible d’analyser la compatibilité. Réessaie.',
       'it': 'Impossibile analizzare la compatibilità. Riprova.',
@@ -8839,7 +8839,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
           "Couldn't read these products' ingredients yet. Re-scan them so the full composition is recognised.",
       'ru':
           'Пока не удалось прочитать состав этих продуктов. Сфотографируйте их заново, чтобы распознался полный состав.',
-      'es': 'Aún no se pudo leer los ingredientes de estos productos. Vuelve a escanearlos para reconocer la composición completa.',
+      'es': 'Aún no se pudieron leer los ingredientes de estos productos. Vuelve a escanearlos para reconocer la composición completa.',
       'de': 'Die Inhaltsstoffe dieser Produkte konnten noch nicht gelesen werden. Scanne sie erneut, damit die vollständige Zusammensetzung erkannt wird.',
       'fr': 'Impossible de lire les ingrédients de ces produits pour l’instant. Scanne-les à nouveau pour reconnaître la composition complète.',
       'it': 'Non è stato ancora possibile leggere gli ingredienti di questi prodotti. Ripeti la scansione per riconoscere la composizione completa.',
@@ -8969,7 +8969,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     'cb_compat_stale': {
       'en': 'Bag changed: recalculate',
       'ru': 'Косметичка изменилась: пересчитать',
-      'es': 'El neceser cambió: toca para recalcular',
+      'es': 'El neceser cambió: recalcula',
       'de': 'Kosmetiktasche geändert – zum Neuberechnen tippen',
       'fr': 'Trousse modifiée — touche pour recalculer',
       'it': 'Beauty case cambiato: tocca per ricalcolare',
@@ -9564,7 +9564,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'preg_bag_caution': {
       'en': '{n} products need caution during pregnancy', 'ru': '{n} продуктов требуют осторожности при беременности',
-      'es': '{n} producto(s) requieren precaución durante el embarazo', 'de': '{n} Produkt(e) erfordern in der Schwangerschaft Vorsicht',
+      'es': '{n} productos requieren precaución durante el embarazo', 'de': '{n} Produkt(e) erfordern in der Schwangerschaft Vorsicht',
       'fr': '{n} produit(s) à utiliser avec prudence pendant la grossesse', 'it': '{n} prodotto/i richiedono cautela in gravidanza',
       'pt': '{n} produto(s) exigem cautela na gravidez', 'tr': '{n} ürün hamilelikte dikkat gerektiriyor',
       'ja': '{n}件の製品は妊娠中の注意が必要です', 'ko': '{n}개 제품은 임신 중 주의가 필요합니다', 'zh': '{n} 件产品在孕期需谨慎使用',
@@ -9785,7 +9785,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'cb_note_label': {
       'en': 'This product contains:', 'ru': 'Обратите внимание, в продукте:',
-      'es': 'Ten en cuenta, el producto contiene:', 'de': 'Beachte — dieses Produkt enthält:',
+      'es': 'Ten en cuenta que el producto contiene:', 'de': 'Beachte — dieses Produkt enthält:',
       'fr': 'À noter, ce produit contient :', 'it': 'Nota — questo prodotto contiene:',
       'pt': 'Atenção, o produto contém:', 'tr': 'Dikkat — bu üründe:',
       'ja': 'この製品に含まれます:', 'ko': '참고 — 이 제품에 포함:', 'zh': '请注意，此产品含有：',
@@ -10042,7 +10042,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ja': 'アゼライン酸', 'ko': '아젤라산', 'zh': '壬二酸',
     },
     'care_freq_week': {
-      'en': '{n}×/week', 'ru': '{n}×/нед.', 'es': '{n}×/sem', 'de': '{n}×/Woche',
+      'en': '{n}×/week', 'ru': '{n}×/нед.', 'es': '{n}×/sem.', 'de': '{n}×/Woche',
       'fr': '{n}×/sem', 'it': '{n}×/sett', 'pt': '{n}×/sem', 'tr': 'Haftada {n}×',
       'ja': '週{n}回', 'ko': '주 {n}회', 'zh': '每周{n}次',
     },
@@ -10055,7 +10055,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'care_error': {
       'en': 'Something went wrong. Try again', 'ru': 'Что-то пошло не так. Попробуйте ещё раз',
-      'es': 'Algo salió mal. Inténtalo de nuevo', 'de': 'Etwas ist schiefgelaufen. Versuch es erneut',
+      'es': 'Algo salió mal. Prueba otra vez', 'de': 'Etwas ist schiefgelaufen. Versuch es erneut',
       'fr': 'Une erreur est survenue. Réessayez', 'it': 'Qualcosa è andato storto. Riprova',
       'pt': 'Algo deu errado. Tente novamente', 'tr': 'Bir şeyler ters gitti. Tekrar dene',
       'ja': 'エラーが発生しました。もう一度お試しください', 'ko': '문제가 발생했어요. 다시 시도해 주세요', 'zh': '出错了，请重试',
