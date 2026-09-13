@@ -85,9 +85,6 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
   String? _selectedSkinType;
   bool _proExpanded = false;
 
-  /// Матрица типов кожи раскрыта целиком (по умолчанию — только своя строка).
-  bool _matrixExpanded = false;
-
   /// Разбор обещаний с упаковки раскрыт (по умолчанию виден только счёт).
   bool _claimsExpanded = false;
 
@@ -197,7 +194,12 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
         : (widget.image.saQuickSummary ?? '');
     final fitScore = row?.compatibilityScore ??
         (widget.image.saCompositeScore?.round() ?? 0);
-    final fitLabel = row != null ? _t('cardv2_for_you') : _t('cardv2_formula');
+    // Подпись под кольцом называет тип кожи, для которого посчитано число.
+    // Раньше тут было «для вас», а тот же балл дублировался строкой ниже —
+    // человек видел одну оценку дважды и не понимал, зачем.
+    final fitLabel = row != null
+        ? _skinTypeLabel(row.skinType)
+        : _t('cardv2_formula');
     final ringColor = _fitColor(fitScore);
 
     return Padding(
@@ -262,13 +264,19 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
                   ),
                 ),
                 const SizedBox(height: 6),
-                Text(
-                  fitLabel,
-                  style: theme.labelSmall.override(
-                    fontFamily: theme.labelSmallFamily,
-                    color: theme.secondaryText,
-                    letterSpacing: 0.0,
-                    useGoogleFonts: !theme.labelSmallIsCustom,
+                SizedBox(
+                  width: 92,
+                  child: Text(
+                    fitLabel,
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.labelSmall.override(
+                      fontFamily: theme.labelSmallFamily,
+                      color: theme.secondaryText,
+                      letterSpacing: 0.0,
+                      useGoogleFonts: !theme.labelSmallIsCustom,
+                    ),
                   ),
                 ),
               ],
@@ -336,147 +344,106 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
 
   // ── Skin type matrix (tappable, ephemeral) ───────────────────────────────
 
-  /// Совместимость: своя строка, остальные типы — по запросу.
-  ///
-  /// Матрица из шести строк отвечала на вопрос «кому вообще подходит», хотя
-  /// человек пришёл с вопросом «подходит ли мне». Когда тип кожи известен,
-  /// показываем одну его строку и кнопку «сравнить»; когда нет — весь список,
-  /// потому что это единственный способ получить свою оценку без профиля.
+  /// Переключатель типа кожи. Ничего, кроме выбора: балл и вердикт уже стоят
+  /// в кольце выше, и повторять их строкой значило показывать одну и ту же
+  /// оценку дважды. Тап пересчитывает карточку на месте и профиль не трогает —
+  /// косметолог так листает типы под каждого клиента.
+  static const _skinTypeOrder = [
+    'dry',
+    'oily',
+    'normal',
+    'combination',
+    'sensitive',
+    'acne_prone',
+  ];
+
   Widget _buildFit(FlutterFlowTheme theme) {
     if (widget.skinCompatibility.isEmpty) return const SizedBox.shrink();
-    if (_selectedRow == null || _matrixExpanded) return _buildMatrix(theme);
+    // Порядок постоянный, а не по убыванию балла: иначе чипы прыгали бы с
+    // карточки на карточку и свой тип каждый раз приходилось бы искать заново.
+    final rows = [...widget.skinCompatibility]..sort((a, b) {
+        final ia = _skinTypeOrder.indexOf(a.skinType);
+        final ib = _skinTypeOrder.indexOf(b.skinType);
+        return (ia < 0 ? 99 : ia).compareTo(ib < 0 ? 99 : ib);
+      });
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _matrixHeading(theme, 'cardv2_fit_level'),
-        _matrixRow(theme, _selectedRow!),
         Padding(
-          padding: const EdgeInsetsDirectional.fromSTEB(16, 4, 16, 0),
-          child: InkWell(
-            onTap: () => setState(() => _matrixExpanded = true),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    _t('cardv2_compare_types'),
-                    style: theme.labelSmall.override(
-                      fontFamily: theme.labelSmallFamily,
-                      color: theme.primary,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.0,
-                      useGoogleFonts: !theme.labelSmallIsCustom,
-                    ),
-                  ),
-                  Icon(Icons.expand_more, size: 18, color: theme.primary),
-                ],
-              ),
+          padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 8),
+          child: Text(
+            _t('cardv2_score_for_type'),
+            style: theme.labelMedium.override(
+              fontFamily: theme.labelMediumFamily,
+              letterSpacing: 0.0,
+              useGoogleFonts: !theme.labelMediumIsCustom,
             ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 0),
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final row in rows) _skinTypeChip(theme, row.skinType),
+            ],
           ),
         ),
       ],
     );
   }
 
-  /// Заголовок зависит от того, что под ним. Со своей строкой выбирать нечего,
-  /// поэтому «выберите свой тип кожи» там врал.
-  Widget _matrixHeading(FlutterFlowTheme theme, String key) => Padding(
-        padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 8),
-        child: Text(
-          _t(key),
-          style: theme.labelMedium.override(
-            fontFamily: theme.labelMediumFamily,
-            letterSpacing: 0.0,
-            useGoogleFonts: !theme.labelMediumIsCustom,
-          ),
-        ),
-      );
-
-  Widget _buildMatrix(FlutterFlowTheme theme) {
-    if (widget.skinCompatibility.isEmpty) return const SizedBox.shrink();
-    final rows = [...widget.skinCompatibility]
-      ..sort((a, b) => b.compatibilityScore.compareTo(a.compatibilityScore));
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _matrixHeading(theme, 'cardv2_who_for'),
-        ...rows.map((row) => _matrixRow(theme, row)),
-      ],
-    );
-  }
-
-  Widget _matrixRow(FlutterFlowTheme theme, ImageSkinCompatibilityRow row) {
-    return Builder(builder: (context) {
-      final selected = row.skinType == _selectedSkinType;
-      final score = row.compatibilityScore;
-      return Padding(
-        padding: const EdgeInsetsDirectional.fromSTEB(16, 3, 16, 3),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: () => setState(() {
-            // Ephemeral preview only — never written to the profile.
-            _userTouchedMatrix = true;
-            _selectedSkinType = selected ? null : row.skinType;
-          }),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: selected ? theme.primary : theme.alternate,
-                width: selected ? 1.5 : 0.5,
-              ),
+  Widget _skinTypeChip(FlutterFlowTheme theme, String skinType) {
+    final selected = skinType == _selectedSkinType;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(theme.radii.full),
+        onTap: () => setState(() {
+          // Эфемерный просмотр: в профиль ничего не пишется.
+          _userTouchedMatrix = true;
+          _selectedSkinType = selected ? null : skinType;
+        }),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          constraints: const BoxConstraints(minHeight: 40),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: selected ? theme.primary : theme.surfaceMuted,
+            borderRadius: BorderRadius.circular(theme.radii.full),
+            border: Border.all(
+              color: selected ? theme.primary : theme.border,
+              width: selected
+                  ? theme.size.borderThick
+                  : theme.size.borderHairline,
             ),
-            child: Row(
-              children: [
-                SizedBox(
-                  width: 130,
-                  child: Text(
-                    _skinTypeLabel(row.skinType),
-                    style: theme.bodyMedium.override(
-                      fontFamily: theme.bodyMediumFamily,
-                      fontSize: 14,
-                      letterSpacing: 0.0,
-                      fontWeight:
-                          selected ? FontWeight.w600 : FontWeight.normal,
-                      useGoogleFonts: !theme.bodyMediumIsCustom,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: LinearPercentIndicator(
-                    percent: (score.clamp(0, 100)) / 100,
-                    lineHeight: 6,
-                    animation: false,
-                    progressColor: _fitColor(score),
-                    backgroundColor: theme.primaryBackground,
-                    barRadius: const Radius.circular(3),
-                    padding: EdgeInsets.zero,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                SizedBox(
-                  width: 28,
-                  child: Text(
-                    '$score',
-                    textAlign: TextAlign.right,
-                    style: theme.bodyMedium.override(
-                      fontFamily: theme.bodyMediumFamily,
-                      fontSize: 13,
-                      letterSpacing: 0.0,
-                      fontWeight: FontWeight.w600,
-                      useGoogleFonts: !theme.bodyMediumIsCustom,
-                    ),
-                  ),
-                ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (selected) ...[
+                Icon(Icons.check_rounded,
+                    size: theme.size.iconXs, color: theme.onPrimary),
+                const SizedBox(width: 6),
               ],
-            ),
+              Text(
+                _skinTypeLabel(skinType),
+                style: theme.bodyMedium.override(
+                  fontFamily: theme.bodyMediumFamily,
+                  color: selected ? theme.onPrimary : theme.primaryText,
+                  fontSize: 14,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+                  letterSpacing: 0.0,
+                  useGoogleFonts: !theme.bodyMediumIsCustom,
+                ),
+              ),
+            ],
           ),
         ),
-      );
-    });
+      ),
+    );
   }
 
   // ── "What really works": actives with dose-status traffic light ──────────
