@@ -1082,7 +1082,7 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
         break;
       case _Step.result:
         children.add(AppButton(
-          label: _t('obq_result_scan'),
+          label: _t('obq_result_save'),
           onPressed: () => _finish(save: true),
         ));
         children.add(const SizedBox(height: 4));
