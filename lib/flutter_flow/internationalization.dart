@@ -217,7 +217,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Enter a valid email',
       'es': 'Introduce un correo electrónico válido',
       'ru': 'Введите правильный адрес почты',
-      'de': 'Gültige E-Mail eingeben',
+      'de': 'Geben Sie eine gültige E-Mail-Adresse ein.',
       'fr': 'Entrez une adresse e-mail valide',
       'it': 'Inserisci un\'email valida',
       'pt': 'Digite um e-mail válido',
@@ -230,7 +230,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Choose an option from the list',
       'es': 'Elige una opción de la lista.',
       'ru': 'Выберите вариант из списка.',
-      'de': 'Bitte wähle eine Option aus dem Dropdown',
+      'de': 'Wählen Sie eine Option aus der Liste.',
       'fr': 'Veuillez choisir une option dans la liste déroulante',
       'it': "Scegli un'opzione dall'elenco",
       'pt': 'Escolha uma opção no menu',
@@ -243,7 +243,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Enter a valid password',
       'es': 'Introduce una contraseña válida',
       'ru': 'Введите пароль',
-      'de': 'Gültiges Passwort eingeben',
+      'de': 'Geben Sie ein gültiges Passwort ein.',
       'fr': 'Entrez un mot de passe valide',
       'it': 'Inserisci una password valida',
       'pt': 'Digite uma senha válida',
@@ -256,7 +256,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Password must be at least 5 characters',
       'es': 'La contraseña debe tener al menos 5 caracteres.',
       'ru': 'В пароле должно быть не меньше 5 символов.',
-      'de': 'Das Passwort muss mindestens 5 Zeichen lang sein',
+      'de': 'Das Passwort muss mindestens 5 Zeichen lang sein.',
       'fr': 'Le mot de passe doit comporter au moins 5 caractères',
       'it': 'La password deve contenere almeno 5 caratteri',
       'pt': 'A senha deve ter pelo menos 5 caracteres',
@@ -269,7 +269,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Choose an option from the list',
       'es': 'Elige una opción de la lista.',
       'ru': 'Выберите вариант из списка.',
-      'de': 'Bitte wähle eine Option aus dem Dropdown',
+      'de': 'Wählen Sie eine Option aus der Liste.',
       'fr': 'Veuillez choisir une option dans la liste déroulante',
       'it': "Scegli un'opzione dall'elenco",
       'pt': 'Escolha uma opção no menu',
@@ -308,7 +308,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'By continuing, you agree to our ',
       'es': 'Al continuar, aceptas nuestros ',
       'ru': 'Продолжая, вы принимаете наши ',
-      'de': 'Mit dem Fortfahren stimmst du unseren ',
+      'de': 'Mit dem Fortfahren stimmen Sie unseren ',
       'fr': 'En continuant, vous acceptez nos ',
       'it': 'Continuando, accetti i nostri ',
       'pt': 'Ao continuar, você concorda com nossos ',
@@ -418,7 +418,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Enter your details to continue',
       'es': 'Introduce tus datos para continuar',
       'ru': 'Введите данные для входа',
-      'de': 'Gib deine Daten ein, um fortzufahren',
+      'de': 'Geben Sie Ihre Daten ein, um fortzufahren',
       'fr': 'Entrez vos informations pour continuer',
       'it': 'Inserisci i tuoi dati per continuare',
       'pt': 'Digite seus dados para continuar',
@@ -509,7 +509,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'By continuing, you agree to our',
       'es': 'Al continuar, aceptas nuestros',
       'ru': 'Продолжая, вы принимаете наши',
-      'de': 'Mit dem Fortfahren stimmst du unseren zu',
+      'de': 'Mit dem Fortfahren stimmen Sie unseren',
       'fr': 'En continuant, vous acceptez nos',
       'it': 'Continuando, accetti i nostri',
       'pt': 'Ao continuar, você concorda com nossos',
@@ -564,7 +564,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Tell us a bit about yourself',
       'es': 'Cuéntanos un poco sobre ti',
       'ru': 'Расскажите немного о себе',
-      'de': 'Füge unten deine Profildaten hinzu',
+      'de': 'Erzählen Sie kurz von sich',
       'fr': 'Ajoutez vos informations de profil ci-dessous',
       'it': 'Raccontaci qualcosa di te',
       'pt': 'Adicione seus dados de perfil abaixo',
@@ -655,7 +655,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Enter your first name.',
       'es': 'Introduce tu nombre.',
       'ru': 'Укажите имя.',
-      'de': 'Vorname erforderlich.',
+      'de': 'Geben Sie Ihren Vornamen ein.',
       'fr': 'Le prénom est requis.',
       'it': 'Inserisci il nome.',
       'pt': 'Nome é obrigatório.',
@@ -668,7 +668,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Choose an option from the list',
       'es': 'Elige una opción de la lista.',
       'ru': 'Выберите вариант из списка.',
-      'de': 'Bitte wähle eine Option aus dem Dropdown',
+      'de': 'Wählen Sie eine Option aus der Liste.',
       'fr': 'Veuillez choisir une option dans la liste déroulante',
       'it': "Scegli un'opzione dall'elenco",
       'pt': 'Escolha uma opção no menu',
@@ -681,7 +681,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Enter your last name.',
       'es': 'Introduce tu apellido.',
       'ru': 'Укажите фамилию.',
-      'de': 'Nachname erforderlich.',
+      'de': 'Geben Sie Ihren Nachnamen ein.',
       'fr': 'Le nom est requis.',
       'it': 'Inserisci il cognome.',
       'pt': 'Sobrenome é obrigatório.',
@@ -694,7 +694,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Choose an option from the list',
       'es': 'Elige una opción de la lista.',
       'ru': 'Выберите вариант из списка.',
-      'de': 'Bitte wähle eine Option aus dem Dropdown',
+      'de': 'Wählen Sie eine Option aus der Liste.',
       'fr': 'Veuillez choisir une option dans la liste déroulante',
       'it': "Scegli un'opzione dall'elenco",
       'pt': 'Escolha uma opção no menu',
@@ -707,7 +707,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Enter a username.',
       'es': 'Introduce un nombre de usuario.',
       'ru': 'Укажите имя пользователя.',
-      'de': 'Spitzname erforderlich.',
+      'de': 'Geben Sie einen Benutzernamen ein.',
       'fr': 'Le pseudo est requis.',
       'it': 'Inserisci il nome utente.',
       'pt': 'Apelido é obrigatório.',
@@ -720,7 +720,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Choose an option from the list',
       'es': 'Elige una opción de la lista.',
       'ru': 'Выберите вариант из списка.',
-      'de': 'Bitte wähle eine Option aus dem Dropdown',
+      'de': 'Wählen Sie eine Option aus der Liste.',
       'fr': 'Veuillez choisir une option dans la liste déroulante',
       'it': "Scegli un'opzione dall'elenco",
       'pt': 'Escolha uma opção no menu',
@@ -779,7 +779,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ru':
           'Сфотографируйте косметику или загрузите фото из галереи. Распознаем и разберём состав за секунды.',
       'de':
-          'Mach einfach ein Foto oder lade ein Bild eines beliebigen Kosmetikprodukts hoch – wir erkennen und analysieren es sofort.',
+          'Machen Sie ein Foto oder laden Sie ein Bild eines Kosmetikprodukts hoch. Wir erkennen und analysieren es sofort.',
       'fr':
           'Prenez ou importez simplement une photo de n’importe quel produit cosmétique—nous le reconnaîtrons et l’analyserons instantanément.',
       'it':
@@ -813,7 +813,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ru':
           'Раскладывайте любимое по подборкам и добавляйте заметки. Весь уход под рукой.',
       'de':
-          'Organisiere deine Lieblingsprodukte nach Kategorie und füge persönliche Notizen hinzu – deine perfekte Routine immer griffbereit.',
+          'Ordnen Sie Ihre Lieblingsprodukte in Sammlungen und fügen Sie Notizen hinzu. Ihre perfekte Routine immer griffbereit.',
       'fr':
           'Organisez vos produits favoris par catégorie et ajoutez des notes personnelles—votre routine parfaite, toujours à portée de main.',
       'it':
@@ -847,7 +847,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ru':
           'Делитесь находками с друзьями и сохраняйте их советы. В коллекции остаётся только проверенное.',
       'de':
-          'Teile Lieblingsprodukte mit Freunden oder speichere ihre Empfehlungen – nur sorgfältig analysierte Produkte in deiner Sammlung.',
+          'Teilen Sie Lieblingsprodukte mit Freunden oder speichern Sie deren Empfehlungen. In Ihrer Sammlung landen nur sorgfältig analysierte Produkte.',
       'fr':
           'Partagez vos produits favoris avec vos amis ou enregistrez leurs recommandations—seuls des produits soigneusement analysés dans votre collection.',
       'it':
@@ -961,7 +961,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Upgrade to Pro',
       'es': 'Mejorar a Pro',
       'ru': 'Перейти на Pro',
-      'de': 'Upgrade auf PRO',
+      'de': 'Auf Pro upgraden',
       'fr': 'Passer à PRO',
       'it': 'Passa a Pro',
       'pt': 'Atualizar para PRO',
@@ -1003,7 +1003,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ru':
           'Мгновенно разбирайте состав и смотрите оценку безопасности.',
       'de':
-          'Analysiere sofort Inhaltsstoffe und erhalte Sicherheitsbewertungen',
+          'Analysieren Sie Inhaltsstoffe sofort und erhalten Sie Sicherheitsbewertungen.',
       'fr':
           'Analysez instantanément les ingrédients et obtenez des notes de sécurité',
       'it':
@@ -1087,7 +1087,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Try Pro',
       'es': 'Prueba Pro',
       'ru': 'Попробуйте Pro-версию',
-      'de': 'Premium testen',
+      'de': 'Pro testen',
       'fr': 'Essayer premium',
       'it': 'Prova Pro',
       'pt': 'Experimente premium',
@@ -1152,7 +1152,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Your region',
       'es': 'Tu región',
       'ru': 'Ваш регион',
-      'de': 'Deine Region',
+      'de': 'Ihre Region',
       'fr': 'Votre région',
       'it': 'La tua regione',
       'pt': 'Sua Região',
@@ -1297,7 +1297,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ru':
           'Введите адрес почты. Пришлём ссылку для сброса пароля.',
       'de':
-          'Du erhältst einen Link zum Zurücksetzen deines Passworts, nachdem du unten deine E-Mail-Adresse eingegeben hast.',
+          'Geben Sie Ihre E-Mail-Adresse ein, dann senden wir Ihnen einen Link zum Zurücksetzen des Passworts.',
       'fr':
           'Vous recevrez un lien pour réinitialiser votre mot de passe après avoir saisi votre adresse e-mail ci-dessous.',
       'it':
@@ -1327,7 +1327,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Enter your email address.',
       'es': 'Introduce tu correo electrónico.',
       'ru': 'Укажите почту.',
-      'de': 'E-Mail-Adresse erforderlich.',
+      'de': 'Geben Sie Ihre E-Mail-Adresse ein.',
       'fr': 'Adresse e-mail requise.',
       'it': "Inserisci l'indirizzo email.",
       'pt': 'Endereço de e-mail obrigatório.',
@@ -1340,7 +1340,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Choose an option from the list',
       'es': 'Elige una opción de la lista.',
       'ru': 'Выберите вариант из списка.',
-      'de': 'Bitte wähle eine Option aus dem Dropdown',
+      'de': 'Wählen Sie eine Option aus der Liste.',
       'fr': 'Veuillez choisir une option dans la liste déroulante',
       'it': "Scegli un'opzione dall'elenco",
       'pt': 'Escolha uma opção no menu',
@@ -1415,7 +1415,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Enter your first name.',
       'es': 'Introduce tu nombre.',
       'ru': 'Укажите имя.',
-      'de': 'Vorname erforderlich.',
+      'de': 'Geben Sie Ihren Vornamen ein.',
       'fr': 'Le prénom est requis.',
       'it': 'Inserisci il nome.',
       'pt': 'Nome é obrigatório.',
@@ -1428,7 +1428,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Choose an option from the list',
       'es': 'Elige una opción de la lista.',
       'ru': 'Выберите вариант из списка.',
-      'de': 'Bitte wähle eine Option aus dem Dropdown',
+      'de': 'Wählen Sie eine Option aus der Liste.',
       'fr': 'Veuillez choisir une option dans la liste déroulante',
       'it': "Scegli un'opzione dall'elenco",
       'pt': 'Escolha uma opção no menu',
@@ -1441,7 +1441,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Enter your last name.',
       'es': 'Introduce tu apellido.',
       'ru': 'Укажите фамилию.',
-      'de': 'Nachname erforderlich.',
+      'de': 'Geben Sie Ihren Nachnamen ein.',
       'fr': 'Le nom est requis.',
       'it': 'Inserisci il cognome.',
       'pt': 'Sobrenome é obrigatório.',
@@ -1454,7 +1454,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Choose an option from the list',
       'es': 'Elige una opción de la lista.',
       'ru': 'Выберите вариант из списка.',
-      'de': 'Bitte wähle eine Option aus dem Dropdown',
+      'de': 'Wählen Sie eine Option aus der Liste.',
       'fr': 'Veuillez choisir une option dans la liste déroulante',
       'it': "Scegli un'opzione dall'elenco",
       'pt': 'Escolha uma opção no menu',
@@ -1467,7 +1467,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Enter a username.',
       'es': 'Introduce un nombre de usuario.',
       'ru': 'Укажите имя пользователя.',
-      'de': 'Spitzname erforderlich.',
+      'de': 'Geben Sie einen Benutzernamen ein.',
       'fr': 'Le pseudo est requis.',
       'it': 'Inserisci il nome utente.',
       'pt': 'Apelido é obrigatório.',
@@ -1480,7 +1480,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Choose an option from the list',
       'es': 'Elige una opción de la lista.',
       'ru': 'Выберите вариант из списка.',
-      'de': 'Bitte wähle eine Option aus dem Dropdown',
+      'de': 'Wählen Sie eine Option aus der Liste.',
       'fr': 'Veuillez choisir une option dans la liste déroulante',
       'it': "Scegli un'opzione dall'elenco",
       'pt': 'Escolha uma opção no menu',
@@ -1577,7 +1577,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Upgrade to Pro',
       'es': 'Mejorar a Pro',
       'ru': 'Перейти на Pro',
-      'de': 'AUF PRO UPGRADEN',
+      'de': 'Auf Pro upgraden',
       'fr': 'PASSER À PRO',
       'it': 'Passa a Pro',
       'pt': 'ATUALIZE PARA PRO',
@@ -1698,7 +1698,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ru':
           'Деньги спишутся с вашего Apple ID после подтверждения покупки. Подписка продлевается автоматически по действующей цене, если не отключить автопродление не позднее чем за 24 часа до конца оплаченного периода.\nОтключить автопродление и изменить подписку можно в настройках учётной записи App Store.',
       'de':
-          'Die Zahlung wird nach Bestätigung des Kaufs über deine Apple-ID abgebucht. Das Abo verlängert sich automatisch zum jeweils gültigen Preis, sofern die automatische Verlängerung nicht mindestens 24 Stunden vor Ende des Zeitraums deaktiviert wird.\nDu kannst die automatische Verlängerung deaktivieren und das Abo in den Kontoeinstellungen im App Store verwalten.',
+          'Die Zahlung wird nach Bestätigung des Kaufs über Ihre Apple-ID abgebucht. Das Abo verlängert sich automatisch zum jeweils gültigen Preis, sofern die automatische Verlängerung nicht mindestens 24 Stunden vor Ende des Zeitraums deaktiviert wird.\nSie können die automatische Verlängerung deaktivieren und das Abo in den Kontoeinstellungen im App Store verwalten.',
       'fr':
           'Le paiement est débité de votre identifiant Apple après confirmation de l’achat. L’abonnement est renouvelé automatiquement au tarif en vigueur, sauf si le renouvellement automatique est désactivé au moins 24 heures avant la fin de la période.\nVous pouvez désactiver le renouvellement automatique et gérer l’abonnement dans les réglages de votre compte App Store.',
       'it':
@@ -1744,7 +1744,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Your subscription has been restored.',
       'es': 'Tu suscripción se ha restaurado.',
       'ru': 'Подписка восстановлена.',
-      'de': 'Dein Abonnement wurde erfolgreich wiederhergestellt.',
+      'de': 'Ihr Abonnement wurde wiederhergestellt.',
       'fr': 'Votre abonnement a été restauré avec succès.',
       'it': 'Il tuo abbonamento è stato ripristinato.',
       'pt': 'Sua assinatura foi restaurada com sucesso.',
@@ -1770,7 +1770,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Payment failed. Try again.',
       'es': 'Error en el pago. Prueba otra vez.',
       'ru': 'Не удалось оплатить. Попробуйте ещё раз.',
-      'de': 'Zahlung fehlgeschlagen. Bitte versuche es erneut.',
+      'de': 'Fehler bei der Zahlung. Versuchen Sie es erneut.',
       'fr': 'Paiement échoué. Veuillez réessayer.',
       'it': 'Pagamento non riuscito. Riprova.',
       'pt': 'Pagamento falhou. Tente novamente.',
@@ -1784,7 +1784,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'es': 'No se pudieron restaurar tus compras. Prueba otra vez.',
       'ru': 'Не удалось восстановить покупки. Попробуйте ещё раз.',
       'de':
-          'Etwas ist schiefgelaufen. Wir konnten deine Käufe nicht wiederherstellen.',
+          'Die Käufe konnten nicht wiederhergestellt werden. Versuchen Sie es erneut.',
       'fr': 'Une erreur s’est produite. Impossible de restaurer vos achats.',
       'it':
           'Non è possibile ripristinare i tuoi acquisti. Riprova.',
@@ -1856,7 +1856,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Free plan',
       'es': 'Plan gratuito',
       'ru': 'Бесплатный план',
-      'de': 'Free plan',
+      'de': 'Gratis-Tarif',
       'fr': 'Offre gratuite',
       'it': 'Piano gratuito',
       'pt': 'Plano gratuito',
@@ -1869,7 +1869,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Pro plan',
       'es': 'Plan Pro',
       'ru': 'Pro-план',
-      'de': 'PRO plan',
+      'de': 'Pro-Tarif',
       'fr': 'Offre PRO',
       'it': 'Piano Pro',
       'pt': 'Plano PRO',
@@ -1948,7 +1948,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ru':
           'Выберите, как добавить фото продукта для разбора состава',
       'de':
-          'Wähle, wie du das Foto deines Kosmetikprodukts für die INCI-Analyse hochladen möchtest.',
+          'Wählen Sie, wie Sie das Produktfoto für die INCI-Analyse hochladen möchten.',
       'fr':
           'Choisissez comment télécharger la photo de votre produit cosmétique pour l’analyse des ingrédients.',
       'it':
@@ -1978,7 +1978,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Recognising product',
       'es': 'Reconociendo producto...',
       'ru': 'Распознаём продукт…',
-      'de': 'Produkt wird erkannt...',
+      'de': 'Produkt wird erkannt…',
       'fr': 'Reconnaissance du produit…',
       'it': 'Riconoscimento prodotto...',
       'pt': 'Reconhecendo produto...',
@@ -1991,7 +1991,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Analysing ingredients',
       'es': 'Analizando ingredientes...',
       'ru': 'Разбираем состав…',
-      'de': 'Inhaltsstoffe werden analysiert...',
+      'de': 'Inhaltsstoffe werden analysiert…',
       'fr': 'Analyse des ingrédients…',
       'it': 'Analisi degli ingredienti...',
       'pt': 'Analisando ingredientes...',
@@ -2004,7 +2004,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Preparing your report',
       'es': 'Preparando tu informe...',
       'ru': 'Готовим отчёт…',
-      'de': 'Dein Bericht wird vorbereitet...',
+      'de': 'Bericht wird vorbereitet…',
       'fr': 'Préparation de votre rapport…',
       'it': 'Preparazione del tuo report...',
       'pt': 'Preparando seu relatório...',
@@ -2056,7 +2056,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Make sure the brand and product name are clearly visible',
       'es': 'Asegúrate de que se vean bien la marca y el nombre del producto',
       'ru': 'Бренд и название продукта должны быть чётко видны',
-      'de': 'Stelle sicher, dass Markenname und Produktname gut sichtbar sind',
+      'de': 'Achten Sie darauf, dass Marke und Produktname gut sichtbar sind.',
       'fr':
           'Assurez-vous que la marque et le nom du produit soient bien visibles',
       'it':
@@ -2072,7 +2072,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Use good lighting for better accuracy',
       'es': 'Usa buena iluminación para mayor precisión',
       'ru': 'Снимайте при хорошем свете: так точнее',
-      'de': 'Nutze gutes Licht für bessere Genauigkeit',
+      'de': 'Nutzen Sie gutes Licht für bessere Genauigkeit.',
       'fr': 'Utilisez un bon éclairage pour une meilleure précision',
       'it': 'Usa una buona illuminazione per una migliore accuratezza',
       'pt': 'Use boa iluminação para melhor precisão',
@@ -2085,7 +2085,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Keep text in focus and readable',
       'es': 'El texto tiene que estar enfocado y leerse bien',
       'ru': 'Держите текст в фокусе, чтобы его было видно',
-      'de': 'Text scharf und lesbar halten',
+      'de': 'Halten Sie den Text scharf und lesbar.',
       'fr': 'Gardez le texte net et lisible',
       'it': 'Tieni il testo a fuoco e leggibile',
       'pt': 'Mantenha o texto focado e legível',
@@ -2172,7 +2172,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ru':
           'Покажем магазины и продукты, доступные в вашем регионе',
       'de':
-          'Wir zeigen dir lokale Händler und verfügbare Produkte in deiner Nähe',
+          'Wir zeigen Ihnen lokale Händler und verfügbare Produkte in Ihrer Nähe.',
       'fr':
           'Nous afficherons les revendeurs locaux et les produits disponibles dans votre région',
       'it':
@@ -2188,7 +2188,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Your region',
       'es': 'Tu región',
       'ru': 'Ваш регион',
-      'de': 'Deine Region',
+      'de': 'Ihre Region',
       'fr': 'Votre région',
       'it': 'La tua regione',
       'pt': 'Sua Região',
@@ -2217,7 +2217,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Your skincare expert',
       'es': 'Tu experto en productos de belleza',
       'ru': 'Ваш эксперт по косметике',
-      'de': 'Dein Hautpflege-Experte',
+      'de': 'Ihr Hautpflege-Experte',
       'fr': 'Votre expert skincare',
       'it': 'Il tuo esperto skincare',
       'pt': 'Seu especialista em skincare',
@@ -2234,7 +2234,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ru':
           'Сделайте фото и узнайте, насколько формула эффективна и безопасен ли состав.',
       'de':
-          'Erhalte vollständige Einblicke in Wirksamkeit und Sicherheit der Formel – einfach Foto aufnehmen.',
+          'Machen Sie ein Foto und sehen Sie, wie wirksam und sicher die Formel ist.',
       'fr':
           'Obtenez des analyses complètes sur l’efficacité de la formule et la sécurité des ingrédients—il suffit de prendre une photo.',
       'it':
@@ -2264,7 +2264,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Already have an account? ',
       'es': '¿Ya tienes cuenta? ',
       'ru': 'Уже есть аккаунт? ',
-      'de': 'Du hast schon ein Konto? ',
+      'de': 'Sie haben schon ein Konto? ',
       'fr': 'Vous avez déjà un compte ? ',
       'it': 'Hai già un account? ',
       'pt': 'Já tem uma conta? ',
@@ -2389,7 +2389,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Top problem ingredients',
       'es': 'Principales ingredientes problemáticos',
       'ru': 'Основные проблемные компоненты',
-      'de': 'Top negative Inhaltsstoffe',
+      'de': 'Problematische Inhaltsstoffe',
       'fr': 'Principaux ingrédients négatifs',
       'it': 'Principali ingredienti problematici',
       'pt': 'Principais ingredientes negativos',
@@ -2402,7 +2402,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'more in Pro',
       'es': 'más en Pro',
       'ru': 'ещё в Pro',
-      'de': 'mehr in PRO',
+      'de': 'mehr in Pro',
       'fr': 'plus dans PRO',
       'it': 'altro in Pro',
       'pt': 'mais no PRO',
@@ -2523,7 +2523,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ru':
           'Здесь пока пусто. Добавьте заметки об этом продукте.',
       'de':
-          'Hier ist momentan nichts. Fügen Sie persönliche Notizen zu diesem Produkt hinzu.',
+          'Hier ist noch nichts. Fügen Sie Notizen zu diesem Produkt hinzu.',
       'fr':
           'Il n\'y a rien ici pour le moment. Ajoutez vos notes personnelles pour ce produit.',
       'it':
@@ -2566,7 +2566,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Hide from catalogue',
       'es': 'Ocultar del catálogo',
       'ru': 'Скрыть из общего каталога',
-      'de': 'Vor der Öffentlichkeit verbergen',
+      'de': 'Aus dem Katalog ausblenden',
       'fr': 'Masquer du public',
       'it': 'Nascondi dal catalogo',
       'pt': 'Ocultar do público',
@@ -2579,7 +2579,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Show in catalogue',
       'es': 'Mostrar en el catálogo',
       'ru': 'Показать в общем каталоге',
-      'de': 'Produkt öffentlich machen',
+      'de': 'Im Katalog anzeigen',
       'fr': 'Rendre le produit public',
       'it': 'Mostra nel catalogo',
       'pt': 'Tornar produto público',
@@ -2658,7 +2658,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ru':
           'Создайте бесплатный аккаунт, чтобы сохранять продукты',
       'es': 'Crea una cuenta gratis para guardar productos',
-      'de': 'Erstelle ein kostenloses Konto, um Kosmetikprodukte zu speichern',
+      'de': 'Erstellen Sie ein kostenloses Konto, um Produkte zu speichern.',
       'fr': 'Crée un compte gratuit pour enregistrer tes produits cosmétiques',
       'it': 'Crea un account gratuito per salvare i prodotti',
       'pt': 'Crie uma conta gratuita para salvar produtos cosméticos',
@@ -2783,7 +2783,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Pro',
       'es': 'Pro',
       'ru': 'Pro',
-      'de': 'PRO',
+      'de': 'Pro',
       'fr': 'PRO',
       'it': 'Pro',
       'pt': 'PRO',
@@ -2809,7 +2809,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': '200 product analyses per month',
       'es': '200 análisis de productos al mes',
       'ru': '200 разборов продуктов в месяц',
-      'de': '200 Analyseanfragen pro Monat',
+      'de': '200 Produktanalysen pro Monat',
       'fr': '200 analyses par mois',
       'it': '200 analisi di prodotti al mese',
       'pt': '200 análises por mês',
@@ -2932,7 +2932,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Are you sure you want to delete your account?',
       'es': '¿Seguro que quieres eliminar tu cuenta?',
       'ru': 'Вы действительно хотите удалить аккаунт?',
-      'de': 'Sind Sie sicher, dass Sie Ihr Konto löschen möchten?',
+      'de': 'Möchten Sie Ihr Konto löschen?',
       'fr': 'Êtes-vous sûr de vouloir supprimer votre compte ?',
       'it': 'Sei sicuro di voler eliminare il tuo account?',
       'pt': 'Tem certeza de que deseja excluir sua conta?',
@@ -2945,7 +2945,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'All your products will be deleted.',
       'es': 'Se eliminarán todos tus productos.',
       'ru': 'Все ваши продукты будут удалены.',
-      'de': 'Alle von Ihnen hinzugefügten Produkte werden gelöscht.',
+      'de': 'Alle Ihre Produkte werden gelöscht.',
       'fr': 'Tous les produits que vous avez ajoutés seront supprimés.',
       'it': 'Tutti i prodotti aggiunti verranno eliminati.',
       'pt': 'Todos os produtos adicionados serão excluídos.',
@@ -2987,7 +2987,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Create collection',
       'es': 'Crear colección',
       'ru': 'Создать подборку',
-      'de': 'Neue Sammlung erstellen',
+      'de': 'Sammlung erstellen',
       'fr': 'Créer une nouvelle collection',
       'it': 'Crea collezione',
       'pt': 'Criar nova coleção',
@@ -3000,7 +3000,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Name your collection',
       'es': 'Ponle nombre a la colección',
       'ru': 'Назовите подборку',
-      'de': 'Fügen Sie unten Details zur Sammlung hinzu',
+      'de': 'Geben Sie der Sammlung einen Namen.',
       'fr': 'Ajoutez les détails de la collection ci-dessous',
       'it': 'Dai un nome alla collezione',
       'pt': 'Adicione os detalhes da coleção abaixo',
@@ -3026,7 +3026,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Enter a collection name.',
       'es': 'Introduce un nombre.',
       'ru': 'Укажите название.',
-      'de': 'Titel ist erforderlich.',
+      'de': 'Geben Sie einen Namen ein.',
       'fr': 'Le titre est requis.',
       'it': 'Inserisci un nome.',
       'pt': 'Título obrigatório.',
@@ -3039,7 +3039,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Choose an option from the list',
       'es': 'Elige una opción de la lista.',
       'ru': 'Выберите вариант из списка.',
-      'de': 'Bitte wähle eine Option aus dem Dropdown',
+      'de': 'Wählen Sie eine Option aus der Liste.',
       'fr': 'Veuillez choisir une option dans la liste déroulante',
       'it': "Scegli un'opzione dall'elenco",
       'pt': 'Escolha uma opção no menu',
@@ -3120,7 +3120,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Name',
       'es': 'Nombre',
       'ru': 'Название',
-      'de': 'Titel',
+      'de': 'Name',
       'fr': 'Titre',
       'it': 'Nome',
       'pt': 'Título',
@@ -3133,7 +3133,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Enter a collection name.',
       'es': 'Introduce un nombre.',
       'ru': 'Укажите название.',
-      'de': 'Titel ist erforderlich.',
+      'de': 'Geben Sie einen Namen ein.',
       'fr': 'Le titre est requis.',
       'it': 'Inserisci un nome.',
       'pt': 'Título obrigatório.',
@@ -3146,7 +3146,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Choose an option from the list',
       'es': 'Elige una opción de la lista.',
       'ru': 'Выберите вариант из списка.',
-      'de': 'Bitte wähle eine Option aus dem Dropdown',
+      'de': 'Wählen Sie eine Option aus der Liste.',
       'fr': 'Veuillez choisir une option dans la liste déroulante',
       'it': "Scegli un'opzione dall'elenco",
       'pt': 'Escolha uma opção no menu',
@@ -3159,7 +3159,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'This field is required',
       'es': 'Rellena este campo.',
       'ru': 'Это поле нужно заполнить.',
-      'de': 'Feld ist erforderlich',
+      'de': 'Füllen Sie dieses Feld aus.',
       'fr': 'Champ requis',
       'it': 'Compila questo campo.',
       'pt': 'Campo obrigatório',
@@ -3172,7 +3172,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Choose an option from the list',
       'es': 'Elige una opción de la lista.',
       'ru': 'Выберите вариант из списка.',
-      'de': 'Bitte wähle eine Option aus dem Dropdown',
+      'de': 'Wählen Sie eine Option aus der Liste.',
       'fr': 'Veuillez choisir une option dans la liste déroulante',
       'it': "Scegli un'opzione dall'elenco",
       'pt': 'Escolha uma opção no menu',
@@ -3214,7 +3214,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'This collection is empty',
       'es': 'La colección está vacía',
       'ru': 'В подборке пока пусто',
-      'de': 'Leeres Album...',
+      'de': 'Die Sammlung ist leer',
       'fr': 'Album vide...',
       'it': 'La collezione è vuota',
       'pt': 'Álbum vazio...',
@@ -3230,7 +3230,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Personalised verdict for your skin type',
       'es': 'Veredicto personalizado según tu tipo de piel',
       'ru': 'Персональный вердикт по вашему типу кожи',
-      'de': 'Personalisierte Bewertung basierend auf deinem Hauttyp',
+      'de': 'Persönliche Bewertung für Ihren Hauttyp',
       'fr': 'Verdict personnalisé selon votre type de peau',
       'it': 'Verdetto personalizzato in base al tuo tipo di pelle',
       'pt': 'Veredito personalizado com base no seu tipo de pele',
@@ -3276,7 +3276,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ru':
           'Бесплатные разборы закончились.\nПерейдите на Pro-версию или напишите в поддержку.',
       'de':
-          'Du hast die maximale Anzahl an Analysen erreicht.\nUpgrade auf Pro oder kontaktiere den Support für Hilfe.',
+          'Ihre kostenlosen Analysen sind aufgebraucht.\nUpgraden Sie auf Pro oder wenden Sie sich an den Support.',
       'fr':
           'Vous avez atteint le nombre maximal d’analyses.\nPassez à Pro ou contactez le support pour obtenir de l’aide.',
       'it':
@@ -3309,7 +3309,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Leave a review',
       'es': 'Deja tu reseña',
       'ru': 'Оставьте отзыв',
-      'de': 'Hinterlasse hier deine Bewertung',
+      'de': 'Bewertung abgeben',
       'fr': 'Laissez votre avis ici',
       'it': 'Lascia una recensione',
       'pt': 'Deixe sua avaliação aqui',
@@ -3323,7 +3323,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'es':
           'Tu opinión nos ayuda a mejorar la aplicación',
       'ru': 'Ваши отзывы помогают нам делать приложение лучше.',
-      'de': 'Feedback hilft uns, unser Produkt schneller zu entwickeln',
+      'de': 'Ihr Feedback hilft uns, die App zu verbessern.',
       'fr': 'Vos retours nous aident à améliorer notre produit plus rapidement',
       'it': "Il tuo feedback ci aiuta a migliorare l'app",
       'pt': 'Seu feedback nos ajuda a desenvolver o produto mais rápido',
@@ -3350,7 +3350,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Type your message',
       'es': 'Escribe tu mensaje',
       'ru': 'Введите сообщение',
-      'de': 'Nachricht hier eingeben',
+      'de': 'Nachricht eingeben',
       'fr': 'Écrivez un message ici',
       'it': 'Scrivi il tuo messaggio',
       'pt': 'Digite uma mensagem aqui',
@@ -3363,7 +3363,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Enter a short description.',
       'es': 'Escribe una descripción breve.',
       'ru': 'Укажите краткое описание.',
-      'de': 'Titel ist erforderlich.',
+      'de': 'Geben Sie eine Kurzbeschreibung ein.',
       'fr': 'Le titre est requis.',
       'it': 'Inserisci una breve descrizione.',
       'pt': 'Título obrigatório.',
@@ -3376,7 +3376,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Choose an option from the list',
       'es': 'Elige una opción de la lista.',
       'ru': 'Выберите вариант из списка.',
-      'de': 'Bitte wähle eine Option aus dem Dropdown',
+      'de': 'Wählen Sie eine Option aus der Liste.',
       'fr': 'Veuillez choisir une option dans la liste déroulante',
       'it': "Scegli un'opzione dall'elenco",
       'pt': 'Escolha uma opção no menu',
@@ -3389,7 +3389,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'This field is required',
       'es': 'Rellena este campo.',
       'ru': 'Это поле нужно заполнить.',
-      'de': 'Feld ist erforderlich',
+      'de': 'Füllen Sie dieses Feld aus.',
       'fr': 'Champ requis',
       'it': 'Compila questo campo.',
       'pt': 'Campo obrigatório',
@@ -3402,7 +3402,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Choose an option from the list',
       'es': 'Elige una opción de la lista.',
       'ru': 'Выберите вариант из списка.',
-      'de': 'Bitte wähle eine Option aus dem Dropdown',
+      'de': 'Wählen Sie eine Option aus der Liste.',
       'fr': 'Veuillez choisir une option dans la liste déroulante',
       'it': "Scegli un'opzione dall'elenco",
       'pt': 'Escolha uma opção no menu',
@@ -3447,7 +3447,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Upgrade to Pro',
       'es': 'Mejorar a Pro',
       'ru': 'Перейти на Pro',
-      'de': 'Auf Pro aktualisieren',
+      'de': 'Auf Pro upgraden',
       'fr': 'Mettre à jour vers Pro',
       'it': 'Passa a Pro',
       'pt': 'Atualize para Pro',
@@ -3518,7 +3518,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Your favourite products will appear here.',
       'es': 'Aquí aparecerán tus productos favoritos.',
       'ru': 'Здесь появятся ваши избранные продукты',
-      'de': 'Deine Lieblingsprodukte erscheinen hier.',
+      'de': 'Ihre Lieblingsprodukte erscheinen hier.',
       'fr': 'Vos produits favoris apparaîtront ici.',
       'it': 'I tuoi prodotti preferiti appariranno qui.',
       'pt': 'Seus produtos favoritos aparecerão aqui.',
@@ -3538,7 +3538,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ru':
           'Здесь появятся продукты с самыми высокими оценками состава.',
       'de':
-          'Hier siehst du Produkte mit hohen Bewertungen basierend auf der Inhaltsstoffanalyse.',
+          'Hier sehen Sie Produkte mit hohen Bewertungen aus der Inhaltsstoffanalyse.',
       'fr':
           'Vous verrez ici les produits avec de bonnes notes selon l’analyse des ingrédients.',
       'it':
@@ -3570,7 +3570,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'You’ve used ',
       'es': 'Has utilizado ',
       'ru': 'Вы использовали ',
-      'de': 'Du hast ',
+      'de': 'Sie haben ',
       'fr': 'Vous avez utilisé ',
       'it': 'Hai usato ',
       'pt': 'Você usou ',
@@ -3627,7 +3627,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Your region',
       'es': 'Tu región',
       'ru': 'Ваш регион',
-      'de': 'Deine Region',
+      'de': 'Ihre Region',
       'fr': 'Votre région',
       'it': 'La tua regione',
       'pt': 'Sua região',
@@ -3640,7 +3640,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Search',
       'es': 'Buscar...',
       'ru': 'Поиск…',
-      'de': 'Suchen...',
+      'de': 'Suchen',
       'fr': 'Recherche...',
       'it': 'Cerca...',
       'pt': 'Buscar...',
@@ -3685,7 +3685,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ru':
           'Мгновенно разбирайте состав и смотрите оценку безопасности.',
       'de':
-          'Analysiere sofort Inhaltsstoffe und erhalte Sicherheitsbewertungen',
+          'Analysieren Sie Inhaltsstoffe sofort und erhalten Sie Sicherheitsbewertungen.',
       'fr':
           'Analysez instantanément les ingrédients et obtenez des notes de sécurité',
       'it':
@@ -3746,7 +3746,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Your rating of the product',
       'es': 'Tu valoración del producto',
       'ru': 'Ваша оценка продукта',
-      'de': 'Deine Bewertung des Produkts',
+      'de': 'Ihre Bewertung des Produkts',
       'fr': 'Votre note du produit',
       'it': 'La tua valutazione del prodotto',
       'pt': 'Sua avaliação do produto',
@@ -3762,7 +3762,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Your notes about the product',
       'es': 'Tus notas sobre el producto',
       'ru': 'Персональные заметки о продукте',
-      'de': 'Deine persönlichen Notizen zum Produkt',
+      'de': 'Ihre Notizen zum Produkt',
       'fr': 'Vos notes personnelles sur le produit',
       'it': 'Le tue note sul prodotto',
       'pt': 'Suas anotações pessoais sobre o produto',
@@ -3779,7 +3779,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ru':
           'Здесь пока пусто. Добавьте заметки об этом продукте.',
       'de':
-          'Hier ist momentan nichts. Fügen Sie persönliche Notizen zu diesem Produkt hinzu.',
+          'Hier ist noch nichts. Fügen Sie Notizen zu diesem Produkt hinzu.',
       'fr':
           'Il n\'y a rien ici pour le moment. Ajoutez vos notes personnelles pour ce produit.',
       'it':
@@ -3899,7 +3899,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Copy product',
       'es': 'Copiar producto',
       'ru': 'Копировать продукт',
-      'de': 'Element kopieren',
+      'de': 'Produkt kopieren',
       'fr': 'Copier l’élément',
       'it': 'Copia prodotto',
       'pt': 'Copiar item',
@@ -3913,7 +3913,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'es': '¿Seguro que quieres copiar este producto?',
       'ru': 'Вы действительно хотите скопировать этот продукт к себе?',
       'de':
-          'Möchtest du dieses Element wirklich zu deinen Produkten kopieren? ',
+          'Möchten Sie dieses Produkt kopieren? ',
       'fr': 'Êtes-vous sûr de vouloir copier cet élément dans vos produits ? ',
       'it': 'Vuoi copiare questo prodotto? ',
       'pt': 'Tem certeza de que deseja copiar este item para seus produtos? ',
@@ -3955,7 +3955,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Your collections',
       'es': 'Tus colecciones',
       'ru': 'Ваши подборки',
-      'de': 'Deine Sammlungen',
+      'de': 'Ihre Sammlungen',
       'fr': 'Vos collections',
       'it': 'Le tue collezioni',
       'pt': 'Suas coleções',
@@ -4101,7 +4101,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'es':
           'No aparecerá en el catálogo común de Mirra y su enlace público dejará de funcionar. En la app sigue siendo tuyo.',
       'de':
-          'Er erscheint nicht im gemeinsamen Mirra-Katalog, und der öffentliche Link öffnet nicht mehr. In der App bleibt er dir erhalten.',
+          'Es erscheint nicht im gemeinsamen Mirra-Katalog, und der öffentliche Link lässt sich nicht mehr öffnen. In der App bleibt es Ihnen erhalten.',
       'fr':
           'Il n’apparaîtra pas dans le catalogue commun Mirra et son lien public ne s’ouvrira plus. Dans l’app, il reste à toi.',
       'it':
@@ -4118,7 +4118,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'OK',
       'es': 'Aceptar',
       'ru': 'Хорошо',
-      'de': 'Ok',
+      'de': 'OK',
       'fr': 'Ok',
       'it': 'OK',
       'pt': 'Ok',
@@ -4151,7 +4151,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'es':
           'Puede aparecer en el catálogo común de Mirra y abrirse mediante su enlace público.',
       'de':
-          'Er kann im gemeinsamen Mirra-Katalog erscheinen und über den öffentlichen Link geöffnet werden.',
+          'Es kann im gemeinsamen Mirra-Katalog erscheinen und über den öffentlichen Link geöffnet werden.',
       'fr':
           'Il peut apparaître dans le catalogue commun Mirra et s’ouvrir via son lien public.',
       'it':
@@ -4168,7 +4168,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'OK',
       'es': 'Aceptar',
       'ru': 'Хорошо',
-      'de': 'Ok',
+      'de': 'OK',
       'fr': 'Ok',
       'it': 'OK',
       'pt': 'Ok',
@@ -4213,7 +4213,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Product hidden. It won\'t appear in Top Rated any more',
       'es': 'Producto oculto. Ya no aparecerá en Top Rated',
       'ru': 'Продукт скрыт и больше не появится в топ-рейтинге',
-      'de': 'Produkt verborgen — es erscheint nicht mehr unter Top Rated',
+      'de': 'Produkt verborgen. Es erscheint nicht mehr unter Top Rated.',
       'fr': 'Produit masqué — il n’apparaîtra plus dans les mieux notés',
       'it': 'Prodotto nascosto. Non apparirà più tra i Top Rated',
       'pt': 'Produto oculto — não aparecerá mais nos Mais Bem Avaliados',
@@ -4281,7 +4281,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Add to collection',
       'es': 'Añadir a colección',
       'ru': 'В подборку',
-      'de': 'Zur Pinnwand hinzufügen',
+      'de': 'Zur Sammlung hinzufügen',
       'fr': 'Ajouter au tableau',
       'it': 'Aggiungi alla collezione',
       'pt': 'Adicionar ao quadro',
@@ -4333,7 +4333,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Show',
       'es': 'Mostrar',
       'ru': 'Открыть',
-      'de': 'Öffentlich machen',
+      'de': 'Anzeigen',
       'fr': 'Rendre public',
       'it': 'Mostra',
       'pt': 'Tornar público',
@@ -4414,7 +4414,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Choose a card format to save',
       'es': '',
       'ru': '',
-      'de': 'Wählen Sie das Kartenformat des Produkts zum Speichern aus',
+      'de': 'Wählen Sie ein Kartenformat zum Speichern',
       'ru': 'Выберите формат карточки для сохранения',
       'es': 'Elige el formato de tarjeta para guardar',
       'fr': 'Choisissez le format de la fiche produit à enregistrer',
@@ -4476,7 +4476,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ru':
           'Чтобы присылать важные напоминания, приложению нужно разрешение на уведомления.',
       'de':
-          'Um dir wichtige Erinnerungen zu senden, benötigt diese App die Berechtigung für Benachrichtigungen.',
+          'Um Ihnen wichtige Erinnerungen zu senden, benötigt die App die Berechtigung für Benachrichtigungen.',
       'fr':
           'Pour vous envoyer des rappels importants, cette application a besoin de l’autorisation d’envoyer des notifications.',
       'it':
@@ -4745,7 +4745,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Do you like Mirra?',
       'es': '¿Te gusta Mirra?',
       'ru': 'Вам нравится Mirra?',
-      'de': 'Gefällt dir Mirra?',
+      'de': 'Gefällt Ihnen Mirra?',
       'fr': 'Vous aimez Mirra ?',
       'it': 'Ti piace Mirra?',
       'pt': 'Você gosta do Mirra?',
@@ -4758,7 +4758,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Your rating helps us\nget better every day',
       'es': 'Tu valoración nos ayuda\na mejorar cada día',
       'ru': 'Ваша оценка помогает нам\nстановиться лучше',
-      'de': 'Deine Bewertung hilft uns,\njeden Tag besser zu werden',
+      'de': 'Ihre Bewertung hilft uns,\njeden Tag besser zu werden',
       'fr': 'Votre note nous aide\nà nous améliorer chaque jour',
       'it': 'La tua valutazione ci aiuta\na migliorare ogni giorno',
       'pt': 'Sua avaliação nos ajuda\na melhorar todos os dias',
@@ -4810,7 +4810,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Your feedback helps us improve the app',
       'es': 'Tu opinión nos ayuda a mejorar la aplicación',
       'ru': 'Ваш отзыв поможет нам улучшить приложение',
-      'de': 'Dein Feedback hilft uns, die App zu verbessern',
+      'de': 'Ihr Feedback hilft uns, die App zu verbessern.',
       'fr': 'Vos retours nous aident à améliorer l’app',
       'it': 'Il tuo feedback ci aiuta a migliorare l\'app',
       'pt': 'Seu feedback nos ajuda a melhorar o app',
@@ -4823,7 +4823,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Write your comment',
       'es': 'Escribe tu comentario...',
       'ru': 'Напишите комментарий…',
-      'de': 'Kommentar schreiben...',
+      'de': 'Kommentar schreiben',
       'fr': 'Écrivez votre commentaire...',
       'it': 'Scrivi il tuo commento...',
       'pt': 'Escreva seu comentário...',
@@ -4849,7 +4849,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Write a comment',
       'es': 'Escribe un comentario',
       'ru': 'Напишите комментарий',
-      'de': 'Bitte schreibe einen Kommentar',
+      'de': 'Schreiben Sie einen Kommentar.',
       'fr': 'Veuillez écrire un commentaire',
       'it': 'Scrivi un commento',
       'pt': 'Por favor, escreva um comentário',
@@ -4892,7 +4892,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ru':
           'Не удалось найти состав этого продукта. Возможно, он не распространён в выбранной стране. Спасибо, что поделились: разберём продукт вручную и добавим в базу.',
       'de':
-          'Wir konnten die Zutatenliste für dieses Produkt nicht finden – sie ist in deinem Land möglicherweise nicht weit verbreitet. Danke fürs Teilen! Wir verarbeiten sie manuell und fügen sie unserer Datenbank hinzu.',
+          'Die Zutatenliste für dieses Produkt konnte nicht gefunden werden. Sie ist in Ihrem Land möglicherweise nicht weit verbreitet. Danke fürs Teilen, wir verarbeiten sie manuell und fügen sie unserer Datenbank hinzu.',
       'fr':
           'Nous n’avons pas trouvé la liste d’ingrédients pour ce produit — elle n’est peut-être pas largement disponible dans votre pays. Merci de l’avoir partagée ! Nous la traiterons manuellement et l’ajouterons à notre base de données.',
       'it':
@@ -4954,7 +4954,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ru':
           'Сфотографируйте состав на упаковке для точного разбора или продолжите с найденным списком.',
       'de':
-          'Fotografiere die Zutatenliste auf der Verpackung für eine präzise Analyse oder fahre mit der gefundenen Liste fort.',
+          'Fotografieren Sie die Zutatenliste auf der Verpackung für eine präzise Analyse oder fahren Sie mit der gefundenen Liste fort.',
       'fr':
           'Photographiez la liste des ingrédients sur l’emballage pour une analyse précise, ou continuez avec la liste trouvée.',
       'it':
@@ -5027,7 +5027,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ru':
           'Снимите так, чтобы этикетка была хорошо видна и освещена, и попробуйте снова.',
       'de':
-          'Stelle sicher, dass das Etikett vollständig sichtbar und gut beleuchtet ist, und versuche es erneut.',
+          'Achten Sie darauf, dass das Etikett vollständig sichtbar und gut beleuchtet ist, und versuchen Sie es erneut.',
       'fr':
           'Assurez-vous que l’étiquette est bien visible et bien éclairée, puis réessayez.',
       'it':
@@ -5061,7 +5061,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ru':
           'Ваша Pro-подписка проверяется. Попробуйте снова через несколько секунд.',
       'de':
-          'Dein Pro-Abo wird überprüft. Bitte versuche es in einem Moment erneut.',
+          'Ihr Pro-Abo wird überprüft. Versuchen Sie es gleich noch einmal.',
       'fr':
           'Votre abonnement Pro est en cours de vérification. Veuillez réessayer dans un instant.',
       'it': 'Il tuo abbonamento Pro è in fase di verifica. Riprova tra poco.',
@@ -5090,7 +5090,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'es': 'No se pudo procesar esta imagen. Prueba otra vez.',
       'ru': 'Не удалось обработать фото. Попробуйте ещё раз.',
       'de':
-          'Wir konnten dieses Bild nicht verarbeiten. Bitte versuche es erneut.',
+          'Das Bild konnte nicht verarbeitet werden. Versuchen Sie es erneut.',
       'fr': 'Nous n’avons pas pu traiter cette image. Veuillez réessayer.',
       'it': 'Non è possibile elaborare questa immagine. Riprova.',
       'pt':
@@ -5130,7 +5130,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Analysis in progress',
       'es': 'Análisis en curso',
       'ru': 'Разбор ещё идёт',
-      'de': 'Recherche läuft',
+      'de': 'Analyse läuft',
       'fr': 'Recherche en cours',
       'it': 'Analisi in corso',
       'pt': 'Pesquisa em andamento',
@@ -5146,7 +5146,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
           'El análisis de este producto aún no está listo. Vuelve un poco más tarde.',
       'ru': 'Разбор этого продукта ещё не готов. Загляните позже.',
       'de':
-          'Die Analyse dieses Produkts ist noch nicht abgeschlossen. Schau später noch einmal vorbei.',
+          'Die Analyse dieses Produkts ist noch nicht fertig. Schauen Sie später noch einmal vorbei.',
       'fr':
           'L’analyse de ce produit n’est pas encore terminée. Revenez un peu plus tard.',
       'it':
@@ -5269,7 +5269,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Lip and balm',
       'ru': 'Губы и бальзамы',
       'es': 'Labios y bálsamos',
-      'de': 'Lippen & Balsam',
+      'de': 'Lippen und Balsam',
       'fr': 'Lèvres & Baume',
       'it': 'Labbra e balsamo',
       'pt': 'Lábios & Balm',
@@ -5330,7 +5330,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'You’re Pro now',
       'ru': 'Теперь у вас Pro',
       'es': 'Ahora tienes Pro',
-      'de': 'Du hast jetzt PRO',
+      'de': 'Sie haben jetzt Pro',
       'fr': 'Vous avez maintenant PRO',
       'it': 'Ora hai Pro',
       'pt': 'Agora você tem PRO',
@@ -5343,7 +5343,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'One step to keep it: sign in, and your subscription and scans move with you to any device.',
       'ru': 'Один шаг, чтобы это не потерялось: войдите, и подписка с разборами переедет на любое ваше устройство.',
       'es': 'Un paso para conservarlo: inicia sesión y tu suscripción y tus análisis te acompañarán en cualquier dispositivo.',
-      'de': 'Ein Tipp, um es zu behalten: Melde dich an, und dein Abo und deine Analysen ziehen mit dir auf jedes Gerät um.',
+      'de': 'Ein Schritt, um es zu behalten: Melden Sie sich an, dann ziehen Abo und Analysen mit Ihnen auf jedes Gerät um.',
       'fr': 'Un geste pour le conserver : connectez-vous et votre abonnement et vos analyses vous suivront sur tous vos appareils.',
       'it': 'Un passaggio per non perderlo: accedi e il tuo abbonamento e le tue analisi ti seguiranno su qualsiasi dispositivo.',
       'pt': 'Um toque para não perder: entre e sua assinatura e suas análises vão com você para qualquer aparelho.',
@@ -5411,7 +5411,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'You\'re not signed in',
       'ru': 'Вы не вошли в аккаунт',
       'es': 'No has iniciado sesión',
-      'de': 'Du bist nicht angemeldet',
+      'de': 'Sie sind nicht angemeldet',
       'fr': 'Vous n’êtes pas connecté',
       'it': 'Non hai effettuato l\'accesso',
       'pt': 'Você não está conectado',
@@ -5428,7 +5428,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'es':
           'Crea una cuenta o inicia sesión para guardar resultados y no perder tu historial',
       'de':
-          'Erstelle ein Konto oder melde dich an, um Ergebnisse zu speichern und deinen Scanverlauf zu behalten',
+          'Erstellen Sie ein Konto oder melden Sie sich an, um Ergebnisse und Scanverlauf zu behalten.',
       'fr':
           'Créez un compte ou connectez-vous pour sauvegarder vos résultats et conserver l’historique de vos scans',
       'it':
@@ -5465,7 +5465,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'es':
           'Crea una cuenta y todos los productos que ya analizaste se guardarán en tu historial.',
       'de':
-          'Erstelle ein Konto und alle Produkte, die du bereits gescannt hast, werden in deinem Verlauf gespeichert.',
+          'Erstellen Sie ein Konto, dann werden alle bereits gescannten Produkte in Ihrem Verlauf gespeichert.',
       'fr':
           'Créez un compte et tous les produits déjà scannés seront enregistrés dans votre historique.',
       'it':
@@ -5528,7 +5528,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'es':
           'Fotografía cualquier cosmético y descubre qué hay dentro y si es seguro para tu piel',
       'de':
-          'Fotografiere ein beliebiges Kosmetikprodukt und finde heraus, was drin ist und ob es für deine Haut sicher ist',
+          'Fotografieren Sie ein Kosmetikprodukt und sehen Sie, was drin ist und ob es für Ihre Haut sicher ist',
       'fr':
           'Photographiez un cosmétique et découvrez sa composition et s\'il est adapté à votre peau',
       'it':
@@ -5591,7 +5591,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'es':
           'Algunos ingredientes aún se están investigando. El análisis completo estará listo en unos 30 segundos. Lo verás en la pantalla principal y recibirás una notificación.',
       'de':
-          'Einige Inhaltsstoffe werden noch erforscht. Die vollständige Analyse ist in ca. 30 Sekunden bereit – du siehst sie auf dem Startbildschirm und erhältst eine Benachrichtigung.',
+          'Einige Inhaltsstoffe werden noch erforscht. Die vollständige Analyse ist in ca. 30 Sekunden bereit. Sie sehen sie auf dem Startbildschirm und erhalten eine Benachrichtigung.',
       'fr':
           'Certains ingrédients sont encore en cours d\'étude. L\'analyse complète sera prête dans ~30 secondes — vous la verrez sur l\'écran d\'accueil et recevrez une notification.',
       'it':
@@ -5624,7 +5624,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Did you know?',
       'ru': 'А вы знали?',
       'es': '¿Lo sabías?',
-      'de': 'Wusstest du schon?',
+      'de': 'Wussten Sie schon?',
       'fr': 'Le saviez-vous ?',
       'it': 'Lo sapevi?',
       'pt': 'Você sabia?',
@@ -5673,7 +5673,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ru': 'Витамин C работает эффективно только при pH ниже 3,5',
       'es': 'La vitamina C funciona mejor a un pH por debajo de 3,5',
       'de':
-          'Vitamin C wirkt am besten bei pH unter 3,5 — die Formulierung ist entscheidend',
+          'Vitamin C wirkt am besten bei pH unter 3,5, die Formulierung ist entscheidend',
       'fr':
           'La vitamine C agit au mieux à un pH inférieur à 3,5 — la formule compte',
       'it':
@@ -5690,7 +5690,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ru': 'Ретинол ускоряет обновление клеток, поэтому начинайте с малых доз',
       'es': 'El retinol acelera la renovación celular, empieza despacio',
       'de':
-          'Retinol beschleunigt die Zellerneuerung — langsam beginnen, um Irritationen zu vermeiden',
+          'Retinol beschleunigt die Zellerneuerung, langsam beginnen, um Irritationen zu vermeiden',
       'fr':
           'Le rétinol accélère le renouvellement cellulaire — commencez doucement pour éviter les irritations',
       'it':
@@ -5709,7 +5709,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ru': 'Керамиды — это «цемент» между клетками кожи, удерживающий влагу',
       'es': 'Las ceramidas son el "cemento" entre células de la piel',
       'de':
-          'Ceramide sind der „Mörtel“ zwischen den Hautzellen — sie schließen Feuchtigkeit ein',
+          'Ceramide sind der „Mörtel“ zwischen den Hautzellen und schließen Feuchtigkeit ein',
       'fr':
           'Les céramides sont le « ciment » entre les cellules — ils retiennent l\'hydratation',
       'it':
@@ -5794,7 +5794,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
           'Сквалан похож на натуральный себум кожи и подходит всем типам',
       'es': 'El escualano imita el sebo natural de la piel y sirve para todos',
       'de':
-          'Squalan ahmt das natürliche Sebum der Haut nach — ideal für alle Hauttypen',
+          'Squalan ahmt das natürliche Sebum der Haut nach und ist ideal für alle Hauttypen',
       'fr':
           'Le squalane imite le sébum naturel — idéal pour tous types de peau',
       'it':
@@ -5889,7 +5889,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'es':
           'El ácido salicílico es liposoluble, por eso puede limpiar dentro del poro',
       'de':
-          'Salicylsäure ist fettlöslich — deshalb kann sie Poren von innen reinigen',
+          'Salicylsäure ist fettlöslich, deshalb kann sie Poren von innen reinigen',
       'fr':
           'L\'acide salicylique est liposoluble — c\'est pourquoi il agit à l\'intérieur du pore',
       'it':
@@ -5931,7 +5931,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'es':
           'La etiqueta "natural" no tiene definición legal en cosmética, lee siempre el INCI',
       'de':
-          'Das Label „natürlich“ ist in der Kosmetik nicht gesetzlich definiert — immer die INCI prüfen',
+          'Das Label „natürlich“ ist in der Kosmetik nicht gesetzlich definiert, prüfen Sie immer die INCI',
       'fr':
           'Le label « naturel » n\'a pas de définition légale en cosmétique — vérifiez toujours l\'INCI',
       'it':
@@ -5973,7 +5973,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'es':
           'Las siliconas rellenan líneas temporalmente y no obstruyen poros en la mayoría',
       'de':
-          'Silicone füllen feine Linien vorübergehend auf — verstopfen die Poren meist nicht',
+          'Silicone füllen feine Linien vorübergehend auf und verstopfen die Poren meist nicht',
       'fr':
           'Les silicones comblent temporairement les ridules — ils n\'obstruent pas les pores pour la plupart',
       'it':
@@ -5993,7 +5993,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'es':
           'El ácido láctico es un AHA derivado de la leche, más suave que el glicólico',
       'de':
-          'Milchsäure ist eine aus Milch gewonnene AHA — sanfter als Glykolsäure',
+          'Milchsäure ist eine aus Milch gewonnene AHA, sanfter als Glykolsäure',
       'fr':
           'L\'acide lactique est un AHA issu du lait — plus doux que l\'acide glycolique',
       'it':
@@ -6094,7 +6094,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'es':
           'El ácido azelaico trata el acné, la rojez y el tono irregular, y es seguro en el embarazo',
       'de':
-          'Azelainsäure wirkt gegen Akne, Rötungen und ungleichmäßigen Hautton — und ist in der Schwangerschaft sicher',
+          'Azelainsäure wirkt gegen Akne, Rötungen und ungleichmäßigen Hautton und ist in der Schwangerschaft sicher',
       'fr':
           'L\'acide azélaïque agit sur l\'acné, les rougeurs et le teint irrégulier — et est sûr pendant la grossesse',
       'it':
@@ -6179,7 +6179,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'before you buy',
       'ru': 'перед покупкой',
       'es': 'antes de comprar',
-      'de': 'bevor du kaufst',
+      'de': 'vor dem Kauf',
       'fr': 'avant d\'acheter',
       'it': 'prima di acquistare',
       'pt': 'antes de comprar',
@@ -6231,7 +6231,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'to your collection',
       'ru': 'к своей коллекции',
       'es': 'a tu colección',
-      'de': 'zu deiner Sammlung',
+      'de': 'zu Ihrer Sammlung',
       'fr': 'à votre collection',
       'it': 'alla tua collezione',
       'pt': 'para sua coleção',
@@ -6244,7 +6244,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Top-rated by the community',
       'ru': 'Лучшее от сообщества',
       'es': 'Los mejores de la comunidad',
-      'de': 'Community Top-Produkte',
+      'de': 'Top bewertet von der Community',
       'fr': 'Produits phares de la communauté',
       'it': 'I più votati dalla community',
       'pt': 'Produtos mais populares da comunidade',
@@ -6270,7 +6270,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Share your discoveries fast',
       'ru': 'Быстро делитесь находками',
       'es': 'Comparte tus descubrimientos',
-      'de': 'Teile deine Entdeckungen sofort',
+      'de': 'Teilen Sie Ihre Entdeckungen sofort',
       'fr': 'Partagez vos découvertes rapidement',
       'it': 'Condividi le tue scoperte rapidamente',
       'pt': 'Compartilhe suas descobertas rapidamente',
@@ -6325,7 +6325,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Save',
       'ru': 'Сохранить',
       'es': 'Guardar',
-      'de': 'Herunterladen',
+      'de': 'Speichern',
       'fr': 'Télécharger',
       'it': 'Salva',
       'pt': 'Baixar',
@@ -6364,7 +6364,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Tag us when you share',
       'ru': 'Отметьте нас, когда делитесь!',
       'es': '¡Etiquétanos cuando compartas!',
-      'de': 'Markiere uns beim Teilen!',
+      'de': 'Markieren Sie uns beim Teilen!',
       'fr': 'Identifiez-nous lors du partage !',
       'it': 'Taggaci quando condividi!',
       'pt': 'Marque a gente ao compartilhar!',
@@ -6420,7 +6420,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Your products will appear here',
       'ru': 'Здесь появятся ваши продукты',
       'es': 'Tus productos aparecerán aquí',
-      'de': 'Deine Produkte erscheinen hier',
+      'de': 'Ihre Produkte erscheinen hier',
       'fr': 'Vos produits apparaîtront ici',
       'it': 'I tuoi prodotti appariranno qui',
       'pt': 'Seus produtos aparecerão aqui',
@@ -6434,7 +6434,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ru': 'Сфотографируйте косметику или добавьте скриншот из галереи',
       'es': 'Fotografía un cosmético o añade una captura de pantalla',
       'de':
-          'Fotografiere ein Produkt oder füge einen Screenshot aus deiner Galerie hinzu',
+          'Fotografieren Sie ein Produkt oder fügen Sie einen Screenshot aus der Galerie hinzu',
       'fr':
           'Photographiez un produit ou ajoutez une capture depuis votre galerie',
       'it': 'Fotografa un prodotto o aggiungi uno screenshot dalla galleria',
@@ -6517,7 +6517,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Code expired. Request a new one in the bot: /link',
       'ru': 'Код истёк. Запросите новый в боте: /link',
       'es': 'El código expiró. Pide uno nuevo en el bot: /link',
-      'de': 'Code abgelaufen. Fordere einen neuen im Bot an: /link',
+      'de': 'Code abgelaufen. Fordern Sie im Bot einen neuen an: /link',
       'fr': 'Code expiré. Demandez-en un nouveau dans le bot : /link',
       'it': 'Codice scaduto. Richiedine uno nuovo nel bot: /link',
       'pt': 'Código expirado. Solicite um novo no bot: /link',
@@ -6530,7 +6530,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Invalid code. Check it and try again',
       'ru': 'Неверный код. Проверьте и попробуйте снова',
       'es': 'Código inválido. Verifica y prueba otra vez',
-      'de': 'Ungültiger Code. Überprüfe ihn und versuche es erneut',
+      'de': 'Ungültiger Code. Prüfen Sie ihn und versuchen Sie es erneut.',
       'fr': 'Code invalide. Vérifiez-le et réessayez',
       'it': 'Codice non valido. Controlla e riprova',
       'pt': 'Código inválido. Verifique e tente novamente',
@@ -6543,7 +6543,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Cannot link. Try again later',
       'ru': 'Не удалось привязать. Попробуйте позже',
       'es': 'No se pudo vincular. Prueba más tarde',
-      'de': 'Verbindung fehlgeschlagen. Versuche es später noch einmal',
+      'de': 'Fehler beim Verbinden. Versuchen Sie es später noch einmal.',
       'fr': 'Impossible de lier. Réessayez plus tard',
       'it': 'Non è possibile collegare. Riprova più tardi',
       'pt': 'Não foi possível vincular. Tente novamente mais tarde',
@@ -6586,7 +6586,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'es':
           'Envía /link al bot y pega aquí el código recibido (válido 10 minutos).',
       'de':
-          'Sende /link an den Bot und füge den Code hier ein (10 Minuten gültig).',
+          'Senden Sie /link an den Bot und fügen Sie den Code hier ein (10 Minuten gültig).',
       'fr': 'Envoyez /link au bot et collez le code ici (valable 10 minutes).',
       'it':
           'Invia /link al bot e incolla qui il codice (valido per 10 minuti).',
@@ -6735,7 +6735,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': '1% line',
       'ru': 'Линия 1%',
       'es': 'Línea 1%',
-      'de': '1%-Linie',
+      'de': '1 %-Linie',
       'fr': 'Ligne 1%',
       'it': 'Linea 1%',
       'pt': 'Linha 1%',
@@ -6829,7 +6829,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'for you',
       'ru': 'для вас',
       'es': 'para ti',
-      'de': 'für dich',
+      'de': 'für Sie',
       'fr': 'pour toi',
       'it': 'per te',
       'pt': 'para você',
@@ -6855,7 +6855,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Who it suits: select your skin type',
       'ru': 'Кому подходит: выберите свой тип кожи',
       'es': 'Para quién es: selecciona tu tipo de piel',
-      'de': 'Für wen es passt – tippe auf deinen Hauttyp',
+      'de': 'Für wen es passt: wählen Sie Ihren Hauttyp',
       'fr': 'À qui ça convient — touche ton type de peau',
       'it': 'A chi si adatta: seleziona il tuo tipo di pelle',
       'pt': 'Para quem serve — toque no seu tipo de pele',
@@ -7102,7 +7102,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'trace amount, likely for the label',
       'ru': 'следовое количество, скорее для этикетки',
       'es': 'cantidad mínima, probablemente decorativo',
-      'de': 'Spur – wohl fürs Etikett',
+      'de': 'Spur, wohl fürs Etikett',
       'fr': 'quantité infime — probablement pour l’étiquette',
       'it': 'quantità minima, probabilmente per l’etichetta',
       'pt': 'quantidade mínima — provavelmente para o rótulo',
@@ -7248,7 +7248,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Full analysis in Pro',
       'ru': 'Полный разбор в Pro',
       'es': 'Análisis completo en Pro',
-      'de': 'Vollständige Analyse in PRO',
+      'de': 'Vollständige Analyse in Pro',
       'fr': 'Analyse complète dans Pro',
       'it': 'Analisi completa in Pro',
       'pt': 'Análise completa no Pro',
@@ -7278,7 +7278,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'es':
           'Analiza todos los productos que quieras: el límite gratuito deja de frenarte.',
       'de':
-          'Analysiere so viele Produkte, wie du willst — das Gratis-Limit bremst nicht mehr.',
+          'Analysieren Sie so viele Produkte, wie Sie möchten. Das Gratis-Limit bremst nicht mehr.',
       'fr':
           'Analyse autant de produits que tu veux — la limite gratuite ne te bloque plus.',
       'it':
@@ -7311,7 +7311,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'es':
           'Gratis caben hasta {n} productos. Con Pro, todo tu estante y su análisis de compatibilidad.',
       'de':
-          'Gratis passen bis zu {n} Produkte. Mit PRO dein ganzes Regal samt Verträglichkeits-Analyse.',
+          'Gratis passen bis zu {n} Produkte. Mit Pro Ihr ganzes Regal samt Verträglichkeits-Analyse.',
       'fr':
           'En gratuit, jusqu’à {n} produits. Avec PRO, toute ton étagère et son analyse de compatibilité.',
       'it':
@@ -7354,7 +7354,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Upgrade to Pro',
       'ru': 'Перейти на Pro',
       'es': 'Mejorar a Pro',
-      'de': 'Auf PRO upgraden',
+      'de': 'Auf Pro upgraden',
       'fr': 'Passer à Pro',
       'it': 'Passa a Pro',
       'pt': 'Atualize para Pro',
@@ -7490,7 +7490,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Mineral and chemical',
       'ru': 'Минеральный + химический',
       'es': 'Mineral y químico',
-      'de': 'Mineralisch + chemisch',
+      'de': 'Mineralisch und chemisch',
       'fr': 'Minéral + chimique',
       'it': 'Minerale e chimico',
       'pt': 'Mineral + químico',
@@ -7506,7 +7506,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Preview Pro analysis once for free →',
       'ru': 'Посмотреть Pro-разбор один раз бесплатно →',
       'es': 'Ver análisis Pro una vez gratis →',
-      'de': 'PRO-Analyse einmal kostenlos ansehen →',
+      'de': 'Pro-Analyse einmal kostenlos ansehen →',
       'fr': 'Aperçu de l’analyse PRO gratuit une fois →',
       'it': 'Anteprima analisi Pro gratis una volta →',
       'pt': 'Visualize a análise Pro uma vez grátis →',
@@ -7525,7 +7525,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Let’s tune it to you in a minute',
       'ru': 'Настроим под вас за минуту',
       'es': 'Lo ajustamos a ti en un minuto',
-      'de': 'In einer Minute auf dich abgestimmt',
+      'de': 'In einer Minute auf Sie abgestimmt',
       'fr': 'On l’adapte à toi en une minute',
       'it': 'Lo adattiamo a te in un minuto',
       'pt': 'Vamos ajustar a você em um minuto',
@@ -7542,7 +7542,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'es':
           'No respondo “bueno o malo”, sino “te conviene a ti”. Un par de preguntas y tus escaneos serán precisos.',
       'de':
-          'Ich sage nicht „gut oder schlecht“, sondern „passt es zu dir“. Ein paar Fragen und deine Scans werden genau.',
+          'Ich sage nicht „gut oder schlecht“, sondern „passt es zu Ihnen“. Ein paar Fragen, und Ihre Scans werden genauer.',
       'fr':
           'Je ne dis pas « bon ou mauvais », mais « est-ce fait pour toi ». Quelques questions et tes scans deviennent précis.',
       'it':
@@ -7561,7 +7561,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'About 40 seconds · 3 questions',
       'ru': '≈ 40 секунд · 3 вопроса',
       'es': 'Unos 40 segundos · 3 preguntas',
-      'de': '≈ 40 Sekunden · 3 Fragen',
+      'de': 'Rund 40 Sekunden · 3 Fragen',
       'fr': '≈ 40 secondes · 3 questions',
       'it': 'Circa 40 secondi · 3 domande',
       'pt': '≈ 40 segundos · 3 perguntas',
@@ -7615,7 +7615,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'What’s your skin like?',
       'ru': 'Какая у вас кожа?',
       'es': '¿Cómo es tu piel?',
-      'de': 'Wie ist deine Haut?',
+      'de': 'Wie ist Ihre Haut?',
       'fr': 'Comment est ta peau ?',
       'it': 'Com’è la tua pelle?',
       'pt': 'Como é a sua pele?',
@@ -7732,7 +7732,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Not sure, let’s figure it out',
       'ru': 'Не знаю, определим вместе',
       'es': 'No sé, lo averiguamos juntos',
-      'de': 'Weiß nicht — finden wir heraus',
+      'de': 'Weiß nicht, finden wir heraus',
       'fr': 'Je ne sais pas — trouvons-le ensemble',
       'it': 'Non so, scopriamolo insieme',
       'pt': 'Não sei — vamos descobrir juntos',
@@ -7746,7 +7746,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Three steps to find out',
       'ru': 'Определим за три шага',
       'es': 'Lo vemos en tres pasos',
-      'de': 'OK, in 3 Tipps herausgefunden',
+      'de': 'In drei Schritten herausgefunden',
       'fr': 'OK, on le trouve en 3 touches',
       'it': 'Lo scopriamo in tre passaggi',
       'pt': 'Ok, descobrimos em 3 toques',
@@ -7759,7 +7759,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'You can change this any time.',
       'ru': 'Это можно поменять в любой момент.',
       'es': 'Puedes cambiarlo cuando quieras.',
-      'de': 'Du kannst das jederzeit ändern.',
+      'de': 'Sie können das jederzeit ändern.',
       'fr': 'Tu peux le changer à tout moment.',
       'it': 'Puoi cambiarlo quando vuoi.',
       'pt': 'Você pode mudar isso quando quiser.',
@@ -7968,7 +7968,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Does your skin react to new products?',
       'ru': 'Кожа реагирует на новое?',
       'es': '¿Tu piel reacciona a lo nuevo?',
-      'de': 'Reagiert deine Haut auf Neues?',
+      'de': 'Reagiert Ihre Haut auf Neues?',
       'fr': 'Ta peau réagit-elle aux nouveautés ?',
       'it': 'La tua pelle reagisce alle novità?',
       'pt': 'Sua pele reage a produtos novos?',
@@ -7981,7 +7981,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'How does your skin behave?',
       'ru': 'Как кожа себя ведёт?',
       'es': '¿Cómo se comporta tu piel?',
-      'de': 'Wie verhält sich deine Haut?',
+      'de': 'Wie verhält sich Ihre Haut?',
       'fr': 'Comment réagit ta peau ?',
       'it': 'Come si comporta la tua pelle?',
       'pt': 'Como sua pele se comporta?',
@@ -8021,7 +8021,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Do you get breakouts?',
       'ru': 'Бывают высыпания?',
       'es': '¿Te salen brotes?',
-      'de': 'Hast du Unreinheiten?',
+      'de': 'Haben Sie Unreinheiten?',
       'fr': 'As-tu des imperfections ?',
       'it': 'Hai sfoghi o brufoli?',
       'pt': 'Você tem crises de acne?',
@@ -8061,7 +8061,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Are you pregnant or breastfeeding?',
       'ru': 'Вы беременны или кормите грудью?',
       'es': '¿Estás embarazada o en lactancia?',
-      'de': 'Bist du schwanger oder stillst du?',
+      'de': 'Sind Sie schwanger oder stillen Sie?',
       'fr': 'Es-tu enceinte ou allaites-tu ?',
       'it': 'Sei incinta o stai allattando?',
       'pt': 'Está grávida ou amamentando?',
@@ -8074,7 +8074,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Some actives (like retinoids) aren’t recommended during this time, so I’ll keep them out of your routine.',
       'ru': 'Некоторые активы (например, ретиноиды) в этот период не рекомендуются, поэтому я не включу их в уход.',
       'es': 'Algunos activos (como los retinoides) no se recomiendan en esta etapa, así que los dejaré fuera de tu rutina.',
-      'de': 'Manche Wirkstoffe (z. B. Retinoide) sind in dieser Zeit nicht empfohlen — ich lasse sie aus deiner Routine heraus.',
+      'de': 'Manche Wirkstoffe (z. B. Retinoide) sind in dieser Zeit nicht empfohlen, deshalb lasse ich sie aus Ihrer Routine heraus.',
       'fr': 'Certains actifs (comme les rétinoïdes) sont déconseillés pendant cette période — je les écarterai de ta routine.',
       'it': 'Alcuni attivi (come i retinoidi) non sono consigliati in questo periodo, quindi li terrò fuori dalla tua routine.',
       'pt': 'Alguns ativos (como retinoides) não são recomendados nesse período — vou deixá-los fora da sua rotina.',
@@ -8127,7 +8127,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'What matters most to you right now?',
       'ru': 'Что для вас сейчас важнее всего?',
       'es': '¿Qué es lo más importante para ti ahora?',
-      'de': 'Was ist dir gerade am wichtigsten?',
+      'de': 'Was ist Ihnen gerade am wichtigsten?',
       'fr': 'Qu’est-ce qui compte le plus pour toi en ce moment ?',
       'it': 'Cosa conta di più per te adesso?',
       'pt': 'O que é mais importante para você agora?',
@@ -8140,7 +8140,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Pick up to three and I’ll focus the analysis there.',
       'ru': 'Выберите до трёх: на них сфокусирую разбор.',
       'es': 'Elige hasta 3 y enfocaré ahí el análisis.',
-      'de': 'Wähle bis zu 3 — darauf richte ich die Analyse aus.',
+      'de': 'Wählen Sie bis zu drei, darauf richte ich die Analyse aus.',
       'fr': 'Choisis jusqu’à 3 — je concentrerai l’analyse dessus.',
       'it': 'Scegline fino a 3 e concentrerò lì l’analisi.',
       'pt': 'Escolha até 3 — vou focar a análise nisso.',
@@ -8179,7 +8179,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Barrier and protection',
       'ru': 'Барьер и защита',
       'es': 'Barrera y protección',
-      'de': 'Barriere & Schutz',
+      'de': 'Barriere und Schutz',
       'fr': 'Barrière & protection',
       'it': 'Barriera e protezione',
       'pt': 'Barreira e proteção',
@@ -8205,7 +8205,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Pigmentation and tone',
       'ru': 'Пигментация и тон',
       'es': 'Pigmentación y tono',
-      'de': 'Pigmentierung & Hautton',
+      'de': 'Pigmentierung und Hautton',
       'fr': 'Pigmentation & teint',
       'it': 'Pigmentazione e tono',
       'pt': 'Pigmentação e tom',
@@ -8218,7 +8218,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Breakouts and acne',
       'ru': 'Высыпания и акне',
       'es': 'Brotes y acné',
-      'de': 'Unreinheiten & Akne',
+      'de': 'Unreinheiten und Akne',
       'fr': 'Imperfections & acné',
       'it': 'Sfoghi e acne',
       'pt': 'Crises e acne',
@@ -8259,7 +8259,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Done. Here’s your profile',
       'ru': 'Готово! Вот ваш профиль',
       'es': '¡Listo! Este es tu perfil',
-      'de': 'Fertig! Das ist dein Profil',
+      'de': 'Fertig! Das ist Ihr Profil',
       'fr': 'Terminé ! Voici ton profil',
       'it': 'Fatto! Ecco il tuo profilo',
       'pt': 'Pronto! Este é o seu perfil',
@@ -8325,7 +8325,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ru':
           'Теперь сфотографируйте первый продукт, и я покажу, подойдёт ли он именно вам.',
       'es': 'Ahora escanea tu primer producto y te diré si te conviene.',
-      'de': 'Scanne jetzt dein erstes Produkt — ich zeige, ob es zu dir passt.',
+      'de': 'Scannen Sie jetzt Ihr erstes Produkt, dann zeige ich, ob es zu Ihnen passt.',
       'fr': 'Scanne ton premier produit — je te dirai s’il te convient.',
       'it': 'Ora scansiona il primo prodotto e ti dirò se fa per te.',
       'pt':
@@ -8366,7 +8366,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ru':
           'Приложение работает и без профиля: просто покажу по всем типам кожи.',
       'es': 'La aplicación funciona sin perfil, mostraré todos los tipos de piel.',
-      'de': 'Die App funktioniert ohne Profil — ich zeige alle Hauttypen.',
+      'de': 'Die App funktioniert ohne Profil, ich zeige dann alle Hauttypen.',
       'fr': 'L’app fonctionne sans profil — j’afficherai tous les types de peau.',
       'it': 'L’app funziona senza profilo, mostrerò tutti i tipi di pelle.',
       'pt': 'O app funciona sem perfil — vou mostrar todos os tipos de pele.',
@@ -8408,7 +8408,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Personalize your results',
       'ru': 'Настройте результаты под себя',
       'es': 'Personaliza tus resultados',
-      'de': 'Personalisiere deine Ergebnisse',
+      'de': 'Ergebnisse auf Sie zuschneiden',
       'fr': 'Personnalise tes résultats',
       'it': 'Personalizza i tuoi risultati',
       'pt': 'Personalize seus resultados',
@@ -8421,7 +8421,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Take a short setup and I’ll rate formulas for you',
       'ru': 'Пройдите короткий опрос, и я оценю составы под вас',
       'es': 'Haz una configuración rápida y evaluaré las fórmulas para ti',
-      'de': 'Kurze Einrichtung — ich bewerte Formeln für dich',
+      'de': 'Kurze Einrichtung, dann bewerte ich Formeln für Sie',
       'fr': 'Configuration rapide — j’évaluerai les formules pour toi',
       'it': 'Configura in breve e valuterò le formule per te',
       'pt': 'Faça uma configuração rápida — avaliarei as fórmulas para você',
@@ -8434,7 +8434,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'YOUR PROFILE',
       'ru': 'ВАШ ПРОФИЛЬ',
       'es': 'TU PERFIL',
-      'de': 'DEIN PROFIL',
+      'de': 'IHR PROFIL',
       'fr': 'TON PROFIL',
       'it': 'IL TUO PROFILO',
       'pt': 'SEU PERFIL',
@@ -8461,7 +8461,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Build your cosmetics bag',
       'ru': 'Соберите косметичку',
       'es': 'Arma tu neceser',
-      'de': 'Stelle deine Kosmetiktasche zusammen',
+      'de': 'Stellen Sie Ihre Kosmetiktasche zusammen',
       'fr': 'Compose ta trousse',
       'it': 'Crea il tuo beauty case',
       'pt': 'Monte a sua nécessaire',
@@ -8474,7 +8474,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Scan three products and see how they work together',
       'ru': 'Разберите 3 продукта и посмотрите, как они работают вместе',
       'es': 'Escanea 3 productos y descubre cómo funcionan juntos',
-      'de': 'Scanne 3 Produkte und sieh, wie sie zusammenwirken',
+      'de': 'Scannen Sie drei Produkte und sehen Sie, wie sie zusammenwirken',
       'fr': 'Scanne 3 produits et vois comment ils fonctionnent ensemble',
       'it': 'Scansiona 3 prodotti e scopri come funzionano insieme',
       'pt': 'Escaneie 3 produtos e veja como funcionam juntos',
@@ -8617,7 +8617,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Scan products to fill your bag',
       'ru': 'Разбирайте продукты, чтобы наполнить косметичку',
       'es': 'Escanea productos para llenar tu neceser',
-      'de': 'Scanne Produkte, um deine Kosmetiktasche zu füllen',
+      'de': 'Scannen Sie Produkte, um die Kosmetiktasche zu füllen',
       'fr': 'Scanne des produits pour remplir ta trousse',
       'it': 'Scansiona prodotti per riempire il tuo beauty case',
       'pt': 'Escaneie produtos para encher a sua nécessaire',
@@ -8630,7 +8630,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Choose a product for this slot',
       'ru': 'Выберите продукт для этого слота',
       'es': 'Elige un producto para este espacio',
-      'de': 'Wähle ein Produkt für diesen Platz',
+      'de': 'Wählen Sie ein Produkt für diesen Platz',
       'fr': 'Choisis un produit pour cet emplacement',
       'it': 'Scegli un prodotto per questo slot',
       'pt': 'Escolha um produto para este espaço',
@@ -8656,7 +8656,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Add reminders for when to apply your products',
       'ru': 'Добавьте напоминания, когда наносить продукты',
       'es': 'Añade recordatorios de cuándo aplicar tus productos',
-      'de': 'Füge Erinnerungen hinzu, wann du deine Produkte anwenden sollst',
+      'de': 'Fügen Sie Erinnerungen hinzu, wann Sie Ihre Produkte anwenden',
       'fr': 'Ajoute des rappels pour appliquer tes produits',
       'it': 'Aggiungi promemoria per quando applicare i tuoi prodotti',
       'pt': 'Adicione lembretes de quando aplicar os seus produtos',
@@ -8799,7 +8799,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': "Couldn't analyze compatibility. Please try again.",
       'ru': 'Не удалось разобрать совместимость. Попробуйте ещё раз.',
       'es': 'No se pudo analizar la compatibilidad. Prueba otra vez.',
-      'de': 'Verträglichkeit konnte nicht analysiert werden. Bitte versuche es erneut.',
+      'de': 'Die Verträglichkeit konnte nicht analysiert werden. Versuchen Sie es erneut.',
       'fr': 'Impossible d’analyser la compatibilité. Réessaie.',
       'it': 'Non è possibile analizzare la compatibilità. Riprova.',
       'pt': 'Não foi possível analisar a compatibilidade. Tente novamente.',
@@ -8812,7 +8812,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Add at least two products to see how they work together.',
       'ru': 'Добавьте минимум 2 продукта, чтобы посмотреть, как они работают вместе.',
       'es': 'Añade al menos 2 productos para ver cómo funcionan juntos.',
-      'de': 'Füge mindestens 2 Produkte hinzu, um zu sehen, wie sie zusammenwirken.',
+      'de': 'Fügen Sie mindestens zwei Produkte hinzu, um zu sehen, wie sie zusammenwirken.',
       'fr': 'Ajoute au moins 2 produits pour voir comment ils fonctionnent ensemble.',
       'it': 'Aggiungi almeno 2 prodotti per vedere come funzionano insieme.',
       'pt': 'Adicione pelo menos 2 produtos para ver como funcionam juntos.',
@@ -8840,7 +8840,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ru':
           'Пока не удалось прочитать состав этих продуктов. Сфотографируйте их заново, чтобы распознался полный состав.',
       'es': 'Aún no se pudieron leer los ingredientes de estos productos. Vuelve a escanearlos para reconocer la composición completa.',
-      'de': 'Die Inhaltsstoffe dieser Produkte konnten noch nicht gelesen werden. Scanne sie erneut, damit die vollständige Zusammensetzung erkannt wird.',
+      'de': 'Die Inhaltsstoffe dieser Produkte konnten noch nicht gelesen werden. Scannen Sie sie erneut, damit die vollständige Zusammensetzung erkannt wird.',
       'fr': 'Impossible de lire les ingrédients de ces produits pour l’instant. Scanne-les à nouveau pour reconnaître la composition complète.',
       'it': 'Non è stato ancora possibile leggere gli ingredienti di questi prodotti. Ripeti la scansione per riconoscere la composizione completa.',
       'pt': 'Ainda não foi possível ler os ingredientes destes produtos. Escaneie-os novamente para reconhecer a composição completa.',
@@ -8905,7 +8905,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Unlock your full AM/PM routine, conflicts and gaps in Pro',
       'ru': 'Откройте полную рутину утро/вечер, конфликты и пробелы в Pro',
       'es': 'Desbloquea tu rutina completa de mañana/noche, conflictos y carencias en Pro',
-      'de': 'Schalte deine komplette Morgen-/Abendroutine, Konflikte und Lücken mit Pro frei',
+      'de': 'Schalten Sie die komplette Morgen- und Abendroutine, Konflikte und Lücken mit Pro frei',
       'fr': 'Débloque ta routine complète matin/soir, les conflits et les manques avec Pro',
       'it': 'Sblocca la tua routine completa mattina/sera, conflitti e lacune con Pro',
       'pt': 'Desbloqueie a sua rotina completa de manhã/noite, conflitos e lacunas no Pro',
@@ -8931,7 +8931,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Reminders added to your calendar',
       'ru': 'Напоминания добавлены в календарь',
       'es': 'Recordatorios añadidos a tu calendario',
-      'de': 'Erinnerungen zu deinem Kalender hinzugefügt',
+      'de': 'Erinnerungen zum Kalender hinzugefügt',
       'fr': 'Rappels ajoutés à ton calendrier',
       'it': 'Promemoria aggiunti al tuo calendario',
       'pt': 'Lembretes adicionados ao seu calendário',
@@ -8970,7 +8970,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Bag changed: recalculate',
       'ru': 'Косметичка изменилась: пересчитать',
       'es': 'El neceser cambió: recalcula',
-      'de': 'Kosmetiktasche geändert – zum Neuberechnen tippen',
+      'de': 'Kosmetiktasche geändert: neu berechnen',
       'fr': 'Trousse modifiée — touche pour recalculer',
       'it': 'Beauty case cambiato: ricalcola',
       'pt': 'A nécessaire mudou — toque para recalcular',
@@ -9124,7 +9124,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Check your morning skincare routine',
       'ru': 'Проверьте утреннюю рутину ухода',
       'es': 'Revisa tu rutina de cuidado de la mañana',
-      'de': 'Sieh dir deine Morgenroutine an',
+      'de': 'Sehen Sie sich Ihre Morgenroutine an',
       'fr': 'Consulte ta routine de soin du matin',
       'it': 'Controlla la tua routine mattutina',
       'pt': 'Confira a sua rotina de cuidados da manhã',
@@ -9150,7 +9150,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Time to check what to apply tonight',
       'ru': 'Пора проверить, что нанести вечером',
       'es': 'Es hora de ver qué aplicar esta noche',
-      'de': 'Zeit zu sehen, was du heute Abend aufträgst',
+      'de': 'Zeit zu sehen, was Sie heute Abend auftragen',
       'fr': 'C’est l’heure de voir quoi appliquer ce soir',
       'it': 'È ora di vedere cosa applicare stasera',
       'pt': 'Hora de ver o que aplicar hoje à noite',
@@ -9163,7 +9163,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Try all the features',
       'ru': 'Попробуйте все возможности',
       'es': 'Prueba todas las funciones',
-      'de': 'Probiere alle Funktionen aus',
+      'de': 'Probieren Sie alle Funktionen aus',
       'fr': 'Essaie toutes les fonctionnalités',
       'it': 'Prova tutte le funzioni',
       'pt': 'Experimente todos os recursos',
@@ -9176,7 +9176,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Find your skin type',
       'ru': 'Определите тип кожи',
       'es': 'Descubre tu tipo de piel',
-      'de': 'Finde deinen Hauttyp',
+      'de': 'Finden Sie Ihren Hauttyp',
       'fr': 'Découvre ton type de peau',
       'it': 'Scopri il tuo tipo di pelle',
       'pt': 'Descubra o seu tipo de pele',
@@ -9189,7 +9189,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Add three products to your bag',
       'ru': 'Добавьте 3 продукта в косметичку',
       'es': 'Añade 3 productos a tu neceser',
-      'de': 'Füge 3 Produkte zu deiner Kosmetiktasche hinzu',
+      'de': 'Fügen Sie drei Produkte zur Kosmetiktasche hinzu',
       'fr': 'Ajoute 3 produits à ta trousse',
       'it': 'Aggiungi 3 prodotti al tuo beauty case',
       'pt': 'Adicione 3 produtos à sua nécessaire',
@@ -9202,7 +9202,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Add a routine to your calendar',
       'ru': 'Добавьте рутину в календарь',
       'es': 'Añade una rutina a tu calendario',
-      'de': 'Füge eine Routine zu deinem Kalender hinzu',
+      'de': 'Fügen Sie eine Routine zum Kalender hinzu',
       'fr': 'Ajoute une routine à ton calendrier',
       'it': 'Aggiungi una routine al tuo calendario',
       'pt': 'Adicione uma rotina ao seu calendário',
@@ -9215,7 +9215,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'I’ll always respect these: products outside your limits wait in line instead of entering the routine.',
       'ru': 'Я всегда буду их соблюдать: продукты вне рамок подождут в очереди, а не попадут в рутину.',
       'es': 'Siempre los respetaré: los productos fuera de tus límites esperarán en lista.',
-      'de': 'Ich halte mich immer daran — Produkte außerhalb warten in der Schlange.',
+      'de': 'Ich halte mich immer daran: Produkte außerhalb warten in der Schlange.',
       'fr': 'Je les respecterai toujours — les produits hors limites attendront en file.',
       'it': 'Li rispetterò sempre: i prodotti fuori dai limiti aspetteranno in lista.',
       'pt': 'Sempre vou respeitá-los — produtos fora dos limites esperam na fila.',
@@ -9245,7 +9245,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'es':
           '¿Embarazo o lactancia? Dímelo y dejaré los retinoides fuera de tu rutina.',
       'de':
-          'Schwanger oder stillend? Sag es mir — dann bleiben Retinoide draußen.',
+          'Schwanger oder stillend? Sagen Sie es mir, dann bleiben Retinoide draußen.',
       'fr': 'Grossesse ou allaitement ? Dis-le moi et j’écarte les rétinoïdes.',
       'it': 'Gravidanza o allattamento? Dimmelo e terrò i retinoidi fuori.',
       'pt': 'Gravidez ou amamentação? Diga e deixo os retinoides de fora.',
@@ -9281,7 +9281,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Products you actually use: your routine is built from these',
       'ru': 'Продукты, которыми реально пользуетесь: из них собирается рутина',
       'es': 'Productos que realmente usas: de aquí sale tu rutina',
-      'de': 'Produkte, die du wirklich nutzt — daraus entsteht deine Routine',
+      'de': 'Produkte, die Sie wirklich nutzen: daraus entsteht Ihre Routine',
       'fr': 'Les produits que vous utilisez vraiment — votre routine en découle',
       'it': 'I prodotti che usi davvero: da qui nasce la tua routine',
       'pt': 'Produtos que você realmente usa — sua rotina nasce deles',
@@ -9294,7 +9294,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Check compatibility and build routine',
       'ru': 'Проверить совместимость и собрать рутину',
       'es': 'Comprobar compatibilidad y crear rutina',
-      'de': 'Verträglichkeit prüfen & Routine erstellen',
+      'de': 'Verträglichkeit prüfen und Routine erstellen',
       'fr': 'Vérifier la compatibilité et créer la routine',
       'it': 'Verifica compatibilità e crea la routine',
       'pt': 'Verificar compatibilidade e montar rotina',
@@ -9307,7 +9307,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Add at least two products to build a routine',
       'ru': 'Добавьте хотя бы два продукта, чтобы собрать рутину',
       'es': 'Añade al menos dos productos para crear una rutina',
-      'de': 'Füge mindestens zwei Produkte hinzu, um eine Routine zu erstellen',
+      'de': 'Fügen Sie mindestens zwei Produkte hinzu, um eine Routine zu erstellen',
       'fr': 'Ajoutez au moins deux produits pour créer une routine',
       'it': 'Aggiungi almeno due prodotti per creare una routine',
       'pt': 'Adicione pelo menos dois produtos para montar uma rotina',
@@ -9320,7 +9320,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Your cosmetics bag is empty. Add products you actually use',
       'ru': 'Косметичка пуста. Добавьте продукты, которыми пользуетесь',
       'es': 'Tu neceser está vacío: añade los productos que usas',
-      'de': 'Deine Kosmetiktasche ist leer — füge deine Produkte hinzu',
+      'de': 'Ihre Kosmetiktasche ist leer. Fügen Sie Ihre Produkte hinzu',
       'fr': 'Votre trousse est vide — ajoutez vos produits',
       'it': 'Il beauty case è vuoto: aggiungi i prodotti che usi',
       'pt': 'Seu nécessaire está vazio — adicione os produtos que usa',
@@ -9344,7 +9344,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Review your products and accept a personalised routine. It lands here as a weekly plan.',
       'ru': 'Пройдите разбор продуктов и соберите персональную рутину. Она появится здесь недельным планом.',
       'es': 'Revisa tus productos y acepta una rutina personalizada: aparecerá aquí como plan semanal.',
-      'de': 'Lass deine Produkte prüfen und übernimm eine persönliche Routine — sie erscheint hier als Wochenplan.',
+      'de': 'Lassen Sie Ihre Produkte prüfen und übernehmen Sie eine persönliche Routine. Sie erscheint hier als Wochenplan.',
       'fr': 'Passez vos produits en revue et adoptez une routine personnalisée : elle apparaîtra ici en plan hebdomadaire.',
       'it': 'Analizza i tuoi prodotti e accetta una routine personalizzata: apparirà qui come piano settimanale.',
       'pt': 'Analise seus produtos e aceite uma rotina personalizada — ela aparecerá aqui como plano semanal.',
@@ -9387,7 +9387,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Can’t resume: it’s contraindicated for you right now',
       'ru': 'Сейчас возобновить не получится: продукт вам противопоказан',
       'es': 'No se puede reanudar: ahora está contraindicado para ti',
-      'de': 'Fortsetzen nicht möglich: derzeit für dich kontraindiziert',
+      'de': 'Fortsetzen nicht möglich: derzeit für Sie kontraindiziert',
       'fr': 'Impossible de reprendre : contre-indiqué pour vous actuellement',
       'it': 'Non è possibile riprendere: al momento è controindicato per te',
       'pt': 'Não é possível retomar: está contraindicado para você agora',
@@ -9400,7 +9400,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Too many days for this active: the weekly limit protects your skin',
       'ru': 'Слишком много дней для этого актива: недельный лимит бережёт кожу',
       'es': 'Demasiados días para este activo: el límite semanal protege tu piel',
-      'de': 'Zu viele Tage für diesen Wirkstoff — das Wochenlimit schützt deine Haut',
+      'de': 'Zu viele Tage für diesen Wirkstoff: das Wochenlimit schützt Ihre Haut',
       'fr': 'Trop de jours pour cet actif — la limite hebdomadaire protège votre peau',
       'it': 'Troppi giorni per questo attivo: il limite settimanale protegge la pelle',
       'pt': 'Dias demais para este ativo — o limite semanal protege sua pele',
@@ -9428,7 +9428,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'care_entry_sub': {
       'en': 'A dermatologist-style review of your products', 'ru': 'Разбор ваших продуктов как у косметолога',
-      'es': 'Una revisión de tus productos al estilo dermatólogo', 'de': 'Deine Produkte im Derma-Check',
+      'es': 'Una revisión de tus productos al estilo dermatólogo', 'de': 'Ihre Produkte im Derma-Check',
       'fr': 'Vos produits passés en revue comme chez un dermato', 'it': 'I tuoi prodotti analizzati come da un dermatologo',
       'pt': 'Seus produtos analisados como por um dermatologista', 'tr': 'Ürünlerine dermatolog gözüyle bakış',
       'ja': '皮膚科医目線であなたの製品をチェック', 'ko': '피부과 스타일로 제품 점검', 'zh': '像皮肤科医生一样分析你的产品',
@@ -9453,7 +9453,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'care_queue_sub': {
       'en': 'These products wait so your skin isn’t overloaded', 'ru': 'Эти продукты подождут, чтобы не перегружать кожу',
-      'es': 'Estos productos esperan para no sobrecargar tu piel', 'de': 'Diese Produkte warten, damit deine Haut nicht überlastet wird',
+      'es': 'Estos productos esperan para no sobrecargar tu piel', 'de': 'Diese Produkte warten, damit Ihre Haut nicht überlastet wird',
       'fr': 'Ces produits attendent pour ne pas surcharger la peau', 'it': 'Questi prodotti aspettano per non sovraccaricare la pelle',
       'pt': 'Estes produtos esperam para não sobrecarregar a pele', 'tr': 'Bu ürünler cildini yormamak için bekliyor',
       'ja': '肌に負担をかけないよう、これらは待機中', 'ko': '피부에 부담을 주지 않도록 대기 중이에요', 'zh': '为避免皮肤负担，这些产品暂缓使用',
@@ -9467,7 +9467,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'care_reason_duplicate': {
       'en': 'Duplicate active: the best one is in the routine', 'ru': 'Дубликат актива: в рутине остался лучший',
-      'es': 'Activo duplicado: el mejor ya está en la rutina', 'de': 'Doppelter Wirkstoff — der beste ist in der Routine',
+      'es': 'Activo duplicado: el mejor ya está en la rutina', 'de': 'Doppelter Wirkstoff: der beste ist in der Routine',
       'fr': 'Actif en double — le meilleur est dans la routine', 'it': 'Attivo duplicato: il migliore è in routine',
       'pt': 'Ativo duplicado — o melhor está na rotina', 'tr': 'Yinelenen aktif — en iyisi rutinde',
       'ja': '同じ有効成分 — ベストな1本をルーティンに', 'ko': '중복 성분: 가장 좋은 제품만 루틴에', 'zh': '活性成分重复，流程中保留最佳的一款',
@@ -9546,7 +9546,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'We only check for a limited set of ingredients commonly avoided during pregnancy: retinoids, hydroquinone, arbutin and high-dose salicylic acid. This is not a complete safety assessment: a product may contain other components we don’t screen. If you have any concerns, consult your doctor.',
       'ru': 'Мы проверяем только ограниченный набор ингредиентов, которых обычно избегают при беременности: ретиноиды, гидрохинон, арбутин и высокие дозы салициловой кислоты. Это не полная оценка безопасности: состав может содержать другие компоненты, которые мы не проверяем. При любых сомнениях проконсультируйтесь с врачом.',
       'es': 'Solo comprobamos un conjunto limitado de ingredientes que suelen evitarse durante el embarazo: retinoides, hidroquinona, arbutina y ácido salicílico en dosis altas. No es una evaluación de seguridad completa: el producto puede contener otros componentes que no analizamos. Ante cualquier duda, consulta a tu médico.',
-      'de': 'Wir prüfen nur eine begrenzte Auswahl an Inhaltsstoffen, die in der Schwangerschaft meist gemieden werden: Retinoide, Hydrochinon, Arbutin und hochdosierte Salicylsäure. Das ist keine vollständige Sicherheitsbewertung — ein Produkt kann weitere Bestandteile enthalten, die wir nicht prüfen. Bei Bedenken wende dich an deine Ärztin oder deinen Arzt.',
+      'de': 'Wir prüfen nur eine begrenzte Auswahl an Inhaltsstoffen, die in der Schwangerschaft meist gemieden werden: Retinoide, Hydrochinon, Arbutin und hochdosierte Salicylsäure. Das ist keine vollständige Sicherheitsbewertung: ein Produkt kann weitere Bestandteile enthalten, die wir nicht prüfen. Bei Bedenken wenden Sie sich an Ihre Ärztin oder Ihren Arzt.',
       'fr': 'Nous vérifions uniquement un ensemble limité d’ingrédients généralement évités pendant la grossesse : rétinoïdes, hydroquinone, arbutine et acide salicylique à forte dose. Ce n’est pas une évaluation de sécurité complète — un produit peut contenir d’autres composants que nous n’analysons pas. En cas de doute, consultez votre médecin.',
       'it': 'Verifichiamo solo un insieme limitato di ingredienti solitamente evitati in gravidanza: retinoidi, idrochinone, arbutina e acido salicilico ad alte dosi. Non è una valutazione di sicurezza completa: un prodotto può contenere altri componenti che non analizziamo. In caso di dubbi, consulta il medico.',
       'pt': 'Verificamos apenas um conjunto limitado de ingredientes normalmente evitados na gravidez: retinoides, hidroquinona, arbutina e ácido salicílico em dose alta. Esta não é uma avaliação de segurança completa — o produto pode conter outros componentes que não analisamos. Em caso de dúvida, consulte o seu médico.',
@@ -9557,7 +9557,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'preg_bag_all_safe': {
       'en': 'None of your products contain pregnancy-contraindicated ingredients', 'ru': 'Ни один продукт не содержит противопоказанных при беременности ингредиентов',
-      'es': 'Ninguno de tus productos contiene ingredientes contraindicados en el embarazo', 'de': 'Keines deiner Produkte enthält in der Schwangerschaft bedenkliche Inhaltsstoffe',
+      'es': 'Ninguno de tus productos contiene ingredientes contraindicados en el embarazo', 'de': 'Keines Ihrer Produkte enthält in der Schwangerschaft bedenkliche Inhaltsstoffe',
       'fr': 'Aucun de vos produits ne contient d’ingrédient déconseillé pendant la grossesse', 'it': 'Nessuno dei tuoi prodotti contiene ingredienti controindicati in gravidanza',
       'pt': 'Nenhum dos teus produtos contém ingredientes contraindicados na gravidez', 'tr': 'Ürünlerinizin hiçbiri hamilelikte sakıncalı içerik barındırmıyor',
       'ja': 'あなたの製品に妊娠中に避けたい成分は含まれていません', 'ko': '보유 제품 중 임신 중 피할 성분이 포함된 것은 없습니다', 'zh': '你的所有产品均不含孕期需避免的成分',
@@ -9664,7 +9664,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'This routine uses photosensitising actives but has no sunscreen. Daily morning SPF is required.',
       'ru': 'В рутине есть фотосенсибилизирующие активы, но нет солнцезащитного средства. Утром нужен ежедневный SPF.',
       'es': 'Esta rutina usa activos fotosensibilizantes pero no incluye protector solar: es necesario un SPF cada mañana.',
-      'de': 'Diese Routine enthält photosensibilisierende Wirkstoffe, aber keinen Sonnenschutz — täglicher SPF am Morgen ist erforderlich.',
+      'de': 'Diese Routine enthält photosensibilisierende Wirkstoffe, aber keinen Sonnenschutz. Täglicher Lichtschutz am Morgen ist nötig.',
       'fr': 'Cette routine utilise des actifs photosensibilisants mais sans protection solaire : un SPF chaque matin est indispensable.',
       'it': 'Questa routine usa attivi fotosensibilizzanti ma senza protezione solare: è necessario un SPF ogni mattina.',
       'pt': 'Esta rotina usa ativos fotossensibilizantes mas não inclui protetor solar — é necessário SPF todas as manhãs.',
@@ -9695,17 +9695,17 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ja': '相性に関する注意 {n}件', 'ko': '호환성 참고 {n}건', 'zh': '{n} 条兼容性提示',
     },
     'cb_remove_from_bag': {
-      'en': 'Remove from bag', 'ru': 'Убрать из косметички', 'es': 'Quitar del neceser', 'de': 'Aus der Tasche entfernen',
+      'en': 'Remove from bag', 'ru': 'Убрать из косметички', 'es': 'Quitar del neceser', 'de': 'Aus der Kosmetiktasche entfernen',
       'fr': 'Retirer de la trousse', 'it': 'Togli dal beauty case', 'pt': 'Remover da necessaire', 'tr': 'Çantadan çıkar',
       'ja': 'ポーチから外す', 'ko': '파우치에서 빼기', 'zh': '从化妆包移除',
     },
     'cb_removed_toast': {
-      'en': 'Removed from your bag', 'ru': 'Убрано из косметички', 'es': 'Quitado del neceser', 'de': 'Aus der Tasche entfernt',
+      'en': 'Removed from your bag', 'ru': 'Убрано из косметички', 'es': 'Quitado del neceser', 'de': 'Aus der Kosmetiktasche entfernt',
       'fr': 'Retiré de la trousse', 'it': 'Rimosso dal beauty case', 'pt': 'Removido da necessaire', 'tr': 'Çantadan çıkarıldı',
       'ja': 'ポーチから外しました', 'ko': '파우치에서 뺐어요', 'zh': '已从化妆包移除',
     },
     'cb_login_title': {
-      'en': 'Sign in to build your bag', 'ru': 'Войдите, чтобы собрать косметичку', 'es': 'Inicia sesión para crear tu neceser', 'de': 'Melde dich an für deine Beauty-Bag',
+      'en': 'Sign in to build your bag', 'ru': 'Войдите, чтобы собрать косметичку', 'es': 'Inicia sesión para crear tu neceser', 'de': 'Melden Sie sich an, um Ihre Kosmetiktasche anzulegen',
       'fr': 'Connecte-toi pour composer ta trousse', 'it': 'Accedi per creare il tuo beauty case', 'pt': 'Entra para montar a tua necessaire', 'tr': 'Çantanı oluşturmak için giriş yap',
       'ja': 'ログインしてポーチを作成', 'ko': '로그인하고 파우치를 만들어요', 'zh': '登录以整理你的化妆包',
     },
@@ -9713,7 +9713,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'A free account keeps your products in one place and builds a routine from them.',
       'ru': 'С бесплатным аккаунтом средства хранятся в одном месте, а из них собирается уход.',
       'es': 'Con una cuenta gratuita tus productos se guardan en un solo lugar y se convierten en una rutina.',
-      'de': 'Mit einem kostenlosen Konto bleiben deine Produkte an einem Ort und werden zur Routine.',
+      'de': 'Mit einem kostenlosen Konto bleiben Ihre Produkte an einem Ort und werden zur Routine.',
       'fr': 'Avec un compte gratuit, tes produits restent au même endroit et deviennent une routine.',
       'it': 'Con un account gratuito i prodotti restano in un unico posto e diventano una routine.',
       'pt': 'Com uma conta gratuita os teus produtos ficam num só lugar e viram uma rotina.',
@@ -9723,7 +9723,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'zh': '免费账户会把你的产品集中保存，并据此生成护肤方案。',
     },
     'cb_slot_over_limit': {
-      'en': 'Not in the review: Pro', 'ru': 'Не в разборе: нужен Pro', 'es': 'Fuera del análisis: Pro', 'de': 'Nicht in der Analyse — Pro',
+      'en': 'Not in the review: Pro', 'ru': 'Не в разборе: нужен Pro', 'es': 'Fuera del análisis: Pro', 'de': 'Nicht in der Analyse: Pro',
       'fr': "Hors de l'analyse — Pro", 'it': "Fuori dall'analisi: Pro", 'pt': 'Fora da análise — Pro', 'tr': 'Analize dahil değil — Pro',
       'ja': '診断対象外 — Pro', 'ko': '분석 제외: Pro', 'zh': '不参与分析：Pro',
     },
@@ -9785,7 +9785,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'cb_note_label': {
       'en': 'This product contains:', 'ru': 'Обратите внимание, в продукте:',
-      'es': 'Ten en cuenta que el producto contiene:', 'de': 'Beachte — dieses Produkt enthält:',
+      'es': 'Ten en cuenta que el producto contiene:', 'de': 'Dieses Produkt enthält:',
       'fr': 'À noter, ce produit contient :', 'it': 'Questo prodotto contiene:',
       'pt': 'Atenção, o produto contém:', 'tr': 'Dikkat — bu üründe:',
       'ja': 'この製品に含まれます:', 'ko': '이 제품에 포함:', 'zh': '请注意，此产品含有：',
@@ -9823,7 +9823,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ja': 'サリチル酸', 'ko': '살리실산', 'zh': '水杨酸',
     },
     'cb_sec_products': {
-      'en': 'Products and effects', 'ru': 'Средства и эффекты', 'es': 'Productos y efectos', 'de': 'Produkte & Wirkung',
+      'en': 'Products and effects', 'ru': 'Средства и эффекты', 'es': 'Productos y efectos', 'de': 'Produkte und Wirkung',
       'fr': 'Produits et effets', 'it': 'Prodotti ed effetti', 'pt': 'Produtos e efeitos', 'tr': 'Ürünler ve etkiler',
       'ja': '製品と効果', 'ko': '제품과 효과', 'zh': '产品与功效',
     },
@@ -9838,12 +9838,12 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ja': '夜', 'ko': '저녁', 'zh': '晚间',
     },
     'cb_sched_any': {
-      'en': 'Morning and evening', 'ru': 'Утро и вечер', 'es': 'Mañana y noche', 'de': 'Morgens & abends',
+      'en': 'Morning and evening', 'ru': 'Утро и вечер', 'es': 'Mañana y noche', 'de': 'Morgens und abends',
       'fr': 'Matin et soir', 'it': 'Mattina e sera', 'pt': 'Manhã e noite', 'tr': 'Sabah ve akşam',
       'ja': '朝と夜', 'ko': '아침과 저녁', 'zh': '早晚',
     },
     'cb_sec_goals': {
-      'en': 'Your goals', 'ru': 'Ваши цели', 'es': 'Tus objetivos', 'de': 'Deine Ziele',
+      'en': 'Your goals', 'ru': 'Ваши цели', 'es': 'Tus objetivos', 'de': 'Ihre Ziele',
       'fr': 'Tes objectifs', 'it': 'I tuoi obiettivi', 'pt': 'Os teus objetivos', 'tr': 'Hedeflerin',
       'ja': 'あなたの目標', 'ko': '목표', 'zh': '你的目标',
     },
@@ -9853,7 +9853,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ja': '重複する製品', 'ko': '겹치는 제품', 'zh': '重复的产品',
     },
     'cb_sec_combine': {
-      'en': 'How to combine products', 'ru': 'Как сочетать средства', 'es': 'Cómo combinar productos', 'de': 'So kombinierst du Produkte',
+      'en': 'How to combine products', 'ru': 'Как сочетать средства', 'es': 'Cómo combinar productos', 'de': 'So kombinieren Sie Produkte',
       'fr': 'Comment combiner les produits', 'it': 'Come combinare i prodotti', 'pt': 'Como combinar produtos', 'tr': 'Ürünleri nasıl birleştirmeli',
       'ja': '製品の組み合わせ方', 'ko': '제품 조합 방법', 'zh': '如何搭配产品',
     },
@@ -9913,7 +9913,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ja': '夜に交互に', 'ko': '저녁에 번갈아', 'zh': '晚间交替使用',
     },
     'cb_warn_interaction': {
-      'en': '{a} and {b} together double the load on your skin, so watch how it reacts', 'ru': '{a} и {b} вместе удваивают нагрузку на кожу, следите за реакцией', 'es': '{a} y {b} juntos duplican la carga sobre la piel: observa la reacción', 'de': '{a} und {b} zusammen verdoppeln die Belastung der Haut — beobachte die Reaktion',
+      'en': '{a} and {b} together double the load on your skin, so watch how it reacts', 'ru': '{a} и {b} вместе удваивают нагрузку на кожу, следите за реакцией', 'es': '{a} y {b} juntos duplican la carga sobre la piel: observa la reacción', 'de': '{a} und {b} zusammen verdoppeln die Belastung der Haut, beobachten Sie die Reaktion',
       'fr': '{a} et {b} ensemble doublent la charge sur la peau — surveille la réaction', 'it': '{a} e {b} insieme raddoppiano il carico sulla pelle: osserva la reazione', 'pt': '{a} e {b} juntos duplicam a carga na pele — observa a reação', 'tr': '{a} ve {b} birlikte cildin yükünü ikiye katlar — tepkisini izle',
       'ja': '{a}と{b}の併用は肌への負担が倍に — 反応を見ながら', 'ko': '{a}과(와) {b}을(를) 함께 쓰면 피부 부담이 두 배예요. 반응을 살펴보세요.', 'zh': '{a} 与 {b} 同用会让皮肤负担加倍，注意观察反应',
     },
@@ -9938,7 +9938,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ja': 'セット全体について', 'ko': '세트 전체에 대해', 'zh': '关于整套产品',
     },
     'cb_level_good': {
-      'en': 'Your products work together', 'ru': 'Средства сочетаются', 'es': 'Tus productos combinan bien', 'de': 'Deine Produkte passen zusammen',
+      'en': 'Your products work together', 'ru': 'Средства сочетаются', 'es': 'Tus productos combinan bien', 'de': 'Ihre Produkte passen zusammen',
       'fr': 'Tes produits fonctionnent ensemble', 'it': 'I tuoi prodotti funzionano insieme', 'pt': 'Os teus produtos combinam bem', 'tr': 'Ürünlerin uyumlu',
       'ja': '相性は良好です', 'ko': '제품이 잘 어울려요', 'zh': '产品搭配良好',
     },
@@ -9968,17 +9968,17 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ja': '日焼け止めがありません', 'ko': '자외선 차단제가 없어요', 'zh': '缺少防晒产品',
     },
     'cb_gap_goal': {
-      'en': 'Nothing covers your goal: {goal}', 'ru': 'Цель «{goal}» ничем не закрыта', 'es': 'Nada cubre tu objetivo: {goal}', 'de': 'Nichts deckt dein Ziel ab: {goal}',
+      'en': 'Nothing covers your goal: {goal}', 'ru': 'Цель «{goal}» ничем не закрыта', 'es': 'Nada cubre tu objetivo: {goal}', 'de': 'Nichts deckt Ihr Ziel ab: {goal}',
       'fr': 'Rien ne couvre ton objectif : {goal}', 'it': 'Niente copre il tuo obiettivo: {goal}', 'pt': 'Nada cobre o teu objetivo: {goal}', 'tr': 'Hedefini karşılayan ürün yok: {goal}',
       'ja': '目標「{goal}」に対応する製品がありません', 'ko': '[{goal}] 목표에 맞는 제품이 없어요', 'zh': '没有产品对应目标：{goal}',
     },
     'cb_tip_alternate': {
-      'en': 'Alternate {a} and {b}, never on the same day', 'ru': '{a} и {b} чередуйте, не наносите в один день', 'es': 'Alterna {a} y {b}: nunca el mismo día', 'de': '{a} und {b} abwechseln — nie am selben Tag',
+      'en': 'Alternate {a} and {b}, never on the same day', 'ru': '{a} и {b} чередуйте, не наносите в один день', 'es': 'Alterna {a} y {b}: nunca el mismo día', 'de': '{a} und {b} abwechseln, nie am selben Tag',
       'fr': 'Alterne {a} et {b} — jamais le même jour', 'it': 'Alterna {a} e {b}: mai lo stesso giorno', 'pt': 'Alterna {a} e {b} — nunca no mesmo dia', 'tr': '{a} ve {b} dönüşümlü — aynı gün değil',
       'ja': '{a}と{b}は交互に — 同じ日は避けて', 'ko': '{a}과(와) {b}은(는) 번갈아 쓰고 같은 날은 피하세요.', 'zh': '{a} 与 {b} 交替使用，不要同一天',
     },
     'cb_tip_combine': {
-      'en': 'Apply {a} and {b} together: they boost each other', 'ru': '{a} и {b} наносите вместе: они усиливают друг друга', 'es': 'Aplica {a} y {b} juntos: se potencian', 'de': '{a} und {b} zusammen auftragen — sie verstärken sich',
+      'en': 'Apply {a} and {b} together: they boost each other', 'ru': '{a} и {b} наносите вместе: они усиливают друг друга', 'es': 'Aplica {a} y {b} juntos: se potencian', 'de': '{a} und {b} zusammen auftragen: sie verstärken sich',
       'fr': 'Applique {a} et {b} ensemble — ils se renforcent', 'it': 'Applica {a} e {b} insieme: si potenziano', 'pt': 'Aplica {a} e {b} juntos — reforçam-se', 'tr': '{a} ve {b} birlikte — birbirini güçlendirir',
       'ja': '{a}と{b}は一緒に — 相乗効果があります', 'ko': '{a}과(와) {b}은(는) 함께 쓰면 서로 효과를 높여요.', 'zh': '{a} 与 {b} 一起使用，效果相互增强',
     },
@@ -10007,7 +10007,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
           '每天早上防晒是基础防护，不涂的话活性成分效果也会变差。',
     },
     'cb_tip_introduce_one': {
-      'en': 'Introduce queued products one at a time, a couple of weeks apart', 'ru': 'Средства из очереди вводите по одному, раз в пару недель', 'es': 'Introduce los productos en espera de uno en uno, cada par de semanas', 'de': 'Wartende Produkte einzeln einführen, im Abstand von zwei Wochen',
+      'en': 'Introduce queued products one at a time, a couple of weeks apart', 'ru': 'Средства из очереди вводите по одному, раз в пару недель', 'es': 'Introduce los productos en espera de uno en uno, cada par de semanas', 'de': 'Führen Sie wartende Produkte einzeln ein, im Abstand von zwei Wochen',
       'fr': 'Introduis les produits en attente un par un, à deux semaines d\'intervalle', 'it': 'Introduci i prodotti in coda uno alla volta, ogni due settimane', 'pt': 'Introduz os produtos em espera um de cada vez, com duas semanas de intervalo', 'tr': 'Sıradaki ürünleri birer birer, iki hafta arayla ekle',
       'ja': '待機中の製品は2週間おきに1つずつ追加を', 'ko': '대기 중인 제품은 2주 간격으로 하나씩 추가하세요.', 'zh': '排队的产品每隔两周依次引入',
     },
@@ -10048,14 +10048,14 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'care_empty': {
       'en': 'Scan and analyse at least two products first', 'ru': 'Сначала разберите хотя бы два продукта',
-      'es': 'Primero escanea y analiza al menos dos productos', 'de': 'Scanne und analysiere zuerst mindestens zwei Produkte',
+      'es': 'Primero escanea y analiza al menos dos productos', 'de': 'Scannen und analysieren Sie zuerst mindestens zwei Produkte',
       'fr': 'Scannez et analysez d’abord au moins deux produits', 'it': 'Prima scansiona e analizza almeno due prodotti',
       'pt': 'Primeiro escaneie e analise pelo menos dois produtos', 'tr': 'Önce en az iki ürünü tarat ve analiz et',
       'ja': 'まず2つ以上の製品をスキャンして分析してください', 'ko': '먼저 제품 2개 이상을 스캔해 분석하세요.', 'zh': '请先扫描并分析至少两款产品',
     },
     'care_error': {
       'en': 'Something went wrong. Try again', 'ru': 'Что-то пошло не так. Попробуйте ещё раз',
-      'es': 'Algo salió mal. Prueba otra vez', 'de': 'Etwas ist schiefgelaufen. Versuch es erneut',
+      'es': 'Algo salió mal. Prueba otra vez', 'de': 'Etwas ist schiefgelaufen. Versuchen Sie es erneut.',
       'fr': 'Une erreur est survenue. Réessayez', 'it': 'Qualcosa è andato storto. Riprova',
       'pt': 'Algo deu errado. Tente novamente', 'tr': 'Bir şeyler ters gitti. Tekrar dene',
       'ja': 'エラーが発生しました。もう一度お試しください', 'ko': '문제가 발생했어요. 다시 시도해 주세요.', 'zh': '出错了，请重试',
@@ -10122,7 +10122,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Failed to copy product. Try again.',
       'ru': 'Не удалось скопировать продукт. Попробуйте ещё раз.',
       'es': 'No se pudo copiar el producto. Prueba otra vez.',
-      'de': 'Produkt konnte nicht kopiert werden. Bitte erneut versuchen.',
+      'de': 'Das Produkt konnte nicht kopiert werden. Versuchen Sie es erneut.',
       'fr': 'Échec de la copie du produit. Veuillez réessayer.',
       'it': 'Non è possibile copiare il prodotto. Riprova.',
       'pt': 'Falha ao copiar o produto. Tente novamente.',
@@ -10161,7 +10161,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Enter your email address',
       'ru': 'Укажите почту',
       'es': 'Introduce tu correo electrónico.',
-      'de': 'E-Mail erforderlich!',
+      'de': 'Geben Sie Ihre E-Mail-Adresse ein.',
       'fr': 'E-mail requis\u00a0!',
       'it': "Inserisci l'indirizzo email.",
       'pt': 'E-mail obrigatório!',
@@ -10174,7 +10174,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Check your inbox for the reset link',
       'ru': 'Готово! Проверьте почту.',
       'es': '¡Listo! Revisa tu correo.',
-      'de': 'Fertig! Prüfe deinen Posteingang.',
+      'de': 'Fertig! Prüfen Sie Ihren Posteingang.',
       'fr': 'C\'est fait\u00a0! Vérifiez votre boîte mail.',
       'it': 'Fatto! Controlla la tua casella di posta.',
       'pt': 'Pronto! Verifique sua caixa de entrada.',
