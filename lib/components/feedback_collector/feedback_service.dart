@@ -38,8 +38,10 @@ class FeedbackService {
       state.feedbackBannerDismissed = false;
     }
 
-    // New user (never shown) → show immediately after first scan
-    if (state.feedbackLastShownMs == 0) return true;
+    // New user (never shown) → wait for the 4th successful scan. Asking after
+    // the first one asks before the product has earned an opinion, and the
+    // answer costs a store rating either way.
+    if (state.feedbackLastShownMs == 0) return state.successfulScans >= 4;
 
     // Returning user → 14-day cooldown from last shown
     final daysPassed =

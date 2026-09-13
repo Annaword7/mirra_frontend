@@ -358,31 +358,47 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                               },
                             ),
                           ),
-                          Padding(
-                            padding: EdgeInsetsDirectional.fromSTEB(
-                                16.0, 12.0, 16.0, 0.0),
-                            child: AppButton(
-                              label: FFLocalizations.of(context)
-                                  .getText('prof_end_session'),
-                              variant: AppButtonVariant.text,
-                              size: AppButtonSize.sm,
-                              onPressed: () async {
-                                HapticFeedback.lightImpact();
-                                FFAppState().isprouser = false;
-                                FFAppState().onboardingDone = false;
-                                FFAppState().analysesused = 0;
-                                FFAppState().weekResetDate = null;
-                                final prefs = await SharedPreferences.getInstance();
-                                await prefs.remove('hint_upload_seen');
-                                await prefs.remove('pro_preview_used');
-                                await revenue_cat.login(null);
-                                GoRouter.of(context).prepareAuthEvent();
-                                await authManager.signOut();
-                                GoRouter.of(context).clearRedirectLocation();
-                                context.goNamed(OnboardingQuizWidget.routeName);
-                              },
+                          // Кнопки «Завершить сессию» у гостя нет намеренно.
+                          // Выходить ему не из чего, а нажатие уничтожало
+                          // единственный экземпляр его личности: анонимная
+                          // сессия невосстановима, вместе с ней терялись
+                          // разборы и доступ к уже оплаченной подписке —
+                          // вернуть её можно было только через Restore, о
+                          // котором никто не догадывается. Заодно уходил
+                          // сброс бесплатной квоты в один тап.
+                          // Гостю остаются «Создать аккаунт» и «Войти» выше.
+                          //
+                          // В non-prod она нужна: без неё пройти путь нового
+                          // пользователя можно только через регистрацию и
+                          // удаление аккаунта. В прод-сборку не попадает.
+                          if (FFDevEnvironmentValues.isNonProd)
+                            Padding(
+                              padding: EdgeInsetsDirectional.fromSTEB(
+                                  16.0, 12.0, 16.0, 0.0),
+                              child: AppButton(
+                                label: 'Reset guest session (dev)',
+                                variant: AppButtonVariant.text,
+                                size: AppButtonSize.sm,
+                                onPressed: () async {
+                                  HapticFeedback.lightImpact();
+                                  FFAppState().isprouser = false;
+                                  FFAppState().onboardingDone = false;
+                                  FFAppState().analysesused = 0;
+                                  FFAppState().softPaywallShown = false;
+                                  FFAppState().successfulScans = 0;
+                                  FFAppState().saveProPromptShown = false;
+                                  final prefs =
+                                      await SharedPreferences.getInstance();
+                                  await prefs.remove('hint_upload_seen');
+                                  await prefs.remove('pro_preview_used');
+                                  await revenue_cat.login(null);
+                                  GoRouter.of(context).prepareAuthEvent();
+                                  await authManager.signOut();
+                                  GoRouter.of(context).clearRedirectLocation();
+                                  context.go('/');
+                                },
+                              ),
                             ),
-                          ),
                         ] else ...[
                           // ── Авторизованный: выйти + удалить ──
                           Padding(
@@ -398,7 +414,14 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                 FFAppState().isprouser = false;
                                 FFAppState().onboardingDone = false;
                                 FFAppState().analysesused = 0;
-                                FFAppState().weekResetDate = null;
+                                // Ending a session is specified to look
+                                // like a first install, and these two
+                                // are what make the first run different:
+                                // the one-time offer and the review
+                                // prompt's scan count.
+                                FFAppState().softPaywallShown = false;
+                                FFAppState().successfulScans = 0;
+                                FFAppState().saveProPromptShown = false;
                                 final prefs = await SharedPreferences.getInstance();
                                 await prefs.remove('hint_upload_seen');
                                 await prefs.remove('pro_preview_used');
@@ -406,7 +429,10 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                 GoRouter.of(context).prepareAuthEvent();
                                 await authManager.signOut();
                                 GoRouter.of(context).clearRedirectLocation();
-                                context.goNamed(OnboardingQuizWidget.routeName);
+                                // See the guest branch above: '/' resolves to
+                                // the scan page for the fresh guest session
+                                // that replaces the account being left.
+                                context.go('/');
                               },
                             ),
                           ),
@@ -424,21 +450,12 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                 await showModalBottomSheet(
                                   isScrollControlled: true,
                                   backgroundColor: Colors.transparent,
+                                  enableDrag: false,
                                   context: context,
-                                  builder: (context) {
-                                    return GestureDetector(
-                                      onTap: () {
-                                        FocusScope.of(context).unfocus();
-                                        FocusManager.instance.primaryFocus
-                                            ?.unfocus();
-                                      },
-                                      child: Padding(
-                                        padding:
-                                            MediaQuery.viewInsetsOf(context),
-                                        child: DeleteConfirmationWidget(),
-                                      ),
-                                    );
-                                  },
+                                  builder: (context) => Padding(
+                                    padding: MediaQuery.viewInsetsOf(context),
+                                    child: DeleteConfirmationWidget(),
+                                  ),
                                 ).then((value) => safeSetState(() {}));
                               },
                             ),

@@ -86,12 +86,24 @@ void main() async {
   WidgetsBinding.instance.addPostFrameCallback((_) {
     unawaited(fetchRemoteConfig());
 
-    unawaited(revenue_cat.initialize(
+    unawaited(revenue_cat
+        .initialize(
       "appl_nlqWcEvNVGNUCbMcdEcsbKbwNrV",
       "",
       debugLogEnabled: true,
       loadDataAfterLaunch: true,
-    ));
+    )
+        .then((_) {
+      // configure() lands after the auth stream has already fired, and
+      // revenue_cat.login() is a no-op while the SDK is unconfigured — so the
+      // listener in _MyAppState alone leaves RevenueCat on its anonymous
+      // app_user_id. Re-assert identity once the SDK is up: without it a
+      // purchase carries no Supabase UUID and the webhook has no user to
+      // resolve, which is how a paid subscription ends up owned by nobody.
+      if (currentUserUid.isNotEmpty) {
+        unawaited(revenue_cat.login(currentUserUid));
+      }
+    }));
   });
 }
 
@@ -139,6 +151,12 @@ class _MyAppState extends State<MyApp> {
           .toList();
   late Stream<BaseAuthUser> userStream;
 
+  /// Диагностика раскрутки (только non-prod). Снять после отладки.
+  int _debugAuthEvents = 0;
+
+  /// When the last guest session was requested — see the debounce below.
+  DateTime? _lastAnonMint;
+
   @override
   void initState() {
     super.initState();
@@ -147,12 +165,54 @@ class _MyAppState extends State<MyApp> {
     _router = createRouter(_appStateNotifier, widget.entryPage);
     userStream = miRRADevSupabaseUserStream()
       ..listen((user) {
+        if (FFDevEnvironmentValues.isNonProd) {
+          debugPrint('[diag] auth event #${++_debugAuthEvents}'
+              ' loggedIn=${user.loggedIn} uid=${user.uid}');
+        }
+        // A logged-out event that arrives while Supabase actually holds a
+        // session is stale, and acting on it is destructive: loggedIn flips
+        // false, every requireAuth route redirects to '/' (parking the tab the
+        // user asked for in _redirectLocation, which later fires and swaps the
+        // page out from under them), and '/' renders the guest entry screen.
+        // The launch-time anonymous sign-in can outrun the client's own
+        // startup event, so this ordering is reachable on a cold start.
+        if (!user.loggedIn && SupaFlow.client.auth.currentUser != null) {
+          return;
+        }
         _appStateNotifier.update(user);
         if (user.loggedIn) {
+          // Anonymous sessions count: the whole point of creating one up front
+          // is that RevenueCat gets a Supabase UUID before any purchase can
+          // happen.
+          unawaited(revenue_cat.login(user.uid));
           NotificationService.instance.onUserLogin();
           FirebaseCrashlytics.instance.setUserIdentifier(user.uid ?? '');
         } else {
+          unawaited(revenue_cat.login(null));
           FirebaseCrashlytics.instance.setUserIdentifier('');
+          // Mint the guest session from here rather than from a launch
+          // callback: driven by the auth stream it cannot start before the
+          // client has reported that there is no session, which is what made
+          // the two race in the first place.
+          //
+          // Sign-out goes through here too, by design: the app has no
+          // session-less state any more. Every screen keys off a uuid, and
+          // "signed out" would mean empty-string queries and a paywall with
+          // nobody to attach a purchase to. Ending a session returns the user
+          // to a fresh guest, which is what a first install looks like.
+          //
+          // Debounced: a sign-out or an account deletion can emit several
+          // logged-out events in a row, and one account per event would both
+          // litter the users table and spin the router through a rebuild each
+          // time. One guest per five seconds is far more than any real flow
+          // needs.
+          final now = DateTime.now();
+          if (_lastAnonMint == null ||
+              now.difference(_lastAnonMint!) > const Duration(seconds: 5)) {
+            _lastAnonMint = now;
+            unawaited(authManager
+                .signInAnonymously(appNavigatorKey.currentContext ?? context));
+          }
         }
       });
     jwtTokenStream.listen((_) {});
@@ -220,7 +280,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
-      title: 'MiRRA dev',
+      title: 'MiRRA',
       scrollBehavior: MyAppScrollBehavior(),
       localizationsDelegates: [
         FFLocalizationsDelegate(),

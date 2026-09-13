@@ -36,6 +36,9 @@ class Itemcard2Model extends FlutterFlowModel<Itemcard2Widget> {
   // addressed to 'sensitive' / 'acne_prone' regardless of the selected row.
   bool userIsSensitive = false;
   bool userIsAcneProne = false;
+  // The profile row itself, kept so the card can offer the quiz in place when
+  // no skin type has been set yet.
+  UsersRow? profileRow;
 
   @override
   void initState(BuildContext context) {

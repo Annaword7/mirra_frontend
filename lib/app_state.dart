@@ -29,6 +29,17 @@ class FFAppState extends ChangeNotifier {
       _onboardingDone = prefs.getBool('ff_onboardingDone') ?? _onboardingDone;
     });
     _safeInit(() {
+      _successfulScans = prefs.getInt('ff_successfulScans') ?? _successfulScans;
+    });
+    _safeInit(() {
+      _saveProPromptShown =
+          prefs.getBool('ff_saveProPromptShown') ?? _saveProPromptShown;
+    });
+    _safeInit(() {
+      _softPaywallShown =
+          prefs.getBool('ff_softPaywallShown') ?? _softPaywallShown;
+    });
+    _safeInit(() {
       _homePipelineDoneUsers =
           prefs.getStringList('ff_homePipelineDoneUsers') ??
               _homePipelineDoneUsers;
@@ -125,6 +136,35 @@ class FFAppState extends ChangeNotifier {
   set onboardingDone(bool value) {
     _onboardingDone = value;
     prefs.setBool('ff_onboardingDone', value);
+  }
+
+  // Successful analyses on this install. Gates the review prompt: asking after
+  // the very first scan asks before the product has earned an opinion.
+  int _successfulScans = 0;
+  int get successfulScans => _successfulScans;
+  set successfulScans(int value) {
+    _successfulScans = value;
+    prefs.setInt('ff_successfulScans', value);
+  }
+
+  // The "keep your subscription" prompt, offered once to a guest who has just
+  // paid. Separate from [softPaywallShown]: that one sells, this one protects
+  // what was already sold.
+  bool _saveProPromptShown = false;
+  bool get saveProPromptShown => _saveProPromptShown;
+  set saveProPromptShown(bool value) {
+    _saveProPromptShown = value;
+    prefs.setBool('ff_saveProPromptShown', value);
+  }
+
+  // The dismissible offer shown once, right after the first analysis result —
+  // the point where the product has proved itself and nothing has been asked
+  // for yet. The hard wall at the end of the free quota is a separate moment.
+  bool _softPaywallShown = false;
+  bool get softPaywallShown => _softPaywallShown;
+  set softPaywallShown(bool value) {
+    _softPaywallShown = value;
+    prefs.setBool('ff_softPaywallShown', value);
   }
 
   // Home 3-step "try all features" pipeline: hidden for good once a user has
@@ -288,10 +328,6 @@ class FFAppState extends ChangeNotifier {
   set analysesused(int value) {
     _analysesused = value;
   }
-
-  // Session-only: start of the current 7-day scan window (from users.last_reset_date).
-  // Null means the user has not started a window yet (0 scans used).
-  DateTime? weekResetDate;
 
   int _Producanalysstate = 0;
   int get Producanalysstate => _Producanalysstate;

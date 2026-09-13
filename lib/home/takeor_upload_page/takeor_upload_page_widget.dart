@@ -57,6 +57,11 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
       FFAppState().analysisloading = false;
       FFAppState().Producanalysstate = 0;
       FFAppState().uploadedimageurl = '';
+      // The launch-time anonymous sign-in may still be in flight on a cold
+      // start, and '' in a uuid column is a Postgres 22P02, not an empty
+      // result. Skipping is safe: _ensureCountrySet reloads both rows before
+      // the scan, after waiting for the session.
+      if (currentUserUid.isEmpty) return;
       _model.useranalyspage = await UsersTable().queryRows(
         queryFn: (q) => q.eqOrNull(
           'id',
@@ -207,15 +212,13 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                   (_model.extractedproductGalary?.jsonBody ?? ''),
                 ) ??
                 '';
-        FFAppState().extractedBrand =
-            ExtractproductinfoNEWBCNDCopyCall.brand(
-                  (_model.extractedproductGalary?.jsonBody ?? ''),
-                ) ??
-                '';
+        FFAppState().extractedBrand = ExtractproductinfoNEWBCNDCopyCall.brand(
+              (_model.extractedproductGalary?.jsonBody ?? ''),
+            ) ??
+            '';
         safeSetState(() {});
         _model.analyseImageProductName =
             await SearchingredientsNEWBCNDCall.call(
-
           host: FFDevEnvironmentValues().backendhost,
           imageId: ExtractproductinfoNEWBCNDCopyCall.iamgeID(
             (_model.extractedproductGalary?.jsonBody ?? ''),
@@ -227,8 +230,8 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
             (_model.extractedproductGalary?.jsonBody ?? ''),
           ),
           country: _model.countriesRaw
-              ?.where((e) =>
-                  e.id == _model.useranalyspage?.firstOrNull?.countryId)
+              ?.where(
+                  (e) => e.id == _model.useranalyspage?.firstOrNull?.countryId)
               .toList()
               .firstOrNull
               ?.code,
@@ -244,7 +247,8 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
         // Check for quota exhaustion before showing a generic error.
         if ((_model.extractedproductGalary?.statusCode ?? 0) == 429) {
           if (context.read<FFAppState>().isprouser) {
-            await ErrorPopupWidget.show(context, ErrorPopupType.subscriptionSync);
+            await ErrorPopupWidget.show(
+                context, ErrorPopupType.subscriptionSync);
           } else {
             await showModalBottomSheet(
               isScrollControlled: true,
@@ -261,13 +265,9 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                     padding: MediaQuery.viewInsetsOf(context),
                     child: LimitOutWidget(
                       limit: ExtractproductinfoNEWBCNDCopyCall.quotaUsed(
-                                (_model.extractedproductGalary?.jsonBody ?? ''),
-                              ) ??
+                            (_model.extractedproductGalary?.jsonBody ?? ''),
+                          ) ??
                           FFAppState().freeScanLimit,
-                      date: ExtractproductinfoNEWBCNDCopyCall.resetTime(
-                                (_model.extractedproductGalary?.jsonBody ?? ''),
-                              ) ??
-                          '',
                       isPro: false,
                     ),
                   ),
@@ -353,6 +353,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
               ),
             ));
           }
+          FFAppState().successfulScans = FFAppState().successfulScans + 1;
           FFAppState().feedbackPendingScan = true;
           if (!mounted) {
             FFAppState().uploadedimageurl = '';
@@ -402,7 +403,8 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
               email: 'from mobile app',
               form: 'tech message',
             );
-            await ErrorPopupWidget.show(context, ErrorPopupType.productNotFound);
+            await ErrorPopupWidget.show(
+                context, ErrorPopupType.productNotFound);
           }
           FFAppState().uploadedimageurl = '';
           FFAppState().analysisloading = false;
@@ -433,10 +435,10 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
               ),
             ),
           );
-        } else if ((_model.analyseImageProductName?.statusCode ?? 200) ==
-            429) {
+        } else if ((_model.analyseImageProductName?.statusCode ?? 200) == 429) {
           if (context.read<FFAppState>().isprouser) {
-            await ErrorPopupWidget.show(context, ErrorPopupType.subscriptionSync);
+            await ErrorPopupWidget.show(
+                context, ErrorPopupType.subscriptionSync);
           } else {
             await showModalBottomSheet(
               isScrollControlled: true,
@@ -453,9 +455,6 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                     padding: MediaQuery.viewInsetsOf(context),
                     child: LimitOutWidget(
                       limit: SearchingredientsNEWBCNDCall.limit(
-                        (_model.analyseImageProductName?.jsonBody ?? ''),
-                      )!,
-                      date: SearchingredientsNEWBCNDCall.resettime(
                         (_model.analyseImageProductName?.jsonBody ?? ''),
                       )!,
                       isPro: false,
@@ -477,8 +476,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
               ),
             ),
           );
-        } else if ((_model.analyseImageProductName?.statusCode ?? 200) ==
-            500) {
+        } else if ((_model.analyseImageProductName?.statusCode ?? 200) == 500) {
           FirebaseCrashlytics.instance.log(
             'Backend 500 on gallery analysis: body=${_model.analyseImageProductName?.jsonBody}',
           );
@@ -496,8 +494,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
           FFAppState().analysisloading = false;
           FFAppState().Producanalysstate = 0;
           safeSetState(() {});
-        } else if ((_model.analyseImageProductName?.statusCode ?? 200) ==
-            422) {
+        } else if ((_model.analyseImageProductName?.statusCode ?? 200) == 422) {
           await ErrorPopupWidget.show(context, ErrorPopupType.unsupported);
           FFAppState().uploadedimageurl = '';
           FFAppState().analysisloading = false;
@@ -511,8 +508,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
               ),
             ),
           );
-        } else if ((_model.analyseImageProductName?.statusCode ?? 200) ==
-            404) {
+        } else if ((_model.analyseImageProductName?.statusCode ?? 200) == 404) {
           final _gallImgId = ExtractproductinfoNEWBCNDCopyCall.iamgeID(
             (_model.extractedproductGalary?.jsonBody ?? ''),
           );
@@ -580,8 +576,11 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       context: context,
-      builder: (_) => Padding(
-        padding: MediaQuery.viewInsetsOf(context),
+      // sheetContext, not the page's: the builder reruns while the sheet is up,
+      // and reading State.context after this page has unmounted throws
+      // "defunct State" instead of rendering.
+      builder: (sheetContext) => Padding(
+        padding: MediaQuery.viewInsetsOf(sheetContext),
         child: const GuestPrefsSheet(),
       ),
     );
@@ -757,6 +756,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
           analysisResult.jsonBody,
         ),
       ));
+      FFAppState().successfulScans = FFAppState().successfulScans + 1;
       FFAppState().feedbackPendingScan = true;
       if (!mounted) {
         FFAppState().uploadedimageurl = '';
@@ -835,15 +835,16 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
               multiImage: false,
             );
           } catch (e, s) {
-            FirebaseCrashlytics.instance.recordError(e, s, fatal: false, reason: 'selectMedia (camera) failed');
+            FirebaseCrashlytics.instance.recordError(e, s,
+                fatal: false, reason: 'selectMedia (camera) failed');
             if (_shouldSetState) safeSetState(() {});
             return;
           }
           if (selectedMedia != null &&
-              selectedMedia.every((m) =>
-                  validateFileFormat(m.storagePath, context))) {
-            safeSetState(() =>
-                _model.isDataUploading_uploadImageSupabaseCamera = true);
+              selectedMedia
+                  .every((m) => validateFileFormat(m.storagePath, context))) {
+            safeSetState(
+                () => _model.isDataUploading_uploadImageSupabaseCamera = true);
             var selectedUploadedFiles = <FFUploadedFile>[];
 
             var downloadUrls = <String>[];
@@ -864,7 +865,8 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                 selectedFiles: selectedMedia,
               );
             } catch (e, s) {
-              FirebaseCrashlytics.instance.recordError(e, s, fatal: false, reason: 'Supabase upload failed (camera)');
+              FirebaseCrashlytics.instance.recordError(e, s,
+                  fatal: false, reason: 'Supabase upload failed (camera)');
               if (_shouldSetState) safeSetState(() {});
               return;
             } finally {
@@ -888,7 +890,8 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
             return;
           }
 
-          unawaited(AnalyticsService.instance.trackAnalysisStarted(source: 'camera'));
+          unawaited(
+              AnalyticsService.instance.trackAnalysisStarted(source: 'camera'));
           FFAppState().analysisloading = true;
           FFAppState().extractedProductName = '';
           FFAppState().extractedBrand = '';
@@ -938,8 +941,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                 ),
                 country: _model.countriesRaw
                     ?.where((e) =>
-                        e.id ==
-                        _model.useranalyspage?.firstOrNull?.countryId)
+                        e.id == _model.useranalyspage?.firstOrNull?.countryId)
                     .toList()
                     .firstOrNull
                     ?.code,
@@ -951,7 +953,8 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
               // Camera: extract-product-info failed.
               if ((_model.extractedproductcamera?.statusCode ?? 0) == 429) {
                 if (context.read<FFAppState>().isprouser) {
-                  await ErrorPopupWidget.show(context, ErrorPopupType.subscriptionSync);
+                  await ErrorPopupWidget.show(
+                      context, ErrorPopupType.subscriptionSync);
                 } else {
                   await showModalBottomSheet(
                     isScrollControlled: true,
@@ -968,15 +971,10 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                           padding: MediaQuery.viewInsetsOf(context),
                           child: LimitOutWidget(
                             limit: ExtractproductinfoNEWBCNDCopyCall.quotaUsed(
-                                      (_model.extractedproductcamera?.jsonBody ??
-                                          ''),
-                                    ) ??
+                                  (_model.extractedproductcamera?.jsonBody ??
+                                      ''),
+                                ) ??
                                 FFAppState().freeScanLimit,
-                            date: ExtractproductinfoNEWBCNDCopyCall.resetTime(
-                                      (_model.extractedproductcamera?.jsonBody ??
-                                          ''),
-                                    ) ??
-                                '',
                             isPro: false,
                           ),
                         ),
@@ -994,7 +992,8 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                   form: 'tech message',
                 );
 
-                await ErrorPopupWidget.show(context, ErrorPopupType.productNotFound);
+                await ErrorPopupWidget.show(
+                    context, ErrorPopupType.productNotFound);
                 final _camImgId = ExtractproductinfoNEWBCNDCopyCall.iamgeID(
                   (_model.extractedproductcamera?.jsonBody ?? ''),
                 );
@@ -1011,8 +1010,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
               return;
             }
 
-            if ((_model.analyseImageProductNameCamera?.statusCode ??
-                    0) ==
+            if ((_model.analyseImageProductNameCamera?.statusCode ?? 0) ==
                 200) {
               await _maybeOfferIngredientsPhoto(
                 searchJsonBody:
@@ -1037,9 +1035,9 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
               );
 
               _shouldSetState = true;
-              if ((_model.scientificanalysresultgalary?.succeeded ??
-                  true)) {
-                if ((_model.scientificanalysresultgalary?.statusCode ?? 200) == 202) {
+              if ((_model.scientificanalysresultgalary?.succeeded ?? true)) {
+                if ((_model.scientificanalysresultgalary?.statusCode ?? 200) ==
+                    202) {
                   await _showPendingResearchDialog(context);
                   unawaited(ResearchAndAnalyzeCall.call(
                     host: FFDevEnvironmentValues().backendhost,
@@ -1105,7 +1103,8 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                 final _cameraScientificStatusCode =
                     _model.scientificanalysresultgalary?.statusCode ?? 0;
                 if (_cameraScientificStatusCode == 422) {
-                  await ErrorPopupWidget.show(context, ErrorPopupType.unsupported);
+                  await ErrorPopupWidget.show(
+                      context, ErrorPopupType.unsupported);
                 } else {
                   await SendAppMessageCall.call(
                     token: currentJwtToken,
@@ -1114,7 +1113,8 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                     email: 'from mobile app',
                     form: 'tech message',
                   );
-                  await ErrorPopupWidget.show(context, ErrorPopupType.productNotFound);
+                  await ErrorPopupWidget.show(
+                      context, ErrorPopupType.productNotFound);
                 }
                 FFAppState().uploadedimageurl = '';
                 FFAppState().analysisloading = false;
@@ -1132,10 +1132,10 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                 return;
               }
             } else {
-              if ((_model.analyseImageProductNameCamera?.statusCode ??
-                      200) ==
+              if ((_model.analyseImageProductNameCamera?.statusCode ?? 200) ==
                   400) {
-                await ErrorPopupWidget.show(context, ErrorPopupType.productNotFound);
+                await ErrorPopupWidget.show(
+                    context, ErrorPopupType.productNotFound);
                 await ImagesTable().delete(
                   matchingRows: (rows) => rows.eqOrNull(
                     'id',
@@ -1149,11 +1149,11 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                 FFAppState().Producanalysstate = 0;
                 safeSetState(() {});
               } else {
-                if ((_model.analyseImageProductNameCamera?.statusCode ??
-                        200) ==
+                if ((_model.analyseImageProductNameCamera?.statusCode ?? 200) ==
                     429) {
                   if (context.read<FFAppState>().isprouser) {
-                    await ErrorPopupWidget.show(context, ErrorPopupType.subscriptionSync);
+                    await ErrorPopupWidget.show(
+                        context, ErrorPopupType.subscriptionSync);
                   } else {
                     await showModalBottomSheet(
                       isScrollControlled: true,
@@ -1171,13 +1171,8 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                             child: LimitOutWidget(
                               limit: SearchingredientsNEWBCNDCall.limit(
                                 (_model.analyseImageProductNameCamera
-                                            ?.jsonBody ??
-                                        ''),
-                              )!,
-                              date: SearchingredientsNEWBCNDCall.resettime(
-                                (_model.analyseImageProductNameCamera
-                                            ?.jsonBody ??
-                                        ''),
+                                        ?.jsonBody ??
+                                    ''),
                               )!,
                               isPro: false,
                             ),
@@ -1216,17 +1211,19 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                         ),
                       ),
                     );
-                    await ErrorPopupWidget.show(context, ErrorPopupType.generic);
+                    await ErrorPopupWidget.show(
+                        context, ErrorPopupType.generic);
                     safeSetState(() {});
                     FFAppState().uploadedimageurl = '';
                     FFAppState().analysisloading = false;
                     FFAppState().Producanalysstate = 0;
                     safeSetState(() {});
-                  } else if ((_model.analyseImageProductNameCamera
-                              ?.statusCode ??
+                  } else if ((_model
+                              .analyseImageProductNameCamera?.statusCode ??
                           200) ==
                       422) {
-                    await ErrorPopupWidget.show(context, ErrorPopupType.unsupported);
+                    await ErrorPopupWidget.show(
+                        context, ErrorPopupType.unsupported);
                     FFAppState().uploadedimageurl = '';
                     FFAppState().analysisloading = false;
                     FFAppState().Producanalysstate = 0;
@@ -1241,8 +1238,8 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                     );
                     if (_shouldSetState) safeSetState(() {});
                     return;
-                  } else if ((_model.analyseImageProductNameCamera
-                              ?.statusCode ??
+                  } else if ((_model
+                              .analyseImageProductNameCamera?.statusCode ??
                           200) ==
                       404) {
                     final _camImgId = ExtractproductinfoNEWBCNDCopyCall.iamgeID(
@@ -1251,7 +1248,8 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                     if (_camImgId != null) {
                       await _handleIngredientsNotFound(
                         imageId: _camImgId,
-                        languageCode: ExtractproductinfoNEWBCNDCopyCall.langcode(
+                        languageCode:
+                            ExtractproductinfoNEWBCNDCopyCall.langcode(
                           (_model.extractedproductcamera?.jsonBody ?? ''),
                         ),
                       );
@@ -1272,7 +1270,8 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                       form: 'tech message',
                     );
 
-                    await ErrorPopupWidget.show(context, ErrorPopupType.productNotFound);
+                    await ErrorPopupWidget.show(
+                        context, ErrorPopupType.productNotFound);
                     FFAppState().uploadedimageurl = '';
                     FFAppState().analysisloading = false;
                     FFAppState().Producanalysstate = 0;
@@ -1327,17 +1326,18 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
           );
         } catch (e, s) {
           debugPrint('[gallery] selectMedia threw: $e');
-          FirebaseCrashlytics.instance.recordError(e, s, fatal: false, reason: 'selectMedia (gallery) failed');
+          FirebaseCrashlytics.instance.recordError(e, s,
+              fatal: false, reason: 'selectMedia (gallery) failed');
           if (_shouldSetState) safeSetState(() {});
           return;
         }
         debugPrint('[gallery] selectMedia returned: '
             '${selectedMedia == null ? "null (cancelled)" : "${selectedMedia.length} file(s)"}');
         if (selectedMedia != null &&
-            selectedMedia.every((m) =>
-                validateFileFormat(m.storagePath, context))) {
-          safeSetState(() =>
-              _model.isDataUploading_uploadImageSupabaseGallary = true);
+            selectedMedia
+                .every((m) => validateFileFormat(m.storagePath, context))) {
+          safeSetState(
+              () => _model.isDataUploading_uploadImageSupabaseGallary = true);
           var selectedUploadedFiles = <FFUploadedFile>[];
 
           var downloadUrls = <String>[];
@@ -1359,13 +1359,15 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
             );
           } catch (e, s) {
             debugPrint('[gallery] Supabase upload threw: $e');
-            FirebaseCrashlytics.instance.recordError(e, s, fatal: false, reason: 'Supabase upload failed (gallery)');
+            FirebaseCrashlytics.instance.recordError(e, s,
+                fatal: false, reason: 'Supabase upload failed (gallery)');
             if (_shouldSetState) safeSetState(() {});
             return;
           } finally {
             _model.isDataUploading_uploadImageSupabaseGallary = false;
           }
-          debugPrint('[gallery] uploaded: files=${selectedUploadedFiles.length} '
+          debugPrint(
+              '[gallery] uploaded: files=${selectedUploadedFiles.length} '
               'urls=${downloadUrls.length} firstUrl='
               '${downloadUrls.isNotEmpty ? downloadUrls.first : "<none>"}');
           if (selectedUploadedFiles.length == selectedMedia.length &&
@@ -1550,7 +1552,10 @@ class _ScannerIllustrationState extends State<_ScannerIllustration>
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         gradient: RadialGradient(
-                          colors: [primary.withOpacity(0.08), Colors.transparent],
+                          colors: [
+                            primary.withOpacity(0.08),
+                            Colors.transparent
+                          ],
                         ),
                       ),
                     ),
@@ -1665,7 +1670,8 @@ class _HintCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           child: Padding(
             padding: EdgeInsets.all(expanded ? 16.0 : 12.0),
-            child: expanded ? _buildExpanded(context) : _buildCollapsed(context),
+            child:
+                expanded ? _buildExpanded(context) : _buildCollapsed(context),
           ),
         ),
       ),
@@ -1734,10 +1740,10 @@ class _HintCard extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                FFLocalizations.of(context).getText('c793vezr' /* Photo tips */),
+                FFLocalizations.of(context)
+                    .getText('c793vezr' /* Photo tips */),
                 style: FlutterFlowTheme.of(context).bodyMedium.override(
-                      fontFamily:
-                          FlutterFlowTheme.of(context).bodyMediumFamily,
+                      fontFamily: FlutterFlowTheme.of(context).bodyMediumFamily,
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 0,

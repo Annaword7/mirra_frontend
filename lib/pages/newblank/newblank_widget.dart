@@ -1,7 +1,5 @@
 import 'dart:async';
 
-import '/components/guest_prefs_sheet/guest_prefs_sheet_widget.dart';
-
 import '/flutter_flow/flutter_flow_theme.dart';
 
 import '/flutter_flow/flutter_flow_util.dart';
@@ -55,18 +53,13 @@ class _NewblankWidgetState extends State<NewblankWidget> {
 
     if (!mounted) return;
 
-    // Show prefs sheet FIRST — user is created only on "Continue" inside it.
-    final saved = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => const GuestPrefsSheet(),
-    );
-
-    // Tapping outside returns null — stay on page.
-    if (saved != true) return;
-
-    // GuestPrefsSheet.save() created the user and set the language.
+    // The prefs sheet used to stand here because it was what created the user.
+    // The anonymous session now exists from launch (see main.dart), and the
+    // sheet's remaining job — country — is asked by _ensureCountrySet right
+    // before the first scan, where the user has already committed.
+    //
+    // This screen is no longer part of the launch path: '/' opens the scan page
+    // directly. It stays reachable as a route only.
     // Navigate using the global key in case the widget was replaced.
     final navCtx = appNavigatorKey.currentContext;
     if (navCtx == null) return;

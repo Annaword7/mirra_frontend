@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import '/auth/auth_manager.dart';
+import '/backend/api_requests/api_calls.dart';
 import '/backend/supabase/supabase.dart';
 import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -192,6 +193,21 @@ class SupabaseAuthManager extends AuthManager
       // Migration is best-effort; never block the sign-in flow.
       debugPrint('claim_anonymous_scans failed for anon_uid=$anonUid: $e');
     }
+    // The claim moves scans, bag, regimens and the profile — not the
+    // subscription. On the Apple path the account is a NEW uuid, so a guest who
+    // had paid would land on a fresh row with subscription_plan = 'free' and
+    // appear to have lost what they bought. Ask the server to re-derive premium
+    // from RevenueCat, which resolves the old anonymous id as an alias of the
+    // new one and answers for the person rather than the row.
+    try {
+      final token = SupaFlow.client.auth.currentSession?.accessToken;
+      if (token != null) {
+        await SubscriptionSyncCall.call(token: token);
+      }
+    } catch (e) {
+      // Best-effort like the claim above: the TRANSFER webhook is the backstop.
+      debugPrint('subscription sync after claim failed: $e');
+    }
   }
 
   @override
@@ -209,19 +225,38 @@ class SupabaseAuthManager extends AuthManager
     return result;
   }
 
+  /// Диагностика раскрутки (только non-prod). Снять после отладки.
+  int _debugAnonMints = 0;
+
+  /// In-flight anonymous sign-in, shared by every concurrent caller.
+  Future<BaseAuthUser?>? _anonymousSignIn;
+
   @override
-  Future<BaseAuthUser?> signInAnonymously(BuildContext context) async {
+  Future<BaseAuthUser?> signInAnonymously(BuildContext context) {
+    // Re-use the live session if there is one: supabase's signInAnonymously()
+    // ALWAYS mints a brand-new user, so calling it twice (e.g. scan flow's
+    // _ensureCountrySet followed by GuestPrefsSheet save) orphaned the first
+    // anonymous account on every guest onboarding.
+    final existing = SupaFlow.client.auth.currentUser;
+    if (existing != null) {
+      final authUser = MiRRADevSupabaseUser(existing);
+      currentUser = authUser;
+      AppStateNotifier.instance.update(authUser);
+      return Future.value(authUser);
+    }
+    // That check only covers callers that arrive one after another. Two that
+    // overlap — the launch-time sign-in racing the scan flow's — both read a
+    // null session and both mint an account, leaving the first one orphaned
+    // along with whatever a purchase attached to it. Hand every caller in the
+    // window the same future instead.
+    return _anonymousSignIn ??= _signInAnonymously(context)
+        .whenComplete(() => _anonymousSignIn = null);
+  }
+
+  Future<BaseAuthUser?> _signInAnonymously(BuildContext context) async {
     try {
-      // Re-use the live session if there is one: supabase's signInAnonymously()
-      // ALWAYS mints a brand-new user, so calling it twice (e.g. scan flow's
-      // _ensureCountrySet followed by GuestPrefsSheet save) orphaned the first
-      // anonymous account on every guest onboarding.
-      final existing = SupaFlow.client.auth.currentUser;
-      if (existing != null) {
-        final authUser = MiRRADevSupabaseUser(existing);
-        currentUser = authUser;
-        AppStateNotifier.instance.update(authUser);
-        return authUser;
+      if (FFDevEnvironmentValues.isNonProd) {
+        debugPrint('[diag] minting anon #${++_debugAnonMints}');
       }
       final response = await SupaFlow.client.auth.signInAnonymously();
       final user = response.user;

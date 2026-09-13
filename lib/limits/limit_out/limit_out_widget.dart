@@ -14,12 +14,10 @@ class LimitOutWidget extends StatefulWidget {
   const LimitOutWidget({
     super.key,
     required this.limit,
-    required this.date,
     required this.isPro,
   });
 
   final int? limit;
-  final String? date;
   final bool? isPro;
 
   @override
@@ -109,17 +107,9 @@ class _LimitOutWidgetState extends State<LimitOutWidget> {
                           text: (widget.limit ?? 0).toString(),
                           style: const TextStyle(fontWeight: FontWeight.w700),
                         ),
-                        // «Ваш лимит будет обновлён {дата}» имеет смысл только
-                        // пока лимит вообще обновляется. Сервер отдаёт пустую
-                        // дату, когда обновления не будет, — без этой проверки
-                        // фраза обрывается на полуслове.
-                        if ((widget.date ?? '').isNotEmpty) ...[
-                          TextSpan(text: loc.getText('9iwfkse3')),
-                          TextSpan(
-                            text: widget.date!,
-                            style: const TextStyle(fontWeight: FontWeight.w700),
-                          ),
-                        ],
+                        // Дата сброса отсюда убрана: бесплатная квота
+                        // пожизненная, обновления не будет.
+                        TextSpan(text: loc.getText('9iwfkse3' /* free scans. */)),
                       ],
                     ),
                   ),

@@ -504,11 +504,20 @@ class _OnboardingProfileWidgetState extends State<OnboardingProfileWidget>
             onChanged: (lang) => setAppLanguage(context, lang),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
+        // Same label the quick-setup sheet puts above this dropdown.
+        _sectionLabel(FFLocalizations.of(context).getText('ocz602t7')),
+        const SizedBox(height: 10),
         wrapWithModel(
           model: _model.countryselectorModel,
           updateCallback: () => safeSetState(() {}),
-          child: CountryselectorWidget(textSize: 16),
+          // Same field styling as the language selector above.
+          child: CountryselectorWidget(
+            textSize: 16,
+            fillColor: theme.surfaceMuted,
+            borderRadius: 14,
+            elevation: 0,
+          ),
         ),
       ],
     );
