@@ -237,7 +237,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Lütfen açılır menüden bir seçenek seçin',
       'ja': 'ドロップダウンからオプションを選択してください',
       'ko': '드롭다운에서 옵션을 선택하세요',
-      'zh': '请从下拉菜单中选择一个选项',
+      'zh': '请从列表中选择一项',
     },
     'pw6ghio3': {
       'en': 'Enter a valid password',
@@ -276,7 +276,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Lütfen açılır menüden bir seçenek seçin',
       'ja': 'ドロップダウンからオプションを選択してください',
       'ko': '드롭다운에서 옵션을 선택하세요',
-      'zh': '请从下拉菜单中选择一个选项',
+      'zh': '请从列表中选择一项',
     },
     'o5q6qmi9': {
       'en': 'Create account',
@@ -315,7 +315,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Devam ederek şunları kabul etmiş olursun: ',
       'ja': '続行することで、以下に同意したものとみなされます ',
       'ko': '계속하면 다음에 동의하게 됩니다 ',
-      'zh': '继续即表示您同意我们的',
+      'zh': '继续即表示你同意我们的',
     },
     'np61e9wt': {
       'en': 'Terms and Privacy Policy',
@@ -425,7 +425,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Devam etmek için bilgilerini gir',
       'ja': '続行するには詳細を入力してください',
       'ko': '계속하려면 정보를 입력하세요',
-      'zh': '请输入您的信息以继续',
+      'zh': '请输入你的信息以继续',
     },
     'v6o9xcii': {
       'en': 'Email address',
@@ -516,7 +516,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Devam ederek şunları kabul etmiş olursun',
       'ja': '続行することで、以下に同意したものとみなされます',
       'ko': '계속하면 다음에 동의하게 됩니다',
-      'zh': '继续即表示您同意我们的',
+      'zh': '继续即表示你同意我们的',
     },
     'oksxunlm': {
       'en': 'Terms and Privacy Policy',
@@ -571,7 +571,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Aşağıya profil bilgilerini ekle',
       'ja': '下記にプロフィール詳細を追加してください',
       'ko': '아래에 프로필 정보를 추가하세요',
-      'zh': '在下方添加您的个人资料信息',
+      'zh': '说说你自己吧',
     },
     '7s3y7mvj': {
       'en': 'Profile photo ideas',
@@ -662,7 +662,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Ad gerekli.',
       'ja': '名は必須です。',
       'ko': '이름을 입력하세요.',
-      'zh': '名字为必填项。',
+      'zh': '请输入名字。',
     },
     'lwk5zvwl': {
       'en': 'Choose an option from the list',
@@ -675,7 +675,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Lütfen açılır menüden bir seçenek seçin',
       'ja': 'ドロップダウンからオプションを選択してください',
       'ko': '드롭다운에서 옵션을 선택하세요',
-      'zh': '请从下拉菜单中选择一个选项',
+      'zh': '请从列表中选择一项',
     },
     'kpzghah7': {
       'en': 'Enter your last name.',
@@ -688,7 +688,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Soyad gerekli.',
       'ja': '姓は必須です。',
       'ko': '성을 입력하세요.',
-      'zh': '姓氏为必填项。',
+      'zh': '请输入姓氏。',
     },
     'szaw5qld': {
       'en': 'Choose an option from the list',
@@ -701,7 +701,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Lütfen açılır menüden bir seçenek seçin',
       'ja': 'ドロップダウンからオプションを選択してください',
       'ko': '드롭다운에서 옵션을 선택하세요',
-      'zh': '请从下拉菜单中选择一个选项',
+      'zh': '请从列表中选择一项',
     },
     'pkkj80zk': {
       'en': 'Enter a username.',
@@ -714,7 +714,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Takma ad gerekli.',
       'ja': 'ニックネームは必須です。',
       'ko': '닉네임을 입력하세요.',
-      'zh': '昵称为必填项。',
+      'zh': '请输入用户名。',
     },
     'mg6kozzr': {
       'en': 'Choose an option from the list',
@@ -727,7 +727,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Lütfen açılır menüden bir seçenek seçin',
       'ja': 'ドロップダウンからオプションを選択してください',
       'ko': '드롭다운에서 옵션을 선택하세요',
-      'zh': '请从下拉菜单中选择一个选项',
+      'zh': '请从列表中选择一项',
     },
     'spc42q3x': {
       'en': 'Continue',
@@ -824,7 +824,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
           'Favori ürünlerini kategoriye göre düzenle ve kişisel notlar ekle—mükemmel rutinin her zaman elinin altında.',
       'ja': 'お気に入りの商品をカテゴリごとに整理し、メモを追加—理想のルーティンがいつでも手元に。',
       'ko': '즐겨찾는 제품을 카테고리별로 정리하고 개인 메모를 추가하세요—완벽한 루틴을 언제든 손쉽게.',
-      'zh': '按类别整理您喜欢的产品并添加个人备注——完美护肤方案，随时掌握。',
+      'zh': '把喜欢的产品整理进合集并添加备注。完美护肤方案，随时掌握。',
     },
     '15gvq4lh': {
       'en': 'Share your finds',
@@ -837,7 +837,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Keşiflerini paylaş',
       'ja': '見つけた商品をシェア',
       'ko': '발견한 제품 공유',
-      'zh': '分享您的发现',
+      'zh': '分享你的发现',
     },
     's7tdc3jt': {
       'en':
@@ -858,7 +858,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
           'Favori ürünlerini arkadaşlarınla paylaş veya onların önerilerini kaydet—koleksiyonunda sadece özenle analiz edilmiş ürünler.',
       'ja': 'お気に入り商品を友達と共有したり、友達のおすすめを保存—厳選された分析済み商品だけがコレクションに。',
       'ko': '즐겨찾는 제품을 친구와 공유하거나 추천을 저장하세요—철저히 분석된 제품만 내 컬렉션에 담을 수 있습니다.',
-      'zh': '与朋友分享喜欢的产品或保存他们的推荐——您的收藏只收录经过仔细分析的产品。',
+      'zh': '与朋友分享喜欢的产品，或保存他们的推荐。你的合集只收录仔细分析过的产品。',
     },
     '17ibyu4t': {
       'en': 'Back',
@@ -968,7 +968,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'PRO\'ya yükselt',
       'ja': 'PROにアップグレード',
       'ko': 'PRO로 업그레이드',
-      'zh': '升级到PRO',
+      'zh': '升级到 Pro',
     },
     'pmne5rlo': {
       'en': 'Hello, ',
@@ -1094,7 +1094,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Premium\'u dene',
       'ja': 'プレミアムを試す',
       'ko': '프리미엄 체험',
-      'zh': '试用高级版',
+      'zh': '试用 Pro',
     },
     '45rliy0n': {
       'en': 'Edit profile',
@@ -1159,7 +1159,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Bölgeniz',
       'ja': '地域',
       'ko': '내 지역',
-      'zh': '您的地区',
+      'zh': '你的地区',
     },
     '01vkpjw3': {
       'en': 'Sign out',
@@ -1308,7 +1308,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
           'Aşağıya e-posta adresinizi girerek şifre sıfırlama bağlantısı alacaksınız.',
       'ja': '下記にメールアドレスを入力すると、パスワードリセット用リンクが届きます。',
       'ko': '아래 이메일 주소를 입력하면 비밀번호 재설정 링크를 받게 됩니다.',
-      'zh': '输入下方邮箱地址后，您将收到重置密码的链接。',
+      'zh': '输入邮箱地址，我们会发送重置密码的链接。',
     },
     '6rbowge6': {
       'en': 'Email address',
@@ -1334,7 +1334,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'E-posta adresi gerekli.',
       'ja': 'メールアドレスは必須です。',
       'ko': '이메일 주소는 필수입니다.',
-      'zh': '邮箱地址为必填项。',
+      'zh': '请输入邮箱地址。',
     },
     'ppwv5em7': {
       'en': 'Choose an option from the list',
@@ -1347,7 +1347,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Lütfen açılır menüden bir seçenek seçin',
       'ja': 'ドロップダウンからオプションを選択してください',
       'ko': '드롭다운에서 옵션을 선택하세요',
-      'zh': '请从下拉菜单中选择一个选项',
+      'zh': '请从列表中选择一项',
     },
     'ba5totab': {
       'en': 'Send reset link',
@@ -1422,7 +1422,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Ad gerekli.',
       'ja': '名は必須です。',
       'ko': '이름을 입력하세요.',
-      'zh': '名字为必填项。',
+      'zh': '请输入名字。',
     },
     'epo4g4if': {
       'en': 'Choose an option from the list',
@@ -1435,7 +1435,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Lütfen açılır menüden bir seçenek seçin',
       'ja': 'ドロップダウンからオプションを選択してください',
       'ko': '드롭다운에서 옵션을 선택하세요',
-      'zh': '请从下拉菜单中选择一个选项',
+      'zh': '请从列表中选择一项',
     },
     '33bi6x4z': {
       'en': 'Enter your last name.',
@@ -1448,7 +1448,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Soyad gerekli.',
       'ja': '姓は必須です。',
       'ko': '성을 입력하세요.',
-      'zh': '姓氏为必填项。',
+      'zh': '请输入姓氏。',
     },
     'sz56qo2e': {
       'en': 'Choose an option from the list',
@@ -1461,7 +1461,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Lütfen açılır menüden bir seçenek seçin',
       'ja': 'ドロップダウンからオプションを選択してください',
       'ko': '드롭다운에서 옵션을 선택하세요',
-      'zh': '请从下拉菜单中选择一个选项',
+      'zh': '请从列表中选择一项',
     },
     'n0kk243i': {
       'en': 'Enter a username.',
@@ -1474,7 +1474,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Takma ad gerekli.',
       'ja': 'ニックネームは必須です。',
       'ko': '닉네임을 입력하세요.',
-      'zh': '昵称为必填项。',
+      'zh': '请输入用户名。',
     },
     'fczkxxb8': {
       'en': 'Choose an option from the list',
@@ -1487,7 +1487,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Lütfen açılır menüden bir seçenek seçin',
       'ja': 'ドロップダウンからオプションを選択してください',
       'ko': '드롭다운에서 옵션을 선택하세요',
-      'zh': '请从下拉菜单中选择一个选项',
+      'zh': '请从列表中选择一项',
     },
     'bwi4v4ib': {
       'en': 'Save changes',
@@ -1584,7 +1584,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'PRO\'YA YÜKSELT',
       'ja': 'PROにアップグレード',
       'ko': 'PRO로 업그레이드',
-      'zh': '升级到PRO',
+      'zh': '升级到 Pro',
     },
     '8u51n3um': {
       'en': ' ≈ ',
@@ -1712,7 +1712,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ko':
           '구매를 확인하면 Apple ID로 결제됩니다. 기간 종료 최소 24시간 전에 자동 갱신을 해제하지 않으면 현재 가격으로 자동 갱신됩니다.\nApp Store 계정 설정에서 자동 갱신을 해제하고 구독을 관리할 수 있습니다.',
       'zh':
-          '确认购买后，费用将通过您的Apple ID扣除。除非在订阅期结束前至少24小时关闭自动续订，否则订阅将按届时价格自动续订。\n您可以在App Store账户设置中关闭自动续订并管理订阅。',
+          '确认购买后，费用将通过你的Apple ID扣除。除非在订阅期结束前至少24小时关闭自动续订，否则订阅将按届时价格自动续订。\n你可以在App Store账户设置中关闭自动续订并管理订阅。',
     },
     'bv3k9mp1': {
       'en': 'BEST VALUE',
@@ -1751,7 +1751,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Aboneliğiniz başarıyla geri yüklendi.',
       'ja': 'ご利用中のサブスクリプションが正常に復元されました。',
       'ko': '구독이 성공적으로 복원되었습니다.',
-      'zh': '您的订阅已成功恢复。',
+      'zh': '你的订阅已恢复。',
     },
     'pu7x1ck3': {
       'en': 'Purchase cancelled.',
@@ -1792,7 +1792,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Bir şeyler ters gitti. Satın alımlarınızı geri yükleyemedik.',
       'ja': '問題が発生しました。購入履歴を復元できませんでした。',
       'ko': '문제가 발생했습니다. 구매 내역을 복원할 수 없습니다.',
-      'zh': '出现问题。我们无法恢复您的购买。',
+      'zh': '无法恢复你的购买，请重试。',
     },
     'j321mb3y': {
       'en': 'Privacy Policy',
@@ -1876,7 +1876,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'PRO plan',
       'ja': 'PROプラン',
       'ko': 'PRO 플랜',
-      'zh': 'PRO 方案',
+      'zh': 'Pro 方案',
     },
     '8q04ptlr': {
       'en': '/',
@@ -1938,7 +1938,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Ürününüzü analiz edin',
       'ja': '製品を分析する',
       'ko': '제품 분석하기',
-      'zh': '分析您的产品',
+      'zh': '分析你的产品',
     },
     'h67zdlkd': {
       'en':
@@ -1985,7 +1985,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Ürün tanımlanıyor...',
       'ja': '製品を認識中...',
       'ko': '제품 인식 중...',
-      'zh': '识别产品中...',
+      'zh': '正在识别产品…',
     },
     'f0iwc245': {
       'en': 'Analysing ingredients',
@@ -1998,7 +1998,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'İçerikler analiz ediliyor...',
       'ja': '成分を分析中...',
       'ko': '성분 분석 중...',
-      'zh': '分析成分中...',
+      'zh': '正在分析成分…',
     },
     'jfb7hpl8': {
       'en': 'Preparing your report',
@@ -2011,7 +2011,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Raporunuz hazırlanıyor...',
       'ja': 'レポートを作成中...',
       'ko': '보고서 준비 중...',
-      'zh': '准备报告中...',
+      'zh': '正在准备报告…',
     },
     'xirptk6c': {
       'en': 'Take a photo',
@@ -2182,7 +2182,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Bölgenizdeki yerel satıcıları ve mevcut ürünleri göstereceğiz',
       'ja': 'お近くの販売店や地域で購入可能な商品を表示します',
       'ko': '내 지역에서 구매 가능한 소매점과 제품을 보여드릴게요',
-      'zh': '我们会显示您所在地区的本地零售商和可购产品',
+      'zh': '我们会显示你所在地区的零售商和可购产品',
     },
     '8pwht5ld': {
       'en': 'Your region',
@@ -2195,7 +2195,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Bölgeniz',
       'ja': '地域',
       'ko': '내 지역',
-      'zh': '您的地区',
+      'zh': '你的地区',
     },
   },
   // newblank
@@ -2224,7 +2224,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Cilt bakım uzmanınız',
       'ja': 'あなたのスキンケア専門家',
       'ko': '당신의 스킨케어 전문가',
-      'zh': '您的护肤专家',
+      'zh': '你的护肤专家',
     },
     '5t7iunbg': {
       'en':
@@ -2245,7 +2245,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
           'Formül etkinliği ve içerik güvenliği hakkında tam bilgi alın—sadece bir fotoğraf çekin.',
       'ja': '処方の効果や成分の安全性を完全解析—写真を撮るだけでOK。',
       'ko': '포뮬러 효과와 성분 안전성에 대한 완벽한 인사이트를 사진 한 장으로 확인하세요.',
-      'zh': '获取配方功效和成分安全的完整洞察——只需拍照。',
+      'zh': '拍张照，就能看到配方是否有效、成分是否安全。',
     },
     '7ujfcyzd': {
       'en': 'Get started',
@@ -2396,7 +2396,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'En Olumsuz İçerikler',
       'ja': '主なネガティブ成分',
       'ko': '주요 유해 성분',
-      'zh': '主要负面成分',
+      'zh': '主要风险成分',
     },
     'more_in_pro': {
       'en': 'more in Pro',
@@ -2409,7 +2409,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'PRO\'da daha fazlası',
       'ja': 'PROでもっと見る',
       'ko': 'PRO에서 더 보기',
-      'zh': 'PRO查看更多',
+      'zh': 'Pro 中查看更多',
     },
     'gs46omyo': {
       'en': 'Top active ingredients',
@@ -2461,7 +2461,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Geri bildiriminiz',
       'ja': 'ご意見',
       'ko': '피드백 남기기',
-      'zh': '您的反馈',
+      'zh': '你的反馈',
     },
     'e2fxci9s': {
       'en': 'Was this analysis helpful? ',
@@ -2534,7 +2534,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
           'Şu anda burada bir şey yok. Bu ürün için kişisel notlarınızı ekleyin.',
       'ja': '現在、ここには何もありません。この製品の個人メモを追加しましょう。',
       'ko': '현재 아무 내용이 없습니다. 이 제품에 대한 개인 메모를 추가해보세요.',
-      'zh': '此处暂无内容。为该产品添加您的个人笔记。',
+      'zh': '此处暂无内容。为该产品添加你的笔记。',
     },
     'd7zoo4qj': {
       'en': 'Add to favourites',
@@ -2573,7 +2573,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Herkese gizle',
       'ja': '公開から非表示',
       'ko': '공개에서 숨기기',
-      'zh': '对公众隐藏',
+      'zh': '从目录中隐藏',
     },
     'ves7p6f3': {
       'en': 'Show in catalogue',
@@ -2586,7 +2586,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Ürünü herkese açık yap',
       'ja': '製品を公開',
       'ko': '제품 공개하기',
-      'zh': '公开产品',
+      'zh': '在目录中显示',
     },
     'xkz8m3p1': {
       'en': 'Share link',
@@ -2665,7 +2665,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Kozmetik ürünleri kaydetmek için ücretsiz hesap oluştur',
       'ja': '無料アカウントを作れば、コスメを保存できます',
       'ko': '무료 계정을 만들면 화장품을 저장할 수 있어요',
-      'zh': '注册免费账号，即可保存美妆产品',
+      'zh': '注册免费账号，即可保存产品',
     },
     'copy_login_btn': {
       'en': 'Sign in',
@@ -2790,7 +2790,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'PRO',
       'ja': 'PRO',
       'ko': 'PRO',
-      'zh': 'PRO',
+      'zh': 'Pro',
     },
     'mcrnylah': {
       'en': 'Welcome to Mirra Pro',
@@ -2803,7 +2803,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Mirra Pro\'ya Hoş Geldiniz',
       'ja': 'Mirra Proへようこそ',
       'ko': 'Mirra Pro에 오신 것을 환영합니다',
-      'zh': '欢迎使用Mirra Pro',
+      'zh': '欢迎使用 Mirra Pro',
     },
     'l13naqtt': {
       'en': '200 product analyses per month',
@@ -2816,7 +2816,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Aylık 200 analiz isteği',
       'ja': '月200回の分析リクエスト',
       'ko': '월 200회 분석 요청',
-      'zh': '每月200次分析请求',
+      'zh': '每月200次产品分析',
     },
     '8slgbpit': {
       'en': 'Save to collections',
@@ -2842,7 +2842,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Keşiflerini paylaş',
       'ja': '見つけた商品をシェア',
       'ko': '발견한 제품 공유',
-      'zh': '分享您的发现',
+      'zh': '分享你的发现',
     },
     'nzvzb6kk': {
       'en': 'High-rated formulas',
@@ -2939,7 +2939,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Hesabınızı silmek istediğinizden emin misiniz?',
       'ja': '本当にアカウントを削除しますか？',
       'ko': '정말로 계정을 삭제하시겠습니까?',
-      'zh': '确定要删除您的账户吗？',
+      'zh': '确定要删除你的账户吗？',
     },
     '9fm4u5g5': {
       'en': 'All your products will be deleted.',
@@ -2952,7 +2952,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Eklediğiniz tüm ürünler silinecek.',
       'ja': '追加した製品はすべて削除されます。',
       'ko': '추가한 모든 제품이 삭제됩니다.',
-      'zh': '您添加的所有产品都将被删除。',
+      'zh': '你添加的所有产品都将被删除。',
     },
     'qh4oraql': {
       'en': 'Delete account',
@@ -2994,7 +2994,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Yeni koleksiyon oluştur',
       'ja': '新しいコレクションを作成',
       'ko': '새 컬렉션 만들기',
-      'zh': '创建新合集',
+      'zh': '创建合集',
     },
     'l4d5m49x': {
       'en': 'Name your collection',
@@ -3007,7 +3007,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Aşağıya koleksiyon detaylarını ekleyin',
       'ja': '下記にコレクションの詳細を追加',
       'ko': '아래에 컬렉션 정보를 입력하세요',
-      'zh': '在下方添加合集详情',
+      'zh': '给合集起个名字',
     },
     'azcd4b5c': {
       'en': 'Collection name',
@@ -3033,7 +3033,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Başlık gerekli.',
       'ja': 'タイトルは必須です。',
       'ko': '제목은 필수입니다.',
-      'zh': '标题为必填项。',
+      'zh': '请输入名称。',
     },
     '5ylzoaso': {
       'en': 'Choose an option from the list',
@@ -3046,7 +3046,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Lütfen açılır menüden bir seçenek seçin',
       'ja': 'ドロップダウンからオプションを選択してください',
       'ko': '드롭다운에서 옵션을 선택하세요',
-      'zh': '请从下拉菜单中选择一个选项',
+      'zh': '请从列表中选择一项',
     },
     'h68noqox': {
       'en': 'Create',
@@ -3101,7 +3101,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Koleksiyonu sil?',
       'ja': 'コレクションを削除しますか？',
       'ko': '컬렉션을 삭제할까요?',
-      'zh': '删除收藏？',
+      'zh': '删除合集？',
     },
     'fr6pjcbf_del_body': {
       'en': 'All products in this collection will also be deleted.',
@@ -3114,7 +3114,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Bu koleksiyondaki tüm ürünler de silinecek.',
       'ja': 'このコレクション内のすべての製品も削除されます。',
       'ko': '이 컬렉션의 모든 제품도 삭제됩니다.',
-      'zh': '该收藏中的所有产品也将被删除。',
+      'zh': '该合集中的所有产品也将被删除。',
     },
     'cfmx4p6n': {
       'en': 'Name',
@@ -3127,7 +3127,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Başlık',
       'ja': 'タイトル',
       'ko': '제목',
-      'zh': '标题',
+      'zh': '名称',
     },
     'czl8suqe': {
       'en': 'Enter a collection name.',
@@ -3140,7 +3140,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Başlık gerekli.',
       'ja': 'タイトルは必須です。',
       'ko': '제목은 필수입니다.',
-      'zh': '标题为必填项。',
+      'zh': '请输入名称。',
     },
     'zvzfz7u0': {
       'en': 'Choose an option from the list',
@@ -3153,7 +3153,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Lütfen açılır menüden bir seçenek seçin',
       'ja': 'ドロップダウンからオプションを選択してください',
       'ko': '드롭다운에서 옵션을 선택하세요',
-      'zh': '请从下拉菜单中选择一个选项',
+      'zh': '请从列表中选择一项',
     },
     'mkoyjpvu': {
       'en': 'This field is required',
@@ -3166,7 +3166,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Alan gerekli',
       'ja': '必須項目です',
       'ko': '필수 입력 항목입니다',
-      'zh': '必填项',
+      'zh': '请填写此项',
     },
     'u3eh8pby': {
       'en': 'Choose an option from the list',
@@ -3179,7 +3179,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Lütfen açılır menüden bir seçenek seçin',
       'ja': 'ドロップダウンからオプションを選択してください',
       'ko': '드롭다운에서 옵션을 선택하세요',
-      'zh': '请从下拉菜单中选择一个选项',
+      'zh': '请从列表中选择一项',
     },
     'ifhesf3b': {
       'en': 'Save changes',
@@ -3221,7 +3221,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Albüm boş...',
       'ja': 'アルバムが空です…',
       'ko': '앨범이 비어 있습니다...',
-      'zh': '相册为空…',
+      'zh': '合集为空',
     },
   },
   // premiumFeaturesList
@@ -3287,7 +3287,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
           'Maksimum analiz sayısına ulaştınız.\nPro\'ya yükseltin veya destekle iletişime geçin.',
       'ja': '分析回数の上限に達しました。\nProにアップグレードするか、サポートにお問い合わせください。',
       'ko': '최대 분석 횟수에 도달했습니다.\nPRO로 업그레이드하거나 고객 지원에 문의하세요.',
-      'zh': '你已达到最大分析次数。\n升级至PRO或联系客服获取帮助。',
+      'zh': '免费分析次数已用完。\n升级到 Pro 或联系客服。',
     },
     'enziwu64': {
       'en': 'Got it',
@@ -3316,7 +3316,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Yorumunuzu buraya bırakın',
       'ja': 'ここにレビューを入力してください',
       'ko': '여기에 리뷰를 남겨주세요',
-      'zh': '请在此留下你的评价',
+      'zh': '留下你的评价',
     },
     'is69hoea': {
       'en': 'Your feedback helps us make the app better',
@@ -3331,7 +3331,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
           'Geri bildiriminiz ürünümüzü daha hızlı geliştirmemize yardımcı olur',
       'ja': 'フィードバックは製品開発の助けになります',
       'ko': '피드백은 제품 개발에 큰 도움이 됩니다',
-      'zh': '反馈有助于我们更快完善产品',
+      'zh': '你的反馈帮助我们改进应用',
     },
     'l1p9g6sy': {
       'en': 'Short description',
@@ -3357,7 +3357,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Buraya mesaj yazın',
       'ja': 'ここにメッセージを入力',
       'ko': '여기에 메시지를 입력하세요',
-      'zh': '在此输入消息',
+      'zh': '输入你的留言',
     },
     '6nbvew2p': {
       'en': 'Enter a short description.',
@@ -3370,7 +3370,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Başlık gerekli.',
       'ja': 'タイトルは必須です。',
       'ko': '제목은 필수입니다.',
-      'zh': '标题为必填项。',
+      'zh': '请输入简短描述。',
     },
     'kmqitvxn': {
       'en': 'Choose an option from the list',
@@ -3383,7 +3383,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Lütfen açılır menüden bir seçenek seçin',
       'ja': 'ドロップダウンからオプションを選択してください',
       'ko': '드롭다운에서 옵션을 선택하세요',
-      'zh': '请从下拉菜单中选择一个选项',
+      'zh': '请从列表中选择一项',
     },
     '35sexy68': {
       'en': 'This field is required',
@@ -3396,7 +3396,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Alan gerekli',
       'ja': '必須項目です',
       'ko': '필수 입력 항목입니다',
-      'zh': '必填项',
+      'zh': '请填写此项',
     },
     '36k4g97w': {
       'en': 'Choose an option from the list',
@@ -3409,7 +3409,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Lütfen açılır menüden bir seçenek seçin',
       'ja': 'ドロップダウンからオプションを選択してください',
       'ko': '드롭다운에서 옵션을 선택하세요',
-      'zh': '请从下拉菜单中选择一个选项',
+      'zh': '请从列表中选择一项',
     },
     '0n0273ug': {
       'en': 'Send',
@@ -3454,7 +3454,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Pro\'ya güncelle',
       'ja': 'Proにアップグレード',
       'ko': 'PRO 업데이트',
-      'zh': '升级到Pro',
+      'zh': '升级到 Pro',
     },
   },
   // deleteitem
@@ -3618,7 +3618,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Pro\'ya yükselt',
       'ja': 'Proにアップグレード',
       'ko': 'PRO로 업그레이드',
-      'zh': ' 升级到Pro',
+      'zh': '升级到 Pro',
     },
   },
   // countryselector
@@ -3790,7 +3790,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
           'Şu anda burada bir şey yok. Bu ürün için kişisel notlarınızı ekleyin.',
       'ja': '現在、ここには何もありません。この製品の個人メモを追加しましょう。',
       'ko': '현재 아무 내용이 없습니다. 이 제품에 대한 개인 메모를 추가해보세요.',
-      'zh': '此处暂无内容。为该产品添加您的个人笔记。',
+      'zh': '此处暂无内容。为该产品添加你的笔记。',
     },
   },
   // sammary
@@ -3906,7 +3906,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Öğeyi Kopyala',
       'ja': 'アイテムをコピー',
       'ko': '항목 복사',
-      'zh': '复制项目',
+      'zh': '复制产品',
     },
     'p2cdk61c': {
       'en': 'Are you sure you want to copy this product? ',
@@ -3920,7 +3920,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Bu öğeyi ürünlerinize kopyalamak istediğinizden emin misiniz? ',
       'ja': 'このアイテムをあなたの製品にコピーしますか？',
       'ko': '이 항목을 내 제품에 복사하시겠습니까? ',
-      'zh': '确定要将此项目复制到你的产品中吗？',
+      'zh': '确定要复制这款产品吗？',
     },
     '5gas3j6n': {
       'en': 'Cancel',
@@ -3962,7 +3962,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Koleksiyonların',
       'ja': 'あなたのコレクション',
       'ko': '내 컬렉션',
-      'zh': '你的收藏',
+      'zh': '你的合集',
     },
     'd37etdgk': {
       'en': 'Save favourites, build routines, share your picks',
@@ -3988,7 +3988,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Koleksiyon oluştur',
       'ja': 'コレクションを作成',
       'ko': '컬렉션 만들기',
-      'zh': '创建收藏',
+      'zh': '创建合集',
     },
   },
   // topratedproductspage
@@ -4046,7 +4046,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Bir ürün tara',
       'ja': '製品をスキャン',
       'ko': '제품 스캔',
-      'zh': '扫码产品',
+      'zh': '扫描产品',
     },
   },
   // albumslist
@@ -4220,7 +4220,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Ürün gizlendi — Artık En Yüksek Puanlılar\'da görünmeyecek',
       'ja': '製品が非表示になりました — トップ評価には表示されません',
       'ko': '제품이 숨겨졌습니다 — 더 이상 Top Rated에 표시되지 않습니다',
-      'zh': '产品已隐藏 — 不再显示在高分榜',
+      'zh': '产品已隐藏，不再显示在高分榜',
     },
     'h4qorptg': {
       'en': 'Cancel',
@@ -4288,7 +4288,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Panoya ekle',
       'ja': 'ボードに追加',
       'ko': '보드에 추가',
-      'zh': '添加到看板',
+      'zh': '添加到合集',
     },
     'fab_add_favourite': {
       'en': 'Add to favourites',
@@ -4340,7 +4340,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Herkese açık yap',
       'ja': '公開する',
       'ko': '공개로 전환',
-      'zh': '设为公开',
+      'zh': '显示',
     },
     'fab_spam': {
       'en': 'Report spam',
@@ -4423,7 +4423,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Ürün kartı kaydetme formatını seçin',
       'ja': '保存する製品カードのフォーマットを選択してください',
       'ko': '제품 카드 저장 형식을 선택하세요',
-      'zh': '请选择要保存的产品卡片格式',
+      'zh': '选择卡片格式保存',
     },
     'himmmtup': {
       'en': 'Story',
@@ -4830,7 +4830,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Yorumunuzu yazın...',
       'ja': 'コメントを書く...',
       'ko': '댓글을 작성하세요...',
-      'zh': '写下你的评论...',
+      'zh': '写下你的评论…',
     },
     'fc_neg_email': {
       'en': 'Email (optional)',
@@ -4905,7 +4905,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
           'この商品の成分リストが見つかりませんでした。お住まいの国では広く流通していない可能性があります。ご共有ありがとうございます！手動で処理し、データベースに追加します。',
       'ko':
           '이 제품의 성분 목록을 찾을 수 없습니다 — 해당 국가에서 널리 제공되지 않을 수 있습니다. 공유해주셔서 감사합니다! 수동으로 처리 후 데이터베이스에 추가하겠습니다.',
-      'zh': '我们未能找到该产品的成分列表——可能在你所在国家尚未广泛提供。感谢你的分享！我们会人工处理并添加到数据库中。',
+      'zh': '无法找到该产品的成分列表，可能在你所在国家尚未广泛提供。感谢你的分享，我们会人工处理并添加到数据库中。',
     },
     'err_enter_ingredients_manually': {
       'en': 'Enter ingredients manually',
@@ -5137,7 +5137,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Araştırma devam ediyor',
       'ja': '調査中',
       'ko': '분석 진행 중',
-      'zh': '研究进行中',
+      'zh': '分析进行中',
     },
     'analysis_pending_body': {
       'en':
@@ -5276,7 +5276,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Dudak & Balm',
       'ja': 'リップ＆バーム',
       'ko': '립 & 밤',
-      'zh': '唇部&润唇膏',
+      'zh': '唇部和润唇膏',
     },
     'cat_makeup': {
       'en': 'Makeup',
@@ -5337,7 +5337,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Artık PRO’sun',
       'ja': 'PROになりました',
       'ko': '이제 PRO예요',
-      'zh': '你已升级为 PRO',
+      'zh': '你已升级为 Pro',
     },
     'savepro_body': {
       'en': 'One step to keep it: sign in, and your subscription and scans move with you to any device.',
@@ -5602,7 +5602,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
           'Bazı içerikler hâlâ araştırılıyor. Tam analiz yaklaşık 30 saniye içinde hazır olacak — ana ekranda görecek ve bildirim alacaksın.',
       'ja': '一部成分は現在も調査中です。完全な分析結果は約30秒後にホーム画面で表示され、通知も届きます。',
       'ko': '일부 성분은 아직 연구 중입니다. 전체 분석은 약 30초 후에 준비되며, 홈 화면에서 확인하고 알림을 받게 됩니다.',
-      'zh': '部分成分仍在研究中。完整分析将在约30秒后完成——你将在首页看到并收到通知。',
+      'zh': '部分成分仍在研究中。完整分析约30秒后完成，你将在首页看到并收到通知。',
     },
     'tu_button': {
       'en': 'OK',
@@ -5683,7 +5683,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Vitamin C en iyi pH 3.5\'in altında çalışır — yani formül önemli',
       'ja': 'ビタミンCはpH3.5未満で最も効果的 — 処方が重要です',
       'ko': 'Vitamin C는 pH 3.5 이하에서 가장 효과적이에요 — 포뮬라가 중요합니다',
-      'zh': '维生素C在pH低于3.5时效果最佳——配方很重要',
+      'zh': '维生素C在pH低于3.5时效果最佳，因此配方很重要',
     },
     'al_fact_4': {
       'en': 'Retinol speeds up cell turnover, so start slow to avoid irritation',
@@ -5701,7 +5701,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
           'Retinol hücre yenilenmesini hızlandırır — tahrişi önlemek için yavaş başla',
       'ja': 'レチノールは細胞の生まれ変わりを促進 — 刺激を避けるため少量から始めましょう',
       'ko': 'Retinol은 세포 재생을 촉진합니다 — 자극을 피하려면 천천히 시작하세요',
-      'zh': '视黄醇加速细胞更新——初用请慢慢适应以避免刺激',
+      'zh': '视黄醇加速细胞更新，初用请慢慢适应以避免刺激',
     },
     'al_fact_5': {
       'en':
@@ -5719,7 +5719,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Seramidler cilt hücreleri arasındaki "harçtır" — nemi hapsederler',
       'ja': 'セラミドは細胞間の“モルタル” — 水分を閉じ込めます',
       'ko': 'Ceramides는 피부 세포 사이의 \'시멘트\' 역할을 하며 수분을 가둡니다',
-      'zh': '神经酰胺是皮肤细胞间的“砂浆”——能锁住水分',
+      'zh': '神经酰胺是皮肤细胞间的“砂浆”，能锁住水分',
     },
     'al_fact_6': {
       'en': 'SPF 30 blocks about 97% of UVB rays; SPF 50 blocks about 98%',
@@ -5805,7 +5805,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
           'Squalane cildin doğal sebumunu taklit eder — tüm cilt tipleri için uygundur',
       'ja': 'スクワランは皮脂に似ており、全ての肌タイプに最適です',
       'ko': 'Squalane은 피부의 천연 피지를 모방해 모든 피부 타입에 적합해요',
-      'zh': '角鲨烷模拟皮脂——适合所有肤质',
+      'zh': '角鲨烷模拟皮脂，适合所有肤质',
     },
     'al_fact_11': {
       'en': 'Fragrance is the No. 1 cause of cosmetic allergic reactions',
@@ -5900,7 +5900,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
           'Salisilik asit yağda çözünür — bu yüzden gözenek içinde temizlik sağlar',
       'ja': 'サリチル酸は油に溶けるため、毛穴の中までケアできます',
       'ko': 'Salicylic acid는 지용성이어서 모공 속까지 깨끗하게 해줍니다',
-      'zh': '水杨酸为油溶性——因此能深入毛孔清洁',
+      'zh': '水杨酸为油溶性，因此能深入毛孔清洁',
     },
     'al_fact_16': {
       'en':
@@ -5942,7 +5942,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
           '"Doğal" etiketi kozmetikte yasal bir tanıma sahip değildir — her zaman INCI\'yi kontrol et',
       'ja': '「ナチュラル」表示に法的定義はありません — 必ずINCIを確認しましょう',
       'ko': '\'natural\' 표시는 화장품에서 법적 정의가 없으니 항상 INCI를 확인하세요',
-      'zh': '“天然”标签在化妆品中无法律定义——请务必查阅INCI',
+      'zh': '“天然”标签在化妆品中没有法律定义，请务必查阅INCI',
     },
     'al_fact_18': {
       'en':
@@ -5984,7 +5984,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
           'Silikonlar ince çizgileri geçici olarak doldurur — çoğu kişide gözenekleri tıkamaz',
       'ja': 'シリコーンは一時的に小ジワを埋めます — 多くの人で毛穴を詰まらせません',
       'ko': 'Silicones는 잔주름을 일시적으로 메워주며, 대부분의 경우 모공을 막지 않습니다',
-      'zh': '硅灵可暂时填补细纹——对大多数人不会堵塞毛孔',
+      'zh': '硅灵可暂时填补细纹，对大多数人不会堵塞毛孔',
     },
     'al_fact_20': {
       'en':
@@ -6004,7 +6004,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
           'Laktik asit sütten elde edilen bir AHA\'dır — glikolik asitten daha naziktir',
       'ja': '乳酸はミルク由来のAHA — グリコール酸より穏やかです',
       'ko': 'Lactic acid는 우유에서 유래한 AHA로 glycolic acid보다 순해요',
-      'zh': '乳酸是一种源自牛奶的AHA——比乙醇酸更温和',
+      'zh': '乳酸是一种源自牛奶的AHA，比乙醇酸更温和',
     },
     'al_fact_21': {
       'en':
@@ -6105,7 +6105,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
           'Azelaik asit akne, kızarıklık ve ton eşitsizliğinde etkilidir — hamilelikte de güvenlidir',
       'ja': 'アゼライン酸はニキビ・赤み・色ムラに効果的で妊娠中も安全です',
       'ko': 'Azelaic acid는 여드름, 홍조, 피부 톤 개선에 효과적이며 임신 중에도 안전합니다',
-      'zh': '壬二酸可用于痘痘、泛红和肤色不均——孕期也安全',
+      'zh': '壬二酸可用于痘痘、泛红和肤色不均，孕期也安全',
     },
     'al_step_1': {
       'en': 'Recognising product',
@@ -6118,7 +6118,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Ürün tanınıyor',
       'ja': '製品を認識中',
       'ko': '제품 인식 중',
-      'zh': '识别产品中',
+      'zh': '正在识别产品',
     },
     'al_step_2': {
       'en': 'Searching ingredients',
@@ -6131,7 +6131,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'İçerikler aranıyor',
       'ja': '成分を検索中',
       'ko': '성분 검색 중',
-      'zh': '查找成分中',
+      'zh': '正在查找成分',
     },
     'al_step_3': {
       'en': 'Running analysis',
@@ -6144,7 +6144,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Analiz yapılıyor',
       'ja': '分析を実行中',
       'ko': '분석 실행 중',
-      'zh': '分析中',
+      'zh': '正在分析',
     },
   },
   // ── Centralized from code: onboarding carousel slides ──
@@ -6238,7 +6238,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Koleksiyonuna ekle',
       'ja': 'コレクションに追加',
       'ko': '내 컬렉션에 추가',
-      'zh': '加入你的收藏',
+      'zh': '查看你的合集',
     },
     'ob_s4_title': {
       'en': 'Top-rated by the community',
@@ -6332,7 +6332,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'İndir',
       'ja': 'ダウンロード',
       'ko': '다운로드',
-      'zh': '下载',
+      'zh': '保存',
     },
     'sc_creating': {
       'en': 'Creating',
@@ -6862,7 +6862,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Kime uyar — cilt tipine dokun',
       'ja': '誰に合うか — 肌タイプをタップ',
       'ko': '누구에게 맞는지 — 피부 타입을 탭하세요',
-      'zh': '适合谁 — 点击你的肤质',
+      'zh': '适合谁：选择你的肤质',
     },
     'cardv2_what_works': {
       'en': 'What really works',
@@ -7109,7 +7109,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'eser miktar — muhtemelen etiket için',
       'ja': '微量 — おそらく表示用',
       'ko': '미량 — 라벨용일 가능성',
-      'zh': '微量 — 可能只为成分表',
+      'zh': '微量，可能只为成分表',
     },
     'cardv2_pro_title': {
       'en': 'Deep dive',
@@ -7255,7 +7255,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'PRO\'da Tam Analiz',
       'ja': 'PROで全成分解析',
       'ko': 'PRO에서 전체 분석',
-      'zh': 'PRO版全面分析',
+      'zh': 'Pro 版全面分析',
     },
     'ic2_pro_unlimited': {
       'en': 'Unlimited scans',
@@ -7322,7 +7322,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
           'Ücretsizde en fazla {n} ürün. PRO ile tüm rafın ve uyumluluk analizi.',
       'ja': '無料では最大{n}点まで。PROなら棚ごと入れて、相性まで分析。',
       'ko': '무료는 최대 {n}개까지. PRO면 선반 전체와 궁합 분석까지.',
-      'zh': '免费最多 {n} 件。PRO 可放整架，并给出搭配分析。',
+      'zh': '免费最多 {n} 件。Pro 可放整架，并给出搭配分析。',
     },
     'ic2_pro_expert': {
       'en': 'Expert ingredient breakdown',
@@ -7361,7 +7361,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'PRO\'ya yükselt',
       'ja': 'PROにアップグレード',
       'ko': 'PRO로 업그레이드',
-      'zh': '升级到PRO',
+      'zh': '升级到 Pro',
     },
   },
   // ── Centralized from code: itemcard2 anonymous save banner ──
@@ -7497,7 +7497,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Mineral + kimyasal',
       'ja': 'ミネラル＋ケミカル',
       'ko': '미네랄 + 케미컬',
-      'zh': '物理+化学',
+      'zh': '物理和化学',
     },
   },
   // ── Centralized from code: itemcard2 free Pro-preview CTA ──
@@ -7513,7 +7513,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'PRO analizini bir kez ücretsiz önizle →',
       'ja': 'PRO分析を1回無料でプレビュー →',
       'ko': 'PRO 분석 미리보기 1회 무료 →',
-      'zh': '免费体验一次PRO分析 →',
+      'zh': '免费体验一次 Pro 分析 →',
     },
   },
   // ── Onboarding skin-profile quiz (spec: docs/onboarding_spec.md) ──
@@ -7739,7 +7739,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Bilmiyorum — birlikte bulalım',
       'ja': 'わからない — 一緒に調べよう',
       'ko': '모르겠어요 — 함께 알아봐요',
-      'zh': '不确定 — 一起来判断',
+      'zh': '不确定，一起来判断',
     },
     // Determine sub-quiz (step 1b)
     'obq_det_title': {
@@ -8068,7 +8068,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Hamile misin veya emziriyor musun?',
       'ja': '妊娠中・授乳中ですか？',
       'ko': '임신 중이거나 수유 중인가요?',
-      'zh': '您是否处于孕期或哺乳期？',
+      'zh': '你是否处于孕期或哺乳期？',
     },
     'obq_preg_why': {
       'en': 'Some actives (like retinoids) aren’t recommended during this time, so I’ll keep them out of your routine.',
@@ -8081,7 +8081,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Bazı aktifler (örn. retinoidler) bu dönemde önerilmez — rutinine dahil etmeyeceğim.',
       'ja': '一部の成分（レチノイドなど）はこの時期おすすめできません。ルーティンから外します。',
       'ko': '일부 활성 성분(레티노이드 등)은 이 시기에 권장되지 않아요. 루틴에서 제외할게요.',
-      'zh': '部分活性成分（如维A类）在此期间不建议使用——我会将它们排除在您的护肤流程之外。',
+      'zh': '部分活性成分（如维A类）在此期间不建议使用，我会把它们排除在你的护肤流程之外。',
     },
     'obq_preg_yes': {
       'en': 'Yes, pregnant or breastfeeding',
@@ -8147,7 +8147,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'En fazla 3 seç — analizi oraya odaklarım.',
       'ja': '最大3つ選んで — そこに分析を集中します。',
       'ko': '최대 3개 선택 — 거기에 분석을 집중할게요.',
-      'zh': '最多选3个 — 我会据此重点分析。',
+      'zh': '最多选3个，我会据此重点分析。',
     },
     'obq_goals_max': {
       'en': 'Three is enough for now 🙂',
@@ -8333,7 +8333,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Şimdi ilk ürününü tara — sana uygun mu göstereyim.',
       'ja': '最初の製品をスキャンしてみて — あなたに合うか見せます。',
       'ko': '이제 첫 제품을 스캔해 보세요 — 잘 맞는지 알려줄게요.',
-      'zh': '现在扫描第一个产品吧 — 我来告诉你是否适合。',
+      'zh': '现在扫描第一个产品吧，我来告诉你是否适合。',
     },
     'obq_result_save': {
       'en': 'Save',
@@ -8373,7 +8373,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Uygulama profilsiz de çalışır — tüm cilt tiplerini gösteririm.',
       'ja': 'プロフィールなしでも使えます — 全肌タイプで表示します。',
       'ko': '프로필 없이도 작동해요 — 모든 피부 타입으로 보여줄게요.',
-      'zh': '没有档案也能用 — 我会按所有肤质展示。',
+      'zh': '没有档案也能用，我会按所有肤质展示。',
     },
     'obq_skip_confirm_yes': {
       'en': 'Skip',
@@ -8977,7 +8977,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Çanta değişti — yeniden hesaplamak için dokun',
       'ja': 'ポーチが変わりました — タップして再計算',
       'ko': '파우치가 변경됨 — 눌러서 다시 계산',
-      'zh': '化妆包已更改 — 点击重新计算',
+      'zh': '化妆包已更改，请重新计算',
     },
     'cb_not_in_calendar': {
       'en': 'Not in calendar',
@@ -9222,7 +9222,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Bunlara her zaman uyacağım — sınır dışı ürünler sırada bekler.',
       'ja': '必ず守ります。条件外の製品はルーティンに入らず待機します。',
       'ko': '항상 지킬게요. 조건 밖 제품은 대기열에서 기다려요.',
-      'zh': '我会始终遵守——不符合的产品将进入等待队列。',
+      'zh': '我会始终遵守，不符合的产品将进入等待队列。',
     },
     'care_frames_title': {
       'en': 'Routine limits',
@@ -9288,7 +9288,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Gerçekten kullandığın ürünler — rutinin bunlardan oluşur',
       'ja': '実際に使っている製品 — ここからルーティンが作られます',
       'ko': '실제로 쓰는 제품들 — 여기서 루틴이 만들어져요',
-      'zh': '您真正在用的产品——护肤流程由此生成',
+      'zh': '你真正在用的产品，护肤流程由此生成',
     },
     'bag_cta': {
       'en': 'Check compatibility and build routine',
@@ -9327,7 +9327,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Kozmetik çantan boş — kullandığın ürünleri ekle',
       'ja': 'ポーチが空です。使っている製品を追加してください',
       'ko': '파우치가 비어 있어요. 사용하는 제품을 추가하세요',
-      'zh': '化妆包是空的——请添加您在用的产品',
+      'zh': '化妆包是空的，请添加你在用的产品',
     },
     'care_routine_title': {
       'en': 'My routine', 'ru': 'Моя рутина', 'es': 'Mi rutina', 'de': 'Meine Routine',
@@ -9394,7 +9394,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Devam edilemez: şu anda senin için kontrendike',
       'ja': '再開できません：現在は使用が推奨されません',
       'ko': '재개할 수 없어요: 지금은 사용이 권장되지 않아요',
-      'zh': '无法恢复：目前对您属于禁忌',
+      'zh': '无法恢复：目前对你属于禁忌',
     },
     'care_cap_exceeded': {
       'en': 'Too many days for this active: the weekly limit protects your skin',
@@ -9407,7 +9407,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Bu aktif için çok fazla gün — haftalık sınır cildini korur',
       'ja': 'この成分には日数が多すぎます。週の上限は肌を守るためです',
       'ko': '이 성분에는 너무 많은 요일이에요. 주간 한도는 피부를 보호해요',
-      'zh': '该活性成分使用天数过多——每周上限是为了保护皮肤',
+      'zh': '该活性成分使用天数过多，每周上限是为了保护皮肤',
     },
     'care_how': {
       'en': 'How to apply', 'ru': 'Как наносить', 'es': 'Cómo aplicar', 'de': 'Anwendung',
@@ -9431,7 +9431,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'es': 'Una revisión de tus productos al estilo dermatólogo', 'de': 'Deine Produkte im Derma-Check',
       'fr': 'Vos produits passés en revue comme chez un dermato', 'it': 'I tuoi prodotti analizzati come da un dermatologo',
       'pt': 'Seus produtos analisados como por um dermatologista', 'tr': 'Ürünlerine dermatolog gözüyle bakış',
-      'ja': '皮膚科医目線であなたの製品をチェック', 'ko': '피부과 스타일로 제품 점검', 'zh': '像皮肤科医生一样分析您的产品',
+      'ja': '皮膚科医目線であなたの製品をチェック', 'ko': '피부과 스타일로 제품 점검', 'zh': '像皮肤科医生一样分析你的产品',
     },
     'care_accept': {
       'en': 'Add to calendar', 'ru': 'Добавить в календарь', 'es': 'Añadir al calendario',
@@ -9470,14 +9470,14 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'es': 'Activo duplicado: el mejor ya está en la rutina', 'de': 'Doppelter Wirkstoff — der beste ist in der Routine',
       'fr': 'Actif en double — le meilleur est dans la routine', 'it': 'Attivo duplicato: il migliore è in routine',
       'pt': 'Ativo duplicado — o melhor está na rotina', 'tr': 'Yinelenen aktif — en iyisi rutinde',
-      'ja': '同じ有効成分 — ベストな1本をルーティンに', 'ko': '중복 성분 — 가장 좋은 제품만 루틴에', 'zh': '活性成分重复——流程中保留最佳者',
+      'ja': '同じ有効成分 — ベストな1本をルーティンに', 'ko': '중복 성분 — 가장 좋은 제품만 루틴에', 'zh': '活性成分重复，流程中保留最佳的一款',
     },
     'care_reason_pref_fragrance': {
       'en': 'Set aside: fragrance-free preference', 'ru': 'Отложен: предпочтение «без отдушек»',
       'es': 'Apartado: preferencia sin fragancia', 'de': 'Zurückgestellt: Präferenz „ohne Duftstoffe“',
       'fr': 'Écarté : préférence sans parfum', 'it': 'Da parte: preferenza senza profumo',
       'pt': 'Reservado: preferência sem fragrância', 'tr': 'Ayrıldı: parfümsüz tercihi',
-      'ja': '保留：無香料の設定のため', 'ko': '보류: 무향 선호 설정', 'zh': '搁置：您偏好无香精',
+      'ja': '保留：無香料の設定のため', 'ko': '보류: 무향 선호 설정', 'zh': '搁置：你偏好无香精',
     },
     'care_reason_pref_steps': {
       'en': 'Set aside: keeps the routine short', 'ru': 'Отложен: чтобы рутина осталась короткой',
@@ -9553,7 +9553,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Yalnızca hamilelikte genellikle kaçınılan sınırlı bir içerik grubunu kontrol ediyoruz: retinoidler, hidrokinon, arbutin ve yüksek doz salisilik asit. Bu tam bir güvenlik değerlendirmesi değildir — ürün, kontrol etmediğimiz başka bileşenler içerebilir. Herhangi bir endişeniz varsa doktorunuza danışın.',
       'ja': '当社が確認するのは、妊娠中に避けられることが多い限られた成分のみです：レチノイド、ハイドロキノン、アルブチン、高濃度のサリチル酸。これは完全な安全性評価ではなく、確認していない他の成分が含まれている可能性があります。ご不安な場合は医師にご相談ください。',
       'ko': '저희는 임신 중 흔히 피하는 제한된 성분만 확인합니다: 레티노이드, 하이드로퀴논, 알부틴, 고농도 살리실산. 이는 완전한 안전성 평가가 아니며, 확인하지 않는 다른 성분이 포함될 수 있습니다. 우려가 있으면 의사와 상담하세요.',
-      'zh': '我们仅检查孕期通常需避免的有限成分：视黄醇类、氢醌、熊果苷和高浓度水杨酸。这并非完整的安全评估——产品可能含有我们未检测的其他成分。如有任何疑虑，请咨询医生。',
+      'zh': '我们仅检查孕期通常需避免的有限成分：视黄醇类、氢醌、熊果苷和高浓度水杨酸。这并非完整的安全评估，产品可能含有我们未检测的其他成分。如有任何疑虑，请咨询医生。',
     },
     'preg_bag_all_safe': {
       'en': 'None of your products contain pregnancy-contraindicated ingredients', 'ru': 'Ни один продукт не содержит противопоказанных при беременности ингредиентов',
@@ -9671,7 +9671,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'tr': 'Bu rutin fotosensitize edici aktifler içeriyor ama güneş koruyucu yok — her sabah SPF gereklidir.',
       'ja': 'このルーティンには光感受性を高める成分がありますが、日焼け止めがありません。毎朝のSPFが必要です。',
       'ko': '이 루틴에는 광과민성 성분이 있으나 자외선 차단제가 없습니다 — 매일 아침 SPF가 필요합니다.',
-      'zh': '该流程使用了增加光敏感的活性成分，但没有防晒——每天早晨需使用防晒霜。',
+      'zh': '该流程使用了增加光敏感的活性成分，但没有防晒。每天早晨需使用防晒霜。',
     },
     'cb_compat_unchecked': {
       'en': 'Not checked yet', 'ru': 'Ещё не проверена',
@@ -9725,7 +9725,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     'cb_slot_over_limit': {
       'en': 'Not in the review: Pro', 'ru': 'Не в разборе: нужен Pro', 'es': 'Fuera del análisis: Pro', 'de': 'Nicht in der Analyse — Pro',
       'fr': "Hors de l'analyse — Pro", 'it': "Fuori dall'analisi: Pro", 'pt': 'Fora da análise — Pro', 'tr': 'Analize dahil değil — Pro',
-      'ja': '診断対象外 — Pro', 'ko': '분석 제외 — Pro', 'zh': '不参与分析 — Pro',
+      'ja': '診断対象外 — Pro', 'ko': '분석 제외 — Pro', 'zh': '不参与分析：Pro',
     },
     'cb_compat_warnings_one': {
       'en': '{n} compatibility note', 'ru': '{n} замечание по совместимости',
@@ -9915,7 +9915,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     'cb_warn_interaction': {
       'en': '{a} and {b} together double the load on your skin, so watch how it reacts', 'ru': '{a} и {b} вместе удваивают нагрузку на кожу, следите за реакцией', 'es': '{a} y {b} juntos duplican la carga sobre la piel: observa la reacción', 'de': '{a} und {b} zusammen verdoppeln die Belastung der Haut — beobachte die Reaktion',
       'fr': '{a} et {b} ensemble doublent la charge sur la peau — surveille la réaction', 'it': '{a} e {b} insieme raddoppiano il carico sulla pelle: osserva la reazione', 'pt': '{a} e {b} juntos duplicam a carga na pele — observa a reação', 'tr': '{a} ve {b} birlikte cildin yükünü ikiye katlar — tepkisini izle',
-      'ja': '{a}と{b}の併用は肌への負担が倍に — 反応を見ながら', 'ko': '{a}와 {b}를 함께 쓰면 피부 부담이 두 배 — 반응을 살펴보세요', 'zh': '{a} 与 {b} 同用会让皮肤负担加倍——注意观察反应',
+      'ja': '{a}と{b}の併用は肌への負担が倍に — 反応を見ながら', 'ko': '{a}와 {b}를 함께 쓰면 피부 부담이 두 배 — 반응을 살펴보세요', 'zh': '{a} 与 {b} 同用会让皮肤负担加倍，注意观察反应',
     },
     'cb_concern_retinoid': {
       'en': 'retinoid', 'ru': 'ретиноид', 'es': 'retinoide', 'de': 'Retinoid',
