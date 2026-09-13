@@ -1,5 +1,4 @@
 import '/backend/api_requests/api_calls.dart';
-import '/components/premium_features_list/premium_features_list_widget.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'paywallpage_widget.dart' show PaywallpageWidget;
 import 'package:flutter/material.dart';
@@ -7,8 +6,6 @@ import 'package:flutter/material.dart';
 class PaywallpageModel extends FlutterFlowModel<PaywallpageWidget> {
   ///  State fields for stateful widgets in this page.
 
-  // Model for premiumFeaturesList component.
-  late PremiumFeaturesListModel premiumFeaturesListModel;
   // Stores action output result for [Custom Action - rcEnsureLogin] action in Button widget.
   String? rCUserID;
   // Stores action output result for [Custom Action - rcPurchasePackage] action in Button widget.
@@ -29,13 +26,8 @@ class PaywallpageModel extends FlutterFlowModel<PaywallpageWidget> {
   String? rCUserID3;
 
   @override
-  void initState(BuildContext context) {
-    premiumFeaturesListModel =
-        createModel(context, () => PremiumFeaturesListModel());
-  }
+  void initState(BuildContext context) {}
 
   @override
-  void dispose() {
-    premiumFeaturesListModel.dispose();
-  }
+  void dispose() {}
 }
