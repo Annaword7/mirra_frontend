@@ -445,7 +445,7 @@ Widget _rightPanel({
         const SizedBox(height: 8),
         // Footer
         Text(
-          'M!RRA Cosmetic Checker',
+          'Beauty Cosmetic Scanner: Mirra',
           style: TextStyle(
             color: primary.withOpacity(0.5),
             fontSize: 9,
