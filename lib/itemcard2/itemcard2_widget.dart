@@ -19,10 +19,10 @@ import '/design_system/foundations/format_price.dart';
 import '/item_card/deleteitem/deleteitem_widget.dart';
 import '/item_card/ingridients/ingridients_widget.dart';
 import '/components/product_card_v2/product_card_v2_widget.dart';
+import '/components/profile_summary_card.dart';
 import '/components/score_breakdown/score_breakdown_widget.dart';
 import '/item_card/markasspam/markasspam_widget.dart';
 import '/topratings/copyitem/copyitem_widget.dart';
-import '/topratings/hidenavailability/hidenavailability_widget.dart';
 import '/topratings/makeprivate/makeprivate_widget.dart';
 import '/topratings/makepublic/makepublic_widget.dart';
 import '/index.dart';
@@ -106,6 +106,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
             limit: 1,
           );
           final u = userRows.firstOrNull;
+          _model.profileRow = u;
           _model.userSkinType = u?.skinType;
           _model.userIsSensitive =
               (u?.skinSensitivity ?? false) || u?.skinType == 'sensitive';
@@ -137,6 +138,45 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
           // Analysis still pending (202) — poll Supabase until score appears.
           _startPendingPolling();
         }
+      }
+
+      // First result ever: offer the subscription once, dismissibly. This is
+      // the only moment where the product has already proved itself and
+      // nothing has been asked for yet — the quota wall comes much later, and
+      // most users never reach it. Own scans only: a shared link opened by a
+      // stranger is not a moment to sell.
+      if (!mounted) return;
+      final softState = context.read<FFAppState>();
+      if (!softState.softPaywallShown &&
+          !softState.isprouser &&
+          _model.imageraw?.firstOrNull?.user == currentUserUid) {
+        softState.softPaywallShown = true;
+        // Long enough to read the verdict and scroll the card a little before
+        // being asked for money. This delay is the knob if conversion is off.
+        await Future.delayed(const Duration(seconds: 5));
+        if (!context.mounted) return;
+        unawaited(AnalyticsService.instance
+            .trackUpgradePromptShown(trigger: 'first_result'));
+        // A sheet, not the full-screen route: this is the soft ask, the card
+        // stays visible behind it and a swipe down dismisses it. The paywall
+        // widget itself is unchanged, so the purchase flow and its analytics
+        // live in one place instead of being reimplemented for the sheet.
+        await showModalBottomSheet<void>(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (_) => FractionallySizedBox(
+            heightFactor: 0.92,
+            child: ClipRRect(
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(24)),
+              child: const PaywallpageWidget(),
+            ),
+          ),
+        );
+        // The feedback prompt below would stack a second modal on top of the
+        // paywall. It keeps its pending flag and gets the next scan instead.
+        return;
       }
 
       // Show feedback prompt after the card has rendered and user has had
@@ -373,7 +413,9 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
 
   @override
   Widget build(BuildContext context) {
-    final appState = context.watch<FFAppState>();
+    // Подписка на FFAppState без локальной переменной: карточку надо
+    // перестраивать после покупки PRO и изменений в косметичке.
+    context.watch<FFAppState>();
 
     return FutureBuilder<List<ImagesRow>>(
       future: ImagesTable().querySingleRow(
@@ -587,37 +629,26 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                   foregroundColor: Colors.white,
                   label: FFLocalizations.of(context).getText('fab_hide'),
                   labelStyle: FlutterFlowTheme.of(context).bodyMedium,
+                  // Скрытие — отказ от публикации своего скана в общем
+                  // каталоге, а не привилегия: за подписку такое не продают.
+                  // Доступно всем владельцам скана, включая гостя.
                   onTap: () async {
-                    if (appState.isprouser) {
-                      await ImagesTable().update(
-                        data: {'hided': true},
-                        matchingRows: (rows) =>
-                            rows.eqOrNull('id', widget.imageid),
-                      );
-                      if (!context.mounted) return;
-                      await showModalBottomSheet(
-                        isScrollControlled: true,
-                        backgroundColor: Colors.transparent,
-                        enableDrag: false,
-                        context: context,
-                        builder: (context) => Padding(
-                          padding: MediaQuery.viewInsetsOf(context),
-                          child: MakeprivateWidget(imageid: widget.imageid!),
-                        ),
-                      ).then((value) => safeSetState(() {}));
-                    } else {
-                      if (!context.mounted) return;
-                      await showModalBottomSheet(
-                        isScrollControlled: true,
-                        backgroundColor: Colors.transparent,
-                        enableDrag: false,
-                        context: context,
-                        builder: (context) => Padding(
-                          padding: MediaQuery.viewInsetsOf(context),
-                          child: HidenavailabilityWidget(imageid: 0),
-                        ),
-                      ).then((value) => safeSetState(() {}));
-                    }
+                    await ImagesTable().update(
+                      data: {'hided': true},
+                      matchingRows: (rows) =>
+                          rows.eqOrNull('id', widget.imageid),
+                    );
+                    if (!context.mounted) return;
+                    await showModalBottomSheet(
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      enableDrag: false,
+                      context: context,
+                      builder: (context) => Padding(
+                        padding: MediaQuery.viewInsetsOf(context),
+                        child: MakeprivateWidget(imageid: widget.imageid!),
+                      ),
+                    ).then((value) => safeSetState(() {}));
                   },
                 ),
                 // Make public (owner, currently hidden)
@@ -994,6 +1025,84 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                             null)
                           _buildPendingPlaceholder(context)
                         else ...[
+                          // No skin type yet: the verdict above is the
+                          // all-skin-types one, so offer to make it personal
+                          // right where that limitation is visible. The quiz
+                          // returns here rather than to Home.
+                          // 16 to match the tag row above and the fit card
+                          // below — the card stretches to double.infinity, so
+                          // without this it runs to the screen edge while every
+                          // neighbour is inset.
+                          if ((_model.userSkinType ?? '').isEmpty)
+                            Padding(
+                              // Top 16 so the card doesn't butt against the
+                              // gradient hero block above it (the card brings
+                              // its own 12 at the bottom).
+                              padding: const EdgeInsetsDirectional.fromSTEB(
+                                  16, 16, 16, 0),
+                              child: ProfileSummaryCard(
+                                profileRow: _model.profileRow,
+                                // Вместе с imageid: по одному имени маршрута
+                                // анкета вернула бы на карточку без товара.
+                                returnTo: widget.imageid == null
+                                    ? null
+                                    : context.namedLocation(
+                                        Itemcard2Widget.routeName,
+                                        queryParameters: {
+                                          'imageid': serializeParam(
+                                              widget.imageid, ParamType.int)!,
+                                        },
+                                      ),
+                              ),
+                            ),
+                          // Guests keep everything they scan, but only on this
+                          // device. This is the one screen where that matters
+                          // enough to mention — and the only place an account
+                          // is offered at all now that the entry screen is out
+                          // of the launch path.
+                          if (currentUserIsAnonymous)
+                            Padding(
+                              padding: const EdgeInsetsDirectional.fromSTEB(
+                                  16, 0, 16, 12),
+                              child: SizedBox(
+                                // Full width so textAlign.center actually
+                                // centers: the enclosing Column sizes children
+                                // to their content, and a bare Text would sit
+                                // wherever the column's alignment put it.
+                                width: double.infinity,
+                                child: GestureDetector(
+                                  // Without this only the glyphs are tappable;
+                                  // the padding below is there to make the
+                                  // target reachable, not just to space it.
+                                  behavior: HitTestBehavior.opaque,
+                                  onTap: () => context
+                                      .pushNamed(LogInPageWidget.routeName),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 10),
+                                    child: Text(
+                                      FFLocalizations.of(context)
+                                          .getText('nb_signin_register'),
+                                      textAlign: TextAlign.center,
+                                      style: FlutterFlowTheme.of(context)
+                                          .bodyMedium
+                                          .override(
+                                            fontFamily:
+                                                FlutterFlowTheme.of(context)
+                                                    .bodyMediumFamily,
+                                            color: FlutterFlowTheme.of(context)
+                                                .primary,
+                                            fontWeight: FontWeight.w600,
+                                            letterSpacing: 0,
+                                            useGoogleFonts:
+                                                !FlutterFlowTheme.of(context)
+                                                    .bodyMediumIsCustom,
+                                          ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
                           // ── Fit card v2: verdict + tappable skin-type matrix +
                           // active dose statuses + addressed warnings + claim audit.
                           // Matrix taps are ephemeral previews (never written to profile).
