@@ -1,8 +1,11 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_blurhash/flutter_blurhash.dart';
 import 'package:octo_image/octo_image.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
+import '/design_system/components/product_thumb.dart';
 import '/design_system/foundations/image_thumb.dart';
 import '/design_system/foundations/score_status.dart';
 import '/design_system/foundations/format_price.dart';
@@ -95,21 +98,50 @@ class ProductTile extends StatelessWidget {
                     alignment: const AlignmentDirectional(0.0, 0.0),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(16.0),
-                      child: OctoImage(
-                        placeholderBuilder: (_) => SizedBox.expand(
-                          child: Image(
-                            image:
-                                BlurHashImage('L6PZfSi_.AyE_3t7t7R**0o#DgR4'),
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                        // Уменьшенная версия с сервера (см. image_thumb): в
-                        // ленту незачем тянуть исходные снимки на мегабайты.
-                        // Предел на распаковку теперь внутри thumbProvider.
-                        image: thumbProvider(imageUrl, width: 720),
+                      child: SizedBox(
                         width: MediaQuery.sizeOf(context).width * 1.0,
                         height: 300.0,
-                        fit: BoxFit.cover,
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            // Фон — то же фото, растянутое и размытое: плитка
+                            // заполнена, даже когда снимок ниже её рамки.
+                            ImageFiltered(
+                              imageFilter:
+                                  ui.ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                              child: Image(
+                                image: thumbProvider(imageUrl,
+                                    width: ProductThumb.backdropDecodeWidth),
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            ColoredBox(
+                              color: Colors.white.withValues(
+                                  alpha: FlutterFlowTheme.of(context)
+                                      .opacity
+                                      .o64),
+                            ),
+                            OctoImage(
+                              placeholderBuilder: (_) => SizedBox.expand(
+                                child: Image(
+                                  image: BlurHashImage(
+                                      'L6PZfSi_.AyE_3t7t7R**0o#DgR4'),
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              // Уменьшенная версия с сервера (см. image_thumb):
+                              // в ленту незачем тянуть исходные снимки на
+                              // мегабайты. Предел на распаковку — внутри
+                              // thumbProvider.
+                              image: thumbProvider(imageUrl, width: 720),
+                              // Во всю ширину, по центру: обрезаем верх и низ,
+                              // а не бока. Прежний cover у снимков шире рамки
+                              // срезал края и оставлял середину этикетки.
+                              fit: BoxFit.fitWidth,
+                              alignment: Alignment.center,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),

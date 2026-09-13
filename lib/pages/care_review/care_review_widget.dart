@@ -229,7 +229,6 @@ class _CareReviewWidgetState extends State<CareReviewWidget> {
         url: img?.displayPhotoUrl ?? '',
         decodeWidth: 200,
         radius: 9,
-        padding: 3,
       ),
     );
     return dim ? Opacity(opacity: 0.45, child: w) : w;
@@ -958,8 +957,7 @@ class _QueuedCard extends StatelessWidget {
                 url: image?.displayPhotoUrl ?? '',
                 decodeWidth: 200,
                 radius: 9,
-                padding: 3,
-              ),
+                      ),
             ),
           ),
           const SizedBox(width: 12),

@@ -5,33 +5,26 @@ import 'package:flutter/material.dart';
 import '/design_system/foundations/image_thumb.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 
-/// Миниатюра продукта: снимок поверх размытой заливки им же.
+/// Миниатюра продукта: снимок во всю ширину рамки поверх размытой заливки им же.
 ///
-/// Фото продуктов приходят без общего формата: каталожные с INCIdecoder бывают
-/// почти квадратными и вытянутыми до 1:2, а собственные снимки пользователей —
-/// вообще чем угодно, вплоть до скриншота экрана телефона 9:19,5. Один режим
-/// вписывания на всё это не натягивается, поэтому режим выбирается по форме
-/// самого снимка:
+/// Фото приходят без общего формата: каталожные с INCIdecoder бывают почти
+/// квадратными и вытянутыми до 1:2, собственные снимки пользователей — чем
+/// угодно, вплоть до скриншота экрана телефона 9:19,5. Отсюда правило: снимок
+/// всегда показывается во всю ширину и центруется, а по высоте либо обрезается
+/// (если он выше рамки), либо оставляет поля сверху и снизу (если ниже).
 ///
-///  * **источник выше рамки** (флакон, скриншот) — заполняем с обрезкой по
-///    высоте. Сверху и снизу у таких кадров поля или интерфейс, а сам продукт
-///    в середине: обрезка забирает пустое и показывает нужное крупно;
-///  * **источник шире рамки или квадратный** — вписываем целиком. Обрезать
-///    ширину нельзя, от этикетки останется середина без названия.
+/// Это [BoxFit.fitWidth]. Ни `cover`, ни `contain` так не умеют: первый режет
+/// ширину у всего, что шире рамки, и от этикетки остаётся середина без
+/// названия; второй ужимает вытянутые кадры в узкую полоску.
 ///
-/// Пока размеры снимка неизвестны (первый кадр, пока картинка грузится),
-/// вписываем целиком: это безопасный вариант, и подменять его на обрезку в уже
-/// отрисованной сетке заметнее, чем наоборот.
-///
-/// Фон — то же фото, растянутое по рамке и размытое: контейнер заполнен всегда,
-/// даже когда снимок вписан с полями.
-class ProductThumb extends StatefulWidget {
+/// Поля закрывает фон — то же фото, растянутое и размытое, — поэтому рамка
+/// выглядит заполненной при любой форме исходника.
+class ProductThumb extends StatelessWidget {
   const ProductThumb({
     super.key,
     required this.url,
     required this.decodeWidth,
     this.radius = 12,
-    this.padding = 6,
   });
 
   /// Ссылка на фото; пустая строка — заплатка вместо картинки.
@@ -43,78 +36,17 @@ class ProductThumb extends StatefulWidget {
 
   final double radius;
 
-  /// Воздух между фото и рамкой, когда снимок вписывается целиком.
-  final double padding;
-
   /// Ширина распаковки фоновой заливки: её всё равно размывают, детали не
   /// нужны, а память в сетке из полусотни миниатюр — нужна.
   static const int backdropDecodeWidth = 48;
 
   @override
-  State<ProductThumb> createState() => _ProductThumbState();
-}
-
-class _ProductThumbState extends State<ProductThumb> {
-  ImageStream? _stream;
-  ImageStreamListener? _listener;
-
-  /// Ширина / высота исходного снимка. null — ещё не знаем.
-  double? _sourceAspect;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _resolveSourceAspect();
-  }
-
-  @override
-  void didUpdateWidget(covariant ProductThumb oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.url != widget.url) {
-      _sourceAspect = null;
-      _resolveSourceAspect();
-    }
-  }
-
-  void _resolveSourceAspect() {
-    if (widget.url.isEmpty) return;
-    _detach();
-    // Слушаем ту же картинку, что и рисуем: второй загрузки не будет, кадр
-    // придёт из того же кэша.
-    final stream = thumbProvider(widget.url, width: widget.decodeWidth)
-        .resolve(createLocalImageConfiguration(context));
-    final listener = ImageStreamListener((info, _) {
-      final aspect = info.image.width / info.image.height;
-      if (mounted && aspect != _sourceAspect) {
-        setState(() => _sourceAspect = aspect);
-      }
-    }, onError: (_, __) {});
-    stream.addListener(listener);
-    _stream = stream;
-    _listener = listener;
-  }
-
-  void _detach() {
-    if (_stream != null && _listener != null) {
-      _stream!.removeListener(_listener!);
-    }
-    _stream = null;
-    _listener = null;
-  }
-
-  @override
-  void dispose() {
-    _detach();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
 
-    if (widget.url.isEmpty) {
+    if (url.isEmpty) {
       return ClipRRect(
-        borderRadius: BorderRadius.circular(widget.radius),
+        borderRadius: BorderRadius.circular(radius),
         child: Container(
           width: double.infinity,
           color: theme.surfaceMuted,
@@ -127,42 +59,27 @@ class _ProductThumbState extends State<ProductThumb> {
     }
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(widget.radius),
-      child: LayoutBuilder(builder: (context, constraints) {
-        final frameAspect = constraints.maxHeight > 0
-            ? constraints.maxWidth / constraints.maxHeight
-            : 1.0;
-        final source = _sourceAspect;
-        final cropsHeight = source != null && source < frameAspect;
-
-        return Stack(
-          fit: StackFit.expand,
-          children: [
-            ImageFiltered(
-              imageFilter: ui.ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-              child: Image(
-                image: thumbProvider(widget.url,
-                    width: ProductThumb.backdropDecodeWidth),
-                fit: BoxFit.cover,
-              ),
+      borderRadius: BorderRadius.circular(radius),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          ImageFiltered(
+            imageFilter: ui.ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+            child: Image(
+              image: thumbProvider(url, width: backdropDecodeWidth),
+              fit: BoxFit.cover,
             ),
-            // Вуаль поверх размытия: без неё тёмная упаковка даёт фон, на
-            // котором теряется и сам снимок, и подпись под миниатюрой.
-            ColoredBox(
-              color: Colors.white.withValues(alpha: theme.opacity.o64),
-            ),
-            Padding(
-              // Вписанному снимку нужен воздух от рамки, обрезанному — нет:
-              // он и должен доходить до краёв.
-              padding: EdgeInsets.all(cropsHeight ? 0 : widget.padding),
-              child: Image(
-                image: thumbProvider(widget.url, width: widget.decodeWidth),
-                fit: cropsHeight ? BoxFit.cover : BoxFit.contain,
-              ),
-            ),
-          ],
-        );
-      }),
+          ),
+          // Вуаль поверх размытия: без неё тёмная упаковка даёт фон, на котором
+          // теряется и сам снимок, и подпись под миниатюрой.
+          ColoredBox(color: Colors.white.withValues(alpha: theme.opacity.o64)),
+          Image(
+            image: thumbProvider(url, width: decodeWidth),
+            fit: BoxFit.fitWidth,
+            alignment: Alignment.center,
+          ),
+        ],
+      ),
     );
   }
 }
