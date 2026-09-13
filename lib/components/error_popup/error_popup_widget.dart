@@ -255,15 +255,11 @@ class _IngredientsInputSheetState extends State<_IngredientsInputSheet> {
                 body: loc.getText('err_ingredients_not_found_body'),
               ),
               SizedBox(height: theme.space.s24),
-              AppButton(
-                label: loc.getText('err_photograph_ingredients'),
-                icon: Icons.photo_camera_rounded,
-                onPressed: () => Navigator.pop(
-                  context,
-                  const IngredientInputResult(IngredientInputAction.photo),
-                ),
-              ),
-              SizedBox(height: theme.space.s24),
+              // Кнопка «Сфотографировать состав» временно снята: путь через
+              // распознавание панели с фото ведёт себя непредсказуемо. Ветка
+              // IngredientInputAction.photo и её обработка на экране сканера
+              // оставлены нетронутыми — вернуть кнопку значит вернуть этот
+              // блок, ничего больше.
               Text(
                 loc.getText('err_enter_ingredients_manually'),
                 style: theme.titleSmall.override(

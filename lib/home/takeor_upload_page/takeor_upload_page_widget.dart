@@ -652,6 +652,11 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
   /// low-confidence, offer to photograph the ingredient panel for a precise
   /// analysis. Always proceeds to analysis afterwards — the low list is
   /// already saved server-side, the OCR result replaces it when it succeeds.
+  /// Путь «сфотографировать состав» временно закрыт: распознавание панели по
+  /// фото ведёт себя непредсказуемо. Флаг держит выключенной и подсказку при
+  /// низкой уверенности, и кнопку в листе «Состав не найден».
+  static const bool _ingredientsPhotoEnabled = false;
+
   Future<void> _maybeOfferIngredientsPhoto({
     required dynamic searchJsonBody,
     required int? imageId,
@@ -661,6 +666,11 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
         SearchingredientsNEWBCNDCall.ingredientsStatus(searchJsonBody);
     if (status != 'low') return;
 
+    // Предложение переснять состав временно отключено вместе с кнопкой
+    // «Сфотографировать состав»: единственное действие в этом диалоге вело
+    // именно туда, и без него спрашивать не о чем. Диалог и обработка ниже
+    // сохранены — снять `return` достаточно, чтобы вернуть путь.
+    if (!_ingredientsPhotoEnabled) return;
     final action = await ErrorPopupWidget.showLowConfidenceChoice(context);
     if (action != IngredientInputAction.photo) return;
 
