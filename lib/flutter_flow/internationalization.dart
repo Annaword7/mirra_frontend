@@ -362,7 +362,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     'lfc_scan_title': {
       'en': 'AI Analysis',
       'es': 'Análisis con IA',
-      'ru': 'ИИ-анализ',
+      'ru': 'ИИ-разбор',
       'de': 'KI-Analyse',
       'fr': 'Analyse IA',
       'it': 'Analisi AI',
@@ -986,7 +986,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     'cs6ibthq': {
       'en': 'AI Cosmetic Analysis',
       'es': 'Análisis de IA (INCI)',
-      'ru': 'ИИ-анализ косметики',
+      'ru': 'ИИ-разбор косметики',
       'de': 'KI-Kosmetikanalyse',
       'fr': 'Analyse cosmétique IA',
       'it': 'Analisi cosmetica AI',
@@ -1031,7 +1031,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     'mbf7bgat': {
       'en': ' analyses used',
       'es': '  análisis utilizados',
-      'ru': '  использовано анализов',
+      'ru': '  использовано разборов',
       'de': ' Analysen verwendet',
       'fr': ' analyses utilisées',
       'it': ' analisi usate',
@@ -1044,7 +1044,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     'sgp5e6y4': {
       'en': 'Start Analysis',
       'es': 'Iniciar análisis',
-      'ru': 'Начать анализ',
+      'ru': 'Начать разбор',
       'de': 'Analyse starten',
       'fr': 'Démarrer l\'analyse',
       'it': 'Avvia analisi',
@@ -1943,7 +1943,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     'qb4ojhyz': {
       'en': ' analyses remaining this month',
       'es': ' análisis restantes este mes',
-      'ru': ' анализов осталось в этом месяце',
+      'ru': ' разборов осталось в этом месяце',
       'de': ' Analysen verbleibend diesen Monat',
       'fr': ' analyses restantes ce mois-ci',
       'it': ' analisi rimanenti questo mese',
@@ -1956,7 +1956,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     'e431pan7': {
       'en': ' analyses remaining this month',
       'es': ' análisis restantes este mes',
-      'ru': ' анализов осталось в этом месяце',
+      'ru': ' разборов осталось в этом месяце',
       'de': ' Analysen verbleibend diesen Monat',
       'fr': ' analyses restantes ce mois-ci',
       'it': ' analisi rimanenti questo mese',
@@ -1969,7 +1969,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     's07ldcer': {
       'en': 'Analyze your product',
       'es': 'Analiza tu producto',
-      'ru': 'Анализ вашего продукта',
+      'ru': 'Разбор вашего продукта',
       'de': 'Produkt analysieren',
       'fr': 'Analysez votre produit',
       'it': 'Analizza il tuo prodotto',
@@ -2003,7 +2003,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     'qp1hi0rq': {
       'en': 'Analysis started\nUsually takes up to 1 minute',
       'es': 'Análisis iniciado\nNormalmente tarda hasta 1 minuto',
-      'ru': 'Анализ запущен\nОбычно занимает до 1 минуты',
+      'ru': 'Разбор запущен\nОбычно занимает до 1 минуты',
       'de': 'Analyse gestartet\nDauert meist bis zu 1 Minute',
       'fr': 'Analyse lancée\nGénéralement moins d’1 minute',
       'it': 'Analisi avviata\nDi solito richiede fino a 1 minuto',
@@ -2029,7 +2029,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     'f0iwc245': {
       'en': 'Analyzing ingredients...',
       'es': 'Analizando ingredientes...',
-      'ru': 'Анализируем состав…',
+      'ru': 'Разбираем состав…',
       'de': 'Inhaltsstoffe werden analysiert...',
       'fr': 'Analyse des ingrédients…',
       'it': 'Analisi degli ingredienti...',
@@ -2383,7 +2383,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     'cox122eb': {
       'en': 'Expert Analysis',
       'es': 'Análisis experto',
-      'ru': 'Экспертный анализ',
+      'ru': 'Экспертный разбор',
       'de': 'Expertenanalyse',
       'fr': 'Analyse d’expert',
       'it': 'Analisi esperto',
@@ -2505,7 +2505,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     'e2fxci9s': {
       'en': 'Was this analysis helpful? ',
       'es': '¿Te ha resultado útil este análisis? ',
-      'ru': 'Был ли этот анализ полезен? ',
+      'ru': 'Был ли этот разбор полезен? ',
       'de': 'War diese Analyse hilfreich? ',
       'fr': 'Cette analyse vous a-t-elle été utile ? ',
       'it': 'Questa analisi è stata utile? ',
@@ -2832,17 +2832,17 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'zh': 'PRO',
     },
     'mcrnylah': {
-      'en': 'Welcome to M!RRA Pro',
-      'es': 'Bienvenido a M!RRA Pro',
-      'ru': 'Добро пожаловать в M!RRA Pro',
-      'de': 'Willkommen bei M!RRA Pro',
-      'fr': 'Bienvenue sur M!RRA Pro',
-      'it': 'Benvenuto in M!RRA Pro',
-      'pt': 'Bem-vindo ao M!RRA Pro',
-      'tr': 'M!RRA Pro\'ya Hoş Geldiniz',
-      'ja': 'M!RRA Proへようこそ',
-      'ko': 'M!RRA Pro에 오신 것을 환영합니다',
-      'zh': '欢迎使用M!RRA Pro',
+      'en': 'Welcome to Mirra Pro',
+      'es': 'Bienvenido a Mirra Pro',
+      'ru': 'Добро пожаловать в Mirra Pro',
+      'de': 'Willkommen bei Mirra Pro',
+      'fr': 'Bienvenue sur Mirra Pro',
+      'it': 'Benvenuto in Mirra Pro',
+      'pt': 'Bem-vindo ao Mirra Pro',
+      'tr': 'Mirra Pro\'ya Hoş Geldiniz',
+      'ja': 'Mirra Proへようこそ',
+      'ko': 'Mirra Pro에 오신 것을 환영합니다',
+      'zh': '欢迎使用Mirra Pro',
     },
     'l13naqtt': {
       'en': '200 analytics requests per month',
@@ -3496,28 +3496,12 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'zh': '升级到Pro',
     },
   },
-  // imagecart
-  {
-    'zbl2b3bx': {
-      'en': 'Hello World',
-      'es': 'Hola mundo!',
-      'ru': 'Привет, мир!',
-      'de': 'Hallo Welt',
-      'fr': 'Bonjour le monde',
-      'it': 'Ciao Mondo',
-      'pt': 'Olá Mundo',
-      'tr': 'Merhaba Dünya',
-      'ja': 'Hello World',
-      'ko': '헬로 월드',
-      'zh': '你好，世界',
-    },
-  },
   // deleteitem
   {
     'ww2bynjy': {
       'en': 'Remove this scan?',
       'es': '¿Eliminar este escaneo?',
-      'ru': 'Удалить этот скан?',
+      'ru': 'Удалить этот разбор?',
       'de': 'Diesen Scan entfernen?',
       'fr': 'Supprimer cette analyse ?',
       'it': 'Rimuovere questa scansione?',
@@ -3530,7 +3514,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     'ejy0zcsp': {
       'en': 'The scan and its analysis will be permanently deleted.',
       'es': 'El escaneo y su análisis se eliminarán de forma permanente.',
-      'ru': 'Скан и его анализ будут удалены навсегда.',
+      'ru': 'Фото и его разбор будут удалены навсегда.',
       'de': 'Der Scan und seine Analyse werden dauerhaft gelöscht.',
       'fr': 'L’analyse et ses résultats seront définitivement supprimés.',
       'it': 'La scansione e la sua analisi verranno eliminate definitivamente.',
@@ -3710,7 +3694,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     '16f5sjb6': {
       'en': 'AI Analysis',
       'es': 'Análisis de IA',
-      'ru': 'ИИ-анализ',
+      'ru': 'ИИ-разбор',
       'de': 'KI-Analyse',
       'fr': 'Analyse IA',
       'it': 'Analisi AI',
@@ -3723,7 +3707,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     'bk3jxz77': {
       'en': 'Scan a Product',
       'es': 'Escanear un producto',
-      'ru': 'Отсканируйте продукт',
+      'ru': 'Сфотографируйте продукт',
       'de': 'Produkt scannen',
       'fr': 'Scanner un produit',
       'it': 'Scansiona un prodotto',
@@ -4093,7 +4077,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     'bea7pc3c': {
       'en': 'Scan a product',
       'es': 'Escanear un producto',
-      'ru': 'Сканировать продукт',
+      'ru': 'Сфотографировать продукт',
       'de': 'Produkt scannen',
       'fr': 'Scanner un produit',
       'it': 'Scansiona un prodotto',
@@ -4152,7 +4136,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en':
           'It will not appear in the shared Mirra catalogue, and its public link will stop opening. In the app it stays yours.',
       'ru':
-          'Скан не попадёт в общий каталог Mirra, и публичная ссылка на него больше не откроется. В приложении он остаётся у вас.',
+          'Разбор не попадёт в общий каталог Mirra, и публичная ссылка на него больше не откроется. В приложении он остаётся у вас.',
       'es':
           'No aparecerá en el catálogo común de Mirra y su enlace público dejará de abrirse. En la app sigue siendo tuyo.',
       'de':
@@ -4202,7 +4186,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en':
           'It can show up in the shared Mirra catalogue and open by its public link.',
       'ru':
-          'Скан может появиться в общем каталоге Mirra и открыться по публичной ссылке.',
+          'Разбор может появиться в общем каталоге Mirra и открыться по публичной ссылке.',
       'es':
           'Puede aparecer en el catálogo común de Mirra y abrirse por su enlace público.',
       'de':
@@ -4545,19 +4529,19 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'zh': '为了向你发送重要提醒，需允许本应用发送通知。',
     },
     'tymv0tkj': {
-      'en': 'MiRRA сохраняет карточки продуктов в фотогалерею',
+      'en': 'Mirra сохраняет карточки продуктов в фотогалерею',
       'es': '',
       'ru': '',
-      'de': 'MiRRA speichert Produktkarten in der Fotogalerie',
-      'ru': 'MiRRA сохраняет карточки продуктов в фотогалерею',
+      'de': 'Mirra speichert Produktkarten in der Fotogalerie',
+      'ru': 'Mirra сохраняет карточки продуктов в фотогалерею',
       'es': 'Mirra guarda las tarjetas de productos en la galería de fotos',
-      'fr': 'MiRRA enregistre les fiches produits dans la galerie photo',
+      'fr': 'Mirra enregistre les fiches produits dans la galerie photo',
       'it': 'Mirra salva le schede prodotto nella galleria foto',
-      'pt': 'MiRRA salva cartões de produtos na galeria de fotos',
-      'tr': 'MiRRA ürün kartlarını fotoğraf galerisine kaydediyor',
-      'ja': 'MiRRAは製品カードをフォトギャラリーに保存します',
-      'ko': 'MiRRA가 제품 카드를 사진 갤러리에 저장합니다',
-      'zh': 'MiRRA将产品卡片保存到相册',
+      'pt': 'Mirra salva cartões de produtos na galeria de fotos',
+      'tr': 'Mirra ürün kartlarını fotoğraf galerisine kaydediyor',
+      'ja': 'Mirraは製品カードをフォトギャラリーに保存します',
+      'ko': 'Mirra가 제품 카드를 사진 갤러리에 저장합니다',
+      'zh': 'Mirra将产品卡片保存到相册',
     },
     '2uqazfud': {
       'en': '',
@@ -4648,7 +4632,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'es':
           'Actualmente analizamos skincare facial, protectores solares y maquillaje. El cuidado del cabello, geles de ducha, fragancias y similares estarán disponibles pronto.',
       'ru':
-          'Мы анализируем уход за лицом, солнцезащитные средства и макияж. Шампуни, гели для душа, ароматы и похожее появятся позже.',
+          'Мы разбираем уход за лицом, солнцезащитные средства и макияж. Шампуни, гели для душа, ароматы и похожее появятся позже.',
       'de':
           'Wir analysieren derzeit Gesichtspflege, Sonnenschutz und Make-up. Haarpflege, Duschgel, Parfüms und ähnliche Produkte folgen bald.',
       'fr':
@@ -5007,7 +4991,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'es':
           'Fotografía el panel de ingredientes del envase para un análisis preciso, o continúa con la lista encontrada.',
       'ru':
-          'Сфотографируйте состав на упаковке для точного анализа или продолжите с найденным списком.',
+          'Сфотографируйте состав на упаковке для точного разбора или продолжите с найденным списком.',
       'de':
           'Fotografiere die Zutatenliste auf der Verpackung für eine präzise Analyse oder fahre mit der gefundenen Liste fort.',
       'fr':
@@ -5038,7 +5022,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     'err_analyze_btn': {
       'en': 'Analyze',
       'es': 'Analizar',
-      'ru': 'Анализировать',
+      'ru': 'Разобрать',
       'de': 'Analysieren',
       'fr': 'Analyser',
       'it': 'Analizza',
@@ -5184,7 +5168,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     'analysis_pending_title': {
       'en': 'Research in progress',
       'es': 'Investigación en curso',
-      'ru': 'Анализ ещё идёт',
+      'ru': 'Разбор ещё идёт',
       'de': 'Recherche läuft',
       'fr': 'Recherche en cours',
       'it': 'Ricerca in corso',
@@ -5199,7 +5183,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
           'The analysis of this product hasn\'t been completed yet. Come back a little later.',
       'es':
           'El análisis de este producto aún no ha finalizado. Vuelve un poco más tarde.',
-      'ru': 'Анализ этого продукта ещё не готов. Загляните позже.',
+      'ru': 'Разбор этого продукта ещё не готов. Загляните позже.',
       'de':
           'Die Analyse dieses Produkts ist noch nicht abgeschlossen. Schau später noch einmal vorbei.',
       'fr':
@@ -5501,7 +5485,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
   {
     'ic2_save_title': {
       'en': 'Save your analyses',
-      'ru': 'Сохраните свои сканы',
+      'ru': 'Сохраните свои разборы',
       'es': 'Guarda tus análisis',
       'de': 'Analysen speichern',
       'fr': 'Sauvegardez vos analyses',
@@ -5516,7 +5500,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en':
           'Create an account and all the products you\'ve already scanned will be saved to your history.',
       'ru':
-          'Создайте аккаунт, и все уже просканированные продукты сохранятся в истории.',
+          'Создайте аккаунт, и все уже разобранные продукты сохранятся в истории.',
       'es':
           'Crea una cuenta y todos los productos que ya analizaste se guardarán en tu historial.',
       'de':
@@ -5627,7 +5611,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
   {
     'tu_title': {
       'en': 'Analysis in progress',
-      'ru': 'Анализ ещё идёт',
+      'ru': 'Разбор ещё идёт',
       'es': 'Análisis en curso',
       'de': 'Analyse läuft',
       'fr': 'Analyse en cours',
@@ -5642,7 +5626,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en':
           'Some ingredients are still being researched. The full analysis will be ready in ~30 seconds — you\'ll see it on the home screen and get a notification.',
       'ru':
-          'Некоторые компоненты ещё изучаются. Полный анализ будет готов примерно через 30 секунд. Он появится на главной, и придёт уведомление.',
+          'Некоторые компоненты ещё изучаются. Полный разбор будет готов примерно через 30 секунд. Он появится на главной, и придёт уведомление.',
       'es':
           'Algunos ingredientes están siendo investigados. El análisis completo estará listo en ~30 segundos — lo verás en la pantalla principal y recibirás una notificación.',
       'de':
@@ -6190,7 +6174,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'al_step_3': {
       'en': 'Running analysis',
-      'ru': 'Анализируем',
+      'ru': 'Разбираем',
       'es': 'Analizando',
       'de': 'Analyse läuft',
       'fr': 'Analyse en cours',
@@ -6219,7 +6203,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'ob_s1_title': {
       'en': 'Scan cosmetic products',
-      'ru': 'Сканируйте любую косметику',
+      'ru': 'Разбирайте любую косметику',
       'es': 'Escanea productos cosméticos',
       'de': 'Kosmetikprodukte scannen',
       'fr': 'Scanner des produits cosmétiques',
@@ -6403,16 +6387,16 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'zh': '创建中…',
     },
     'sc_shareText': {
-      'en': 'Analyzed with MiRRA',
-      'ru': 'Проверено с MiRRA',
-      'es': 'Analizado con MiRRA',
-      'de': 'Analysiert mit MiRRA',
-      'fr': 'Analysé avec MiRRA',
-      'it': 'Analizzato con MiRRA',
-      'pt': 'Analisado com MiRRA',
-      'tr': 'MiRRA ile analiz edildi',
+      'en': 'Analyzed with Mirra',
+      'ru': 'Проверено с Mirra',
+      'es': 'Analizado con Mirra',
+      'de': 'Analysiert mit Mirra',
+      'fr': 'Analysé avec Mirra',
+      'it': 'Analizzato con Mirra',
+      'pt': 'Analisado com Mirra',
+      'tr': 'Mirra ile analiz edildi',
       'ja': 'Mirraで解析済み',
-      'ko': 'MiRRA로 분석됨',
+      'ko': 'Mirra로 분석됨',
       'zh': '已用 Mirra 分析',
     },
     'sc_tagPrompt': {
@@ -6515,7 +6499,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     // English-only originally; {remaining}/{limit}/{n} are runtime placeholders.
     'home_pro_unlimited': {
       'en': 'Unlimited scans · Pro',
-      'ru': 'Безлимитные сканирования · Pro',
+      'ru': 'Безлимитные разборы · Pro',
       'es': 'Escaneos ilimitados · PRO',
       'de': 'Unbegrenzte Scans · Pro',
       'fr': 'Scans illimités · Pro',
@@ -7207,7 +7191,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'cardv2_confidence_title': {
       'en': 'Analysis confidence',
-      'ru': 'Уверенность анализа',
+      'ru': 'Уверенность разбора',
       'es': 'Confianza del análisis',
       'de': 'Analyse-Sicherheit',
       'fr': 'Fiabilité de l’analyse',
@@ -7301,7 +7285,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
   {
     'ic2_pro_title': {
       'en': 'Full Analysis in Pro',
-      'ru': 'Полный анализ в Pro',
+      'ru': 'Полный разбор в Pro',
       'es': 'Análisis completo en Pro',
       'de': 'Vollständige Analyse in PRO',
       'fr': 'Analyse complète dans Pro',
@@ -7314,7 +7298,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'ic2_pro_unlimited': {
       'en': 'Unlimited scans',
-      'ru': 'Сканы без ограничений',
+      'ru': 'Разборы без ограничений',
       'es': 'Escaneos ilimitados',
       'de': 'Unbegrenzte Scans',
       'fr': 'Analyses illimitées',
@@ -7559,7 +7543,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
   {
     'ic2_pro_preview': {
       'en': 'Preview Pro analysis once for free →',
-      'ru': 'Посмотреть Pro-анализ один раз бесплатно →',
+      'ru': 'Посмотреть Pro-разбор один раз бесплатно →',
       'es': 'Ver análisis Pro una vez gratis →',
       'de': 'PRO-Analyse einmal kostenlos ansehen →',
       'fr': 'Aperçu de l’analyse PRO gratuit une fois →',
@@ -7593,7 +7577,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en':
           'I don’t answer “good or bad”, but “is it right for you”. A couple of questions and your scans get accurate.',
       'ru':
-          'Я отвечаю не «хорошо это или плохо», а «подойдёт ли именно вам». Пара вопросов, и сканы станут точнее.',
+          'Я отвечаю не «хорошо это или плохо», а «подойдёт ли именно вам». Пара вопросов, и разборы станут точнее.',
       'es':
           'No respondo “bueno o malo”, sino “te conviene a ti”. Un par de preguntas y tus escaneos serán precisos.',
       'de':
@@ -8378,7 +8362,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     'obq_result_bridge': {
       'en': 'Now scan your first product — I’ll show if it suits you.',
       'ru':
-          'Теперь отсканируйте первый продукт, и я покажу, подойдёт ли он именно вам.',
+          'Теперь сфотографируйте первый продукт, и я покажу, подойдёт ли он именно вам.',
       'es': 'Ahora escanea tu primer producto — te diré si te conviene.',
       'de': 'Scanne jetzt dein erstes Produkt — ich zeige, ob es zu dir passt.',
       'fr': 'Scanne ton premier produit — je te dirai s’il te convient.',
@@ -8392,7 +8376,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'obq_result_scan': {
       'en': 'Save and scan',
-      'ru': 'Сохранить и сканировать',
+      'ru': 'Сохранить и разобрать',
       'es': 'Guardar y escanear',
       'de': 'Speichern und scannen',
       'fr': 'Enregistrer et scanner',
@@ -8527,7 +8511,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'cb_intro_subtitle': {
       'en': 'Scan 3 products and see how they work together',
-      'ru': 'Сделайте 3 скана продуктов и посмотрите, как они работают вместе',
+      'ru': 'Разберите 3 продукта и посмотрите, как они работают вместе',
       'es': 'Escanea 3 productos y descubre cómo funcionan juntos',
       'de': 'Scanne 3 Produkte und sieh, wie sie zusammenwirken',
       'fr': 'Scanne 3 produits et vois comment ils fonctionnent ensemble',
@@ -8553,7 +8537,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'cb_scan_cta': {
       'en': 'Scan a product',
-      'ru': 'Сканировать продукт',
+      'ru': 'Сфотографировать продукт',
       'es': 'Escanear un producto',
       'de': 'Produkt scannen',
       'fr': 'Scanner un produit',
@@ -8592,7 +8576,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'cb_compat_loading': {
       'en': 'Analyzing compatibility…',
-      'ru': 'Анализируем совместимость…',
+      'ru': 'Разбираем совместимость…',
       'es': 'Analizando compatibilidad…',
       'de': 'Verträglichkeit wird analysiert…',
       'fr': 'Analyse de la compatibilité…',
@@ -8670,7 +8654,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'cb_bag_empty': {
       'en': 'Scan products to fill your bag',
-      'ru': 'Сканируйте продукты, чтобы наполнить косметичку',
+      'ru': 'Разбирайте продукты, чтобы наполнить косметичку',
       'es': 'Escanea productos para llenar tu neceser',
       'de': 'Scanne Produkte, um deine Kosmetiktasche zu füllen',
       'fr': 'Scanne des produits pour remplir ta trousse',
@@ -8839,7 +8823,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'cb_add_new_scan': {
       'en': 'New scan',
-      'ru': 'Новый скан',
+      'ru': 'Новый разбор',
       'es': 'Nuevo escaneo',
       'de': 'Neuer Scan',
       'fr': 'Nouveau scan',
@@ -8852,7 +8836,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'cb_compat_error': {
       'en': "Couldn't analyze compatibility. Please try again.",
-      'ru': 'Не удалось проанализировать совместимость. Попробуйте ещё раз.',
+      'ru': 'Не удалось разобрать совместимость. Попробуйте ещё раз.',
       'es': 'No se pudo analizar la compatibilidad. Inténtalo de nuevo.',
       'de': 'Verträglichkeit konnte nicht analysiert werden. Bitte versuche es erneut.',
       'fr': 'Impossible d’analyser la compatibilité. Réessaie.',
@@ -8893,7 +8877,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en':
           "Couldn't read these products' ingredients yet. Re-scan them so the full composition is recognised.",
       'ru':
-          'Пока не удалось прочитать состав этих продуктов. Пересканируйте их, чтобы распознался полный состав.',
+          'Пока не удалось прочитать состав этих продуктов. Сфотографируйте их заново, чтобы распознался полный состав.',
       'es': 'Aún no se pudo leer los ingredientes de estos productos. Vuelve a escanearlos para reconocer la composición completa.',
       'de': 'Die Inhaltsstoffe dieser Produkte konnten noch nicht gelesen werden. Scanne sie erneut, damit die vollständige Zusammensetzung erkannt wird.',
       'fr': 'Impossible de lire les ingrédients de ces produits pour l’instant. Scanne-les à nouveau pour reconnaître la composition complète.',
@@ -9127,7 +9111,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'cb_slot_newscan': {
       'en': 'Scan a new product',
-      'ru': 'Добавить новый скан',
+      'ru': 'Добавить новый разбор',
       'es': 'Escanear un producto nuevo',
       'de': 'Neues Produkt scannen',
       'fr': 'Scanner un nouveau produit',
@@ -10102,7 +10086,7 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ja': '週{n}回', 'ko': '주 {n}회', 'zh': '每周{n}次',
     },
     'care_empty': {
-      'en': 'Scan and analyze at least two products first', 'ru': 'Сначала отсканируйте и проанализируйте хотя бы два продукта',
+      'en': 'Scan and analyze at least two products first', 'ru': 'Сначала разберите хотя бы два продукта',
       'es': 'Primero escanea y analiza al menos dos productos', 'de': 'Scanne und analysiere zuerst mindestens zwei Produkte',
       'fr': 'Scannez et analysez d’abord au moins deux produits', 'it': 'Prima scansiona e analizza almeno due prodotti',
       'pt': 'Primeiro escaneie e analise pelo menos dois produtos', 'tr': 'Önce en az iki ürünü tarat ve analiz et',
