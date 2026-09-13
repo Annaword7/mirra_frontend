@@ -85,6 +85,8 @@ class _DeleteConfirmationWidgetState extends State<DeleteConfirmationWidget> {
           // набором флагов возвращаем онбординг, разовое предложение и счётчик
           // сканов для просьбы об отзыве (см. ветку «Выйти» в Профиле).
           FFAppState().onboardingDone = false;
+          // Незалитый буфер анкеты иначе достался бы следующему гостю.
+          FFAppState().clearOnboardingBuffer();
           FFAppState().softPaywallShown = false;
           FFAppState().successfulScans = 0;
           FFAppState().saveProPromptShown = false;

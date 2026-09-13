@@ -8058,17 +8058,25 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'zh': '你是否处于孕期或哺乳期？',
     },
     'obq_preg_why': {
-      'en': 'Some actives (like retinoids) aren’t recommended during this time, so I’ll keep them out of your routine.',
-      'ru': 'Некоторые активы (например, ретиноиды) в этот период не рекомендуются, поэтому я не включу их в уход.',
-      'es': 'Algunos activos (como los retinoides) no se recomiendan en esta etapa, así que los dejaré fuera de tu rutina.',
-      'de': 'Manche Wirkstoffe (z. B. Retinoide) sind in dieser Zeit nicht empfohlen, deshalb lasse ich sie aus Ihrer Routine heraus.',
-      'fr': 'Certains actifs (comme les rétinoïdes) sont déconseillés pendant cette période, je les écarterai donc de votre routine.',
-      'it': 'Alcuni attivi (come i retinoidi) non sono consigliati in questo periodo, quindi li terrò fuori dalla tua routine.',
-      'pt': 'Alguns ativos (como retinoides) não são recomendados nesse período, então vou deixá-los fora da sua rotina.',
-      'tr': 'Bazı aktifler (örn. retinoidler) bu dönemde önerilmez, bu yüzden rutininize dahil etmeyeceğim.',
-      'ja': '一部の成分（レチノイドなど）はこの時期おすすめできません。ルーティンから外します。',
-      'ko': '일부 활성 성분(레티노이드 등)은 이 시기에 권장되지 않아요. 루틴에서 제외할게요.',
-      'zh': '部分活性成分（如维A类）在此期间不建议使用，我会把它们排除在你的护肤流程之外。',
+      'en':
+          'Retinoids, hydroquinone and high-dose salicylic acid are avoided at this time. Mark it and I won’t put them in your routine.',
+      'ru':
+          'В этот период избегают ретиноидов, гидрохинона и высоких доз салициловой кислоты. Отметьте, и я не поставлю их в уход.',
+      'es':
+          'En esta etapa se evitan retinoides, hidroquinona y dosis altas de ácido salicílico. Márcalo y no los incluiré en la rutina.',
+      'de':
+          'In dieser Zeit meidet man Retinoide, Hydrochinon und hohe Dosen Salicylsäure. Markieren Sie es, und ich nehme sie nicht in die Pflege auf.',
+      'fr':
+          'À cette période, on évite les rétinoïdes, l’hydroquinone et les fortes doses d’acide salicylique. Indiquez-le et je ne les mettrai pas dans la routine.',
+      'it':
+          'In questo periodo si evitano retinoidi, idrochinone e alte dosi di acido salicilico. Segnalalo e non li metterò nella routine.',
+      'pt':
+          'Nesse período evitam-se retinoides, hidroquinona e altas doses de ácido salicílico. Marque e não vou colocá-los na rotina.',
+      'tr':
+          'Bu dönemde retinoidlerden, hidrokinondan ve yüksek doz salisilik asitten kaçınılır. İşaretleyin, onları rutine koymam.',
+      'ja': 'この時期はレチノイド、ハイドロキノン、高濃度のサリチル酸を避けます。設定すれば、ケアには入れません。',
+      'ko': '이 시기에는 레티노이드, 하이드로퀴논, 고농도 살리실산을 피합니다. 표시해 두면 루틴에 넣지 않아요.',
+      'zh': '这段时间要避开 A 醇类、氢醌和高浓度水杨酸。标记后，我不会把它们放进日常。',
     },
     'obq_preg_yes': {
       'en': 'Yes, pregnant or breastfeeding',
@@ -9226,20 +9234,24 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'care_frames_nudge': {
       'en':
-          'Pregnant or breastfeeding? Tell me and I’ll keep retinoids out of your routine.',
+          'Pregnant or nursing? Mark it and I’ll leave out what’s best avoided now.',
       'ru':
-          'Беременность или кормление? Скажите, и я не поставлю в рутину ретиноиды.',
+          'Беременность или кормление? Отметьте, и я уберу из рутины то, что в этот период не рекомендуют.',
       'es':
-          '¿Embarazo o lactancia? Dímelo y dejaré los retinoides fuera de tu rutina.',
+          '¿Embarazo o lactancia? Márcalo y dejaré fuera lo que conviene evitar ahora.',
       'de':
-          'Schwanger oder stillend? Sagen Sie es mir, dann bleiben Retinoide draußen.',
-      'fr': 'Grossesse ou allaitement ? Dis-le moi et j’écarte les rétinoïdes.',
-      'it': 'Gravidanza o allattamento? Dimmelo e terrò i retinoidi fuori.',
-      'pt': 'Gravidez ou amamentação? Diga e deixo os retinoides de fora.',
-      'tr': 'Hamile misiniz veya emziriyor musunuz? Söyleyin, retinoidleri rutine koymam.',
-      'ja': '妊娠中・授乳中ですか?教えてくれれば、レチノイドは入れません。',
-      'ko': '임신 또는 수유 중이세요? 알려주면 레티노이드는 넣지 않아요.',
-      'zh': '孕期或哺乳期？告诉我，我就不把 A 醇类放进日常。',
+          'Schwanger oder stillend? Markieren Sie es, und ich lasse weg, was jetzt besser vermieden wird.',
+      'fr':
+          'Grossesse ou allaitement ? Indiquez-le et j’écarte ce qu’il vaut mieux éviter maintenant.',
+      'it':
+          'Gravidanza o allattamento? Segnalalo e terrò fuori ciò che ora è meglio evitare.',
+      'pt':
+          'Gravidez ou amamentação? Marque e deixo de fora o que é melhor evitar agora.',
+      'tr':
+          'Hamile veya emziriyor musunuz? İşaretleyin, bu dönemde kaçınılanları rutine koymam.',
+      'ja': '妊娠中・授乳中ですか？ 設定すれば、この時期に避けたい成分はケアに入れません。',
+      'ko': '임신 또는 수유 중인가요? 표시해 두면 이 시기에 피하는 성분은 루틴에 넣지 않아요.',
+      'zh': '孕期或哺乳期？标记一下，这段时间不建议用的成分我就不放进日常。',
     },
     'prof_skin_profile': {
       'en': 'My skin profile', 'ru': 'Мой профиль кожи', 'es': 'Mi perfil de piel',

@@ -384,6 +384,12 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                   FFAppState().isprouser = false;
                                   FFAppState().onboardingDone = false;
                                   FFAppState().analysesused = 0;
+                                  // Буфер анкеты живёт в prefs и переживал
+                                  // смену личности: ответы прошлого человека
+                                  // (тип кожи, беременность, цели) дописались
+                                  // бы в строку следующего на первом же входе
+                                  // на Главную.
+                                  FFAppState().clearOnboardingBuffer();
                                   FFAppState().softPaywallShown = false;
                                   FFAppState().successfulScans = 0;
                                   FFAppState().saveProPromptShown = false;
@@ -414,6 +420,9 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                 FFAppState().isprouser = false;
                                 FFAppState().onboardingDone = false;
                                 FFAppState().analysesused = 0;
+                                // Ответы анкеты не должны пережить выход: см.
+                                // тот же сброс в «Reset guest session».
+                                FFAppState().clearOnboardingBuffer();
                                 // Ending a session is specified to look
                                 // like a first install, and these two
                                 // are what make the first run different:
