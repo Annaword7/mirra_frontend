@@ -1030,54 +1030,6 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
                                       ),
                               ),
                             ),
-                          // Guests keep everything they scan, but only on this
-                          // device. This is the one screen where that matters
-                          // enough to mention — and the only place an account
-                          // is offered at all now that the entry screen is out
-                          // of the launch path.
-                          if (currentUserIsAnonymous)
-                            Padding(
-                              padding: const EdgeInsetsDirectional.fromSTEB(
-                                  16, 0, 16, 12),
-                              child: SizedBox(
-                                // Full width so textAlign.center actually
-                                // centers: the enclosing Column sizes children
-                                // to their content, and a bare Text would sit
-                                // wherever the column's alignment put it.
-                                width: double.infinity,
-                                child: GestureDetector(
-                                  // Without this only the glyphs are tappable;
-                                  // the padding below is there to make the
-                                  // target reachable, not just to space it.
-                                  behavior: HitTestBehavior.opaque,
-                                  onTap: () => context
-                                      .pushNamed(LogInPageWidget.routeName),
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 10),
-                                    child: Text(
-                                      FFLocalizations.of(context)
-                                          .getText('nb_signin_register'),
-                                      textAlign: TextAlign.center,
-                                      style: FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .override(
-                                            fontFamily:
-                                                FlutterFlowTheme.of(context)
-                                                    .bodyMediumFamily,
-                                            color: FlutterFlowTheme.of(context)
-                                                .primary,
-                                            fontWeight: FontWeight.w600,
-                                            letterSpacing: 0,
-                                            useGoogleFonts:
-                                                !FlutterFlowTheme.of(context)
-                                                    .bodyMediumIsCustom,
-                                          ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
                           // ── Fit card v2: verdict + tappable skin-type matrix +
                           // active dose statuses + addressed warnings + claim audit.
                           // Matrix taps are ephemeral previews (never written to profile).
