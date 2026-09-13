@@ -1,4 +1,3 @@
-import '/design_system/foundations/image_thumb.dart';
 import '/design_system/components/screen_loader.dart';
 import 'dart:async';
 import '/auth/supabase_auth/auth_util.dart';
@@ -8,14 +7,16 @@ import '/components/navbar/navbar_widget.dart';
 import '/components/profile_summary_card.dart';
 import '/design_system/components/app_button.dart';
 import '/design_system/components/pro_pill.dart';
+import '/design_system/components/product_thumb.dart';
 import '/domain/care_planning/care_planning_service.dart';
 import '/domain/cosmetic_bag/cosmetic_bag_service.dart';
+import '/domain/products/product_photo.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/plural.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/paywall/paywallpage/paywallpage_widget.dart';
 import '/pages/care_review/care_review_widget.dart';
-import '/pages/onboarding_quiz/onboarding_quiz_widget.dart' show kPregnancyPregnantOrNursing;
+import '/domain/client_card/client_card_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -49,7 +50,10 @@ class _BagWidgetState extends State<BagWidget> {
 
   /// Колонки images, которые нужны косметичке. Разбор состава и тексты анализа
   /// здесь не выводятся, а весят в разы больше остального.
-  static const _imageColumns = 'id,image_url,product_name,brand';
+  // catalog_image_url — то, что показываем в сетке и в выборе «Из моих
+  // продуктов»: см. displayPhotoUrl в domain/products/product_photo.dart.
+  static const _imageColumns =
+      'id,image_url,catalog_image_url,product_name,brand';
 
   /// Вердикт «безопасно при беременности» по продуктам набора. Живёт отдельно:
   /// колонку добавляет миграция 20260730_pregnancy_verdict, и там, где она ещё
@@ -343,7 +347,7 @@ class _BagWidgetState extends State<BagWidget> {
   /// продуктам с вычисленным вердиктом (sa_pregnancy_safe != null); полная
   /// методика — на карточке продукта.
   Widget _pregnancySummary(FlutterFlowTheme theme) {
-    if (_profile?.pregnancyStatus != kPregnancyPregnantOrNursing) {
+    if (_profile?.pregnancyStatus != ClientCardService.pregnantOrNursing) {
       return const SizedBox.shrink();
     }
     final computed = _items
@@ -419,7 +423,7 @@ class _BagWidgetState extends State<BagWidget> {
               children: [
                 // «Твой профиль»: саммари онбординга, тап → квиз (изменить).
                 ProfileSummaryCard(
-                    profileRow: _profile, returnTo: BagWidget.routeName),
+                    profileRow: _profile, returnTo: BagWidget.routePath),
                 Text(
                   _t('bag_subtitle'),
                   style: const TextStyle(color: Colors.black54, fontSize: 13.5),
@@ -493,18 +497,13 @@ class _FilledSlot extends StatelessWidget {
               child: Column(
                 children: [
                   Expanded(
-                    child: (image != null && image!.imageUrl.isNotEmpty)
-                        ? Image(
-                            image: thumbProvider(image!.imageUrl, width: 400),
-                            width: double.infinity,
-                            fit: BoxFit.cover)
-                        : Container(
-                            color: const Color(0xFFF2F2F2),
-                            child: const Center(
-                              child: Icon(Icons.spa_outlined,
-                                  color: Colors.black38),
-                            ),
-                          ),
+                    child: ProductThumb(
+                      url: image?.displayPhotoUrl ?? '',
+                      decodeWidth: 400,
+                      // Рамка слота уже скруглена снаружи — миниатюре хватает
+                      // прямых углов, иначе по краям видны белые уголки.
+                      radius: 0,
+                    ),
                   ),
                   Padding(
                     padding: const EdgeInsets.all(6),
@@ -687,16 +686,17 @@ class _PickScanSheet extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Expanded(
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: img.imageUrl.isNotEmpty
-                                    ? Image(
-                                        image: thumbProvider(img.imageUrl,
-                                            width: 200),
-                                        width: double.infinity,
-                                        fit: BoxFit.cover)
-                                    : Container(
-                                        color: const Color(0xFFF2F2F2)),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                      color: const Color(0xFFE6E6E6)),
+                                ),
+                                child: ProductThumb(
+                                  url: img.displayPhotoUrl,
+                                  decodeWidth: 300,
+                                  radius: 11,
+                                ),
                               ),
                             ),
                             const SizedBox(height: 6),

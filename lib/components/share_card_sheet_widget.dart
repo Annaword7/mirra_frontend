@@ -3,6 +3,7 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/custom_code/widgets/index.dart' as custom_widgets;
 import '/design_system/components/mirra_bottom_sheet.dart';
+import '/domain/products/product_photo.dart';
 import 'package:flutter/material.dart';
 import 'share_card_sheet_model.dart';
 export 'share_card_sheet_model.dart';
@@ -231,7 +232,7 @@ class _ShareCardSheetWidgetState extends State<ShareCardSheetWidget> {
                         'No Brand',
                       ),
                       imageUrl: valueOrDefault<String>(
-                        containerImagesRow?.imageUrl,
+                        containerImagesRow?.displayPhotoUrl,
                         'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png',
                       ),
                       score: valueOrDefault<double>(

@@ -3,12 +3,14 @@ import '/design_system/components/screen_loader.dart';
 import '/backend/supabase/database/database.dart';
 import '/components/navbar/navbar_widget.dart';
 import '/design_system/components/app_button.dart';
+import '/design_system/components/mirra_empty_state.dart';
 import '/domain/care_planning/care_planning_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/notification_service.dart';
 import '/pages/bag/bag_widget.dart';
 import '/pages/care_review/care_review_widget.dart';
+import '/domain/products/product_photo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -246,12 +248,12 @@ class _RoutineWidgetState extends State<RoutineWidget> {
       body: _loading
           ? const ScreenLoader(hasAppBar: true, hasBottomNavBar: true)
           : _noRegimen
-              ? _EmptyState(
-                  primary: theme.primary,
-                  title: _t('care_routine_empty_title'),
+              ? MirraEmptyState(
+                  icon: Icons.auto_awesome_rounded,
+                  headline: _t('care_routine_empty_title'),
                   body: _t('care_routine_empty_body'),
-                  cta: _t('care_routine_empty_cta'),
-                  onTap: () async {
+                  ctaLabel: _t('care_routine_empty_cta'),
+                  onCta: () async {
                     await context.pushNamed(BagWidget.routeName);
                     if (mounted) _load();
                   },
@@ -454,9 +456,10 @@ class _Section extends StatelessWidget {
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(10),
-                      child: (img != null && img.imageUrl.isNotEmpty)
+                      child: (img != null && img.displayPhotoUrl.isNotEmpty)
                           ? Image(
-                              image: thumbProvider(img.imageUrl, width: 200),
+                              image: thumbProvider(img.displayPhotoUrl,
+                                  width: 200),
                               width: 44,
                               height: 44,
                               fit: BoxFit.cover)
@@ -617,10 +620,11 @@ class _PrescriptionSheetState extends State<_PrescriptionSheet> {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10),
                   child: (widget.image != null &&
-                          widget.image!.imageUrl.isNotEmpty)
+                          widget.image!.displayPhotoUrl.isNotEmpty)
                       ? Image(
                           image:
-                              thumbProvider(widget.image!.imageUrl, width: 200),
+                              thumbProvider(widget.image!.displayPhotoUrl,
+                                  width: 200),
                           width: 44,
                           height: 44,
                           fit: BoxFit.cover)
@@ -749,61 +753,3 @@ class _PrescriptionSheetState extends State<_PrescriptionSheet> {
   }
 }
 
-class _EmptyState extends StatelessWidget {
-  const _EmptyState({
-    required this.primary,
-    required this.title,
-    required this.body,
-    required this.cta,
-    required this.onTap,
-  });
-  final Color primary;
-  final String title;
-  final String body;
-  final String cta;
-  final Future<void> Function() onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 88,
-                height: 88,
-                decoration: BoxDecoration(
-                  color: primary.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child:
-                    Icon(Icons.auto_awesome_rounded, color: primary, size: 40),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 20,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                body,
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.black54),
-              ),
-              const SizedBox(height: 28),
-              AppButton(label: cta, onPressed: onTap),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}

@@ -2,6 +2,7 @@ import '/backend/supabase/supabase.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/custom_code/widgets/index.dart' as custom_widgets;
+import '/domain/products/product_photo.dart';
 import 'package:flutter/material.dart';
 import 'shareproduct_model.dart';
 export 'shareproduct_model.dart';
@@ -164,7 +165,7 @@ class _ShareproductWidgetState extends State<ShareproductWidget> {
                             'No Brand',
                           ),
                           imageUrl: valueOrDefault<String>(
-                            containerImagesRow?.imageUrl,
+                            containerImagesRow?.displayPhotoUrl,
                             'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png',
                           ),
                           score: valueOrDefault<double>(
