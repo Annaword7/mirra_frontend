@@ -84,13 +84,13 @@
 		<key>LSRequiresIPhoneOS</key>
 		<true/>
 		<key>NSCameraUsageDescription</key>
-		<string>Mirra uses the camera to photograph cosmetic product labels and packaging so the app can analyze the ingredients for safety and compatibility with your skin type. For example, you can point the camera at a moisturizer label to instantly identify potentially harmful chemicals.</string>
+		<string>Mirra uses the camera to photograph cosmetic product labels and packaging so the app can analyse the ingredients for safety and compatibility with your skin type. For example, you can point the camera at a moisturiser label to instantly identify potentially harmful chemicals.</string>
 		<key>NSPhotoLibraryAddUsageDescription</key>
-		<string>Mirra сохраняет карточки продуктов в фотогалерею</string>
+		<string>Mirra saves product cards to your photo library</string>
 		<key>NSPhotoLibraryUsageDescription</key>
-		<string>In order to upload data, this app requires permission to access the photo library.</string>
+		<string>Mirra needs access to your photo library so you can upload product photos.</string>
 		<key>PermissionGroupNotification</key>
-		<string>In order to send you important reminders, this app requires permission to send notifications.</string>
+		<string>To send you important reminders, this app needs permission to send notifications.</string>
 		<key>UIApplicationSceneManifest</key>
 		<dict>
 			<key>UIApplicationSupportsMultipleScenes</key>

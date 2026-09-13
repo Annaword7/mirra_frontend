@@ -1,2 +1,2 @@
-PermissionGroupNotification = "In order to send you important reminders, this app requires permission to send notifications.";
-NSPhotoLibraryAddUsageDescription = "MiRRA сохраняет карточки продуктов в фотогалерею";
+PermissionGroupNotification = "To send you important reminders, this app needs permission to send notifications.";
+NSPhotoLibraryAddUsageDescription = "Mirra saves product cards to your photo library";
