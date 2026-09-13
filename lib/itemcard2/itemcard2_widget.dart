@@ -388,35 +388,6 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
     );
   }
 
-  /// Радар оценки по пяти осям — туда же, в подробности.
-  Widget _buildScoreRadar(BuildContext context) {
-    return Builder(builder: (context) {
-      final img = _model.imageraw?.firstOrNull;
-      final log = img?.saScoringLog;
-      if (log == null) return const SizedBox.shrink();
-      // Prefer the backend's parsed INCI list; fall back
-      // to a client split (keeps "1,2-Hexanediol" intact)
-      // so the 1% ring + issue dots work on old records.
-      final inci = (img?.saInciList.isNotEmpty ?? false)
-          ? img!.saInciList
-          : (img?.ingredients ?? '')
-              .split(RegExp(r',(?!\s*\d)|\n'))
-              .map((s) => s.trim())
-              .where((s) => s.isNotEmpty)
-              .toList();
-      return Padding(
-        padding: const EdgeInsetsDirectional.fromSTEB(16.0, 16.0, 16.0, 0.0),
-        child: ScoreBreakdownWidget(
-          scoringLog: log,
-          topIngredients: _model.topIngredientsRaw ?? const [],
-          ingredientIssues: _model.ingredientIssuesRaw ?? const [],
-          inciList: inci,
-          onePercentLinePos: img?.saOnePercentLinePos,
-        ),
-      );
-    });
-  }
-
   /// Экспертный разбор: 9–20 строк сплошного текста, тоже в подробности.
   Widget _buildExpertAnalysis(BuildContext context) {
     return Builder(builder: (context) {
@@ -1088,7 +1059,6 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
                               // глубже»: 1265 px, которые читают единицы.
                               deepExtras: [
                                 _buildIngredients(context),
-                                _buildScoreRadar(context),
                                 _buildExpertAnalysis(context),
                               ],
                             ),

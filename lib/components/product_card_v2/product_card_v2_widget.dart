@@ -7,6 +7,7 @@ import '/backend/supabase/supabase.dart';
 import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
+import '/components/score_breakdown/score_breakdown_widget.dart';
 import '/design_system/foundations/score_status.dart';
 import '/index.dart';
 
@@ -170,6 +171,12 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
       // врут ли на упаковке → подробности по запросу.
       children: [
         _buildVerdict(theme),
+        // Из чего сложилась оценка — сразу под числом, свёрнутым списком осей.
+        ScoreBreakdownWidget(
+          scoringLog: widget.image.saScoringLog,
+          topIngredients: widget.topIngredients,
+          ingredientIssues: widget.ingredientIssues,
+        ),
         if (widget.profileCta != null) widget.profileCta!,
         _buildPregnancy(theme),
         _buildFit(theme),
