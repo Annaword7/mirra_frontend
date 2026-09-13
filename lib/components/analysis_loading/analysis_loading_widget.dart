@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:math';
 
-import '/app_state.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'package:flutter/material.dart';
@@ -20,6 +19,11 @@ const _factKeys = [
 ];
 const _stepKeys = ['al_step_1', 'al_step_2', 'al_step_3'];
 
+/// Экран ожидания разбора: снятое фото сверху, шаги и факт снизу.
+///
+/// Фон белый, как у остальных экранов. Раньше он был `secondaryBackground`
+/// (#CBDDFE) — голубое полотно, которого больше нигде в приложении нет, да и
+/// фото уезжало в него градиентом.
 class AnalysisLoadingWidget extends StatefulWidget {
   const AnalysisLoadingWidget({super.key});
 
@@ -31,11 +35,14 @@ class _AnalysisLoadingWidgetState extends State<AnalysisLoadingWidget> {
   late AnalysisLoadingModel _model;
   Timer? _factTimer;
 
+  /// Доля высоты под фото: остаток отдан шагам и факту.
+  static const double _photoHeightFactor = 0.55;
+
   @override
   void initState() {
     super.initState();
     _model = createModel(context, () => AnalysisLoadingModel());
-    _model.factIndex = Random().nextInt(25);
+    _model.factIndex = Random().nextInt(_factKeys.length);
     _factTimer = Timer.periodic(const Duration(seconds: 5), (_) {
       if (!mounted) return;
       setState(() {
@@ -51,32 +58,30 @@ class _AnalysisLoadingWidgetState extends State<AnalysisLoadingWidget> {
     super.dispose();
   }
 
+  String _t(String key) => FFLocalizations.of(context).getText(key);
+
   @override
   Widget build(BuildContext context) {
-    final facts =
-        _factKeys.map((k) => FFLocalizations.of(context).getText(k)).toList();
-    final steps =
-        _stepKeys.map((k) => FFLocalizations.of(context).getText(k)).toList();
+    final theme = FlutterFlowTheme.of(context);
     final appState = context.watch<FFAppState>();
 
     final currentStep = appState.Producanalysstate;
     final productName = appState.extractedProductName;
     final brand = appState.extractedBrand;
-    final hasProduct = productName.isNotEmpty;
 
-    final screenH = MediaQuery.of(context).size.height;
-    final bottomPadding = MediaQuery.of(context).padding.bottom;
+    final photoHeight = MediaQuery.sizeOf(context).height * _photoHeightFactor;
+    final bottomPadding = MediaQuery.paddingOf(context).bottom;
 
     return Material(
-      color: FlutterFlowTheme.of(context).secondaryBackground,
+      color: theme.alternate,
       child: Stack(
         children: [
-          // ── Full-screen photo (edge to edge, top to bottom) ──
+          // ── Фото на верхние 55% экрана ──
           Positioned(
             top: 0,
             left: 0,
             right: 0,
-            height: screenH * 0.55,
+            height: photoHeight,
             child: appState.uploudedimagepath.isNotEmpty
                 ? Image.network(
                     appState.uploudedimagepath,
@@ -84,21 +89,18 @@ class _AnalysisLoadingWidgetState extends State<AnalysisLoadingWidget> {
                     // Экран занимает половину высоты, 1080px хватает.
                     cacheWidth: 1080,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      color: FlutterFlowTheme.of(context).alternate,
-                    ),
+                    errorBuilder: (_, __, ___) =>
+                        ColoredBox(color: theme.surfaceMuted),
                   )
-                : Container(
-                    color: FlutterFlowTheme.of(context).alternate,
-                  ),
+                : ColoredBox(color: theme.surfaceMuted),
           ),
 
-          // ── Gradient over photo (bottom fade to background) ──
+          // ── Градиент: лёгкое затемнение сверху, уход в фон снизу ──
           Positioned(
             top: 0,
             left: 0,
             right: 0,
-            height: screenH * 0.55,
+            height: photoHeight,
             child: DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -106,183 +108,147 @@ class _AnalysisLoadingWidgetState extends State<AnalysisLoadingWidget> {
                   end: Alignment.bottomCenter,
                   stops: const [0.0, 0.45, 1.0],
                   colors: [
-                    Colors.black.withOpacity(0.08),
-                    Colors.black.withOpacity(0.0),
-                    FlutterFlowTheme.of(context).secondaryBackground,
+                    Colors.black.withValues(alpha: theme.opacity.o08),
+                    Colors.black.withValues(alpha: 0.0),
+                    theme.alternate,
                   ],
                 ),
               ),
             ),
           ),
 
-          // ── Product name at the bottom of the photo zone ──
+          // ── Название продукта у нижнего края фото ──
           Positioned(
-            left: 20,
-            right: 20,
-            top: screenH * 0.55 - 72,
+            left: theme.space.s20,
+            right: theme.space.s20,
+            top: photoHeight - 72,
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 400),
-              child: hasProduct
-                  ? Column(
+              child: productName.isEmpty
+                  ? const SizedBox(height: 20, key: ValueKey('placeholder'))
+                  : Column(
                       key: const ValueKey('product'),
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         if (brand.isNotEmpty)
                           Text(
                             brand,
-                            style: FlutterFlowTheme.of(context)
-                                .bodySmall
-                                .override(
-                                  fontFamily: FlutterFlowTheme.of(context)
-                                      .bodySmallFamily,
-                                  color: Colors.white70,
-                                  letterSpacing: 0,
-                                  useGoogleFonts: !FlutterFlowTheme.of(context)
-                                      .bodySmallIsCustom,
-                                ),
+                            style: theme.bodySmall.override(
+                              color: Colors.white
+                                  .withValues(alpha: theme.opacity.o80),
+                              letterSpacing: 0,
+                            ),
                           ),
-                        const SizedBox(height: 2),
+                        SizedBox(height: theme.space.s2),
                         Text(
                           productName,
-                          style: FlutterFlowTheme.of(context)
-                              .titleMedium
-                              .override(
-                                fontFamily: FlutterFlowTheme.of(context)
-                                    .titleMediumFamily,
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 0,
-                                useGoogleFonts: !FlutterFlowTheme.of(context)
-                                    .titleMediumIsCustom,
-                              ),
+                          style: theme.titleMedium.override(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0,
+                          ),
                         ),
                       ],
-                    )
-                  : const SizedBox(
-                      height: 20,
-                      key: ValueKey('placeholder'),
                     ),
             ),
           ),
 
-          // ── Bottom panel: steps + fact ──
+          // ── Нижняя панель: шаги и факт ──
           Positioned(
             left: 0,
             right: 0,
-            top: screenH * 0.55,
+            top: photoHeight,
             bottom: 0,
             child: SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(20, 24, 20, 24 + bottomPadding),
+              padding: EdgeInsets.fromLTRB(theme.space.s20, theme.space.s24,
+                  theme.space.s20, theme.space.s24 + bottomPadding),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Steps
-                  ...List.generate(3, (i) {
-                    final stepNum = i + 1;
-                    final isDone = currentStep > stepNum;
-                    final isActive = currentStep == stepNum;
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 14),
-                      child: Row(
-                        children: [
-                          _StepIcon(isDone: isDone, isActive: isActive),
-                          const SizedBox(width: 12),
-                          Text(
-                            steps[i],
-                            style: FlutterFlowTheme.of(context)
-                                .bodyMedium
-                                .override(
-                                  fontFamily: FlutterFlowTheme.of(context)
-                                      .bodyMediumFamily,
-                                  color: isActive
-                                      ? FlutterFlowTheme.of(context).primary
-                                      : FlutterFlowTheme.of(context)
-                                          .primaryText,
-                                  fontWeight: isActive
-                                      ? FontWeight.w600
-                                      : FontWeight.normal,
-                                  letterSpacing: 0,
-                                  useGoogleFonts: !FlutterFlowTheme.of(context)
-                                      .bodyMediumIsCustom,
-                                ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }),
-
-                  Divider(
-                    color: FlutterFlowTheme.of(context).alternate,
-                    thickness: 1,
-                    height: 28,
-                  ),
-
-                  // Rotating fact
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(
-                        Icons.lightbulb_outline_rounded,
-                        size: 18,
-                        color: FlutterFlowTheme.of(context).primary,
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              FFLocalizations.of(context)
-                                  .getText('al_did_you_know'),
-                              style: FlutterFlowTheme.of(context)
-                                  .bodySmall
-                                  .override(
-                                    fontFamily: FlutterFlowTheme.of(context)
-                                        .bodySmallFamily,
-                                    color: FlutterFlowTheme.of(context).primary,
-                                    fontWeight: FontWeight.w600,
-                                    letterSpacing: 0,
-                                    useGoogleFonts:
-                                        !FlutterFlowTheme.of(context)
-                                            .bodySmallIsCustom,
-                                  ),
-                            ),
-                            const SizedBox(height: 4),
-                            AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 500),
-                              transitionBuilder: (child, anim) =>
-                                  FadeTransition(
-                                opacity: anim,
-                                child: child,
-                              ),
-                              child: Text(
-                                facts[_model.factIndex % facts.length],
-                                key: ValueKey(_model.factIndex),
-                                style: FlutterFlowTheme.of(context)
-                                    .bodyMedium
-                                    .override(
-                                      fontFamily: FlutterFlowTheme.of(context)
-                                          .bodyMediumFamily,
-                                      color: FlutterFlowTheme.of(context)
-                                          .primaryText,
-                                      letterSpacing: 0,
-                                      useGoogleFonts:
-                                          !FlutterFlowTheme.of(context)
-                                              .bodyMediumIsCustom,
-                                    ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+                  for (var i = 0; i < _stepKeys.length; i++)
+                    _step(theme, index: i, currentStep: currentStep),
+                  Divider(color: theme.divider, thickness: 1, height: 28),
+                  _fact(theme),
                 ],
               ),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  /// Шаг разбора: пройденный, текущий или ещё не начатый.
+  Widget _step(FlutterFlowTheme theme,
+      {required int index, required int currentStep}) {
+    final stepNum = index + 1;
+    final isDone = currentStep > stepNum;
+    final isActive = currentStep == stepNum;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Row(
+        children: [
+          _StepIcon(isDone: isDone, isActive: isActive),
+          SizedBox(width: theme.space.s12),
+          Expanded(
+            child: Text(
+              _t(_stepKeys[index]),
+              style: theme.bodyMedium.override(
+                // Будущие шаги приглушены: иначе все три выглядят одинаково
+                // важными и непонятно, где приложение сейчас.
+                color: isActive
+                    ? theme.primary
+                    : (isDone ? theme.primaryText : theme.secondaryText),
+                fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+                letterSpacing: 0,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// «А вы знали» — факт, который меняется раз в пять секунд.
+  Widget _fact(FlutterFlowTheme theme) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(Icons.lightbulb_outline_rounded,
+            size: theme.size.iconXs + 2, color: theme.primary),
+        SizedBox(width: theme.space.s8 + 2),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                _t('al_did_you_know'),
+                style: theme.bodySmall.override(
+                  color: theme.primary,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0,
+                ),
+              ),
+              SizedBox(height: theme.space.s4),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 500),
+                transitionBuilder: (child, anim) =>
+                    FadeTransition(opacity: anim, child: child),
+                child: Text(
+                  _t(_factKeys[_model.factIndex % _factKeys.length]),
+                  key: ValueKey(_model.factIndex),
+                  style: theme.bodyMedium.override(
+                    color: theme.primaryText,
+                    letterSpacing: 0,
+                    lineHeight: 1.35,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -294,19 +260,17 @@ class _StepIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+
     if (isDone) {
       return Container(
         width: 24,
         height: 24,
         decoration: BoxDecoration(
-          color: FlutterFlowTheme.of(context).primary.withOpacity(0.15),
+          color: theme.primary.withValues(alpha: theme.opacity.o16),
           shape: BoxShape.circle,
         ),
-        child: Icon(
-          Icons.check_rounded,
-          size: 14,
-          color: FlutterFlowTheme.of(context).primary,
-        ),
+        child: Icon(Icons.check_rounded, size: 14, color: theme.primary),
       );
     }
     if (isActive) {
@@ -315,22 +279,20 @@ class _StepIcon extends StatelessWidget {
         height: 24,
         child: CircularProgressIndicator(
           strokeWidth: 2,
-          valueColor: AlwaysStoppedAnimation<Color>(
-            FlutterFlowTheme.of(context).primary,
-          ),
+          valueColor: AlwaysStoppedAnimation<Color>(theme.primary),
         ),
-      )
-          .animate(onPlay: (c) => c.repeat())
-          .rotate(duration: 1200.ms, curve: Curves.linear);
+      ).animate(onPlay: (c) => c.repeat()).rotate(
+            duration: 1200.ms,
+            curve: Curves.linear,
+          );
     }
+    // Рамка `border`, а не `alternate`: последний — белый, и на белом фоне
+    // кружок будущего шага исчезал совсем.
     return Container(
       width: 24,
       height: 24,
       decoration: BoxDecoration(
-        border: Border.all(
-          color: FlutterFlowTheme.of(context).alternate,
-          width: 2,
-        ),
+        border: Border.all(color: theme.border, width: 2),
         shape: BoxShape.circle,
       ),
     );
