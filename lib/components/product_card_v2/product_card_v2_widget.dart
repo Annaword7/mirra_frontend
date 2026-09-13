@@ -349,7 +349,7 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _matrixHeading(theme),
+        _matrixHeading(theme, 'cardv2_fit_level'),
         _matrixRow(theme, _selectedRow!),
         Padding(
           padding: const EdgeInsetsDirectional.fromSTEB(16, 4, 16, 0),
@@ -380,10 +380,12 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
     );
   }
 
-  Widget _matrixHeading(FlutterFlowTheme theme) => Padding(
+  /// Заголовок зависит от того, что под ним. Со своей строкой выбирать нечего,
+  /// поэтому «выберите свой тип кожи» там врал.
+  Widget _matrixHeading(FlutterFlowTheme theme, String key) => Padding(
         padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 8),
         child: Text(
-          _t('cardv2_who_for'),
+          _t(key),
           style: theme.labelMedium.override(
             fontFamily: theme.labelMediumFamily,
             letterSpacing: 0.0,
@@ -399,7 +401,7 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _matrixHeading(theme),
+        _matrixHeading(theme, 'cardv2_who_for'),
         ...rows.map((row) => _matrixRow(theme, row)),
       ],
     );
