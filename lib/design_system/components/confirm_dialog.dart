@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -58,6 +59,41 @@ class ConfirmDialog extends StatelessWidget {
 
   /// Card surface. Defaults to white (`alternate`) — see [MirraDialogCard].
   final Color? surfaceColor;
+
+  /// Наименьший читаемый кегль подписи в паре кнопок. Ниже — текст уже не
+  /// столько «компактный», сколько мелкий, и пара уходит в колонку.
+  static const double _minPairLabelSize = 13.0;
+
+  /// Как показать пару кнопок: рядом (и с каким общим кеглем) или в колонку.
+  ///
+  /// Подписи бывают сильно разной длины: «Продолжить настройку» рядом с
+  /// «Пропустить» не помещается в свою половину и обрезается многоточием.
+  /// Ужимать только длинную нельзя — в паре получились бы два разных кегля,
+  /// поэтому меряем обе и берём общий масштаб. Если и он не спасает (а в
+  /// половине диалога на текст остаётся ~90pt), кнопки встают одна под другой
+  /// во всю ширину: там подписи влезают целиком и уменьшать ничего не нужно.
+  ({bool stack, double? fontSize}) _pairLayout(
+      BuildContext context, FlutterFlowTheme theme, double rowWidth) {
+    final style = theme.labelLarge.override(fontWeight: FontWeight.w600);
+    final base = style.fontSize ?? 16.0;
+    // Половина ряда минус зазор и горизонтальные поля lg-кнопки (24 с каждой).
+    final available = (rowWidth - 12.0) / 2 - 48.0;
+    if (available <= 0) return (stack: true, fontSize: null);
+
+    var fontSize = base;
+    for (final label in [cancelLabel!, confirmLabel]) {
+      final painter = TextPainter(
+        text: TextSpan(text: label, style: style),
+        maxLines: 1,
+        textDirection: Directionality.of(context),
+      )..layout();
+      if (painter.width > available) {
+        fontSize = math.min(fontSize, base * available / painter.width);
+      }
+    }
+    if (fontSize < _minPairLabelSize) return (stack: true, fontSize: null);
+    return (stack: false, fontSize: fontSize >= base ? null : fontSize);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -119,28 +155,49 @@ class ConfirmDialog extends StatelessWidget {
                   ],
                   const SizedBox(height: 24.0),
                   if (cancelLabel != null)
-                    Row(
-                      children: [
-                        Expanded(
-                          child: AppButton(
+                    LayoutBuilder(builder: (context, constraints) {
+                      final layout =
+                          _pairLayout(context, theme, constraints.maxWidth);
+
+                      AppButton cancel({bool fullWidth = true}) => AppButton(
                             label: cancelLabel!,
                             variant: AppButtonVariant.secondary,
-                            onPressed: onCancel ?? () => Navigator.pop(context),
-                          ),
-                        ),
-                        const SizedBox(width: 12.0),
-                        Expanded(
-                          child: AppButton(
+                            labelFontSize: layout.fontSize,
+                            fullWidth: fullWidth,
+                            onPressed:
+                                onCancel ?? () => Navigator.pop(context),
+                          );
+                      AppButton confirm({bool fullWidth = true}) => AppButton(
                             label: confirmLabel,
                             variant: destructive
                                 ? AppButtonVariant.destructive
                                 : AppButtonVariant.primary,
                             loading: confirmLoading,
+                            labelFontSize: layout.fontSize,
+                            fullWidth: fullWidth,
                             onPressed: onConfirm,
-                          ),
-                        ),
-                      ],
-                    )
+                          );
+
+                      // В колонке подтверждение сверху (Material: stacked —
+                      // confirming action on top), отказ под ним.
+                      if (layout.stack) {
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            confirm(),
+                            const SizedBox(height: 8.0),
+                            cancel(),
+                          ],
+                        );
+                      }
+                      return Row(
+                        children: [
+                          Expanded(child: cancel()),
+                          const SizedBox(width: 12.0),
+                          Expanded(child: confirm()),
+                        ],
+                      );
+                    })
                   else
                     AppButton(
                       label: confirmLabel,

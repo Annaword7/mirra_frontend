@@ -35,6 +35,7 @@ class AppButton extends StatefulWidget {
     this.fullWidth = true,
     this.loading = false,
     this.enabled = true,
+    this.labelFontSize,
   });
 
   final String label;
@@ -52,6 +53,11 @@ class AppButton extends StatefulWidget {
   /// External loading state. Independent of the auto-spinner for async onPressed.
   final bool loading;
   final bool enabled;
+
+  /// Принудительный кегль подписи. Нужен там, где две кнопки стоят в ряд и
+  /// обязаны выглядеть одинаково: длинная подпись ужимается, короткая ужимается
+  /// вместе с ней. По умолчанию кегль берётся от размера кнопки.
+  final double? labelFontSize;
 
   @override
   State<AppButton> createState() => _AppButtonState();
@@ -135,7 +141,10 @@ class _AppButtonState extends State<AppButton> {
     final labelStyle = (widget.size == AppButtonSize.sm
             ? theme.labelMedium
             : theme.labelLarge)
-        .override(color: fg, fontWeight: FontWeight.w600);
+        .override(
+            color: fg,
+            fontWeight: FontWeight.w600,
+            fontSize: widget.labelFontSize);
 
     Widget content;
     if (showSpinner) {
