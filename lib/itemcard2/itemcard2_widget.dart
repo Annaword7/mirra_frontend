@@ -11,10 +11,10 @@ import '/backend/supabase/database/tables/product_prices.dart';
 import '/backend/supabase/supabase.dart';
 import '/app_state.dart';
 import '/domain/cosmetic_bag/cosmetic_bag_service.dart';
-import '/flutter_flow/flutter_flow_animations.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/design_system/components/app_button.dart';
+import '/design_system/components/screen_loader.dart';
 import '/design_system/foundations/format_price.dart';
 import '/item_card/deleteitem/deleteitem_widget.dart';
 import '/item_card/ingridients/ingridients_widget.dart';
@@ -28,7 +28,6 @@ import '/topratings/makepublic/makepublic_widget.dart';
 import '/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_blurhash/flutter_blurhash.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:octo_image/octo_image.dart';
@@ -52,13 +51,11 @@ class Itemcard2Widget extends StatefulWidget {
   State<Itemcard2Widget> createState() => _Itemcard2WidgetState();
 }
 
-class _Itemcard2WidgetState extends State<Itemcard2Widget>
-    with TickerProviderStateMixin {
+class _Itemcard2WidgetState extends State<Itemcard2Widget> {
   late Itemcard2Model _model;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
   Timer? _pendingPollingTimer;
-  final animationsMap = <String, AnimationInfo>{};
 
   /// Этот продукт уже в Косметичке — тогда действие обратное: убрать. Для
   /// чужого продукта всегда false: в набор попадает его копия с другим id, и
@@ -200,28 +197,6 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
         }
       }
     });
-
-    animationsMap.addAll({
-      'iconOnPageLoadAnimation': AnimationInfo(
-        loop: true,
-        trigger: AnimationTrigger.onPageLoad,
-        effectsBuilder: () => [
-          RotateEffect(
-            curve: Curves.easeInOut,
-            delay: 0.0.ms,
-            duration: 600.0.ms,
-            begin: 0.0,
-            end: 1.0,
-          ),
-        ],
-      ),
-    });
-    setupAnimations(
-      animationsMap.values.where((anim) =>
-          anim.trigger == AnimationTrigger.onActionTrigger ||
-          !anim.applyInitialState),
-      this,
-    );
 
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
   }
@@ -469,7 +444,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
 
         if (itemcard2ImagesRow == null) {
           return Scaffold(
-            backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+            backgroundColor: FlutterFlowTheme.of(context).alternate,
             body: Center(
               child: Padding(
                 padding: const EdgeInsets.all(24.0),
@@ -1623,21 +1598,14 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget>
                       ],
                     ),
                   ),
+                // Пока карточка догружается — белое полотно и общий
+                // спиннер. Было #CBDDFE во весь экран: синяя вспышка на
+                // каждом переходе к продукту.
                 if (_model.loading)
-                  Container(
-                    width: MediaQuery.sizeOf(context).width * 1.0,
-                    height: MediaQuery.sizeOf(context).height * 1.0,
-                    decoration: BoxDecoration(
-                      color: FlutterFlowTheme.of(context).secondaryBackground,
-                    ),
-                    child: Align(
-                      alignment: AlignmentDirectional(0.0, 0.0),
-                      child: FaIcon(
-                        FontAwesomeIcons.circleNotch,
-                        color: FlutterFlowTheme.of(context).primary,
-                        size: 40.0,
-                      ).animateOnPageLoad(
-                          animationsMap['iconOnPageLoadAnimation']!),
+                  Positioned.fill(
+                    child: ColoredBox(
+                      color: FlutterFlowTheme.of(context).alternate,
+                      child: const ScreenLoader(),
                     ),
                   ),
                 if (currentUserIsAnonymous)

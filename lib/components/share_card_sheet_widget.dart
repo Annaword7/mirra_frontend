@@ -54,15 +54,18 @@ class _ShareCardSheetWidgetState extends State<ShareCardSheetWidget> {
         ),
       ),
       builder: (context, snapshot) {
-        // Customize what your widget looks like when it's loading.
+        // Пока карточка грузится, лист уже должен выглядеть листом: раньше
+        // спиннер висел посреди затемнённого экрана сам по себе.
         if (!snapshot.hasData) {
-          return Center(
+          return MirraBottomSheet(
+            surfaceColor: FlutterFlowTheme.of(context).alternate,
             child: SizedBox(
-              width: 50.0,
-              height: 50.0,
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  FlutterFlowTheme.of(context).primary,
+              height: 160.0,
+              child: Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    FlutterFlowTheme.of(context).primary,
+                  ),
                 ),
               ),
             ),

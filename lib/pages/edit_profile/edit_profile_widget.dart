@@ -82,7 +82,7 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
             reason: 'EditProfile FutureBuilder error',
           );
           return Scaffold(
-            backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+            backgroundColor: FlutterFlowTheme.of(context).alternate,
             body: Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -102,7 +102,7 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
         // Customize what your widget looks like when it's loading.
         if (!snapshot.hasData) {
           return Scaffold(
-            backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+            backgroundColor: FlutterFlowTheme.of(context).alternate,
             body: Center(
               child: SizedBox(
                 width: 50.0,
@@ -131,7 +131,7 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
             key: scaffoldKey,
             backgroundColor: FlutterFlowTheme.of(context).alternate,
             appBar: AppBar(
-              backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+              backgroundColor: FlutterFlowTheme.of(context).alternate,
               iconTheme: IconThemeData(
                   color: FlutterFlowTheme.of(context).primaryText),
               automaticallyImplyLeading: false,
@@ -230,8 +230,8 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      FlutterFlowTheme.of(context).primaryBackground,
-                      FlutterFlowTheme.of(context).primaryBackground
+                      FlutterFlowTheme.of(context).alternate,
+                      FlutterFlowTheme.of(context).alternate
                     ],
                     stops: [0.0, 1.0],
                     begin: AlignmentDirectional(0.0, -1.0),

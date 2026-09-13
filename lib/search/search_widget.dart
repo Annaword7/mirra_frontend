@@ -269,9 +269,9 @@ class _SearchWidgetState extends State<SearchWidget> {
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         key: _scaffoldKey,
-        backgroundColor: theme.primaryBackground,
+        backgroundColor: theme.alternate,
         appBar: AppBar(
-          backgroundColor: theme.primaryBackground,
+          backgroundColor: theme.alternate,
           elevation: 0,
           leading: IconButton(
             icon: Icon(Icons.arrow_back_ios_new_rounded, color: theme.primaryText, size: 20),

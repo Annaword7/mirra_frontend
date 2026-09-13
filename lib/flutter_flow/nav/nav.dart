@@ -9,6 +9,8 @@ import '/backend/schema/structs/index.dart';
 import '/auth/base_auth_user_provider.dart';
 import '/auth/supabase_auth/auth_util.dart';
 
+import '/design_system/components/screen_loader.dart';
+import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/analytics_service.dart';
 
@@ -23,6 +25,19 @@ const kTransitionInfoKey = '__transition_info__';
 int _debugInitializeBuilds = 0;
 
 GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
+
+/// Заглушка между экранами, пока поднимается сессия. Белое полотно и спиннер
+/// приложения: дефолтный Scaffold красился в grey50 и мигал серым на каждом
+/// холодном старте.
+class _RouteLoader extends StatelessWidget {
+  const _RouteLoader();
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        backgroundColor: FlutterFlowTheme.of(context).alternate,
+        body: const ScreenLoader(),
+      );
+}
 
 class AppStateNotifier extends ChangeNotifier {
   AppStateNotifier._();
@@ -86,9 +101,7 @@ GoRouter createRouter(AppStateNotifier appStateNotifier, [Widget? entryPage]) =>
       observers: [AnalyticsService.instance.observer],
       errorBuilder: (context, state) {
         if (appStateNotifier.loading) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
+          return const _RouteLoader();
         }
 
         // A real account goes to Home. Everyone else — including the anonymous
@@ -112,9 +125,7 @@ GoRouter createRouter(AppStateNotifier appStateNotifier, [Widget? entryPage]) =>
                   ' anon=$currentUserIsAnonymous');
             }
             if (appStateNotifier.loading) {
-              return const Scaffold(
-                body: Center(child: CircularProgressIndicator()),
-              );
+              return const _RouteLoader();
             }
 
             // See errorBuilder above: real account → Home, guest → scan page.
