@@ -32,7 +32,10 @@ class ScoreBreakdownWidget extends StatefulWidget {
 }
 
 class _ScoreBreakdownWidgetState extends State<ScoreBreakdownWidget> {
-  bool _expanded = false;
+  /// Развёрнуто сразу: это объяснение числа, которое стоит прямо над ним, и
+  /// прятать его за тапом значит снова оставить человека наедине с оценкой,
+  /// взявшейся ниоткуда. Свернуть можно — стрелка на месте.
+  bool _expanded = true;
 
   String _t(String key) => FFLocalizations.of(context).getText(key);
 
