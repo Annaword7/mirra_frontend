@@ -7,6 +7,7 @@ import '/backend/schema/structs/index.dart';
 
 
 import '/auth/base_auth_user_provider.dart';
+import '/auth/supabase_auth/auth_util.dart';
 
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/analytics_service.dart';
@@ -17,6 +18,9 @@ export 'package:go_router/go_router.dart';
 export 'serialization_util.dart';
 
 const kTransitionInfoKey = '__transition_info__';
+
+/// Диагностика раскрутки перестроений (только non-prod). Снять после отладки.
+int _debugInitializeBuilds = 0;
 
 GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -81,42 +85,52 @@ GoRouter createRouter(AppStateNotifier appStateNotifier, [Widget? entryPage]) =>
       navigatorKey: appNavigatorKey,
       observers: [AnalyticsService.instance.observer],
       errorBuilder: (context, state) {
-        final appState = context.watch<FFAppState>();
-
         if (appStateNotifier.loading) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
         }
 
-        if (appStateNotifier.loggedIn) {
+        // A real account goes to Home. Everyone else — including the anonymous
+        // session minted at launch — starts on the scan page: it is the whole
+        // product, and Home has nothing on it until something is scanned.
+        if (appStateNotifier.loggedIn && !currentUserIsAnonymous) {
           return entryPage ?? HomeWidget();
         }
 
-        return appState.onboardingDone
-            ? NewblankWidget()
-            : OnboardingQuizWidget();
+        return TakeorUploadPageWidget();
       },
       routes: [
         FFRoute(
           name: '_initialize',
           path: '/',
           builder: (context, _) {
-            final appState = context.watch<FFAppState>();
-
+            if (FFDevEnvironmentValues.isNonProd) {
+              debugPrint('[diag] / build #${++_debugInitializeBuilds}'
+                  ' loading=${appStateNotifier.loading}'
+                  ' loggedIn=${appStateNotifier.loggedIn}'
+                  ' anon=$currentUserIsAnonymous');
+            }
             if (appStateNotifier.loading) {
               return const Scaffold(
                 body: Center(child: CircularProgressIndicator()),
               );
             }
 
-            if (appStateNotifier.loggedIn) {
+            // See errorBuilder above: real account → Home, guest → scan page.
+            if (appStateNotifier.loggedIn && !currentUserIsAnonymous) {
               return entryPage ?? HomeWidget();
             }
 
-            return appState.onboardingDone
-                ? NewblankWidget()
-                : OnboardingQuizWidget();
+            // Новый гость — сначала онбординг (экран 0 по docs/onboarding_spec):
+            // профиль появляется до первого скана, поэтому и первый разбор уже
+            // персональный. И «Пройти настройку», и «Пропустить» выводят на
+            // сканер, флаг ставит сама анкета — второй раз она не покажется.
+            if (!FFAppState().onboardingDone) {
+              return OnboardingQuizWidget();
+            }
+
+            return TakeorUploadPageWidget();
           },
         ),
         FFRoute(

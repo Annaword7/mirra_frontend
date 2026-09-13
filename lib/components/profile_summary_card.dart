@@ -28,6 +28,7 @@ class ProfileSummaryCard extends StatelessWidget {
   final UsersRow? profileRow;
 
   /// Куда вернуть пользователя после анкеты (по умолчанию — на Главную).
+  /// Путь целиком, вместе с параметрами экрана (`/itemcard2?imageid=42`).
   final String? returnTo;
 
   static const _typeKeys = {

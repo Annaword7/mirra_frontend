@@ -1,11 +1,14 @@
 import '/design_system/foundations/layout.dart';
-import '/design_system/foundations/image_thumb.dart';
 import '/design_system/components/screen_loader.dart';
 import '/backend/supabase/database/database.dart';
 import '/design_system/components/app_button.dart';
+import '/design_system/components/product_thumb.dart';
 import '/domain/care_planning/care_planning_service.dart';
+import '/domain/client_card/client_card_service.dart';
+import '/domain/products/product_photo.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
+import 'care_frames_sheet.dart';
 import 'package:flutter/material.dart';
 
 /// «Разбор косметички» (M3b, контекст «Назначение ухода», Architecture v1).
@@ -37,15 +40,37 @@ class _CareReviewWidgetState extends State<CareReviewWidget> {
   /// раскрыт только при противопоказании).
   bool? _warningsExpanded;
 
+  /// Карта клиента — нужна для «Рамок рутины» (беременность и предпочтения).
+  UsersRow? _card;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _compose();
+      if (mounted) {
+        _compose();
+        _loadCard();
+      }
     });
   }
 
   String _t(String key) => FFLocalizations.of(context).getText(key);
+
+  Future<void> _loadCard() async {
+    try {
+      final card = await ClientCardService.instance.getCard();
+      if (mounted) setState(() => _card = card);
+    } catch (e) {
+      debugPrint('care review: client card load failed: $e');
+    }
+  }
+
+  /// Рамки меняют сам режим, поэтому после правки разбор пересобираем.
+  Future<void> _openFrames() async {
+    if (!await CareFramesSheet.show(context, _card)) return;
+    await _loadCard();
+    if (mounted) await _compose();
+  }
 
   Future<void> _applyRegimen({
     required String? regimenId,
@@ -185,37 +210,32 @@ class _CareReviewWidgetState extends State<CareReviewWidget> {
   List<dynamic> get _activePrescriptions =>
       _prescriptions.where((p) => p['status'] == 'active').toList();
 
-  /// Миниатюра средства по image_id (фото пользователя, иначе каталожное).
+  /// Миниатюра средства по image_id: каталожное фото, иначе скан пользователя.
   ///
   /// Рамка вертикальная (3:4, см. [kThumbAspect]): снимки продуктов — вытянутые
-  /// вертикали вплоть до 1:2, и в квадрате они либо обрезались до неузнаваемого
-  /// фрагмента, либо вписывались тонкой полоской. В вертикальной рамке обрезка
-  /// съедает пустой фон сверху и снизу, а сам флакон занимает всю миниатюру.
-  Widget _thumb(int? id, {double size = 44, bool dim = false}) {
+  /// вертикали вплоть до 1:2. Фото вписывается целиком ([ProductThumb]): в
+  /// прежних 33×44 с обрезкой от флакона оставался неузнаваемый фрагмент, и по
+  /// разбору нельзя было понять, о каком средстве речь.
+  Widget _thumb(int? id, {double size = 64, bool dim = false}) {
     final img = id == null ? null : _images[id];
-    final url = img == null
-        ? ''
-        : (img.imageUrl.isNotEmpty ? img.imageUrl : (img.catalogImageUrl ?? ''));
-    final width = size * kThumbAspect;
-    Widget child = url.isNotEmpty
-        ? Image(
-            image: thumbProvider(url, width: 200),
-            width: width,
-            height: size,
-            fit: BoxFit.cover,
-          )
-        : Container(
-            width: width,
-            height: size,
-            color: const Color(0xFFF2F2F2),
-            child: const Icon(Icons.spa_outlined,
-                color: Colors.black38, size: 20),
-          );
-    Widget w = ClipRRect(borderRadius: BorderRadius.circular(10), child: child);
+    Widget w = Container(
+      width: size * kThumbAspect,
+      height: size,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFE6E6E6)),
+      ),
+      child: ProductThumb(
+        url: img?.displayPhotoUrl ?? '',
+        decodeWidth: 200,
+        radius: 9,
+        padding: 3,
+      ),
+    );
     return dim ? Opacity(opacity: 0.45, child: w) : w;
   }
 
-  Widget _thumbRow(List<int> ids, {bool dim = false, double size = 44}) => Wrap(
+  Widget _thumbRow(List<int> ids, {bool dim = false, double size = 52}) => Wrap(
         spacing: 6,
         runSpacing: 6,
         children: ids.map((id) => _thumb(id, size: size, dim: dim)).toList(),
@@ -275,7 +295,7 @@ class _CareReviewWidgetState extends State<CareReviewWidget> {
                             style: const TextStyle(
                                 fontWeight: FontWeight.w600, fontSize: 14)),
                         const SizedBox(height: 6),
-                        _thumbRow(ids, size: 40),
+                        _thumbRow(ids),
                       ],
                     ),
                   ),
@@ -645,6 +665,45 @@ class _CareReviewWidgetState extends State<CareReviewWidget> {
     );
   }
 
+  /// Подсказка «задай рамки»: не модалка, а строка — её можно не заметить и
+  /// продолжить, как и предписывает спека онбординга для необязательных данных.
+  Widget _framesNudge(FlutterFlowTheme theme) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(theme.radii.r16),
+          onTap: _openFrames,
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: theme.primary.withValues(alpha: theme.opacity.o08),
+              borderRadius: BorderRadius.circular(theme.radii.r16),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.tune_rounded,
+                    size: theme.size.iconSm, color: theme.primary),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(_t('care_frames_nudge'),
+                      style: theme.bodySmall.override(
+                          color: theme.primaryText,
+                          fontSize: 13,
+                          letterSpacing: 0,
+                          lineHeight: 1.35)),
+                ),
+                Icon(Icons.chevron_right_rounded,
+                    size: theme.size.iconMd, color: theme.secondaryText),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
@@ -663,6 +722,13 @@ class _CareReviewWidgetState extends State<CareReviewWidget> {
             useGoogleFonts: !theme.headlineSmallIsCustom,
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.tune_rounded, color: Colors.black54),
+            tooltip: _t('care_frames_title'),
+            onPressed: _openFrames,
+          ),
+        ],
       ),
       body: _loading
           ? const ScreenLoader(hasAppBar: true)
@@ -674,6 +740,11 @@ class _CareReviewWidgetState extends State<CareReviewWidget> {
                       child: ListView(
                         padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
                         children: [
+                          // Беременность спрашиваем по месту: правило про
+                          // ретиноиды применяет составитель режима, и здесь
+                          // же видно, что оно сделало с назначениями.
+                          if (_card != null && _card!.pregnancyStatus == null)
+                            _framesNudge(theme),
                           _scoreCard(theme),
                           _warningsBlock(),
                           _sessionBlock('am', theme),
@@ -872,24 +943,23 @@ class _QueuedCard extends StatelessWidget {
       ),
       child: Row(
         children: [
+          // Приглушено, но узнаваемо: средство в очереди — всё ещё средство,
+          // и по обрезку 30×40 его было не опознать.
           Opacity(
             opacity: 0.6,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: (image != null && image!.imageUrl.isNotEmpty)
-                  ? Image(
-                      image: thumbProvider(image!.imageUrl, width: 200),
-                      width: 40 * kThumbAspect,
-                      height: 40,
-                      fit: BoxFit.cover,
-                    )
-                  : Container(
-                      width: 40 * kThumbAspect,
-                      height: 40,
-                      color: const Color(0xFFF2F2F2),
-                      child: const Icon(Icons.spa_outlined,
-                          color: Colors.black38, size: 18),
-                    ),
+            child: Container(
+              width: 56 * kThumbAspect,
+              height: 56,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFE6E6E6)),
+              ),
+              child: ProductThumb(
+                url: image?.displayPhotoUrl ?? '',
+                decodeWidth: 200,
+                radius: 9,
+                padding: 3,
+              ),
             ),
           ),
           const SizedBox(width: 12),

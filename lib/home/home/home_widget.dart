@@ -5,10 +5,12 @@ import '/backend/api_requests/api_calls.dart';
 import '/backend/supabase/database/tables/product_prices.dart';
 import '/backend/supabase/supabase.dart';
 import '/components/navbar/navbar_widget.dart';
+import '/domain/products/product_photo.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
-import '/design_system/components/app_button.dart';
+import '/flutter_flow/plural.dart';
+import '/design_system/components/mirra_empty_state.dart';
 import '/design_system/components/pro_hero_button.dart';
 import '/design_system/components/skeleton_line.dart';
 import '/design_system/components/product_tile.dart';
@@ -134,17 +136,26 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
   }
 
   Future<void> _refreshQuota() async {
-    // Read quota from the server /quota endpoint, where the rolling 7-day
-    // reset is already applied. Reading users.monthly_analyses_used /
-    // last_reset_date directly shows a stale count until the next scan or cron.
+    // Read quota from the server /quota endpoint. Reading
+    // users.monthly_analyses_used directly shows a stale count until the next
+    // scan. reset_at is ignored: the free pool is lifetime and never refills.
     try {
       final resp = await GetScanQuotaCall.call(token: currentJwtToken);
       if (!mounted || !resp.succeeded) return;
       final body = resp.jsonBody;
-      final unlimited = GetScanQuotaCall.isUnlimited(body) ?? false;
+      final unlimitedRaw = GetScanQuotaCall.isUnlimited(body);
+      // The server already applied the expiry rule this screen otherwise
+      // reimplements by hand; take its answer. It was being read for the
+      // counter and thrown away for the plan, so a subscription bought or
+      // expired after this screen was built stayed invisible until the whole
+      // widget was recreated. Absent field leaves the current state alone —
+      // a malformed response must not demote someone who paid.
+      if (unlimitedRaw != null) {
+        FFAppState().isprouser = unlimitedRaw;
+      }
+      final unlimited = unlimitedRaw ?? false;
       final used = GetScanQuotaCall.quotaUsed(body);
       final limit = GetScanQuotaCall.quotaLimit(body);
-      final resetAt = DateTime.tryParse(GetScanQuotaCall.resetAt(body) ?? '');
       // Premium gets nulls in every quota field, so assigning only non-nulls
       // would leave analysesused at its pre-purchase value — and the local scan
       // gate would keep blocking a user who has just paid.
@@ -154,11 +165,6 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
         FFAppState().analysesused = used;
       }
       if (limit != null && limit > 0) FFAppState().freeScanLimit = limit;
-      // The quota widgets derive the reset moment as weekResetDate + 7 days,
-      // so store the window start (reset_at - 7d) to preserve that convention.
-      if (resetAt != null) {
-        FFAppState().weekResetDate = resetAt.subtract(const Duration(days: 7));
-      }
       safeSetState(() {});
     } catch (e) {
       debugPrint('Home: quota refresh failed: $e');
@@ -183,19 +189,23 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
     final app = FFAppState();
     if (!app.obPendingFlush || currentUserUid.isEmpty) return;
     try {
+      // Пишем только то, что действительно спросили: буфер наполняют и анкета,
+      // и отдельные команды карты клиента, а безусловная запись затирала бы
+      // незаданные поля null'ами.
       await UsersTable().update(
         data: {
-          'skin_type': app.obSkinType,
-          'skin_sensitivity': app.obSensitive,
-          'acne_prone': app.obAcneProne,
-          'pregnancy_status': app.obPregnancy,
-          'care_preferences': {
-            if (app.obPrefFragranceFree == true) 'fragrance_free': true,
-            if (app.obPrefMaxSteps != null) 'max_steps': app.obPrefMaxSteps,
-          },
-          'skin_goals': app.obGoals,
-          'age_range': app.obAgeRange,
-          'budget_range': app.obBudgetRange,
+          if (app.obSkinType != null) 'skin_type': app.obSkinType,
+          if (app.obSensitive != null) 'skin_sensitivity': app.obSensitive,
+          if (app.obAcneProne != null) 'acne_prone': app.obAcneProne,
+          if (app.obPregnancy != null) 'pregnancy_status': app.obPregnancy,
+          if (app.obPrefFragranceFree == true || app.obPrefMaxSteps != null)
+            'care_preferences': {
+              if (app.obPrefFragranceFree == true) 'fragrance_free': true,
+              if (app.obPrefMaxSteps != null) 'max_steps': app.obPrefMaxSteps,
+            },
+          if (app.obGoals.isNotEmpty) 'skin_goals': app.obGoals,
+          if (app.obAgeRange != null) 'age_range': app.obAgeRange,
+          if (app.obBudgetRange != null) 'budget_range': app.obBudgetRange,
           'onboarded': true,
         },
         matchingRows: (rows) => rows.eqOrNull('id', currentUserUid),
@@ -357,7 +367,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
         // ~85% веса ответа (≈1 МБ на активном аккаунте) — за ним ходит только
         // карточка продукта, когда её открывают.
         columns:
-            'id,image_url,product_name,brand,sa_composite_score,created_at,product_type',
+            'id,image_url,catalog_image_url,product_name,brand,sa_composite_score,created_at,product_type',
         queryFn: (q) => q
             .eqOrNull('user', currentUserUid)
             .order('created_at', ascending: false),
@@ -569,9 +579,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                   isPro: appState.isprouser,
                                                   scansUsed:
                                                       appState.analysesused,
-                                                  weekResetDate:
-                                                      appState.weekResetDate,
-                                                  weekLimit:
+                                                  freeLimit:
                                                       appState.freeScanLimit,
                                                 ),
                                         ],
@@ -789,81 +797,21 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                       .getText('home_empty_subtitle');
                                   final btnLabel = FFLocalizations.of(context)
                                       .getText('home_empty_add');
+                                  // Same primitive as the Routine and
+                                  // collections empties: hand-rolled columns
+                                  // drifted apart in icon treatment, type scale
+                                  // and button width.
                                   return SliverFillRemaining(
                                     hasScrollBody: false,
-                                    child: Center(
-                                      child: Padding(
-                                        padding: const EdgeInsets.fromLTRB(
-                                            32, 48, 32, 32),
-                                        child: Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Icon(
-                                              Icons.camera_alt_outlined,
-                                              size: 56,
-                                              color:
-                                                  FlutterFlowTheme.of(context)
-                                                      .primary
-                                                      .withOpacity(0.35),
-                                            ),
-                                            const SizedBox(height: 20),
-                                            Text(
-                                              title,
-                                              textAlign: TextAlign.center,
-                                              style: FlutterFlowTheme.of(
-                                                      context)
-                                                  .titleMedium
-                                                  .override(
-                                                    fontFamily:
-                                                        FlutterFlowTheme.of(
-                                                                context)
-                                                            .titleMediumFamily,
-                                                    color: FlutterFlowTheme.of(
-                                                            context)
-                                                        .primaryText,
-                                                    letterSpacing: 0.0,
-                                                    fontWeight: FontWeight.w600,
-                                                    useGoogleFonts:
-                                                        !FlutterFlowTheme.of(
-                                                                context)
-                                                            .titleMediumIsCustom,
-                                                  ),
-                                            ),
-                                            const SizedBox(height: 10),
-                                            Text(
-                                              subtitle,
-                                              textAlign: TextAlign.center,
-                                              style: FlutterFlowTheme.of(
-                                                      context)
-                                                  .bodyMedium
-                                                  .override(
-                                                    fontFamily:
-                                                        FlutterFlowTheme.of(
-                                                                context)
-                                                            .bodyMediumFamily,
-                                                    color: FlutterFlowTheme.of(
-                                                            context)
-                                                        .secondaryText,
-                                                    letterSpacing: 0.0,
-                                                    useGoogleFonts:
-                                                        !FlutterFlowTheme.of(
-                                                                context)
-                                                            .bodyMediumIsCustom,
-                                                  ),
-                                            ),
-                                            const SizedBox(height: 28),
-                                            AppButton(
-                                              label: btnLabel,
-                                              fullWidth: false,
-                                              onPressed: () {
-                                                context.pushNamed(
-                                                    TakeorUploadPageWidget
-                                                        .routeName);
-                                              },
-                                            ),
-                                          ],
-                                        ),
-                                      ),
+                                    child: MirraEmptyState(
+                                      icon: Icons.camera_alt_outlined,
+                                      headline: title,
+                                      body: subtitle,
+                                      ctaLabel: btnLabel,
+                                      onCta: () {
+                                        context.pushNamed(
+                                            TakeorUploadPageWidget.routeName);
+                                      },
                                     ),
                                   );
                                 }
@@ -927,7 +875,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                       key: Key(
                                           'Keyoxp_${staggeredViewIndex}_of_${staggeredViewImagesRowList.length}'),
                                       imageUrl: valueOrDefault<String>(
-                                        staggeredViewImagesRow.imageUrl,
+                                        staggeredViewImagesRow.displayPhotoUrl,
                                         'https://demofree.sirv.com/nope-not-here.jpg',
                                       ),
                                       brand: valueOrDefault<String>(
@@ -1000,28 +948,12 @@ class _HomeQuotaBar extends StatelessWidget {
   const _HomeQuotaBar({
     required this.isPro,
     required this.scansUsed,
-    required this.weekResetDate,
-    required this.weekLimit,
+    required this.freeLimit,
   });
 
   final bool isPro;
   final int scansUsed;
-  final DateTime? weekResetDate;
-  final int weekLimit;
-
-  String _resetLabel(BuildContext context) {
-    if (weekResetDate == null) return '';
-    final resetAt = weekResetDate!.add(const Duration(days: 7)).toLocal();
-    final now = DateTime.now();
-    final resetDay = DateTime(resetAt.year, resetAt.month, resetAt.day);
-    final today = DateTime(now.year, now.month, now.day);
-    final days = (resetDay.difference(today).inHours / 24).round();
-    if (days < 0) return '';
-    final loc = FFLocalizations.of(context);
-    if (days == 0) return loc.getText('home_resets_today');
-    if (days == 1) return loc.getText('home_resets_tomorrow');
-    return loc.getText('home_resets_days').replaceAll('{n}', '$days');
-  }
+  final int freeLimit;
 
   @override
   Widget build(BuildContext context) {
@@ -1045,10 +977,9 @@ class _HomeQuotaBar extends StatelessWidget {
       );
     }
 
-    final remaining = (weekLimit - scansUsed).clamp(0, weekLimit);
-    final progress = weekLimit > 0 ? scansUsed / weekLimit : 0.0;
+    final remaining = (freeLimit - scansUsed).clamp(0, freeLimit);
+    final progress = freeLimit > 0 ? scansUsed / freeLimit : 0.0;
     final isExhausted = remaining == 0;
-    final resetLabel = _resetLabel(context);
     final barColor = isExhausted
         ? Colors.red.shade400
         : FlutterFlowTheme.of(context).primary;
@@ -1056,38 +987,15 @@ class _HomeQuotaBar extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              FFLocalizations.of(context)
-                  .getText('home_scans_left')
-                  .replaceAll('{remaining}', '$remaining')
-                  .replaceAll('{limit}', '$weekLimit'),
-              style: FlutterFlowTheme.of(context).bodySmall.override(
-                    fontFamily: FlutterFlowTheme.of(context).bodySmallFamily,
-                    color: isExhausted ? Colors.red.shade400 : Colors.black,
-                    fontSize: 13.0,
-                    letterSpacing: 0.0,
-                    useGoogleFonts:
-                        !FlutterFlowTheme.of(context).bodySmallIsCustom,
-                  ),
-            ),
-            if (resetLabel.isNotEmpty) ...[
-              const SizedBox(height: 4),
-              Text(
-                resetLabel,
-                style: FlutterFlowTheme.of(context).bodySmall.override(
-                      fontFamily: FlutterFlowTheme.of(context).bodySmallFamily,
-                      color: Colors.black,
-                      fontSize: 13.0,
-                      letterSpacing: 0.0,
-                      useGoogleFonts:
-                          !FlutterFlowTheme.of(context).bodySmallIsCustom,
-                    ),
+        Text(
+          pluralText(context, 'home_scans_left', remaining),
+          style: FlutterFlowTheme.of(context).bodySmall.override(
+                fontFamily: FlutterFlowTheme.of(context).bodySmallFamily,
+                color: isExhausted ? Colors.red.shade400 : Colors.black,
+                fontSize: 13.0,
+                letterSpacing: 0.0,
+                useGoogleFonts: !FlutterFlowTheme.of(context).bodySmallIsCustom,
               ),
-            ],
-          ],
         ),
         const SizedBox(height: 5),
         ClipRRect(

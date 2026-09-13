@@ -1,11 +1,10 @@
-import 'dart:async';
 import '/auth/supabase_auth/auth_util.dart';
 import '/backend/supabase/supabase.dart';
-import '/flutter_flow/analytics_service.dart';
+import '/design_system/components/app_button.dart';
+import '/design_system/components/confirm_dialog.dart';
+import '/domain/care_planning/care_planning_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/domain/care_planning/care_planning_service.dart';
-import '/design_system/components/app_button.dart';
 import '/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,17 +12,27 @@ import 'skin_type_resolver.dart';
 import 'onboarding_quiz_model.dart';
 export 'onboarding_quiz_model.dart';
 
-/// Skin-profile onboarding (spec: docs/onboarding_spec.md).
+/// Онбординг профиля кожи (спека: `docs/onboarding_spec.md` в бэкенде).
 ///
-/// Single stepper widget covering the 6 spec steps + the «не знаю» sub-quiz.
-/// Answers are buffered in [FFAppState] (pre-login) and flushed to `users`
-/// after auth by HomeWidget; if the user is already logged in (re-edit from
-/// settings) the write happens immediately here.
+/// Экран 0 лончер-пути для нового гостя (см. `/` в nav.dart) и он же — правка
+/// профиля из Профиля и карточки «Твой профиль».
+///
+/// Обязательный путь — три вопроса: тип кожи (+ ветка «определим вместе»),
+/// особенности (чувствительность и высыпания на одном экране) и цели. Спрашиваем
+/// ровно то, что читает расчёт: `skin_type`, `skin_sensitivity`, `acne_prone`,
+/// `skin_goals`. Беременность и рамки рутины живут в «Разборе косметички» — они
+/// нужны только составителю режима; возраст и бюджет не спрашиваем вовсе, их не
+/// читал ни один расчёт.
+///
+/// Ответы буферизуются в [FFAppState] (до логина) и дописываются в `users`
+/// HomeWidget'ом после авторизации; если аккаунт уже есть — пишем сразу здесь.
 class OnboardingQuizWidget extends StatefulWidget {
   const OnboardingQuizWidget({super.key, this.returnTo});
 
   /// Экран, с которого пришли менять профиль: анкету открывают не только на
   /// старте, и после сохранения логично вернуться туда же, а не на Главную.
+  /// Это путь (`/itemcard2?imageid=42`), а не имя маршрута: карточка товара
+  /// без своего imageid открывается пустой.
   final String? returnTo;
 
   static String routeName = 'OnboardingQuiz';
@@ -33,23 +42,7 @@ class OnboardingQuizWidget extends StatefulWidget {
   State<OnboardingQuizWidget> createState() => _OnboardingQuizWidgetState();
 }
 
-enum _Step {
-  welcome,
-  type,
-  determine,
-  sensitivity,
-  acne,
-  pregnancy,
-  goals,
-  prefs,
-  optional,
-  result,
-}
-
-// Карта клиента (M1): значения pregnancy_status в users.
-const kPregnancyPregnantOrNursing = 'pregnant_or_nursing';
-const kPregnancyNone = 'none';
-const kPregnancyUndisclosed = 'undisclosed';
+enum _Step { welcome, type, determine, traits, goals, result }
 
 // Goal chips → backend goal keys (mirra _VALID_SKIN_GOALS, the shipped 6).
 const _goalKeys = <List<String>>[
@@ -61,54 +54,32 @@ const _goalKeys = <List<String>>[
   ['pores', 'obq_goal_pores'],
 ];
 
-const _ageOptions = <List<String>>[
-  ['under_18', 'obq_age_u18'],
-  ['18_24', 'obq_age_18_24'],
-  ['25_34', 'obq_age_25_34'],
-  ['35_44', 'obq_age_35_44'],
-  ['45_54', 'obq_age_45_54'],
-  ['55_plus', 'obq_age_55'],
-];
-
-const _budgetOptions = <List<String>>[
-  ['under_15', 'obq_budget_u15'],
-  ['15_40', 'obq_budget_15_40'],
-  ['40_80', 'obq_budget_40_80'],
-  ['80_plus', 'obq_budget_80'],
-];
-
 const _maxGoals = 3;
+
+/// Обязательных вопросов три — столько же делений в прогрессе.
+const _questionCount = 3;
 
 class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
   late OnboardingQuizModel _model;
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
-  // Onboarding palette: white background, black text, neutral answer cards.
-  // Accent (selected state / primary button) still uses the app theme primary.
-  static const Color _ink = Color(0xFF1A1A1A); // black-ish text
-  static const Color _muted = Color(0xFF6B7280); // secondary text
-  static const Color _card = Color(0xFFF3F4F6); // answer background
-  static const Color _border = Color(0xFFE6E6E9); // subtle outline
-
   // Type scale — exactly three sizes across the entire onboarding flow.
-  static const double _fsTitle = 24; // large step title
+  static const double _fsTitle = 26; // large step title
   static const double _fsBody = 16; // primary text / options / buttons
   static const double _fsSub = 13; // secondary / helper text
   // Content is left-aligned with a 16px inset on every step.
-  static const EdgeInsets _contentPad = EdgeInsets.fromLTRB(16, 8, 16, 16);
+  static const EdgeInsets _contentPad = EdgeInsets.fromLTRB(16, 8, 16, 24);
 
   _Step _step = _Step.welcome;
+
+  /// Направление последнего перехода — только для анимации смены шага.
+  bool _forward = true;
 
   // Answers
   String? _skinType;
   bool? _sensitive;
   bool? _acneProne;
-  String? _pregnancy;
-  bool _prefFragranceFree = false;
-  int? _prefMaxSteps;
   final List<String> _goals = [];
-  String? _ageRange;
-  String? _budgetRange;
 
   // «Не знаю» sub-quiz
   bool _typeViaDetermine = false;
@@ -132,9 +103,9 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
     if (currentUserUid.isNotEmpty) _loadExistingProfile();
   }
 
-  /// Re-entry (from Home / settings): prefill answers from the saved profile so
-  /// the user edits rather than starts over (spec §5 edge case 2). Skips the
-  /// value-sell welcome step when a profile already exists.
+  /// Re-entry (from Профиль / карточка «Твой профиль»): prefill answers from the
+  /// saved profile so the user edits rather than starts over (spec §5 edge
+  /// case 2). Skips the value-sell welcome step when a profile already exists.
   Future<void> _loadExistingProfile() async {
     try {
       final rows = await UsersTable().queryRows(
@@ -147,15 +118,9 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
         _skinType = st;
         _sensitive = row.skinSensitivity;
         _acneProne = row.acneProne;
-        _pregnancy = row.pregnancyStatus;
-        final cp = (row.carePreferences as Map?)?.cast<String, dynamic>() ?? {};
-        _prefFragranceFree = cp['fragrance_free'] == true;
-        _prefMaxSteps = cp['max_steps'] is int ? cp['max_steps'] as int : null;
         _goals
           ..clear()
           ..addAll(row.skinGoals);
-        _ageRange = row.ageRange;
-        _budgetRange = row.budgetRange;
         if (_step == _Step.welcome) _step = _Step.type;
       });
     } catch (_) {}
@@ -184,38 +149,28 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
 
   // ── Navigation ──────────────────────────────────────────────────────────
 
-  void _go(_Step s) => safeSetState(() => _step = s);
+  void _go(_Step s, {bool forward = true}) => safeSetState(() {
+        _forward = forward;
+        _step = s;
+      });
 
   void _back() {
     switch (_step) {
-      case _Step.type:
-        _go(_Step.welcome);
-        break;
       case _Step.determine:
-        _go(_Step.type);
+        _go(_Step.type, forward: false);
         break;
-      case _Step.sensitivity:
-        _go(_typeViaDetermine ? _Step.determine : _Step.type);
-        break;
-      case _Step.acne:
-        _go(_Step.sensitivity);
-        break;
-      case _Step.pregnancy:
-        _go(_Step.acne);
+      case _Step.traits:
+        _go(_typeViaDetermine ? _Step.determine : _Step.type, forward: false);
         break;
       case _Step.goals:
-        _go(_Step.pregnancy);
-        break;
-      case _Step.prefs:
-        _go(_Step.goals);
-        break;
-      case _Step.optional:
-        _go(_Step.prefs);
+        _go(_Step.traits, forward: false);
         break;
       case _Step.result:
-        _go(_Step.optional);
+        _go(_Step.goals, forward: false);
         break;
+      // Шаги без стрелки в шапке: возвращаться некуда.
       case _Step.welcome:
+      case _Step.type:
         break;
     }
   }
@@ -225,25 +180,20 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
     if (save) {
       if (currentUserUid.isNotEmpty) {
         // Already authenticated (re-edit from settings): write now.
+        // Беременность и care_preferences здесь не трогаем — их задают в
+        // «Разборе косметички», и повторная анкета не должна их стирать.
         await UsersTable().update(
           data: {
             'skin_type': _skinType,
             'skin_sensitivity': _sensitive,
             'acne_prone': _acneProne,
-            'pregnancy_status': _pregnancy,
-            'care_preferences': {
-              if (_prefFragranceFree) 'fragrance_free': true,
-              if (_prefMaxSteps != null) 'max_steps': _prefMaxSteps,
-            },
             'skin_goals': _goals,
-            'age_range': _ageRange,
-            'budget_range': _budgetRange,
             'onboarded': true,
           },
           matchingRows: (rows) => rows.eqOrNull('id', currentUserUid),
         );
-        // Анамнез и предпочтения — вход составителя режима: разбор,
-        // совместимость и рутина после правки профиля пересчитываются.
+        // Анамнез — вход составителя режима: разбор, совместимость и рутина
+        // после правки профиля пересчитываются.
         CarePlanningService.instance.invalidateCare();
         app.clearOnboardingBuffer();
       } else {
@@ -252,12 +202,7 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
           app.obSkinType = _skinType;
           app.obSensitive = _sensitive;
           app.obAcneProne = _acneProne;
-          app.obPregnancy = _pregnancy;
-          app.obPrefFragranceFree = _prefFragranceFree;
-          app.obPrefMaxSteps = _prefMaxSteps;
           app.obGoals = List<String>.from(_goals);
-          app.obAgeRange = _ageRange;
-          app.obBudgetRange = _budgetRange;
           app.obPendingFlush = true;
         });
       }
@@ -267,123 +212,73 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
     }
     app.onboardingDone = true;
     if (!mounted) return;
-    final route = dest ??
-        widget.returnTo ??
-        (currentUserUid.isNotEmpty
-            ? HomeWidget.routeName
-            : PaywallpageWidget.routeName);
-    // Auto-redirect, not a tap: anonymous users land on the paywall straight
-    // out of onboarding.
-    if (route == PaywallpageWidget.routeName) {
-      unawaited(AnalyticsService.instance
-          .trackUpgradePromptShown(trigger: 'onboarding_finish'));
+    // Мостик один для всех выходов: и «Сохранить и сканировать», и «Пропустить»
+    // ведут к сканеру — это то, ради чего приложение открывают.
+    context.go(dest ?? widget.returnTo ?? TakeorUploadPageWidget.routePath);
+  }
+
+  /// ✕ в шапке. Правка профиля (анкету уже проходили) — просто выход без
+  /// записи: спрашивать «пропустить настройку?» там нечего, настройка уже была.
+  Future<void> _dismiss() async {
+    if (!FFAppState().onboardingDone) {
+      await _confirmSkip();
+      return;
     }
-    context.goNamed(route);
+    HapticFeedback.lightImpact();
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go(widget.returnTo ?? TakeorUploadPageWidget.routePath);
+    }
   }
 
   Future<void> _confirmSkip() async {
-    final theme = FlutterFlowTheme.of(context);
-    final ok = await showGeneralDialog<bool>(
+    HapticFeedback.lightImpact();
+    final ok = await showModalBottomSheet<bool>(
       context: context,
-      barrierDismissible: true,
-      barrierLabel: _t('obq_skip_confirm_title'),
-      barrierColor: Colors.black.withValues(alpha: 0.5),
-      transitionDuration: const Duration(milliseconds: 200),
-      pageBuilder: (ctx, a1, a2) => const SizedBox.shrink(),
-      transitionBuilder: (ctx, anim, _, child) {
-        final curved =
-            CurvedAnimation(parent: anim, curve: Curves.easeOutBack);
-        return Opacity(
-          opacity: anim.value.clamp(0.0, 1.0),
-          child: Transform.scale(
-            scale: 0.92 + 0.08 * curved.value.clamp(0.0, 1.0),
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
-                child: Material(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(28),
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 28, 24, 18),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 64,
-                          height: 64,
-                          decoration: BoxDecoration(
-                            color: theme.primary.withValues(alpha: 0.12),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(Icons.auto_awesome,
-                              color: theme.primary, size: 30),
-                        ),
-                        const SizedBox(height: 18),
-                        Text(
-                          _t('obq_skip_confirm_title'),
-                          textAlign: TextAlign.center,
-                          style: theme.headlineSmall.override(
-                              color: _ink, fontSize: _fsBody,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0),
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          _t('obq_skip_confirm_body'),
-                          textAlign: TextAlign.center,
-                          style: theme.bodyMedium
-                              .override(color: _ink, fontSize: _fsBody, letterSpacing: 0),
-                        ),
-                        const SizedBox(height: 24),
-                        AppButton(
-                          label: _t('obq_skip_confirm_no'),
-                          onPressed: () => Navigator.pop(ctx, false),
-                        ),
-                        const SizedBox(height: 4),
-                        TextButton(
-                          onPressed: () => Navigator.pop(ctx, true),
-                          child: Text(
-                            _t('obq_skip_confirm_yes'),
-                            style: theme.bodyMedium.override(
-                                color: _ink, fontSize: _fsBody,
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: 0),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      },
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) => ConfirmDialog(
+        icon: Icons.auto_awesome,
+        title: _t('obq_skip_confirm_title'),
+        body: _t('obq_skip_confirm_body'),
+        // Prominent = остаться в настройке; уход — вторичным действием.
+        confirmLabel: _t('obq_skip_confirm_no'),
+        onConfirm: () => Navigator.pop(ctx, false),
+        cancelLabel: _t('obq_skip_confirm_yes'),
+        onCancel: () => Navigator.pop(ctx, true),
+        onBackgroundTap: () => Navigator.pop(ctx, false),
+      ),
     );
     if (ok == true) await _finish(save: false);
   }
 
   // ── Build ───────────────────────────────────────────────────────────────
 
+  /// Сколько делений прогресса закрашено. Ветка «определим вместе» держит то же
+  /// деление, что и сам вопрос о типе: экранов она не добавляет.
   int get _progressActive {
     switch (_step) {
       case _Step.type:
       case _Step.determine:
         return 1;
-      case _Step.sensitivity:
+      case _Step.traits:
         return 2;
-      case _Step.acne:
-        return 3;
-      case _Step.pregnancy:
-        return 4;
       case _Step.goals:
-        return 5;
-      case _Step.prefs:
-        return 6;
-      default:
+        return 3;
+      case _Step.welcome:
+      case _Step.result:
         return 0;
     }
   }
+
+  bool get _canGoBack =>
+      _step != _Step.welcome && _step != _Step.type;
+
+  /// ✕ — сквозной выход из настройки. На велкоме его роль играет текстовая
+  /// кнопка «Пропустить», на результате выходить уже некуда: оба действия там
+  /// завершают анкету.
+  bool get _canDismiss => _step != _Step.welcome && _step != _Step.result;
 
   @override
   Widget build(BuildContext context) {
@@ -397,7 +292,19 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
             _buildHeader(theme),
             Expanded(
               child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 180),
+                duration: const Duration(milliseconds: 220),
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeInCubic,
+                transitionBuilder: (child, anim) => FadeTransition(
+                  opacity: anim,
+                  child: SlideTransition(
+                    position: Tween<Offset>(
+                      begin: Offset(_forward ? 0.05 : -0.05, 0),
+                      end: Offset.zero,
+                    ).animate(anim),
+                    child: child,
+                  ),
+                ),
                 child: SingleChildScrollView(
                   key: ValueKey(_step),
                   padding: _contentPad,
@@ -419,27 +326,29 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
         children: [
           SizedBox(
             width: 44,
-            child: _step == _Step.welcome
-                ? null
-                : IconButton(
+            child: _canGoBack
+                ? IconButton(
                     icon: Icon(Icons.arrow_back_ios_new,
-                        size: 20, color: _ink),
+                        size: theme.size.iconSm, color: theme.primaryText),
                     onPressed: _back,
-                  ),
+                  )
+                : null,
           ),
           Expanded(
             child: _progressActive == 0
                 ? const SizedBox.shrink()
                 : Row(
-                    children: List.generate(6, (i) {
+                    children: List.generate(_questionCount, (i) {
                       final active = i < _progressActive;
                       return Expanded(
-                        child: Container(
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 220),
                           height: 4,
                           margin: const EdgeInsets.symmetric(horizontal: 3),
                           decoration: BoxDecoration(
-                            color: active ? theme.primary : _card,
-                            borderRadius: BorderRadius.circular(2),
+                            color: active ? theme.primary : theme.surfaceMuted,
+                            borderRadius:
+                                BorderRadius.circular(theme.radii.r4),
                           ),
                         ),
                       );
@@ -448,10 +357,13 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
           ),
           SizedBox(
             width: 44,
-            child: IconButton(
-              icon: Icon(Icons.close, size: 22, color: _muted),
-              onPressed: _confirmSkip,
-            ),
+            child: _canDismiss
+                ? IconButton(
+                    icon: Icon(Icons.close,
+                        size: theme.size.iconMd, color: theme.secondaryText),
+                    onPressed: _dismiss,
+                  )
+                : null,
           ),
         ],
       ),
@@ -466,22 +378,16 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
         return _buildType(theme);
       case _Step.determine:
         return _buildDetermine(theme);
-      case _Step.sensitivity:
-        return _buildSensitivity(theme);
-      case _Step.acne:
-        return _buildAcne(theme);
-      case _Step.pregnancy:
-        return _buildPregnancy(theme);
+      case _Step.traits:
+        return _buildTraits(theme);
       case _Step.goals:
         return _buildGoals(theme);
-      case _Step.prefs:
-        return _buildPrefs(theme);
-      case _Step.optional:
-        return _buildOptional(theme);
       case _Step.result:
         return _buildResult(theme);
     }
   }
+
+  // ── Shared pieces ───────────────────────────────────────────────────────
 
   // Title + "why" helper.
   Widget _heading(FlutterFlowTheme theme, String titleKey, String? whyKey) {
@@ -490,64 +396,237 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
       children: [
         Text(_t(titleKey),
             style: theme.headlineSmall.override(
-                color: _ink,
+                color: theme.primaryText,
                 fontSize: _fsTitle,
                 fontWeight: FontWeight.w700,
-                letterSpacing: 0)),
+                letterSpacing: 0,
+                lineHeight: 1.2)),
         if (whyKey != null) ...[
           const SizedBox(height: 8),
           Text(_t(whyKey),
-              style: theme.bodyMedium
-                  .override(color: _ink, fontSize: _fsSub, letterSpacing: 0)),
+              style: theme.bodyMedium.override(
+                  color: theme.secondaryText,
+                  fontSize: _fsSub,
+                  letterSpacing: 0)),
         ],
         const SizedBox(height: 20),
       ],
     );
   }
 
-  // Large selectable card.
+  /// Крупная карточка-вариант: иконка в кружке, заголовок, подпись и галочка у
+  /// выбранного. Тап по карточке = выбор (и переход, если шаг одновопросный).
   Widget _optionCard(
     FlutterFlowTheme theme, {
     required String title,
     String? subtitle,
+    IconData? icon,
     required bool selected,
     required VoidCallback onTap,
+    bool quiet = false,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(theme.radii.r16),
           onTap: onTap,
-          child: Container(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 120),
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
+            constraints: const BoxConstraints(minHeight: 68),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
-              color: _card,
-              borderRadius: BorderRadius.circular(16),
+              // «Тихий» вариант («не знаю») — контурная карточка: он не
+              // равноправный ответ, а отвод в под-квиз.
+              color: quiet
+                  ? Colors.transparent
+                  : (selected
+                      ? theme.primary.withValues(alpha: theme.opacity.o08)
+                      : theme.surfaceMuted),
+              borderRadius: BorderRadius.circular(theme.radii.r16),
               border: Border.all(
-                color: selected ? theme.primary : Colors.transparent,
-                width: 2,
+                color: selected
+                    ? theme.primary
+                    : (quiet ? theme.border : Colors.transparent),
+                width: selected
+                    ? theme.size.borderThick
+                    : theme.size.borderHairline,
               ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
               children: [
-                Text(title,
-                    style: theme.titleMedium.override(
-                        color: _ink,
-                        fontSize: _fsBody,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0)),
-                if (subtitle != null && subtitle.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Text(subtitle,
-                      style: theme.bodySmall.override(
-                          color: _ink, fontSize: _fsSub, letterSpacing: 0)),
+                if (icon != null) ...[
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: selected
+                          ? theme.primary
+                          : theme.primary
+                              .withValues(alpha: theme.opacity.o08),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(icon,
+                        size: theme.size.iconSm,
+                        color: selected ? theme.onPrimary : theme.primary),
+                  ),
+                  const SizedBox(width: 14),
                 ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(title,
+                          style: theme.titleMedium.override(
+                              color: theme.primaryText,
+                              fontSize: _fsBody,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0)),
+                      if (subtitle != null && subtitle.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(subtitle,
+                            style: theme.bodySmall.override(
+                                color: theme.secondaryText,
+                                fontSize: _fsSub,
+                                letterSpacing: 0)),
+                      ],
+                    ],
+                  ),
+                ),
+                if (selected)
+                  Icon(Icons.check_circle_rounded,
+                      size: theme.size.iconMd, color: theme.primary),
+                if (quiet)
+                  Icon(Icons.chevron_right_rounded,
+                      size: theme.size.iconMd, color: theme.secondaryText),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Компактная пара «да/нет» в одну строку: два таких вопроса помещаются на
+  /// один экран, ради чего чувствительность и высыпания и слиты вместе.
+  /// Только заголовок — строки «зачем» здесь нет: варианты сами всё говорят.
+  Widget _binaryQuestion(
+    FlutterFlowTheme theme, {
+    required String titleKey,
+    required String yesKey,
+    required String noKey,
+    required bool? value,
+    required void Function(bool) onPick,
+  }) {
+    Widget pill(bool option, String labelKey) {
+      final selected = value == option;
+      return Expanded(
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(theme.radii.r12),
+            onTap: () {
+              HapticFeedback.lightImpact();
+              safeSetState(() => onPick(option));
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 120),
+              height: 52,
+              alignment: Alignment.center,
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              decoration: BoxDecoration(
+                color: selected ? theme.primary : theme.surfaceMuted,
+                borderRadius: BorderRadius.circular(theme.radii.r12),
+                border: Border.all(
+                  color: selected ? theme.primary : theme.border,
+                  width: selected
+                      ? theme.size.borderThick
+                      : theme.size.borderHairline,
+                ),
+              ),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  _t(labelKey),
+                  maxLines: 1,
+                  style: theme.titleSmall.override(
+                      color: selected ? theme.onPrimary : theme.primaryText,
+                      fontSize: _fsBody,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(_t(titleKey),
+            style: theme.titleMedium.override(
+                color: theme.primaryText,
+                fontSize: _fsBody,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0)),
+        const SizedBox(height: 10),
+        Row(children: [
+          pill(true, yesKey),
+          const SizedBox(width: 10),
+          pill(false, noKey),
+        ]),
+      ],
+    );
+  }
+
+  /// Чип мультивыбора/одновыбора в едином виде.
+  Widget _chip(
+    FlutterFlowTheme theme, {
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+    bool dimmed = false,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(theme.radii.full),
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          constraints: const BoxConstraints(minHeight: 44),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          decoration: BoxDecoration(
+            color: selected ? theme.primary : theme.surfaceMuted,
+            borderRadius: BorderRadius.circular(theme.radii.full),
+            border: Border.all(
+              color: selected ? theme.primary : theme.border,
+              width:
+                  selected ? theme.size.borderThick : theme.size.borderHairline,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (selected) ...[
+                Icon(Icons.check_rounded,
+                    size: theme.size.iconXs, color: theme.onPrimary),
+                const SizedBox(width: 6),
+              ],
+              Text(label,
+                  style: theme.bodyMedium.override(
+                      color: selected
+                          ? theme.onPrimary
+                          : (dimmed ? theme.textDisabled : theme.primaryText),
+                      fontSize: _fsBody,
+                      fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                      letterSpacing: 0)),
+            ],
           ),
         ),
       ),
@@ -565,17 +644,63 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 32),
-        Text(_t('obq_welcome_title'),
-            style: theme.displaySmall.override(
-                color: _ink,
-                fontSize: _fsTitle,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0)),
-        const SizedBox(height: 16),
-        Text(_t('obq_welcome_sub'),
-            style: theme.bodyLarge
-                .override(color: _ink, fontSize: _fsBody, letterSpacing: 0)),
+        const SizedBox(height: 8),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                theme.primary.withValues(alpha: theme.opacity.o16),
+                theme.primary.withValues(alpha: theme.opacity.o04),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(theme.radii.r24),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration:
+                    BoxDecoration(color: theme.primary, shape: BoxShape.circle),
+                child: Icon(Icons.auto_awesome,
+                    color: theme.onPrimary, size: theme.size.iconLg),
+              ),
+              const SizedBox(height: 20),
+              Text(_t('obq_welcome_title'),
+                  style: theme.displaySmall.override(
+                      color: theme.primaryText,
+                      fontSize: _fsTitle + 2,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0,
+                      lineHeight: 1.2)),
+              const SizedBox(height: 12),
+              Text(_t('obq_welcome_sub'),
+                  style: theme.bodyLarge.override(
+                      color: theme.primaryText,
+                      fontSize: _fsBody,
+                      letterSpacing: 0,
+                      lineHeight: 1.4)),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Icon(Icons.schedule_rounded,
+                      size: theme.size.iconXs, color: theme.secondaryText),
+                  const SizedBox(width: 6),
+                  Text(_t('obq_welcome_time'),
+                      style: theme.bodySmall.override(
+                          color: theme.secondaryText,
+                          fontSize: _fsSub,
+                          letterSpacing: 0)),
+                ],
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -584,37 +709,47 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
     void pick(String t) => _pickTap(() {
           _skinType = t;
           _typeViaDetermine = false;
-          _go(_Step.sensitivity);
+          _forward = true;
+          _step = _Step.traits;
         });
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _heading(theme, 'obq_type_title', 'obq_why_type'),
+        _heading(theme, 'obq_type_title', null),
         _optionCard(theme,
             title: _t('obq_type_dry'),
             subtitle: _t('obq_type_dry_sub'),
+            icon: Icons.water_drop_outlined,
             selected: _skinType == 'dry',
             onTap: () => pick('dry')),
         _optionCard(theme,
             title: _t('obq_type_oily'),
             subtitle: _t('obq_type_oily_sub'),
+            icon: Icons.auto_awesome_outlined,
             selected: _skinType == 'oily',
             onTap: () => pick('oily')),
         _optionCard(theme,
             title: _t('obq_type_combo'),
             subtitle: _t('obq_type_combo_sub'),
+            icon: Icons.contrast_rounded,
             selected: _skinType == 'combination',
             onTap: () => pick('combination')),
         _optionCard(theme,
             title: _t('obq_type_normal'),
             subtitle: _t('obq_type_normal_sub'),
+            icon: Icons.sentiment_satisfied_outlined,
             selected: _skinType == 'normal',
             onTap: () => pick('normal')),
         const SizedBox(height: 4),
         _optionCard(theme,
             title: _t('obq_type_unknown'),
+            icon: Icons.help_outline_rounded,
+            quiet: true,
             selected: false,
-            onTap: () => _pickTap(() => _go(_Step.determine))),
+            onTap: () => _pickTap(() {
+                  _forward = true;
+                  _step = _Step.determine;
+                })),
       ],
     );
   }
@@ -626,34 +761,26 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.only(bottom: 8, top: 4),
+            padding: const EdgeInsets.only(bottom: 10, top: 4),
             child: Text(_t(labelKey),
-                style: theme.titleSmall.override(color: _ink, fontSize: _fsBody, fontWeight: FontWeight.w600, letterSpacing: 0)),
+                style: theme.titleSmall.override(
+                    color: theme.primaryText,
+                    fontSize: _fsBody,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0)),
           ),
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: opts.map((o) {
               final value = o[0] as T;
-              final selected = current == value;
-              return ChoiceChip(
-                label: Text(_t(o[1] as String)),
-                selected: selected,
-                onSelected: (_) => _pickTap(() => onPick(value)),
-                showCheckmark: false,
-                selectedColor: theme.primary,
-                backgroundColor: _card,
-                side: BorderSide(
-                    color: selected ? theme.primary : _border,
-                    width: selected ? 2 : 1),
-                labelStyle: theme.bodyMedium.override(
-                    color: selected ? Colors.white : _ink, fontSize: _fsBody,
-                    fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-                    letterSpacing: 0),
-              );
+              return _chip(theme,
+                  label: _t(o[1] as String),
+                  selected: current == value,
+                  onTap: () => _pickTap(() => onPick(value)));
             }).toList(),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 18),
         ],
       );
     }
@@ -696,45 +823,48 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
         if (result != null)
           Container(
             width: double.infinity,
-            margin: const EdgeInsets.only(top: 8),
+            margin: const EdgeInsets.only(top: 4),
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
-              color: _card,
-              borderRadius: BorderRadius.circular(16),
+              color: theme.primary.withValues(alpha: theme.opacity.o08),
+              borderRadius: BorderRadius.circular(theme.radii.r16),
+              border: Border.all(
+                  color: theme.primary
+                      .withValues(alpha: theme.opacity.o24),
+                  width: theme.size.borderHairline),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(_t('obq_det_result'),
                     style: theme.bodySmall.override(
-                        color: _ink, fontSize: _fsSub, letterSpacing: 0)),
+                        color: theme.secondaryText,
+                        fontSize: _fsSub,
+                        letterSpacing: 0)),
                 const SizedBox(height: 4),
                 Text(_t(_typeNameKey(result)),
-                    style: theme.titleLarge.override(color: _ink, fontSize: _fsBody, fontWeight: FontWeight.w700, letterSpacing: 0)),
-                const SizedBox(height: 14),
-                Row(
-                  children: [
-                    Expanded(
-                      child: AppButton(
-                        label: _t('obq_det_confirm'),
-                        size: AppButtonSize.md,
-                        onPressed: () => _pickTap(() {
-                          _skinType = result;
-                          _typeViaDetermine = true;
-                          _go(_Step.sensitivity);
-                        }),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: AppButton(
-                        label: _t('obq_det_change'),
-                        variant: AppButtonVariant.outline,
-                        size: AppButtonSize.md,
-                        onPressed: () => _go(_Step.type),
-                      ),
-                    ),
-                  ],
+                    style: theme.titleLarge.override(
+                        color: theme.primaryText,
+                        fontSize: _fsBody + 4,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0)),
+                const SizedBox(height: 16),
+                AppButton(
+                  label: _t('obq_det_confirm'),
+                  size: AppButtonSize.md,
+                  onPressed: () => _pickTap(() {
+                    _skinType = result;
+                    _typeViaDetermine = true;
+                    _forward = true;
+                    _step = _Step.traits;
+                  }),
+                ),
+                const SizedBox(height: 8),
+                AppButton(
+                  label: _t('obq_det_change'),
+                  variant: AppButtonVariant.text,
+                  size: AppButtonSize.md,
+                  onPressed: () => _go(_Step.type, forward: false),
                 ),
               ],
             ),
@@ -743,140 +873,26 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
     );
   }
 
-  Widget _buildSensitivity(FlutterFlowTheme theme) {
-    void pick(bool v) => _pickTap(() {
-          _sensitive = v;
-          _go(_Step.acne);
-        });
+  /// Чувствительность + высыпания на одном экране: оба вопроса про то, к чему
+  /// расчёт должен быть строже, и оба — в одно касание.
+  Widget _buildTraits(FlutterFlowTheme theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _heading(theme, 'obq_sens_title', 'obq_sens_why'),
-        _optionCard(theme,
-            title: _t('obq_sens_yes'),
-            selected: _sensitive == true,
-            onTap: () => pick(true)),
-        _optionCard(theme,
-            title: _t('obq_sens_no'),
-            selected: _sensitive == false,
-            onTap: () => pick(false)),
-      ],
-    );
-  }
-
-  Widget _buildPregnancy(FlutterFlowTheme theme) {
-    void pick(String v) => _pickTap(() {
-          _pregnancy = v;
-          _go(_Step.goals);
-        });
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _heading(theme, 'obq_preg_title', 'obq_preg_why'),
-        _optionCard(theme,
-            title: _t('obq_preg_yes'),
-            selected: _pregnancy == kPregnancyPregnantOrNursing,
-            onTap: () => pick(kPregnancyPregnantOrNursing)),
-        _optionCard(theme,
-            title: _t('obq_preg_no'),
-            selected: _pregnancy == kPregnancyNone,
-            onTap: () => pick(kPregnancyNone)),
-        _optionCard(theme,
-            title: _t('obq_preg_skip'),
-            selected: _pregnancy == kPregnancyUndisclosed,
-            onTap: () => pick(kPregnancyUndisclosed)),
-      ],
-    );
-  }
-
-  Widget _buildPrefs(FlutterFlowTheme theme) {
-    Widget stepChip(int? value, String label) {
-      final selected = _prefMaxSteps == value;
-      // «Без лимита» шире цифр (flex 2); FittedBox гарантирует вмещение
-      // на любом языке; постоянный вес шрифта — текст не расширяется
-      // при выборе.
-      return Expanded(
-        flex: value == null ? 2 : 1,
-        child: GestureDetector(
-          onTap: () => safeSetState(() => _prefMaxSteps = value),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 120),
-            height: 44,
-            alignment: Alignment.center,
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            decoration: BoxDecoration(
-              color: selected ? theme.primary : _card,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                  color: selected ? theme.primary : _border,
-                  width: selected ? 2 : 1),
-            ),
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                label,
-                maxLines: 1,
-                style: TextStyle(
-                  color: selected ? Colors.white : _ink,
-                  fontWeight: FontWeight.w600,
-                  fontSize: _fsBody - 1,
-                ),
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _heading(theme, 'obq_prefs_title', 'obq_prefs_why'),
-        _optionCard(theme,
-            title: _t('prefs_fragrance_free'),
-            selected: _prefFragranceFree,
-            onTap: () => safeSetState(
-                () => _prefFragranceFree = !_prefFragranceFree)),
-        const SizedBox(height: 20),
-        Text(_t('prefs_max_steps'),
-            style: theme.bodyMedium.override(
-                color: _ink,
-                fontSize: _fsBody,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0)),
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            stepChip(3, '3'),
-            const SizedBox(width: 8),
-            stepChip(4, '4'),
-            const SizedBox(width: 8),
-            stepChip(5, '5'),
-            const SizedBox(width: 8),
-            stepChip(null, _t('prefs_no_limit')),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildAcne(FlutterFlowTheme theme) {
-    void pick(bool v) => _pickTap(() {
-          _acneProne = v;
-          _go(_Step.pregnancy);
-        });
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _heading(theme, 'obq_acne_title', 'obq_acne_why'),
-        _optionCard(theme,
-            title: _t('obq_acne_yes'),
-            selected: _acneProne == true,
-            onTap: () => pick(true)),
-        _optionCard(theme,
-            title: _t('obq_acne_no'),
-            selected: _acneProne == false,
-            onTap: () => pick(false)),
+        _heading(theme, 'obq_traits_title', null),
+        _binaryQuestion(theme,
+            titleKey: 'obq_sens_title',
+            yesKey: 'obq_sens_yes_short',
+            noKey: 'obq_sens_no_short',
+            value: _sensitive,
+            onPick: (v) => _sensitive = v),
+        const SizedBox(height: 28),
+        _binaryQuestion(theme,
+            titleKey: 'obq_acne_title',
+            yesKey: 'obq_acne_yes_short',
+            noKey: 'obq_acne_no_short',
+            value: _acneProne,
+            onPick: (v) => _acneProne = v),
       ],
     );
   }
@@ -905,84 +921,13 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
           runSpacing: 10,
           children: _goalKeys.map((g) {
             final selected = _goals.contains(g[0]);
-            final atMax = _goals.length >= _maxGoals && !selected;
-            return ChoiceChip(
-              label: Text(_t(g[1])),
-              selected: selected,
-              // Keep enabled at the limit so the chip keeps its light bg
-              // (a null onSelected would render Material's dark disabledColor);
-              // toggle() shows the "хватит трёх" hint instead.
-              onSelected: (_) => toggle(g[0]),
-              showCheckmark: false,
-              selectedColor: theme.primary,
-              backgroundColor: _card,
-              disabledColor: _card,
-              side: BorderSide(
-                  color: selected ? theme.primary : _border,
-                  width: selected ? 2 : 1),
-              labelStyle: theme.bodyMedium.override(
-                  color: selected
-                      ? Colors.white
-                      : (atMax ? _muted : _ink), fontSize: _fsBody,
-                  fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-                  letterSpacing: 0),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            );
+            return _chip(theme,
+                label: _t(g[1]),
+                selected: selected,
+                dimmed: _goals.length >= _maxGoals && !selected,
+                onTap: () => toggle(g[0]));
           }).toList(),
         ),
-      ],
-    );
-  }
-
-  Widget _buildOptional(FlutterFlowTheme theme) {
-    Widget pillRow(List<List<String>> opts, String? current,
-        void Function(String?) onPick) {
-      return Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        children: opts.map((o) {
-          final selected = current == o[0];
-          return ChoiceChip(
-            label: Text(_t(o[1])),
-            selected: selected,
-            onSelected: (_) =>
-                _pickTap(() => onPick(selected ? null : o[0])),
-            showCheckmark: false,
-            selectedColor: theme.primary,
-            backgroundColor: _card,
-            side: BorderSide(
-                color: selected ? theme.primary : _border,
-                width: selected ? 2 : 1),
-            labelStyle: theme.bodyMedium.override(
-                color: selected ? Colors.white : _ink, fontSize: _fsBody,
-                fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-                letterSpacing: 0),
-          );
-        }).toList(),
-      );
-    }
-
-    Widget field(String labelKey, Widget child) => Padding(
-          padding: const EdgeInsets.only(bottom: 22),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(_t(labelKey),
-                  style: theme.titleSmall.override(color: _ink, fontSize: _fsBody, fontWeight: FontWeight.w600, letterSpacing: 0)),
-              const SizedBox(height: 10),
-              child,
-            ],
-          ),
-        );
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _heading(theme, 'obq_opt_title', 'obq_opt_sub'),
-        field('obq_opt_age',
-            pillRow(_ageOptions, _ageRange, (v) => _ageRange = v)),
-        field('obq_opt_budget',
-            pillRow(_budgetOptions, _budgetRange, (v) => _budgetRange = v)),
       ],
     );
   }
@@ -993,41 +938,101 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
       if (_sensitive == true) _t('obq_flag_sensitive'),
       if (_acneProne == true) _t('obq_flag_acne'),
     ];
-    final goalsText =
-        _goals.map((k) => _t(_goalKeys.firstWhere((g) => g[0] == k)[1])).join(', ');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 8),
-        Text(_t('obq_result_title'),
-            style: theme.headlineSmall
-                .override(color: _ink, fontSize: _fsTitle, fontWeight: FontWeight.w700, letterSpacing: 0)),
-        const SizedBox(height: 20),
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(18),
+          padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: _card,
-            borderRadius: BorderRadius.circular(16),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                theme.primary.withValues(alpha: theme.opacity.o16),
+                theme.primary.withValues(alpha: theme.opacity.o04),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(theme.radii.r24),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Row(
+                children: [
+                  Icon(Icons.check_circle_rounded,
+                      color: theme.primary, size: theme.size.iconMd),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(_t('obq_result_title'),
+                        style: theme.headlineSmall.override(
+                            color: theme.primaryText,
+                            fontSize: _fsTitle - 4,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0)),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
               Text(parts.join(' · '),
-                  style: theme.titleMedium.override(color: _ink, fontSize: _fsBody, fontWeight: FontWeight.w700, letterSpacing: 0)),
-              if (goalsText.isNotEmpty) ...[
+                  style: theme.titleMedium.override(
+                      color: theme.primaryText,
+                      fontSize: _fsBody + 2,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0)),
+              if (_goals.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Text(_t('obq_result_goals_prefix'),
+                    style: theme.bodySmall.override(
+                        color: theme.secondaryText,
+                        fontSize: _fsSub,
+                        letterSpacing: 0)),
                 const SizedBox(height: 8),
-                Text('${_t('obq_result_goals_prefix')} $goalsText',
-                    style: theme.bodyMedium.override(
-                        color: _ink, fontSize: _fsBody, letterSpacing: 0)),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: _goals
+                      .map((k) => Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius:
+                                  BorderRadius.circular(theme.radii.full),
+                            ),
+                            child: Text(
+                                _t(_goalKeys
+                                    .firstWhere((g) => g[0] == k)[1]),
+                                style: theme.bodySmall.override(
+                                    color: theme.primaryText,
+                                    fontSize: _fsSub,
+                                    fontWeight: FontWeight.w600,
+                                    letterSpacing: 0)),
+                          ))
+                      .toList(),
+                ),
               ],
             ],
           ),
         ),
         const SizedBox(height: 24),
-        Text(_t('obq_result_bridge'),
-            style: theme.bodyMedium
-                .override(color: _ink, fontSize: _fsBody, letterSpacing: 0)),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(Icons.camera_alt_outlined,
+                size: theme.size.iconSm, color: theme.secondaryText),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(_t('obq_result_bridge'),
+                  style: theme.bodyMedium.override(
+                      color: theme.secondaryText,
+                      fontSize: _fsBody,
+                      letterSpacing: 0,
+                      lineHeight: 1.4)),
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -1040,70 +1045,55 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
       case _Step.welcome:
         children.add(AppButton(
           label: _t('obq_welcome_start'),
+          trailingIcon: Icons.arrow_forward_rounded,
           onPressed: () => _go(_Step.type),
         ));
-        children.add(const SizedBox(height: 8));
-        children.add(TextButton(
+        children.add(const SizedBox(height: 4));
+        children.add(AppButton(
+          label: _t('obq_welcome_skip'),
+          variant: AppButtonVariant.text,
+          size: AppButtonSize.md,
           onPressed: _confirmSkip,
-          child: Text(_t('obq_welcome_skip'),
-              style: theme.bodyMedium
-                  .override(color: _ink, fontSize: _fsBody, letterSpacing: 0)),
+        ));
+        break;
+      case _Step.traits:
+        children.add(AppButton(
+          label: _t('obq_next'),
+          onPressed: (_sensitive == null || _acneProne == null)
+              ? null
+              : () => _go(_Step.goals),
         ));
         break;
       case _Step.goals:
         children.add(AppButton(
           label: _t('obq_next'),
-          onPressed: _goals.isEmpty ? null : () => _go(_Step.prefs),
+          onPressed: _goals.isEmpty ? null : () => _go(_Step.result),
         ));
-        children.add(const SizedBox(height: 8));
-        children.add(TextButton(
+        children.add(const SizedBox(height: 4));
+        children.add(AppButton(
+          label: _t('obq_goals_none'),
+          variant: AppButtonVariant.text,
+          size: AppButtonSize.md,
           onPressed: () {
             _goals.clear();
-            _go(_Step.prefs);
-          },
-          child: Text(_t('obq_goals_none'),
-              style: theme.bodyMedium
-                  .override(color: _ink, fontSize: _fsBody, letterSpacing: 0)),
-        ));
-        break;
-      case _Step.prefs:
-        children.add(AppButton(
-          label: _t('obq_next'),
-          onPressed: () => _go(_Step.optional),
-        ));
-        break;
-      case _Step.optional:
-        children.add(AppButton(
-          label: _t('obq_done'),
-          onPressed: () => _go(_Step.result),
-        ));
-        children.add(const SizedBox(height: 8));
-        children.add(TextButton(
-          onPressed: () {
-            _ageRange = null;
-            _budgetRange = null;
             _go(_Step.result);
           },
-          child: Text(_t('obq_opt_skip_all'),
-              style: theme.bodyMedium
-                  .override(color: _ink, fontSize: _fsBody, letterSpacing: 0)),
         ));
         break;
       case _Step.result:
         children.add(AppButton(
           label: _t('obq_result_scan'),
-          onPressed: () =>
-              _finish(save: true, dest: TakeorUploadPageWidget.routeName),
+          onPressed: () => _finish(save: true),
         ));
-        children.add(const SizedBox(height: 8));
-        children.add(TextButton(
-          onPressed: () => _go(_Step.type),
-          child: Text(_t('obq_result_edit'),
-              style: theme.bodyMedium
-                  .override(color: _ink, fontSize: _fsBody, letterSpacing: 0)),
+        children.add(const SizedBox(height: 4));
+        children.add(AppButton(
+          label: _t('obq_result_edit'),
+          variant: AppButtonVariant.text,
+          size: AppButtonSize.md,
+          onPressed: () => _go(_Step.type, forward: false),
         ));
         break;
-      // type / determine / sensitivity / acne advance on tap — no footer button.
+      // type / determine advance on tap — no footer button.
       default:
         return const SizedBox.shrink();
     }
@@ -1112,5 +1102,4 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
       child: Column(mainAxisSize: MainAxisSize.min, children: children),
     );
   }
-
 }
