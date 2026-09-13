@@ -11,9 +11,14 @@ class SelectableRow extends StatelessWidget {
     required this.label,
     required this.selected,
     required this.onTap,
+    this.value,
   });
 
   final String label;
+
+  /// Значение справа от подписи — например балл совместимости. Живёт между
+  /// текстом и иконкой выбора, приглушённым цветом: это данные, а не действие.
+  final String? value;
   final bool selected;
   final VoidCallback onTap;
 
@@ -59,6 +64,20 @@ class SelectableRow extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12.0),
+              if (value != null) ...[
+                Text(
+                  value!,
+                  style: theme.bodyMedium.override(
+                    fontFamily: theme.bodyMediumFamily,
+                    color: theme.secondaryText,
+                    fontSize: 15.0,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.0,
+                    useGoogleFonts: !theme.bodyMediumIsCustom,
+                  ),
+                ),
+                const SizedBox(width: 12.0),
+              ],
               Icon(
                 selected
                     ? Icons.check_circle_rounded

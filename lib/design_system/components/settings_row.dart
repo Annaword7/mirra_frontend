@@ -15,6 +15,7 @@ class SettingsRow extends StatelessWidget {
     this.trailingValue,
     this.iconColor,
     this.labelColor,
+    this.surfaceColor,
   });
 
   final IconData icon;
@@ -26,6 +27,11 @@ class SettingsRow extends StatelessWidget {
 
   final Color? iconColor;
   final Color? labelColor;
+
+  /// Подложка строки. По умолчанию `primaryBackground` — как в Профиле, где
+  /// такой же фон у всего экрана. На белой карточке продукта передают
+  /// `surfaceMuted`, иначе строка выглядит чужой заплаткой.
+  final Color? surfaceColor;
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +50,7 @@ class SettingsRow extends StatelessWidget {
         width: double.infinity,
         height: 55.0,
         decoration: BoxDecoration(
-          color: theme.primaryBackground,
+          color: surfaceColor ?? theme.primaryBackground,
           borderRadius: BorderRadius.circular(16.0),
         ),
         child: Padding(

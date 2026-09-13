@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 
 import '/backend/supabase/supabase.dart';
@@ -8,6 +9,9 @@ import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/components/score_breakdown/score_breakdown_widget.dart';
+import '/design_system/components/mirra_bottom_sheet.dart';
+import '/design_system/components/selectable_row.dart';
+import '/design_system/components/settings_row.dart';
 import '/design_system/foundations/score_status.dart';
 import '/index.dart';
 
@@ -197,9 +201,8 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
     // Подпись под кольцом называет тип кожи, для которого посчитано число.
     // Раньше тут было «для вас», а тот же балл дублировался строкой ниже —
     // человек видел одну оценку дважды и не понимал, зачем.
-    final fitLabel = row != null
-        ? _skinTypeLabel(row.skinType)
-        : _t('cardv2_formula');
+    final fitLabel =
+        row != null ? _skinTypeLabel(row.skinType) : _t('cardv2_formula');
     final ringColor = _fitColor(fitScore);
 
     return Padding(
@@ -344,10 +347,13 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
 
   // ── Skin type matrix (tappable, ephemeral) ───────────────────────────────
 
-  /// Переключатель типа кожи. Ничего, кроме выбора: балл и вердикт уже стоят
-  /// в кольце выше, и повторять их строкой значило показывать одну и ту же
-  /// оценку дважды. Тап пересчитывает карточку на месте и профиль не трогает —
-  /// косметолог так листает типы под каждого клиента.
+  /// Тип кожи, для которого посчитана оценка: одна строка на карточке, выбор —
+  /// в листе. Балл и вердикт уже стоят в кольце выше, поэтому повторять их
+  /// строкой незачем; в листе же видны баллы всех типов сразу — то самое
+  /// сравнение, ради которого раньше висела матрица на шесть строк.
+  ///
+  /// Выбор эфемерный: в профиль не пишется, косметолог так листает типы под
+  /// каждого клиента.
   static const _skinTypeOrder = [
     'dry',
     'oily',
@@ -357,93 +363,103 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
     'acne_prone',
   ];
 
-  Widget _buildFit(FlutterFlowTheme theme) {
-    if (widget.skinCompatibility.isEmpty) return const SizedBox.shrink();
-    // Порядок постоянный, а не по убыванию балла: иначе чипы прыгали бы с
-    // карточки на карточку и свой тип каждый раз приходилось бы искать заново.
-    final rows = [...widget.skinCompatibility]..sort((a, b) {
+  List<ImageSkinCompatibilityRow> get _orderedRows {
+    // Порядок постоянный, а не по убыванию балла: иначе свой тип приходилось
+    // бы искать заново на каждой карточке.
+    return [...widget.skinCompatibility]..sort((a, b) {
         final ia = _skinTypeOrder.indexOf(a.skinType);
         final ib = _skinTypeOrder.indexOf(b.skinType);
         return (ia < 0 ? 99 : ia).compareTo(ib < 0 ? 99 : ib);
       });
+  }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 8),
-          child: Text(
-            _t('cardv2_score_for_type'),
-            style: theme.labelMedium.override(
-              fontFamily: theme.labelMediumFamily,
-              letterSpacing: 0.0,
-              useGoogleFonts: !theme.labelMediumIsCustom,
-            ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 0),
-          child: Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final row in rows) _skinTypeChip(theme, row.skinType),
-            ],
-          ),
-        ),
-      ],
+  Widget _buildFit(FlutterFlowTheme theme) {
+    if (widget.skinCompatibility.isEmpty) return const SizedBox.shrink();
+    final row = _selectedRow;
+
+    return Padding(
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 0),
+      child: SettingsRow(
+        icon: Icons.face_retouching_natural,
+        label: _t('cardv2_skin_type_row'),
+        trailingValue:
+            row != null ? _skinTypeLabel(row.skinType) : _t('cardv2_type_none'),
+        surfaceColor: theme.surfaceMuted,
+        onTap: _openSkinTypeSheet,
+      ),
     );
   }
 
-  Widget _skinTypeChip(FlutterFlowTheme theme, String skinType) {
-    final selected = skinType == _selectedSkinType;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(theme.radii.full),
-        onTap: () => setState(() {
-          // Эфемерный просмотр: в профиль ничего не пишется.
-          _userTouchedMatrix = true;
-          _selectedSkinType = selected ? null : skinType;
-        }),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 120),
-          constraints: const BoxConstraints(minHeight: 40),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          decoration: BoxDecoration(
-            color: selected ? theme.primary : theme.surfaceMuted,
-            borderRadius: BorderRadius.circular(theme.radii.full),
-            border: Border.all(
-              color: selected ? theme.primary : theme.border,
-              width: selected
-                  ? theme.size.borderThick
-                  : theme.size.borderHairline,
+  Future<void> _openSkinTypeSheet() async {
+    final theme = FlutterFlowTheme.of(context);
+    final genericScore = widget.image.saCompositeScore?.round();
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, setSheetState) => MirraBottomSheet(
+          surfaceColor: theme.alternate,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.sizeOf(sheetContext).height * 0.8,
             ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (selected) ...[
-                Icon(Icons.check_rounded,
-                    size: theme.size.iconXs, color: theme.onPrimary),
-                const SizedBox(width: 6),
-              ],
-              Text(
-                _skinTypeLabel(skinType),
-                style: theme.bodyMedium.override(
-                  fontFamily: theme.bodyMediumFamily,
-                  color: selected ? theme.onPrimary : theme.primaryText,
-                  fontSize: 14,
-                  fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-                  letterSpacing: 0.0,
-                  useGoogleFonts: !theme.bodyMediumIsCustom,
-                ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _t('cardv2_score_for_type'),
+                    style: theme.headlineSmall.override(
+                      fontFamily: theme.headlineSmallFamily,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.0,
+                      useGoogleFonts: !theme.headlineSmallIsCustom,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Первой строкой — оценка формулы без учёта типа: так из
+                  // персонального расчёта есть дорога обратно.
+                  SelectableRow(
+                    label: _t('cardv2_type_none'),
+                    value: genericScore != null ? '$genericScore' : null,
+                    selected: _selectedSkinType == null,
+                    onTap: () =>
+                        _pickSkinType(sheetContext, setSheetState, null),
+                  ),
+                  for (final row in _orderedRows) ...[
+                    const SizedBox(height: 8),
+                    SelectableRow(
+                      label: _skinTypeLabel(row.skinType),
+                      value: '${row.compatibilityScore}',
+                      selected: row.skinType == _selectedSkinType,
+                      onTap: () => _pickSkinType(
+                          sheetContext, setSheetState, row.skinType),
+                    ),
+                  ],
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
     );
+  }
+
+  void _pickSkinType(
+      BuildContext sheetContext, StateSetter setSheetState, String? skinType) {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _userTouchedMatrix = true;
+      _selectedSkinType = skinType;
+    });
+    setSheetState(() {});
+    // Лист закрывается сам: смотреть в нём после выбора не на что, а кольцо
+    // за ним как раз переезжает на новое значение.
+    Navigator.of(sheetContext).pop();
   }
 
   // ── "What really works": actives with dose-status traffic light ──────────
