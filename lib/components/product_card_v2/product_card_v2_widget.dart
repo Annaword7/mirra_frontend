@@ -5,7 +5,6 @@ import 'package:percent_indicator/percent_indicator.dart';
 
 import '/backend/supabase/supabase.dart';
 import '/flutter_flow/analytics_service.dart';
-import '/components/ingredient_bubbles/ingredient_bubbles_widget.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/design_system/foundations/score_status.dart';
@@ -19,15 +18,17 @@ import '/index.dart';
 /// (onboarding is the single source of truth). All data is profile-independent
 /// and comes from the stored analysis; no network calls happen on tap.
 ///
-/// Blocks:
-///  - verdict + fit number (personal when a skin type is selected)
-///  - tappable skin-type matrix
-///  - "what really works": actives with dose-status traffic light
-///    (working / borderline / decorative from the 1% line + MEC engine)
-///  - warnings with addressees (relevant_for)
-///  - claim audit ("promises on the packaging")
-///  - pro layer: composition split at the 1% line, evidence vs MEC,
-///    honest analysis confidence
+/// Порядок блоков — по порядку вопросов, которые задаёт человек:
+///  - вердикт + число фита, под ним строка честности (сколько состава разобрано
+///    и какова уверенность разбора)
+///  - беременность: предупреждение всем, спокойный ответ — только тем, у кого
+///    это указано в профиле
+///  - совместимость: своя строка, остальные типы кожи — по кнопке «сравнить»
+///  - что может пойти не так (warnings с адресатами)
+///  - что реально работает: активы со светофором дозировок
+///  - обещания с упаковки: счёт «подтверждено N из M», разбор по тапу
+///  - «разбор глубже»: состав по номерам, доза против MEC, уверенность и
+///    всё, что передали в [deepExtras]
 class ProductCardV2Widget extends StatefulWidget {
   const ProductCardV2Widget({
     super.key,
@@ -39,6 +40,9 @@ class ProductCardV2Widget extends StatefulWidget {
     this.userIsSensitive = false,
     this.userIsAcneProne = false,
     this.isPro = false,
+    this.pregnancyRelevant = false,
+    this.profileCta,
+    this.deepExtras = const [],
   });
 
   final ImagesRow image;
@@ -57,6 +61,19 @@ class ProductCardV2Widget extends StatefulWidget {
   /// Whether the pro layer (1% line, evidence vs MEC, confidence) is visible.
   final bool isPro;
 
+  /// В профиле указана беременность или кормление. Спокойный вердикт («можно»)
+  /// показываем только им — остальным он отвечает на незаданный вопрос. А вот
+  /// предупреждение видно всем независимо от профиля: прятать риск нельзя.
+  final bool pregnancyRelevant;
+
+  /// Приглашение заполнить профиль. Стоит ПОД вердиктом, а не над ним: сначала
+  /// ответ, потом просьба поработать.
+  final Widget? profileCta;
+
+  /// Блоки, уезжающие внутрь «Разбора глубже» (состав, радар, экспертный
+  /// текст). Хозяин экрана решает, что туда сложить.
+  final List<Widget> deepExtras;
+
   @override
   State<ProductCardV2Widget> createState() => _ProductCardV2WidgetState();
 }
@@ -66,6 +83,15 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
   /// Never persisted — a cosmetologist can flip through types per client.
   String? _selectedSkinType;
   bool _proExpanded = false;
+
+  /// Матрица типов кожи раскрыта целиком (по умолчанию — только своя строка).
+  bool _matrixExpanded = false;
+
+  /// Разбор обещаний с упаковки раскрыт (по умолчанию виден только счёт).
+  bool _claimsExpanded = false;
+
+  /// Методика проверки на беременность раскрыта (по умолчанию — ссылкой).
+  bool _pregHowExpanded = false;
 
   /// Set once the user taps a matrix row. After that, an async profile load
   /// must not override their manual preview (onboarding stays the cold-start
@@ -139,14 +165,16 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
+      // Порядок отвечает на вопросы в том порядке, в каком их задают: что это
+      // значит → это про меня? → что может пойти не так → что тут работает →
+      // врут ли на упаковке → подробности по запросу.
       children: [
         _buildVerdict(theme),
+        if (widget.profileCta != null) widget.profileCta!,
         _buildPregnancy(theme),
-        _buildMatrix(theme),
-        if (widget.topIngredients.isNotEmpty) _buildActives(theme),
-        if (widget.topIngredients.isNotEmpty)
-          IngredientBubblesWidget(ingredients: widget.topIngredients),
+        _buildFit(theme),
         if (_visibleWarnings.isNotEmpty) _buildWarnings(theme),
+        if (widget.topIngredients.isNotEmpty) _buildActives(theme),
         if (_claimAudit.isNotEmpty) _buildClaimAudit(theme),
         if (widget.isPro) _buildProLayer(theme),
       ],
@@ -240,14 +268,21 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
             ),
             const SizedBox(width: 16),
             Expanded(
-              child: Text(
-                verdictText,
-                style: theme.bodyMedium.override(
-                  fontFamily: theme.bodyMediumFamily,
-                  fontSize: 14,
-                  letterSpacing: 0.0,
-                  useGoogleFonts: !theme.bodyMediumIsCustom,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    verdictText,
+                    style: theme.bodyMedium.override(
+                      fontFamily: theme.bodyMediumFamily,
+                      fontSize: 14,
+                      letterSpacing: 0.0,
+                      useGoogleFonts: !theme.bodyMediumIsCustom,
+                    ),
+                  ),
+                  _buildHonesty(theme),
+                ],
               ),
             ),
           ],
@@ -256,7 +291,99 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
     );
   }
 
+  /// Из чего посчитана оценка: доля разобранного состава и уверенность разбора.
+  ///
+  /// Раньше доля висела пилюлей «73 %» у названия продукта и читалась как
+  /// оценка самого средства — вторая цифра рядом с первой. Её место здесь:
+  /// это оговорка к числу в кольце, а не свойство крема. Уверенность разбора
+  /// переехала сюда же из «Разбора глубже», где её никто не находил.
+  Widget _buildHonesty(FlutterFlowTheme theme) {
+    final total = widget.image.saIngredientsTotal ?? 0;
+    final recognized = widget.image.saIngredientsRecognized ?? 0;
+    final level =
+        widget.image.saConfidenceLevel ?? '${_confidence['level'] ?? ''}';
+
+    final parts = <String>[
+      if (total > 0)
+        _t('cardv2_based_on')
+            .replaceAll('{percent}', '${(recognized / total * 100).round()}'),
+      if (level.isNotEmpty && _t('cardv2_conf_$level').isNotEmpty)
+        '${_t('cardv2_confidence_title')}: ${_t('cardv2_conf_$level')}',
+    ];
+    if (parts.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Text(
+        parts.join(' · '),
+        style: theme.labelSmall.override(
+          fontFamily: theme.labelSmallFamily,
+          color: theme.secondaryText,
+          fontSize: 11,
+          letterSpacing: 0.0,
+          useGoogleFonts: !theme.labelSmallIsCustom,
+        ),
+      ),
+    );
+  }
+
   // ── Skin type matrix (tappable, ephemeral) ───────────────────────────────
+
+  /// Совместимость: своя строка, остальные типы — по запросу.
+  ///
+  /// Матрица из шести строк отвечала на вопрос «кому вообще подходит», хотя
+  /// человек пришёл с вопросом «подходит ли мне». Когда тип кожи известен,
+  /// показываем одну его строку и кнопку «сравнить»; когда нет — весь список,
+  /// потому что это единственный способ получить свою оценку без профиля.
+  Widget _buildFit(FlutterFlowTheme theme) {
+    if (widget.skinCompatibility.isEmpty) return const SizedBox.shrink();
+    if (_selectedRow == null || _matrixExpanded) return _buildMatrix(theme);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _matrixHeading(theme),
+        _matrixRow(theme, _selectedRow!),
+        Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(16, 4, 16, 0),
+          child: InkWell(
+            onTap: () => setState(() => _matrixExpanded = true),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    _t('cardv2_compare_types'),
+                    style: theme.labelSmall.override(
+                      fontFamily: theme.labelSmallFamily,
+                      color: theme.primary,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.0,
+                      useGoogleFonts: !theme.labelSmallIsCustom,
+                    ),
+                  ),
+                  Icon(Icons.expand_more, size: 18, color: theme.primary),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _matrixHeading(FlutterFlowTheme theme) => Padding(
+        padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 8),
+        child: Text(
+          _t('cardv2_who_for'),
+          style: theme.labelMedium.override(
+            fontFamily: theme.labelMediumFamily,
+            letterSpacing: 0.0,
+            useGoogleFonts: !theme.labelMediumIsCustom,
+          ),
+        ),
+      );
 
   Widget _buildMatrix(FlutterFlowTheme theme) {
     if (widget.skinCompatibility.isEmpty) return const SizedBox.shrink();
@@ -265,89 +392,82 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 8),
-          child: Text(
-            _t('cardv2_who_for'),
-            style: theme.labelMedium.override(
-              fontFamily: theme.labelMediumFamily,
-              letterSpacing: 0.0,
-              useGoogleFonts: !theme.labelMediumIsCustom,
+        _matrixHeading(theme),
+        ...rows.map((row) => _matrixRow(theme, row)),
+      ],
+    );
+  }
+
+  Widget _matrixRow(FlutterFlowTheme theme, ImageSkinCompatibilityRow row) {
+    return Builder(builder: (context) {
+      final selected = row.skinType == _selectedSkinType;
+      final score = row.compatibilityScore;
+      return Padding(
+        padding: const EdgeInsetsDirectional.fromSTEB(16, 3, 16, 3),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () => setState(() {
+            // Ephemeral preview only — never written to the profile.
+            _userTouchedMatrix = true;
+            _selectedSkinType = selected ? null : row.skinType;
+          }),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: selected ? theme.primary : theme.alternate,
+                width: selected ? 1.5 : 0.5,
+              ),
+            ),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 130,
+                  child: Text(
+                    _skinTypeLabel(row.skinType),
+                    style: theme.bodyMedium.override(
+                      fontFamily: theme.bodyMediumFamily,
+                      fontSize: 14,
+                      letterSpacing: 0.0,
+                      fontWeight:
+                          selected ? FontWeight.w600 : FontWeight.normal,
+                      useGoogleFonts: !theme.bodyMediumIsCustom,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: LinearPercentIndicator(
+                    percent: (score.clamp(0, 100)) / 100,
+                    lineHeight: 6,
+                    animation: false,
+                    progressColor: _fitColor(score),
+                    backgroundColor: theme.primaryBackground,
+                    barRadius: const Radius.circular(3),
+                    padding: EdgeInsets.zero,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                SizedBox(
+                  width: 28,
+                  child: Text(
+                    '$score',
+                    textAlign: TextAlign.right,
+                    style: theme.bodyMedium.override(
+                      fontFamily: theme.bodyMediumFamily,
+                      fontSize: 13,
+                      letterSpacing: 0.0,
+                      fontWeight: FontWeight.w600,
+                      useGoogleFonts: !theme.bodyMediumIsCustom,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
-        ...rows.map((row) {
-          final selected = row.skinType == _selectedSkinType;
-          final score = row.compatibilityScore;
-          return Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(16, 3, 16, 3),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(12),
-              onTap: () => setState(() {
-                // Ephemeral preview only — never written to the profile.
-                _userTouchedMatrix = true;
-                _selectedSkinType = selected ? null : row.skinType;
-              }),
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: selected ? theme.primary : theme.alternate,
-                    width: selected ? 1.5 : 0.5,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: 130,
-                      child: Text(
-                        _skinTypeLabel(row.skinType),
-                        style: theme.bodyMedium.override(
-                          fontFamily: theme.bodyMediumFamily,
-                          fontSize: 14,
-                          letterSpacing: 0.0,
-                          fontWeight:
-                              selected ? FontWeight.w600 : FontWeight.normal,
-                          useGoogleFonts: !theme.bodyMediumIsCustom,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: LinearPercentIndicator(
-                        percent: (score.clamp(0, 100)) / 100,
-                        lineHeight: 6,
-                        animation: false,
-                        progressColor: _fitColor(score),
-                        backgroundColor: theme.primaryBackground,
-                        barRadius: const Radius.circular(3),
-                        padding: EdgeInsets.zero,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    SizedBox(
-                      width: 28,
-                      child: Text(
-                        '$score',
-                        textAlign: TextAlign.right,
-                        style: theme.bodyMedium.override(
-                          fontFamily: theme.bodyMediumFamily,
-                          fontSize: 13,
-                          letterSpacing: 0.0,
-                          fontWeight: FontWeight.w600,
-                          useGoogleFonts: !theme.bodyMediumIsCustom,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        }),
-      ],
-    );
+      );
+    });
   }
 
   // ── "What really works": actives with dose-status traffic light ──────────
@@ -374,8 +494,7 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
         ),
         ...shown.map((ing) {
           final status = ing.status;
-          final statusLabel =
-              status == null ? '' : _t('cardv2_status_$status');
+          final statusLabel = status == null ? '' : _t('cardv2_status_$status');
           final conc = ing.estimatedConcentration;
           final subtitle = () {
             if (statusLabel.isEmpty) return '';
@@ -492,6 +611,10 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
     if (safe == null) return const SizedBox.shrink();
     final flags = _pregFlags;
     final ok = safe && flags.isEmpty;
+    // «Можно» показываем только тем, кто спрашивал: в профиле указана
+    // беременность или кормление. Предупреждение — всем, кто открыл карточку:
+    // человек мог не заполнить профиль, а ретиноид от этого никуда не делся.
+    if (ok && !widget.pregnancyRelevant) return const SizedBox.shrink();
     final accent = ok ? _goodColor : _warnColor;
 
     return Padding(
@@ -511,9 +634,7 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Icon(
-                  ok
-                      ? Icons.check_circle_rounded
-                      : Icons.warning_amber_rounded,
+                  ok ? Icons.check_circle_rounded : Icons.warning_amber_rounded,
                   size: 18,
                   color: accent,
                 ),
@@ -545,32 +666,55 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
                   ),
                 ),
               ),
+            // Методика — под ссылкой, а не абзацем на девять строк. Она
+            // отзывала обратно только что выданный ответ: сначала «можно»,
+            // следом мелким шрифтом «но мы проверяем не всё».
             Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(28, 10, 0, 2),
-              child: Text(
-                _t('preg_how_title'),
-                style: theme.labelSmall.override(
-                  fontFamily: theme.labelSmallFamily,
-                  color: theme.secondaryText,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.0,
-                  useGoogleFonts: !theme.labelSmallIsCustom,
+              padding: const EdgeInsetsDirectional.fromSTEB(28, 8, 0, 0),
+              child: InkWell(
+                onTap: () =>
+                    setState(() => _pregHowExpanded = !_pregHowExpanded),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        _t('preg_how_title'),
+                        style: theme.labelSmall.override(
+                          fontFamily: theme.labelSmallFamily,
+                          color: theme.secondaryText,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.0,
+                          useGoogleFonts: !theme.labelSmallIsCustom,
+                        ),
+                      ),
+                      Icon(
+                        _pregHowExpanded
+                            ? Icons.expand_less
+                            : Icons.expand_more,
+                        size: 16,
+                        color: theme.secondaryText,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(28, 0, 0, 0),
-              child: Text(
-                _t('preg_how_body'),
-                style: theme.bodySmall.override(
-                  fontFamily: theme.bodySmallFamily,
-                  color: theme.secondaryText,
-                  fontSize: 12,
-                  letterSpacing: 0.0,
-                  useGoogleFonts: !theme.bodySmallIsCustom,
+            if (_pregHowExpanded)
+              Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(28, 2, 0, 0),
+                child: Text(
+                  _t('preg_how_body'),
+                  style: theme.bodySmall.override(
+                    fontFamily: theme.bodySmallFamily,
+                    color: theme.secondaryText,
+                    fontSize: 12,
+                    letterSpacing: 0.0,
+                    useGoogleFonts: !theme.bodySmallIsCustom,
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       ),
@@ -653,69 +797,96 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
   List<Map<String, dynamic>> get _claimAudit {
     final raw = widget.image.saClaimAudit;
     if (raw is List) {
-      return raw.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
+      return raw
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
     }
     return const [];
   }
 
+  /// Обещания на упаковке: счёт одной строкой, разбор по пунктам — по тапу.
+  ///
+  /// Это самый убедительный блок карточки («на коробке написали — проверили»),
+  /// но восемь строк прозы его прятали. Счёт «подтверждено 4 из 6» отвечает на
+  /// вопрос «врут или нет» до раскрытия.
   Widget _buildClaimAudit(FlutterFlowTheme theme) {
+    final supported =
+        _claimAudit.where((c) => c['verdict'] == 'supported').length;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsetsDirectional.fromSTEB(16, 20, 16, 8),
-          child: Text(
-            _t('cardv2_claims_title'),
-            style: theme.labelMedium.override(
-              fontFamily: theme.labelMediumFamily,
-              letterSpacing: 0.0,
-              useGoogleFonts: !theme.labelMediumIsCustom,
-            ),
-          ),
-        ),
-        ..._claimAudit.map((claim) {
-          final claimKey = claim['claim'] as String? ?? '';
-          final verdict = claim['verdict'] as String? ?? 'unsupported';
-          final claimLabel = () {
-            final l = _t('cardv2_claim_$claimKey');
-            return l.isEmpty ? claimKey : l;
-          }();
-          final verdictLabel = _t('cardv2_verdict_$verdict');
-          final verdictColor = verdict == 'supported'
-              ? _goodColor
-              : verdict == 'weak'
-                  ? _warnColor
-                  : _badColor;
-          return Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(16, 3, 16, 3),
+          child: InkWell(
+            onTap: () => setState(() => _claimsExpanded = !_claimsExpanded),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Flexible(
+                Expanded(
                   child: Text(
-                    '«$claimLabel»',
-                    style: theme.bodyMedium.override(
-                      fontFamily: theme.bodyMediumFamily,
-                      fontSize: 14,
+                    '${_t('cardv2_claims_title')} · '
+                    '${_t('cardv2_claims_count').replaceAll('{n}', '$supported').replaceAll('{total}', '${_claimAudit.length}')}',
+                    style: theme.labelMedium.override(
+                      fontFamily: theme.labelMediumFamily,
                       letterSpacing: 0.0,
-                      useGoogleFonts: !theme.bodyMediumIsCustom,
+                      useGoogleFonts: !theme.labelMediumIsCustom,
                     ),
                   ),
                 ),
-                Text(
-                  verdictLabel,
-                  style: theme.bodySmall.override(
-                    fontFamily: theme.bodySmallFamily,
-                    color: verdictColor,
-                    letterSpacing: 0.0,
-                    fontWeight: FontWeight.w500,
-                    useGoogleFonts: !theme.bodySmallIsCustom,
-                  ),
+                Icon(
+                  _claimsExpanded ? Icons.expand_less : Icons.expand_more,
+                  size: 20,
+                  color: theme.secondaryText,
                 ),
               ],
             ),
-          );
-        }),
+          ),
+        ),
+        if (_claimsExpanded)
+          ..._claimAudit.map((claim) {
+            final claimKey = claim['claim'] as String? ?? '';
+            final verdict = claim['verdict'] as String? ?? 'unsupported';
+            final claimLabel = () {
+              final l = _t('cardv2_claim_$claimKey');
+              return l.isEmpty ? claimKey : l;
+            }();
+            final verdictLabel = _t('cardv2_verdict_$verdict');
+            final verdictColor = verdict == 'supported'
+                ? _goodColor
+                : verdict == 'weak'
+                    ? _warnColor
+                    : _badColor;
+            return Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(16, 3, 16, 3),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Flexible(
+                    child: Text(
+                      '«$claimLabel»',
+                      style: theme.bodyMedium.override(
+                        fontFamily: theme.bodyMediumFamily,
+                        fontSize: 14,
+                        letterSpacing: 0.0,
+                        useGoogleFonts: !theme.bodyMediumIsCustom,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    verdictLabel,
+                    style: theme.bodySmall.override(
+                      fontFamily: theme.bodySmallFamily,
+                      color: verdictColor,
+                      letterSpacing: 0.0,
+                      fontWeight: FontWeight.w500,
+                      useGoogleFonts: !theme.bodySmallIsCustom,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
       ],
     );
   }
@@ -734,10 +905,7 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
   List<String> get _inciList {
     final stored = widget.image.saInciList;
     if (stored.isNotEmpty) {
-      return stored
-          .map((s) => s.trim())
-          .where((s) => s.isNotEmpty)
-          .toList();
+      return stored.map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
     }
     return (widget.image.ingredients ?? '')
         .split(RegExp(r',(?!\s*\d)|\n'))
@@ -985,6 +1153,10 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
                 ),
               ),
             ),
+          // Блоки экрана, которым место в подробностях: полный состав, радар
+          // оценки, экспертный текст. Здесь они на своём месте — их читают
+          // единицы, а в основном потоке они занимали больше тысячи пикселей.
+          ...widget.deepExtras,
         ],
       ],
     );

@@ -7,15 +7,14 @@ import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import '/flutter_flow/analytics_service.dart';
 import '/backend/api_requests/api_calls.dart';
-import '/backend/supabase/database/tables/product_prices.dart';
 import '/backend/supabase/supabase.dart';
 import '/app_state.dart';
 import '/domain/cosmetic_bag/cosmetic_bag_service.dart';
+import '/domain/client_card/client_card_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/design_system/components/app_button.dart';
 import '/design_system/components/screen_loader.dart';
-import '/design_system/foundations/format_price.dart';
 import '/item_card/deleteitem/deleteitem_widget.dart';
 import '/item_card/ingridients/ingridients_widget.dart';
 import '/components/product_card_v2/product_card_v2_widget.dart';
@@ -75,26 +74,6 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
       ));
       await _loadAnalysis();
       await _refreshBagState();
-      // Average price for this product × the user's country (needs the loaded
-      // image row for the product/brand keys).
-      final _img = _model.imageraw?.firstOrNull;
-      if (_img != null) {
-        final _nameKey = (_img.productName ?? '').toLowerCase().trim();
-        final _brandKey = (_img.brand ?? '').toLowerCase().trim();
-        final _countryCode = FFAppState().countrycodeiso;
-        if (_nameKey.isNotEmpty &&
-            _brandKey.isNotEmpty &&
-            _countryCode.isNotEmpty) {
-          final _prices = await ProductPricesTable().queryRows(
-            queryFn: (q) => q
-                .eqOrNull('product_name_key', _nameKey)
-                .eqOrNull('brand_key', _brandKey)
-                .eqOrNull('country_code', _countryCode),
-            limit: 1,
-          );
-          _model.priceRow = _prices.firstOrNull;
-        }
-      }
       // Skin profile from onboarding — default viewing context for the fit card.
       if (currentUserUid.isNotEmpty) {
         try {
@@ -252,8 +231,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
     try {
       final bag = await CosmeticBagService.instance.items();
       if (!mounted) return;
-      safeSetState(() =>
-          _inBag = bag.any((i) => i.imageId == widget.imageid));
+      safeSetState(() => _inBag = bag.any((i) => i.imageId == widget.imageid));
     } catch (e) {
       debugPrint('card: bag state unavailable: $e');
     }
@@ -318,8 +296,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
       if (targetId == null) {
         if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content:
-              Text(FFLocalizations.of(context).getText('copy_failed')),
+          content: Text(FFLocalizations.of(context).getText('copy_failed')),
           behavior: SnackBarBehavior.floating,
         ));
         return;
@@ -333,7 +310,6 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
     if (isOwner) safeSetState(() => _inBag = true);
     _toast(FFLocalizations.of(context).getText('cb_added_toast'));
   }
-
 
   Widget _buildPendingPlaceholder(BuildContext context) {
     return Padding(
@@ -386,6 +362,139 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
     return out;
   }
 
+  /// Полный состав INCI. Живёт внутри «Разбора глубже»: сплошная латиница
+  /// на пол-экрана — то, что читают единицы, и то, что напечатано на банке.
+  Widget _buildIngredients(BuildContext context) {
+    return Padding(
+      padding: EdgeInsetsDirectional.fromSTEB(16.0, 16.0, 16.0, 0.0),
+      child: wrapWithModel(
+        model: _model.ingridientsModel,
+        updateCallback: () => safeSetState(() {}),
+        child: IngridientsWidget(
+          ingridients: valueOrDefault<String>(
+            _model.imageraw?.firstOrNull?.ingredients,
+            '-',
+          ),
+          topIngredients: _model.topIngredientsRaw
+                  ?.map((r) => r.ingredientName.toLowerCase().trim())
+                  .toList() ??
+              const [],
+          issueIngredients: _model.ingredientIssuesRaw
+                  ?.map((r) => r.ingredientName.toLowerCase().trim())
+                  .toList() ??
+              const [],
+        ),
+      ),
+    );
+  }
+
+  /// Радар оценки по пяти осям — туда же, в подробности.
+  Widget _buildScoreRadar(BuildContext context) {
+    return Builder(builder: (context) {
+      final img = _model.imageraw?.firstOrNull;
+      final log = img?.saScoringLog;
+      if (log == null) return const SizedBox.shrink();
+      // Prefer the backend's parsed INCI list; fall back
+      // to a client split (keeps "1,2-Hexanediol" intact)
+      // so the 1% ring + issue dots work on old records.
+      final inci = (img?.saInciList.isNotEmpty ?? false)
+          ? img!.saInciList
+          : (img?.ingredients ?? '')
+              .split(RegExp(r',(?!\s*\d)|\n'))
+              .map((s) => s.trim())
+              .where((s) => s.isNotEmpty)
+              .toList();
+      return Padding(
+        padding: const EdgeInsetsDirectional.fromSTEB(16.0, 16.0, 16.0, 0.0),
+        child: ScoreBreakdownWidget(
+          scoringLog: log,
+          topIngredients: _model.topIngredientsRaw ?? const [],
+          ingredientIssues: _model.ingredientIssuesRaw ?? const [],
+          inciList: inci,
+          onePercentLinePos: img?.saOnePercentLinePos,
+        ),
+      );
+    });
+  }
+
+  /// Экспертный разбор: 9–20 строк сплошного текста, тоже в подробности.
+  Widget _buildExpertAnalysis(BuildContext context) {
+    return Builder(builder: (context) {
+      final expert = _model.imageraw?.firstOrNull?.saExpertAnalysis;
+      if (expert == null || expert.trim().isEmpty) {
+        return const SizedBox.shrink();
+      }
+      return Padding(
+        padding: EdgeInsetsDirectional.fromSTEB(16.0, 16.0, 16.0, 0.0),
+        child: Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFFF5F8FF),
+            borderRadius: BorderRadius.circular(24.0),
+            border: Border(
+              left: BorderSide(
+                color: FlutterFlowTheme.of(context).primary,
+                width: 4.0,
+              ),
+            ),
+            boxShadow: const [
+              BoxShadow(
+                blurRadius: 8.0,
+                color: Color(0x14000000),
+                offset: Offset(0.0, 2.0),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.max,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: EdgeInsetsDirectional.fromSTEB(12.0, 16.0, 16.0, 16.0),
+                child: Row(
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    FaIcon(
+                      FontAwesomeIcons.fire,
+                      color: FlutterFlowTheme.of(context).primary,
+                      size: 30.0,
+                    ),
+                    Text(
+                      FFLocalizations.of(context).getText(
+                        'cox122eb' /* Expert Analysis */,
+                      ),
+                      style: FlutterFlowTheme.of(context).bodyMedium.override(
+                            fontFamily:
+                                FlutterFlowTheme.of(context).bodyMediumFamily,
+                            fontSize: 18.0,
+                            letterSpacing: 0.0,
+                            fontWeight: FontWeight.w700,
+                            useGoogleFonts: !FlutterFlowTheme.of(context)
+                                .bodyMediumIsCustom,
+                          ),
+                    ),
+                  ].divide(SizedBox(width: 12.0)),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsetsDirectional.fromSTEB(12.0, 0.0, 16.0, 16.0),
+                child: Text(
+                  expert,
+                  style: FlutterFlowTheme.of(context).bodyMedium.override(
+                        fontFamily:
+                            FlutterFlowTheme.of(context).bodyMediumFamily,
+                        letterSpacing: 0.0,
+                        useGoogleFonts:
+                            !FlutterFlowTheme.of(context).bodyMediumIsCustom,
+                      ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     // Подписка на FFAppState без локальной переменной: карточку надо
@@ -412,7 +521,8 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
                   const SizedBox(height: 16),
                   TextButton(
                     onPressed: () => safeSetState(() {}),
-                    child: Text(FFLocalizations.of(context).getText('care_retry')),
+                    child:
+                        Text(FFLocalizations.of(context).getText('care_retry')),
                   ),
                 ],
               ),
@@ -516,8 +626,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
                 // Add to cosmetic bag (copies the product first, then adds
                 // the copy to the bag — заменяет прежнее «В коллекцию»).
                 SpeedDialChild(
-                  child: Icon(
-                      _inBag ? Icons.spa_outlined : Icons.spa_rounded),
+                  child: Icon(_inBag ? Icons.spa_outlined : Icons.spa_rounded),
                   backgroundColor: FlutterFlowTheme.of(context).primary,
                   foregroundColor: Colors.white,
                   label: FFLocalizations.of(context).getText(
@@ -778,10 +887,14 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
                                     // скан владельца (приватный, только для
                                     // своего продукта). Слайдер, если фото больше
                                     // одного; иначе одно фото или заплатка.
+                                    // 240, а не полэкрана: банка обычно в руках
+                                    // у того, кто её сканирует, и фото здесь
+                                    // опознаёт товар, а не продаёт его. Это
+                                    // ~180 отвоёванных пикселей, на которые
+                                    // поднимается вердикт.
                                     _ProductPhotos(
                                       photos: _productPhotos(),
-                                      height: MediaQuery.sizeOf(context).height *
-                                          0.5,
+                                      height: 240.0,
                                     ),
                                     Padding(
                                       padding: EdgeInsets.all(16.0),
@@ -853,142 +966,68 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
                                               ].divide(SizedBox(height: 10.0)),
                                             ),
                                           ),
-                                          if (_model.imageraw?.firstOrNull
-                                                  ?.saCompositeScore !=
-                                              null)
-                                            Container(
-                                              decoration: BoxDecoration(
-                                                color: Color(0x39FFFFFF),
-                                                borderRadius:
-                                                    BorderRadius.circular(24.0),
-                                              ),
-                                              child: Padding(
-                                                padding: EdgeInsetsDirectional
-                                                    .fromSTEB(
-                                                        12.0, 8.0, 12.0, 8.0),
-                                                child: Row(
-                                                  mainAxisSize:
-                                                      MainAxisSize.min,
-                                                  children: [
-                                                    FaIcon(
-                                                      FontAwesomeIcons.flask,
-                                                      color:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .alternate,
-                                                      size: 24.0,
-                                                    ),
-                                                    Text(
-                                                      '${valueOrDefault<String>(
-                                                        ((int recog,
-                                                                int total) {
-                                                          return total > 0
-                                                              ? ((recog / total) *
-                                                                      100)
-                                                                  .round()
-                                                              : 0;
-                                                        }(
-                                                            valueOrDefault<int>(
-                                                              _model
-                                                                  .imageraw
-                                                                  ?.firstOrNull
-                                                                  ?.saIngredientsRecognized,
-                                                              0,
-                                                            ),
-                                                            valueOrDefault<int>(
-                                                              _model
-                                                                  .imageraw
-                                                                  ?.firstOrNull
-                                                                  ?.saIngredientsTotal,
-                                                              0,
-                                                            ))).toString(),
-                                                        '0',
-                                                      )} %',
-                                                      style: FlutterFlowTheme
-                                                              .of(context)
-                                                          .bodyMedium
-                                                          .override(
-                                                            fontFamily:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMediumFamily,
-                                                            color: FlutterFlowTheme
-                                                                    .of(context)
-                                                                .alternate,
-                                                            letterSpacing: 0.0,
-                                                            fontWeight:
-                                                                FontWeight.w700,
-                                                            useGoogleFonts:
-                                                                !FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMediumIsCustom,
-                                                          ),
-                                                    ),
-                                                  ].divide(
-                                                      SizedBox(width: 10.0)),
-                                                ),
-                                              ),
-                                            ),
                                         ],
                                       ),
                                     ),
                                     SizedBox(
                                       width: double.infinity,
                                       child: Padding(
-                                      padding: EdgeInsetsDirectional.fromSTEB(
-                                          16.0, 0.0, 16.0, 20.0),
-                                      child: Builder(
-                                        builder: (context) {
-                                          final bestfor = _model.imageraw
-                                                  ?.firstOrNull?.saBestForTags
-                                                  .toList() ??
-                                              [];
+                                        padding: EdgeInsetsDirectional.fromSTEB(
+                                            16.0, 0.0, 16.0, 20.0),
+                                        child: Builder(
+                                          builder: (context) {
+                                            final bestfor = _model.imageraw
+                                                    ?.firstOrNull?.saBestForTags
+                                                    .toList() ??
+                                                [];
 
-                                          return Wrap(
-                                            spacing: 8.0,
-                                            runSpacing: 8.0,
-                                            alignment: WrapAlignment.start,
-                                            children: bestfor
-                                                .map((tag) => Container(
-                                                      decoration: BoxDecoration(
-                                                        color:
-                                                            Color(0x62FFFFFF),
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(24.0),
-                                                      ),
-                                                      padding: EdgeInsets
-                                                          .symmetric(
-                                                              horizontal: 12.0,
-                                                              vertical: 8.0),
-                                                      child: Text(
-                                                        tag,
-                                                        maxLines: 1,
-                                                        style: FlutterFlowTheme
-                                                                .of(context)
-                                                            .bodyMedium
-                                                            .override(
-                                                              fontFamily:
-                                                                  FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .bodyMediumFamily,
-                                                              color: FlutterFlowTheme
-                                                                      .of(context)
-                                                                  .alternate,
-                                                              letterSpacing:
-                                                                  0.0,
-                                                              useGoogleFonts:
-                                                                  !FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .bodyMediumIsCustom,
-                                                            ),
-                                                      ),
-                                                    ))
-                                                .toList(),
-                                          );
-                                        },
+                                            return Wrap(
+                                              spacing: 8.0,
+                                              runSpacing: 8.0,
+                                              alignment: WrapAlignment.start,
+                                              children: bestfor
+                                                  .map((tag) => Container(
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          color:
+                                                              Color(0x62FFFFFF),
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(
+                                                                      24.0),
+                                                        ),
+                                                        padding: EdgeInsets
+                                                            .symmetric(
+                                                                horizontal:
+                                                                    12.0,
+                                                                vertical: 8.0),
+                                                        child: Text(
+                                                          tag,
+                                                          maxLines: 1,
+                                                          style: FlutterFlowTheme
+                                                                  .of(context)
+                                                              .bodyMedium
+                                                              .override(
+                                                                fontFamily: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .bodyMediumFamily,
+                                                                color: FlutterFlowTheme.of(
+                                                                        context)
+                                                                    .alternate,
+                                                                letterSpacing:
+                                                                    0.0,
+                                                                useGoogleFonts:
+                                                                    !FlutterFlowTheme.of(
+                                                                            context)
+                                                                        .bodyMediumIsCustom,
+                                                              ),
+                                                        ),
+                                                      ))
+                                                  .toList(),
+                                            );
+                                          },
+                                        ),
                                       ),
-                                    ),
                                     ),
                                   ],
                                 ),
@@ -1000,39 +1039,9 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
                             null)
                           _buildPendingPlaceholder(context)
                         else ...[
-                          // No skin type yet: the verdict above is the
-                          // all-skin-types one, so offer to make it personal
-                          // right where that limitation is visible. The quiz
-                          // returns here rather than to Home.
-                          // 16 to match the tag row above and the fit card
-                          // below — the card stretches to double.infinity, so
-                          // without this it runs to the screen edge while every
-                          // neighbour is inset.
-                          if ((_model.userSkinType ?? '').isEmpty)
-                            Padding(
-                              // Top 16 so the card doesn't butt against the
-                              // gradient hero block above it (the card brings
-                              // its own 12 at the bottom).
-                              padding: const EdgeInsetsDirectional.fromSTEB(
-                                  16, 16, 16, 0),
-                              child: ProfileSummaryCard(
-                                profileRow: _model.profileRow,
-                                // Вместе с imageid: по одному имени маршрута
-                                // анкета вернула бы на карточку без товара.
-                                returnTo: widget.imageid == null
-                                    ? null
-                                    : context.namedLocation(
-                                        Itemcard2Widget.routeName,
-                                        queryParameters: {
-                                          'imageid': serializeParam(
-                                              widget.imageid, ParamType.int)!,
-                                        },
-                                      ),
-                              ),
-                            ),
-                          // ── Fit card v2: verdict + tappable skin-type matrix +
-                          // active dose statuses + addressed warnings + claim audit.
-                          // Matrix taps are ephemeral previews (never written to profile).
+                          // ── Разбор: вердикт, беременность, свой фит, риски,
+                          // активы, обещания и «разбор глубже». Порядок и
+                          // сворачивание — внутри ProductCardV2Widget.
                           if (_model.imageraw?.firstOrNull != null)
                             ProductCardV2Widget(
                               image: _model.imageraw!.first,
@@ -1046,6 +1055,42 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
                               userIsSensitive: _model.userIsSensitive,
                               userIsAcneProne: _model.userIsAcneProne,
                               isPro: true,
+                              pregnancyRelevant:
+                                  _model.profileRow?.pregnancyStatus ==
+                                      ClientCardService.pregnantOrNursing,
+                              // Профиль не заполнен — вердикт посчитан по всем
+                              // типам кожи. Предлагаем это исправить сразу под
+                              // ним, а не до него: сначала ответ, потом анкета.
+                              profileCta: (_model.userSkinType ?? '').isEmpty
+                                  ? Padding(
+                                      padding:
+                                          const EdgeInsetsDirectional.fromSTEB(
+                                              16, 12, 16, 0),
+                                      child: ProfileSummaryCard(
+                                        profileRow: _model.profileRow,
+                                        // Вместе с imageid: по одному имени
+                                        // маршрута анкета вернула бы на
+                                        // карточку без товара.
+                                        returnTo: widget.imageid == null
+                                            ? null
+                                            : context.namedLocation(
+                                                Itemcard2Widget.routeName,
+                                                queryParameters: {
+                                                  'imageid': serializeParam(
+                                                      widget.imageid,
+                                                      ParamType.int)!,
+                                                },
+                                              ),
+                                      ),
+                                    )
+                                  : null,
+                              // Состав, радар и экспертный текст — под «разбор
+                              // глубже»: 1265 px, которые читают единицы.
+                              deepExtras: [
+                                _buildIngredients(context),
+                                _buildScoreRadar(context),
+                                _buildExpertAnalysis(context),
+                              ],
                             ),
                           // ── SPF block (all users, only when product contains UV filters) ──
                           Builder(builder: (context) {
@@ -1184,363 +1229,91 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
                               ),
                             );
                           }),
-                          // ── Average Price (hidden when not yet available) ──
-                          Builder(builder: (context) {
-                            final price = _model.priceRow;
-                            final avg = price?.avgPrice;
-                            if (avg == null) return const SizedBox.shrink();
-                            final code = price?.priceCurrencyCode;
-                            final min = price?.priceMin;
-                            final max = price?.priceMax;
-
-                            Widget _priceCard(Widget content) => Padding(
-                                  padding: const EdgeInsetsDirectional.fromSTEB(
-                                      16.0, 16.0, 16.0, 0.0),
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFF5F8FF),
-                                      borderRadius: BorderRadius.circular(20.0),
-                                      boxShadow: const [
-                                        BoxShadow(
-                                          blurRadius: 8.0,
-                                          color: Color(0x1A000000),
-                                          offset: Offset(0.0, 2.0),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 16.0, vertical: 16.0),
-                                      child: content,
-                                    ),
-                                  ),
-                                );
-
-                            return _priceCard(Row(
-                              children: [
-                                Icon(Icons.sell_outlined,
+                          Padding(
+                            padding: EdgeInsetsDirectional.fromSTEB(
+                                16.0, 16.0, 16.0, 0.0),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF5F8FF),
+                                borderRadius: BorderRadius.circular(24.0),
+                                border: Border(
+                                  left: BorderSide(
                                     color: FlutterFlowTheme.of(context).primary,
-                                    size: 28.0),
-                                const SizedBox(width: 14),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        FFLocalizations.of(context)
-                                            .getText('ic2_avg_price'),
-                                        style: FlutterFlowTheme.of(context)
-                                            .bodyMedium
-                                            .override(
-                                              fontFamily:
-                                                  FlutterFlowTheme.of(context)
-                                                      .bodyMediumFamily,
-                                              color:
-                                                  FlutterFlowTheme.of(context)
-                                                      .secondaryText,
-                                              fontSize: 12.0,
-                                              letterSpacing: 0.0,
-                                              useGoogleFonts:
-                                                  !FlutterFlowTheme.of(context)
-                                                      .bodyMediumIsCustom,
-                                            ),
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        formatPrice(avg, code),
-                                        style: FlutterFlowTheme.of(context)
-                                            .bodyMedium
-                                            .override(
-                                              fontFamily:
-                                                  FlutterFlowTheme.of(context)
-                                                      .bodyMediumFamily,
-                                              fontSize: 22.0,
-                                              fontWeight: FontWeight.w700,
-                                              letterSpacing: 0.0,
-                                              useGoogleFonts:
-                                                  !FlutterFlowTheme.of(context)
-                                                      .bodyMediumIsCustom,
-                                            ),
-                                      ),
-                                      if (min != null && max != null)
+                                    width: 4.0,
+                                  ),
+                                ),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    blurRadius: 8.0,
+                                    color: Color(0x14000000),
+                                    offset: Offset(0.0, 2.0),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.max,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Padding(
+                                    padding: EdgeInsetsDirectional.fromSTEB(
+                                        12.0, 16.0, 16.0, 16.0),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.max,
+                                      children: [
+                                        Icon(
+                                          Icons.lightbulb_circle,
+                                          color: FlutterFlowTheme.of(context)
+                                              .primary,
+                                          size: 30.0,
+                                        ),
                                         Text(
-                                          '${formatPrice(min, code)} – ${formatPrice(max, code)}',
+                                          FFLocalizations.of(context).getText(
+                                            'sdd57mig' /* How to use */,
+                                          ),
                                           style: FlutterFlowTheme.of(context)
                                               .bodyMedium
                                               .override(
                                                 fontFamily:
                                                     FlutterFlowTheme.of(context)
                                                         .bodyMediumFamily,
-                                                color:
-                                                    FlutterFlowTheme.of(context)
-                                                        .secondaryText,
-                                                fontSize: 12.0,
+                                                fontSize: 18.0,
                                                 letterSpacing: 0.0,
+                                                fontWeight: FontWeight.w700,
                                                 useGoogleFonts:
                                                     !FlutterFlowTheme.of(
                                                             context)
                                                         .bodyMediumIsCustom,
                                               ),
                                         ),
-                                    ],
-                                  ),
-                                ),
-                                if (code != null)
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 10, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: FlutterFlowTheme.of(context)
-                                          .primary
-                                          .withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(8.0),
+                                      ].divide(SizedBox(width: 12.0)),
                                     ),
+                                  ),
+                                  Padding(
+                                    padding: EdgeInsetsDirectional.fromSTEB(
+                                        12.0, 0.0, 16.0, 16.0),
                                     child: Text(
-                                      code,
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                        color: FlutterFlowTheme.of(context)
-                                            .primary,
+                                      valueOrDefault<String>(
+                                        _model
+                                            .imageraw?.firstOrNull?.saHowToUse,
+                                        '-',
                                       ),
+                                      style: FlutterFlowTheme.of(context)
+                                          .bodyMedium
+                                          .override(
+                                            fontFamily:
+                                                FlutterFlowTheme.of(context)
+                                                    .bodyMediumFamily,
+                                            letterSpacing: 0.0,
+                                            useGoogleFonts:
+                                                !FlutterFlowTheme.of(context)
+                                                    .bodyMediumIsCustom,
+                                          ),
                                     ),
                                   ),
-                              ],
-                            ));
-                          }),
-                          Padding(
-                            padding: EdgeInsetsDirectional.fromSTEB(
-                                16.0, 16.0, 16.0, 0.0),
-                            child: wrapWithModel(
-                              model: _model.ingridientsModel,
-                              updateCallback: () => safeSetState(() {}),
-                              child: IngridientsWidget(
-                                ingridients: valueOrDefault<String>(
-                                  _model.imageraw?.firstOrNull?.ingredients,
-                                  '-',
-                                ),
-                                topIngredients: _model.topIngredientsRaw
-                                        ?.map((r) => r.ingredientName
-                                            .toLowerCase()
-                                            .trim())
-                                        .toList() ??
-                                    const [],
-                                issueIngredients: _model.ingredientIssuesRaw
-                                        ?.map((r) => r.ingredientName
-                                            .toLowerCase()
-                                            .trim())
-                                        .toList() ??
-                                    const [],
+                                ],
                               ),
                             ),
                           ),
-                          Builder(builder: (context) {
-                            final img = _model.imageraw?.firstOrNull;
-                            final log = img?.saScoringLog;
-                              if (log == null) return const SizedBox.shrink();
-                              // Prefer the backend's parsed INCI list; fall back
-                              // to a client split (keeps "1,2-Hexanediol" intact)
-                              // so the 1% ring + issue dots work on old records.
-                              final inci = (img?.saInciList.isNotEmpty ?? false)
-                                  ? img!.saInciList
-                                  : (img?.ingredients ?? '')
-                                      .split(RegExp(r',(?!\s*\d)|\n'))
-                                      .map((s) => s.trim())
-                                      .where((s) => s.isNotEmpty)
-                                      .toList();
-                              return Padding(
-                                padding: const EdgeInsetsDirectional.fromSTEB(
-                                    16.0, 16.0, 16.0, 0.0),
-                                child: ScoreBreakdownWidget(
-                                  scoringLog: log,
-                                  topIngredients:
-                                      _model.topIngredientsRaw ?? const [],
-                                  ingredientIssues:
-                                      _model.ingredientIssuesRaw ?? const [],
-                                  inciList: inci,
-                                  onePercentLinePos: img?.saOnePercentLinePos,
-                                ),
-                              );
-                            }),
-                          Builder(builder: (context) {
-                            final expert =
-                                _model.imageraw?.firstOrNull?.saExpertAnalysis;
-                            if (expert == null || expert.trim().isEmpty) {
-                              return const SizedBox.shrink();
-                            }
-                            return Padding(
-                              padding: EdgeInsetsDirectional.fromSTEB(
-                                  16.0, 16.0, 16.0, 0.0),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFF5F8FF),
-                                  borderRadius: BorderRadius.circular(24.0),
-                                  border: Border(
-                                    left: BorderSide(
-                                      color:
-                                          FlutterFlowTheme.of(context).primary,
-                                      width: 4.0,
-                                    ),
-                                  ),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                      blurRadius: 8.0,
-                                      color: Color(0x14000000),
-                                      offset: Offset(0.0, 2.0),
-                                    ),
-                                  ],
-                                ),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.max,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Padding(
-                                      padding: EdgeInsetsDirectional.fromSTEB(
-                                          12.0, 16.0, 16.0, 16.0),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.max,
-                                        children: [
-                                          FaIcon(
-                                            FontAwesomeIcons.fire,
-                                            color: FlutterFlowTheme.of(context)
-                                                .primary,
-                                            size: 30.0,
-                                          ),
-                                          Text(
-                                            FFLocalizations.of(context).getText(
-                                              'cox122eb' /* Expert Analysis */,
-                                            ),
-                                            style: FlutterFlowTheme.of(context)
-                                                .bodyMedium
-                                                .override(
-                                                  fontFamily:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMediumFamily,
-                                                  fontSize: 18.0,
-                                                  letterSpacing: 0.0,
-                                                  fontWeight: FontWeight.w700,
-                                                  useGoogleFonts:
-                                                      !FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMediumIsCustom,
-                                                ),
-                                          ),
-                                        ].divide(SizedBox(width: 12.0)),
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: EdgeInsetsDirectional.fromSTEB(
-                                          12.0, 0.0, 16.0, 16.0),
-                                      child: Text(
-                                        expert,
-                                        style: FlutterFlowTheme.of(context)
-                                            .bodyMedium
-                                            .override(
-                                              fontFamily:
-                                                  FlutterFlowTheme.of(context)
-                                                      .bodyMediumFamily,
-                                              letterSpacing: 0.0,
-                                              useGoogleFonts:
-                                                  !FlutterFlowTheme.of(context)
-                                                      .bodyMediumIsCustom,
-                                            ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          }),
-                          Padding(
-                              padding: EdgeInsetsDirectional.fromSTEB(
-                                  16.0, 16.0, 16.0, 0.0),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFF5F8FF),
-                                  borderRadius: BorderRadius.circular(24.0),
-                                  border: Border(
-                                    left: BorderSide(
-                                      color:
-                                          FlutterFlowTheme.of(context).primary,
-                                      width: 4.0,
-                                    ),
-                                  ),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                      blurRadius: 8.0,
-                                      color: Color(0x14000000),
-                                      offset: Offset(0.0, 2.0),
-                                    ),
-                                  ],
-                                ),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.max,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Padding(
-                                      padding: EdgeInsetsDirectional.fromSTEB(
-                                          12.0, 16.0, 16.0, 16.0),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.max,
-                                        children: [
-                                          Icon(
-                                            Icons.lightbulb_circle,
-                                            color: FlutterFlowTheme.of(context)
-                                                .primary,
-                                            size: 30.0,
-                                          ),
-                                          Text(
-                                            FFLocalizations.of(context).getText(
-                                              'sdd57mig' /* How to use */,
-                                            ),
-                                            style: FlutterFlowTheme.of(context)
-                                                .bodyMedium
-                                                .override(
-                                                  fontFamily:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMediumFamily,
-                                                  fontSize: 18.0,
-                                                  letterSpacing: 0.0,
-                                                  fontWeight: FontWeight.w700,
-                                                  useGoogleFonts:
-                                                      !FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMediumIsCustom,
-                                                ),
-                                          ),
-                                        ].divide(SizedBox(width: 12.0)),
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: EdgeInsetsDirectional.fromSTEB(
-                                          12.0, 0.0, 16.0, 16.0),
-                                      child: Text(
-                                        valueOrDefault<String>(
-                                          _model.imageraw?.firstOrNull
-                                              ?.saHowToUse,
-                                          '-',
-                                        ),
-                                        style: FlutterFlowTheme.of(context)
-                                            .bodyMedium
-                                            .override(
-                                              fontFamily:
-                                                  FlutterFlowTheme.of(context)
-                                                      .bodyMediumFamily,
-                                              letterSpacing: 0.0,
-                                              useGoogleFonts:
-                                                  !FlutterFlowTheme.of(context)
-                                                      .bodyMediumIsCustom,
-                                            ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
                           // Trailing bottom spacer so the last block (e.g. "How
                           // to use" for pro users) is fully visible; extra height
                           // for the anonymous sticky save-banner.
@@ -1600,7 +1373,6 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
       },
     );
   }
-
 }
 
 class _AnonSaveBanner extends StatelessWidget {
