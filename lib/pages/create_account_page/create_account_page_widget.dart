@@ -1,6 +1,5 @@
 import '/auth/supabase_auth/auth_util.dart';
 import '/flutter_flow/analytics_service.dart';
-import '/flutter_flow/flutter_flow_animations.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -9,17 +8,18 @@ import '/design_system/components/app_text_field.dart';
 import '/design_system/components/app_button.dart';
 import 'dart:async';
 import '/index.dart';
-import 'dart:math' as math;
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'create_account_page_model.dart';
 export 'create_account_page_model.dart';
-import '/pages/log_in_page/login_feature_cards.dart';
 
+/// Отдельный экран регистрации (с карточки продукта, из профиля, с пейвола).
+///
+/// Разметка намеренно повторяет вкладку «Создать аккаунт» на [LogInPageWidget]:
+/// заголовок, почта, пароль, кнопка, Apple, соглашение внизу. Пользователь
+/// попадает то сюда, то туда, и расхождение выглядело бы как два разных
+/// приложения.
 class CreateAccountPageWidget extends StatefulWidget {
   const CreateAccountPageWidget({super.key});
 
@@ -31,15 +31,10 @@ class CreateAccountPageWidget extends StatefulWidget {
       _CreateAccountPageWidgetState();
 }
 
-class _CreateAccountPageWidgetState extends State<CreateAccountPageWidget>
-    with TickerProviderStateMixin {
+class _CreateAccountPageWidgetState extends State<CreateAccountPageWidget> {
   late CreateAccountPageModel _model;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
-  late StreamSubscription<bool> _keyboardVisibilitySubscription;
-  bool _isKeyboardVisible = false;
-
-  final animationsMap = <String, AnimationInfo>{};
 
   @override
   void initState() {
@@ -56,15 +51,6 @@ class _CreateAccountPageWidgetState extends State<CreateAccountPageWidget>
       HapticFeedback.lightImpact();
     });
 
-    if (!isWeb) {
-      _keyboardVisibilitySubscription =
-          KeyboardVisibilityController().onChange.listen((bool visible) {
-        safeSetState(() {
-          _isKeyboardVisible = visible;
-        });
-      });
-    }
-
     _model.emailAddressTextController ??= TextEditingController();
     _model.emailAddressFocusNode ??= FocusNode();
 
@@ -76,48 +62,6 @@ class _CreateAccountPageWidgetState extends State<CreateAccountPageWidget>
     _model.emailAddressFocusNode!.addListener(_onEmailFocus);
     _model.passwordFocusNode!.addListener(_onPasswordFocus);
 
-    animationsMap.addAll({
-      'transformOnPageLoadAnimation': AnimationInfo(
-        trigger: AnimationTrigger.onPageLoad,
-        effectsBuilder: () => [
-          MoveEffect(
-            curve: Curves.easeInOut,
-            delay: 0.0.ms,
-            duration: 600.0.ms,
-            begin: Offset(0.0, 60.0),
-            end: Offset(0.0, 0.0),
-          ),
-          FadeEffect(
-            curve: Curves.easeInOut,
-            delay: 0.0.ms,
-            duration: 600.0.ms,
-            begin: 0.0,
-            end: 1.0,
-          ),
-        ],
-      ),
-      'columnOnPageLoadAnimation': AnimationInfo(
-        trigger: AnimationTrigger.onPageLoad,
-        effectsBuilder: () => [
-          VisibilityEffect(duration: 1.ms),
-          FadeEffect(
-            curve: Curves.easeInOut,
-            delay: 0.0.ms,
-            duration: 600.0.ms,
-            begin: 0.0,
-            end: 1.0,
-          ),
-          MoveEffect(
-            curve: Curves.easeInOut,
-            delay: 0.0.ms,
-            duration: 600.0.ms,
-            begin: Offset(0.0, -20.0),
-            end: Offset(0.0, 0.0),
-          ),
-        ],
-      ),
-    });
-
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
   }
 
@@ -126,10 +70,6 @@ class _CreateAccountPageWidgetState extends State<CreateAccountPageWidget>
     _model.emailAddressFocusNode?.removeListener(_onEmailFocus);
     _model.passwordFocusNode?.removeListener(_onPasswordFocus);
     _model.dispose();
-
-    if (!isWeb) {
-      _keyboardVisibilitySubscription.cancel();
-    }
     super.dispose();
   }
 
@@ -145,91 +85,141 @@ class _CreateAccountPageWidgetState extends State<CreateAccountPageWidget>
     }
   }
 
-  Widget _termsFooter() => Column(
-        children: [
-          Align(
-            alignment: AlignmentDirectional(0.0, 0.0),
-            child: RichText(
-              textScaler: MediaQuery.of(context).textScaler,
-              text: TextSpan(
-                children: [
-                  TextSpan(
-                    text: FFLocalizations.of(context)
-                        .getText('gxuca5l4' /* By continuing, you agree to ou... */),
-                    style: const TextStyle(),
-                  ),
-                ],
-                style: FlutterFlowTheme.of(context).bodySmall.override(
-                      fontFamily:
-                          FlutterFlowTheme.of(context).bodySmallFamily,
-                      letterSpacing: 0.0,
-                      useGoogleFonts:
-                          !FlutterFlowTheme.of(context).bodySmallIsCustom,
-                    ),
-              ),
+  String _t(String key) => FFLocalizations.of(context).getText(key);
+
+  // ── Соглашение об использовании ───────────────────────────────────────────
+
+  Widget _termsFooter() {
+    final theme = FlutterFlowTheme.of(context);
+    final linkStyle = theme.bodySmall.override(
+      fontFamily: theme.bodySmallFamily,
+      color: theme.primary,
+      letterSpacing: 0.0,
+      useGoogleFonts: !theme.bodySmallIsCustom,
+    );
+    final plainStyle = theme.bodySmall.override(
+      fontFamily: theme.bodySmallFamily,
+      color: theme.secondaryText,
+      letterSpacing: 0.0,
+      useGoogleFonts: !theme.bodySmallIsCustom,
+    );
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          _t('gxuca5l4' /* By continuing, you agree to ou... */),
+          textAlign: TextAlign.center,
+          style: plainStyle,
+        ),
+        SizedBox(height: theme.space.s4),
+        // Wrap, а не Row: в немецком и турецком два названия документов в
+        // строку не помещаются и Row уходил в переполнение.
+        Wrap(
+          alignment: WrapAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            InkWell(
+              splashColor: Colors.transparent,
+              focusColor: Colors.transparent,
+              hoverColor: Colors.transparent,
+              highlightColor: Colors.transparent,
+              onTap: () async {
+                await launchURL(
+                    'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/');
+              },
+              child: Text(_t('r6swa5sg' /* Terms of use */), style: linkStyle),
             ),
+            Text(' · ', style: plainStyle),
+            InkWell(
+              splashColor: Colors.transparent,
+              focusColor: Colors.transparent,
+              hoverColor: Colors.transparent,
+              highlightColor: Colors.transparent,
+              onTap: () async {
+                await launchURL('https://mirra.up.railway.app/privacy.html');
+              },
+              child:
+                  Text(_t('j321mb3y' /* Privacy Policy */), style: linkStyle),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  // ── Вход через Apple ──────────────────────────────────────────────────────
+
+  Widget _appleButton() {
+    final theme = FlutterFlowTheme.of(context);
+    return FFButtonWidget(
+      onPressed: () async {
+        unawaited(AnalyticsService.instance.trackCreateProfileAppleId());
+        GoRouter.of(context).prepareAuthEvent();
+        final user = await authManager.signInWithApple(context);
+        if (user == null) return;
+        unawaited(AnalyticsService.instance
+            .trackCreateAccount(from: 'create_account_page'));
+        if (context.mounted) _goToProfile();
+      },
+      text: _t('wvkbomvg' /* Continue with Apple */),
+      icon: const Icon(Icons.apple, size: 20.0),
+      options: FFButtonOptions(
+        width: double.infinity,
+        // Та же высота, что у AppButton: иначе две кнопки подряд выглядят
+        // разнокалиберными.
+        height: theme.size.buttonLg,
+        padding: EdgeInsets.zero,
+        iconPadding: EdgeInsets.zero,
+        color: theme.primaryText,
+        textStyle: theme.labelLarge.override(
+          fontFamily: theme.labelLargeFamily,
+          color: theme.alternate,
+          letterSpacing: 0.0,
+          fontWeight: FontWeight.w600,
+          useGoogleFonts: !theme.labelLargeIsCustom,
+        ),
+        elevation: 0.0,
+        borderSide: const BorderSide(color: Colors.transparent, width: 1.0),
+        borderRadius: BorderRadius.circular(theme.radii.full),
+      ),
+    );
+  }
+
+  void _goToProfile() => context.goNamedAuth(
+        OnboardingProfileWidget.routeName,
+        context.mounted,
+        extra: <String, dynamic>{
+          '__transition_info__': TransitionInfo(
+            hasTransition: true,
+            transitionType: PageTransitionType.fade,
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              InkWell(
-                splashColor: Colors.transparent,
-                focusColor: Colors.transparent,
-                hoverColor: Colors.transparent,
-                highlightColor: Colors.transparent,
-                onTap: () async {
-                  await launchURL(
-                      'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/');
-                },
-                child: Text(
-                  FFLocalizations.of(context).getText('r6swa5sg' /* Terms of use */),
-                  style: FlutterFlowTheme.of(context).bodySmall.override(
-                        fontFamily:
-                            FlutterFlowTheme.of(context).bodySmallFamily,
-                        color: FlutterFlowTheme.of(context).primary,
-                        letterSpacing: 0.0,
-                        useGoogleFonts:
-                            !FlutterFlowTheme.of(context).bodySmallIsCustom,
-                      ),
-                ),
-              ),
-              Text(
-                ' · ',
-                style: FlutterFlowTheme.of(context).bodySmall.override(
-                      fontFamily:
-                          FlutterFlowTheme.of(context).bodySmallFamily,
-                      letterSpacing: 0.0,
-                      useGoogleFonts:
-                          !FlutterFlowTheme.of(context).bodySmallIsCustom,
-                    ),
-              ),
-              InkWell(
-                splashColor: Colors.transparent,
-                focusColor: Colors.transparent,
-                hoverColor: Colors.transparent,
-                highlightColor: Colors.transparent,
-                onTap: () async {
-                  await launchURL('https://mirra.up.railway.app/privacy.html');
-                },
-                child: Text(
-                  FFLocalizations.of(context).getText('j321mb3y' /* Privacy Policy */),
-                  style: FlutterFlowTheme.of(context).bodySmall.override(
-                        fontFamily:
-                            FlutterFlowTheme.of(context).bodySmallFamily,
-                        color: FlutterFlowTheme.of(context).primary,
-                        letterSpacing: 0.0,
-                        useGoogleFonts:
-                            !FlutterFlowTheme.of(context).bodySmallIsCustom,
-                      ),
-                ),
-              ),
-            ],
-          ),
-        ].divide(const SizedBox(height: 5.0)),
+        },
       );
+
+  Future<void> _createAccount() async {
+    HapticFeedback.lightImpact();
+    if (_model.formKey.currentState == null ||
+        !_model.formKey.currentState!.validate()) {
+      return;
+    }
+    GoRouter.of(context).prepareAuthEvent();
+    final user = await authManager.createAccountWithEmail(
+      context,
+      _model.emailAddressTextController.text,
+      _model.passwordTextController.text,
+    );
+    if (user == null) return;
+    unawaited(AnalyticsService.instance
+        .trackCreateAccount(from: 'create_account_page'));
+    if (context.mounted) _goToProfile();
+  }
+
+  // ── Build ─────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
@@ -239,9 +229,9 @@ class _CreateAccountPageWidgetState extends State<CreateAccountPageWidget>
         canPop: false,
         child: Scaffold(
           key: scaffoldKey,
-          backgroundColor: FlutterFlowTheme.of(context).alternate,
+          backgroundColor: theme.alternate,
           appBar: AppBar(
-            backgroundColor: FlutterFlowTheme.of(context).alternate,
+            backgroundColor: theme.alternate,
             automaticallyImplyLeading: false,
             leading: FlutterFlowIconButton(
               borderColor: Colors.transparent,
@@ -250,7 +240,7 @@ class _CreateAccountPageWidgetState extends State<CreateAccountPageWidget>
               buttonSize: 60.0,
               icon: Icon(
                 Icons.arrow_back_rounded,
-                color: FlutterFlowTheme.of(context).primaryText,
+                color: theme.primaryText,
                 size: 30.0,
               ),
               onPressed: () async {
@@ -264,341 +254,87 @@ class _CreateAccountPageWidgetState extends State<CreateAccountPageWidget>
                 }
               },
             ),
-            actions: [],
+            actions: const [],
             centerTitle: false,
             elevation: 0.0,
           ),
           body: SafeArea(
             top: true,
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    FlutterFlowTheme.of(context).alternate,
-                    FlutterFlowTheme.of(context).alternate
-                  ],
-                  stops: [0.0, 1.0],
-                  begin: AlignmentDirectional(0.0, -1.0),
-                  end: AlignmentDirectional(0, 1.0),
-                ),
-              ),
-              child: Container(
-                width: MediaQuery.sizeOf(context).width * 1.0,
-                height: MediaQuery.sizeOf(context).height * 1.0,
-                child: Stack(
-                  children: [
-                    if (!(isWeb
-                        ? MediaQuery.viewInsetsOf(context).bottom > 0
-                        : _isKeyboardVisible))
-                      Align(
-                        alignment: AlignmentDirectional(0.0, 0.85),
-                        child: Transform.scale(
-                          scaleX: 1.2,
-                          scaleY: 1.2,
-                          child: Container(
-                              width: double.infinity,
-                              height: 160.0,
-                              child: CarouselSlider(
-                                items: const [
-                                  FeatureIngredientsCard(),
-                                  FeatureScanCard(),
-                                  FeatureScoreCard(),
-                                ],
-                                carouselController:
-                                    _model.carouselController ??=
-                                        CarouselSliderController(),
-                                options: CarouselOptions(
-                                  initialPage: 1,
-                                  viewportFraction: 0.6,
-                                  disableCenter: true,
-                                  enlargeCenterPage: true,
-                                  enlargeFactor: 0.25,
-                                  enableInfiniteScroll: true,
-                                  scrollDirection: Axis.horizontal,
-                                  autoPlay: true,
-                                  autoPlayAnimationDuration:
-                                      Duration(milliseconds: 800),
-                                  autoPlayInterval:
-                                      Duration(milliseconds: (800 + 3000)),
-                                  autoPlayCurve: Curves.linear,
-                                  pauseAutoPlayInFiniteScroll: true,
-                                  onPageChanged: (index, _) =>
-                                      _model.carouselCurrentIndex = index,
+            child: Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.all(theme.space.s24),
+                    // heightFactor обязателен: внутри скролла высота не
+                    // ограничена, и Center без него пытается растянуться в
+                    // бесконечность.
+                    child: Center(
+                      heightFactor: 1.0,
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 600.0),
+                        child: Form(
+                          key: _model.formKey,
+                          autovalidateMode: AutovalidateMode.disabled,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _t('v4ogufdc' /* Create account */),
+                                style: theme.headlineMedium.override(
+                                  fontFamily: theme.headlineMediumFamily,
+                                  letterSpacing: 0.0,
+                                  fontWeight: FontWeight.w600,
+                                  useGoogleFonts: !theme.headlineMediumIsCustom,
                                 ),
                               ),
-                          ),
-                        ).animateOnPageLoad(
-                            animationsMap['transformOnPageLoadAnimation']!),
-                      ),
-                    Align(
-                      alignment: AlignmentDirectional(0.0, 0.0),
-                      child: Container(
-                        constraints: BoxConstraints(
-                          maxWidth: 600.0,
-                        ),
-                        decoration: BoxDecoration(),
-                        child: Padding(
-                          padding: EdgeInsets.all(24.0),
-                          child: InkWell(
-                            splashColor: Colors.transparent,
-                            focusColor: Colors.transparent,
-                            hoverColor: Colors.transparent,
-                            highlightColor: Colors.transparent,
-                            onTap: () async {
-                              await Future.delayed(
-                                Duration(
-                                  milliseconds: 600,
-                                ),
-                              );
-                              HapticFeedback.lightImpact();
-                            },
-                            child: Column(
-                              mainAxisSize: MainAxisSize.max,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  FFLocalizations.of(context).getText(
-                                    'v4ogufdc' /* Create your profile */,
-                                  ),
-                                  style: FlutterFlowTheme.of(context)
-                                      .headlineMedium
-                                      .override(
-                                        fontFamily: FlutterFlowTheme.of(context)
-                                            .headlineMediumFamily,
-                                        letterSpacing: 0.0,
-                                        fontWeight: FontWeight.w600,
-                                        useGoogleFonts:
-                                            !FlutterFlowTheme.of(context)
-                                                .headlineMediumIsCustom,
-                                      ),
-                                ),
-                                Form(
-                                  key: _model.formKey,
-                                  autovalidateMode: AutovalidateMode.disabled,
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.max,
-                                    children: [
-                                      Padding(
-                                        padding: EdgeInsetsDirectional.fromSTEB(
-                                            0.0, 16.0, 0.0, 16.0),
-                                        child: Container(
-                                          width: double.infinity,
-                                          child: AppTextField(
-                                            controller: _model
-                                                .emailAddressTextController,
-                                            focusNode:
-                                                _model.emailAddressFocusNode,
-                                            autofocus: true,
-                                            hintText:
-                                                FFLocalizations.of(context)
-                                                    .getText(
-                                              'fzz6pquo' /* Email address */,
-                                            ),
-                                            keyboardType:
-                                                TextInputType.emailAddress,
-                                            textInputAction:
-                                                TextInputAction.next,
-                                            autofillHints: const [
-                                              AutofillHints.email
-                                            ],
-                                            validator: _model
-                                                .emailAddressTextControllerValidator
-                                                .asValidator(context),
-                                          ),
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: EdgeInsetsDirectional.fromSTEB(
-                                            0.0, 0.0, 0.0, 16.0),
-                                        child: Container(
-                                          width: double.infinity,
-                                          child: AppTextField.password(
-                                            controller:
-                                                _model.passwordTextController,
-                                            focusNode: _model.passwordFocusNode,
-                                            autofocus: false,
-                                            hintText:
-                                                FFLocalizations.of(context)
-                                                    .getText(
-                                              'jl6rrleg' /* Password */,
-                                            ),
-                                            textInputAction:
-                                                TextInputAction.done,
-                                            autofillHints: const [
-                                              AutofillHints.newPassword
-                                            ],
-                                            validator: _model
-                                                .passwordTextControllerValidator
-                                                .asValidator(context),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Padding(
-                                  padding: EdgeInsetsDirectional.fromSTEB(
-                                      0.0, 8.0, 0.0, 8.0),
-                                  child: AppButton(
-                                    label:
-                                        FFLocalizations.of(context).getText(
-                                      'o5q6qmi9' /* Create account */,
-                                    ),
-                                    onPressed: () async {
-                                      HapticFeedback.lightImpact();
-                                      if (_model.formKey.currentState == null ||
-                                          !_model.formKey.currentState!
-                                              .validate()) {
-                                        return;
-                                      }
-                                      GoRouter.of(context).prepareAuthEvent();
-
-                                      final user = await authManager
-                                          .createAccountWithEmail(
-                                        context,
-                                        _model.emailAddressTextController.text,
-                                        _model.passwordTextController.text,
-                                      );
-                                      if (user == null) {
-                                        return;
-                                      }
-                                      unawaited(AnalyticsService.instance
-                                          .trackCreateAccount(
-                                              from: 'create_account_page'));
-
-                                      context.goNamedAuth(
-                                        OnboardingProfileWidget.routeName,
-                                        context.mounted,
-                                        extra: <String, dynamic>{
-                                          '__transition_info__': TransitionInfo(
-                                            hasTransition: true,
-                                            transitionType:
-                                                PageTransitionType.fade,
-                                          ),
-                                        },
-                                      );
-                                    },
-                                  ),
-                                ),
-                                isAndroid
-                                    ? Container()
-                                    : Padding(
-                                        padding: EdgeInsetsDirectional.fromSTEB(
-                                            0.0, 8.0, 0.0, 12.0),
-                                        child: FFButtonWidget(
-                                          onPressed: () async {
-                                            unawaited(AnalyticsService.instance
-                                                .trackCreateProfileAppleId());
-                                            GoRouter.of(context)
-                                                .prepareAuthEvent();
-                                            final user = await authManager
-                                                .signInWithApple(context);
-                                            if (user == null) {
-                                              return;
-                                            }
-                                            unawaited(AnalyticsService.instance
-                                                .trackCreateAccount(
-                                                    from:
-                                                        'create_account_page'));
-
-                                            context.goNamedAuth(
-                                              OnboardingProfileWidget.routeName,
-                                              context.mounted,
-                                              extra: <String, dynamic>{
-                                                '__transition_info__':
-                                                    TransitionInfo(
-                                                  hasTransition: true,
-                                                  transitionType:
-                                                      PageTransitionType.fade,
-                                                ),
-                                              },
-                                            );
-                                          },
-                                          text: FFLocalizations.of(context)
-                                              .getText(
-                                            'wvkbomvg' /* Continue with Apple */,
-                                          ),
-                                          icon: Icon(
-                                            Icons.apple,
-                                            size: 15.0,
-                                          ),
-                                          options: FFButtonOptions(
-                                            width: double.infinity,
-                                            height: 55.0,
-                                            padding:
-                                                EdgeInsetsDirectional.fromSTEB(
-                                                    0.0, 0.0, 0.0, 0.0),
-                                            iconPadding:
-                                                EdgeInsetsDirectional.fromSTEB(
-                                                    0.0, 0.0, 0.0, 2.0),
-                                            color: FlutterFlowTheme.of(context)
-                                                .primaryText,
-                                            textStyle: FlutterFlowTheme.of(
-                                                    context)
-                                                .titleSmall
-                                                .override(
-                                                  fontFamily:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .titleSmallFamily,
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .primaryBackground,
-                                                  letterSpacing: 0.0,
-                                                  fontWeight: FontWeight.w600,
-                                                  useGoogleFonts:
-                                                      !FlutterFlowTheme.of(
-                                                              context)
-                                                          .titleSmallIsCustom,
-                                                ),
-                                            elevation: 0.0,
-                                            borderSide: BorderSide(
-                                              color: Colors.transparent,
-                                              width: 1.0,
-                                            ),
-                                            borderRadius:
-                                                BorderRadius.circular(50.0),
-                                          ),
-                                        ),
-                                      ),
+                              SizedBox(height: theme.space.s24),
+                              AppTextField(
+                                controller: _model.emailAddressTextController,
+                                focusNode: _model.emailAddressFocusNode,
+                                autofocus: true,
+                                hintText: _t('fzz6pquo' /* Email address */),
+                                keyboardType: TextInputType.emailAddress,
+                                textInputAction: TextInputAction.next,
+                                autofillHints: const [AutofillHints.email],
+                                validator: _model
+                                    .emailAddressTextControllerValidator
+                                    .asValidator(context),
+                              ),
+                              SizedBox(height: theme.space.s16),
+                              AppTextField.password(
+                                controller: _model.passwordTextController,
+                                focusNode: _model.passwordFocusNode,
+                                hintText: _t('jl6rrleg' /* Password */),
+                                textInputAction: TextInputAction.done,
+                                autofillHints: const [
+                                  AutofillHints.newPassword
+                                ],
+                                validator: _model
+                                    .passwordTextControllerValidator
+                                    .asValidator(context),
+                              ),
+                              SizedBox(height: theme.space.s24),
+                              AppButton(
+                                label: _t('o5q6qmi9' /* Create account */),
+                                onPressed: _createAccount,
+                              ),
+                              if (!isAndroid) ...[
+                                SizedBox(height: theme.space.s12),
+                                _appleButton(),
                               ],
-                            ),
-                          ).animateOnPageLoad(
-                              animationsMap['columnOnPageLoadAnimation']!),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-
-
-                    // Pinned terms footer
-                    Positioned(
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      child: SafeArea(
-                        top: false,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                FlutterFlowTheme.of(context)
-                                    .alternate
-                                    .withOpacity(0),
-                                FlutterFlowTheme.of(context).alternate,
-                              ],
-                            ),
-                          ),
-                          padding:
-                              const EdgeInsets.fromLTRB(24, 20, 24, 12),
-                          child: _termsFooter(),
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(theme.space.s24, theme.space.s8,
+                      theme.space.s24, theme.space.s12),
+                  child: _termsFooter(),
+                ),
+              ],
             ),
           ),
         ),

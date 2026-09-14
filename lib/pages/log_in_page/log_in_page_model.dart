@@ -1,7 +1,6 @@
 import '/flutter_flow/flutter_flow_util.dart';
 import '/index.dart';
 import 'log_in_page_widget.dart' show LogInPageWidget;
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 
 class LogInPageModel extends FlutterFlowModel<LogInPageWidget> {
@@ -49,10 +48,6 @@ class LogInPageModel extends FlutterFlowModel<LogInPageWidget> {
     }
     return null;
   }
-
-  // ── Carousel (shared) ────────────────────────────────────────────────────
-  CarouselSliderController? carouselController;
-  int carouselCurrentIndex = 1;
 
   @override
   void initState(BuildContext context) {

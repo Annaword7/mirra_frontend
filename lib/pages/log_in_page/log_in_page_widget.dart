@@ -1,6 +1,5 @@
 import '/auth/supabase_auth/auth_util.dart';
 import '/flutter_flow/analytics_service.dart';
-import '/flutter_flow/flutter_flow_animations.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -9,16 +8,18 @@ import '/design_system/components/app_text_field.dart';
 import '/design_system/components/app_button.dart';
 import 'dart:async';
 import '/index.dart';
-import 'dart:math' as math;
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'log_in_page_model.dart';
 export 'log_in_page_model.dart';
-import 'login_feature_cards.dart';
 
+/// Вход и регистрация одним экраном с двумя вкладками.
+///
+/// Обе вкладки собирает один `_authForm`: раскладка у них обязана совпадать
+/// до пикселя, иначе при переключении поля и кнопки прыгают по вертикали.
+/// Различаются только подписи, контроллеры и обработчики. Соглашение об
+/// использовании вынесено из вкладок вниз экрана — оно одинаковое для обеих,
+/// и на месте оно тоже не даёт разметке дёргаться.
 class LogInPageWidget extends StatefulWidget {
   const LogInPageWidget({super.key});
 
@@ -35,25 +36,12 @@ class _LogInPageWidgetState extends State<LogInPageWidget>
   late TabController _tabController;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
-  late StreamSubscription<bool> _keyboardVisibilitySubscription;
-  bool _isKeyboardVisible = false;
-
-  final animationsMap = <String, AnimationInfo>{};
 
   @override
   void initState() {
     super.initState();
     _model = createModel(context, () => LogInPageModel());
     _tabController = TabController(length: 2, vsync: this);
-
-    if (!isWeb) {
-      _keyboardVisibilitySubscription =
-          KeyboardVisibilityController().onChange.listen((bool visible) {
-        safeSetState(() {
-          _isKeyboardVisible = visible;
-        });
-      });
-    }
 
     _model.emailAddressTextController ??= TextEditingController();
     _model.emailAddressFocusNode ??= FocusNode();
@@ -65,48 +53,6 @@ class _LogInPageWidgetState extends State<LogInPageWidget>
     _model.passwordRegisterTextController ??= TextEditingController();
     _model.passwordRegisterFocusNode ??= FocusNode();
 
-    animationsMap.addAll({
-      'columnOnPageLoadAnimation': AnimationInfo(
-        trigger: AnimationTrigger.onPageLoad,
-        effectsBuilder: () => [
-          VisibilityEffect(duration: 1.ms),
-          FadeEffect(
-            curve: Curves.easeInOut,
-            delay: 0.0.ms,
-            duration: 600.0.ms,
-            begin: 0.0,
-            end: 1.0,
-          ),
-          MoveEffect(
-            curve: Curves.easeInOut,
-            delay: 0.0.ms,
-            duration: 600.0.ms,
-            begin: Offset(0.0, -20.0),
-            end: Offset(0.0, 0.0),
-          ),
-        ],
-      ),
-      'transformOnPageLoadAnimation': AnimationInfo(
-        trigger: AnimationTrigger.onPageLoad,
-        effectsBuilder: () => [
-          MoveEffect(
-            curve: Curves.easeInOut,
-            delay: 0.0.ms,
-            duration: 600.0.ms,
-            begin: Offset(0.0, 60.0),
-            end: Offset(0.0, 0.0),
-          ),
-          FadeEffect(
-            curve: Curves.easeInOut,
-            delay: 0.0.ms,
-            duration: 600.0.ms,
-            begin: 0.0,
-            end: 1.0,
-          ),
-        ],
-      ),
-    });
-
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
   }
 
@@ -114,398 +60,325 @@ class _LogInPageWidgetState extends State<LogInPageWidget>
   void dispose() {
     _tabController.dispose();
     _model.dispose();
-
-    if (!isWeb) {
-      _keyboardVisibilitySubscription.cancel();
-    }
     super.dispose();
   }
 
-  // ── Shared input decoration ───────────────────────────────────────────────
+  String _t(String key) => FFLocalizations.of(context).getText(key);
 
-  // ── Terms footer ──────────────────────────────────────────────────────────
+  // ── Соглашение об использовании ───────────────────────────────────────────
 
-  Widget _termsFooter() => Padding(
-        padding: EdgeInsetsDirectional.fromSTEB(0.0, 4.0, 0.0, 0.0),
-        child: Column(
-          children: [
-            Align(
-              alignment: AlignmentDirectional(0.0, 0.0),
-              child: RichText(
-                textScaler: MediaQuery.of(context).textScaler,
-                text: TextSpan(
-                  children: [
-                    TextSpan(
-                      text: FFLocalizations.of(context)
-                          .getText('9jzxfvzw' /* By continuing, you agree to ou... */),
-                      style: const TextStyle(),
-                    ),
-                  ],
-                  style: FlutterFlowTheme.of(context).bodySmall.override(
-                        fontFamily:
-                            FlutterFlowTheme.of(context).bodySmallFamily,
-                        letterSpacing: 0.0,
-                        useGoogleFonts:
-                            !FlutterFlowTheme.of(context).bodySmallIsCustom,
-                      ),
-                ),
-              ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                InkWell(
-                  splashColor: Colors.transparent,
-                  focusColor: Colors.transparent,
-                  hoverColor: Colors.transparent,
-                  highlightColor: Colors.transparent,
-                  onTap: () async {
-                    await launchURL(
-                        'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/');
-                  },
-                  child: Text(
-                    FFLocalizations.of(context).getText('r6swa5sg' /* Terms of use */),
-                    style: FlutterFlowTheme.of(context).bodySmall.override(
-                          fontFamily:
-                              FlutterFlowTheme.of(context).bodySmallFamily,
-                          color: FlutterFlowTheme.of(context).primary,
-                          letterSpacing: 0.0,
-                          useGoogleFonts:
-                              !FlutterFlowTheme.of(context).bodySmallIsCustom,
-                        ),
-                  ),
-                ),
-                Text(
-                  ' · ',
-                  style: FlutterFlowTheme.of(context).bodySmall.override(
-                        fontFamily:
-                            FlutterFlowTheme.of(context).bodySmallFamily,
-                        letterSpacing: 0.0,
-                        useGoogleFonts:
-                            !FlutterFlowTheme.of(context).bodySmallIsCustom,
-                      ),
-                ),
-                InkWell(
-                  splashColor: Colors.transparent,
-                  focusColor: Colors.transparent,
-                  hoverColor: Colors.transparent,
-                  highlightColor: Colors.transparent,
-                  onTap: () async {
-                    await launchURL(
-                        'https://mirra.up.railway.app/privacy.html');
-                  },
-                  child: Text(
-                    FFLocalizations.of(context).getText('j321mb3y' /* Privacy Policy */),
-                    style: FlutterFlowTheme.of(context).bodySmall.override(
-                          fontFamily:
-                              FlutterFlowTheme.of(context).bodySmallFamily,
-                          color: FlutterFlowTheme.of(context).primary,
-                          letterSpacing: 0.0,
-                          useGoogleFonts:
-                              !FlutterFlowTheme.of(context).bodySmallIsCustom,
-                        ),
-                  ),
-                ),
-              ],
-            ),
-          ].divide(const SizedBox(height: 5.0)),
+  Widget _termsFooter() {
+    final theme = FlutterFlowTheme.of(context);
+    final linkStyle = theme.bodySmall.override(
+      fontFamily: theme.bodySmallFamily,
+      color: theme.primary,
+      letterSpacing: 0.0,
+      useGoogleFonts: !theme.bodySmallIsCustom,
+    );
+    final plainStyle = theme.bodySmall.override(
+      fontFamily: theme.bodySmallFamily,
+      color: theme.secondaryText,
+      letterSpacing: 0.0,
+      useGoogleFonts: !theme.bodySmallIsCustom,
+    );
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          _t('9jzxfvzw' /* By continuing, you agree to ou... */),
+          textAlign: TextAlign.center,
+          style: plainStyle,
         ),
-      );
-
-  // ── Apple button ──────────────────────────────────────────────────────────
-
-  Widget _appleButton({required bool isRegister}) => Padding(
-        padding: EdgeInsetsDirectional.fromSTEB(0.0, 8.0, 0.0, 8.0),
-        child: FFButtonWidget(
-          onPressed: () async {
-            unawaited(AnalyticsService.instance.trackCreateProfileAppleId());
-            GoRouter.of(context).prepareAuthEvent();
-            final user = await authManager.signInWithApple(context);
-            if (user == null) return;
-            if (isRegister) {
-              unawaited(AnalyticsService.instance
-                  .trackCreateAccount(from: 'log_in_page'));
-              if (context.mounted) {
-                context.goNamedAuth(
-                  OnboardingProfileWidget.routeName,
-                  context.mounted,
-                  extra: <String, dynamic>{
-                    '__transition_info__': TransitionInfo(
-                      hasTransition: true,
-                      transitionType: PageTransitionType.fade,
-                    ),
-                  },
-                );
-              }
-            } else {
-              unawaited(AnalyticsService.instance.trackLogIn());
-              if (context.mounted) {
-                context.goNamedAuth(HomeWidget.routeName, context.mounted);
-              }
-            }
-          },
-          text: FFLocalizations.of(context).getText('gbhzkxej' /* Continue with Apple */),
-          icon: const Icon(Icons.apple, size: 15.0),
-          options: FFButtonOptions(
-            width: double.infinity,
-            height: 55.0,
-            padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-            iconPadding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 2.0),
-            color: FlutterFlowTheme.of(context).primaryText,
-            textStyle: FlutterFlowTheme.of(context).titleSmall.override(
-                  fontFamily: FlutterFlowTheme.of(context).titleSmallFamily,
-                  color: FlutterFlowTheme.of(context).primaryBackground,
-                  letterSpacing: 0.0,
-                  fontWeight: FontWeight.w600,
-                  useGoogleFonts:
-                      !FlutterFlowTheme.of(context).titleSmallIsCustom,
-                ),
-            elevation: 0.0,
-            borderSide: const BorderSide(color: Colors.transparent, width: 1.0),
-            borderRadius: BorderRadius.circular(50.0),
-          ),
-        ),
-      );
-
-  // ── Login tab content ─────────────────────────────────────────────────────
-
-  Widget _loginForm() => SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(24.0, 24.0, 24.0, 100.0),
-        child: Form(
-          key: _model.formKeyLogin,
-          autovalidateMode: AutovalidateMode.disabled,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        SizedBox(height: theme.space.s4),
+        // Wrap, а не Row: в немецком и турецком два названия документов в
+        // строку не помещаются и Row уходил в переполнение.
+        Wrap(
+          alignment: WrapAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            Text(
-              FFLocalizations.of(context).getText('s2sex1cq' /* Welcome back */),
-              style: FlutterFlowTheme.of(context).headlineMedium.override(
-                    fontFamily:
-                        FlutterFlowTheme.of(context).headlineMediumFamily,
-                    letterSpacing: 0.0,
-                    fontWeight: FontWeight.w600,
-                    useGoogleFonts:
-                        !FlutterFlowTheme.of(context).headlineMediumIsCustom,
-                  ),
+            InkWell(
+              splashColor: Colors.transparent,
+              focusColor: Colors.transparent,
+              hoverColor: Colors.transparent,
+              highlightColor: Colors.transparent,
+              onTap: () async {
+                await launchURL(
+                    'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/');
+              },
+              child: Text(_t('r6swa5sg' /* Terms of use */), style: linkStyle),
             ),
-            const SizedBox(height: 24.0),
-
-            // Email
-            Padding(
-              padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 16.0),
-              child: AppTextField(
-                key: const ValueKey('emailAddress_jmyt'),
-                controller: _model.emailAddressTextController,
-                focusNode: _model.emailAddressFocusNode,
-                hintText: FFLocalizations.of(context)
-                    .getText('v6o9xcii' /* Email address */),
-                keyboardType: TextInputType.emailAddress,
-                textInputAction: TextInputAction.next,
-                autofillHints: const [AutofillHints.email],
-                validator: _model.emailAddressTextControllerValidator
-                    .asValidator(context),
-              ),
+            Text(' · ', style: plainStyle),
+            InkWell(
+              splashColor: Colors.transparent,
+              focusColor: Colors.transparent,
+              hoverColor: Colors.transparent,
+              highlightColor: Colors.transparent,
+              onTap: () async {
+                await launchURL('https://mirra.up.railway.app/privacy.html');
+              },
+              child:
+                  Text(_t('j321mb3y' /* Privacy Policy */), style: linkStyle),
             ),
-            // Password
-            Padding(
-              padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 16.0),
-              child: AppTextField.password(
-                controller: _model.passwordTextController,
-                focusNode: _model.passwordFocusNode,
-                hintText: FFLocalizations.of(context)
-                    .getText('8o8sm32x' /* Password */),
-                textInputAction: TextInputAction.done,
-                autofillHints: const [AutofillHints.password],
-                validator: _model.passwordTextControllerValidator
-                    .asValidator(context),
-              ),
-            ),
-            // Log in button
-            Padding(
-              padding: EdgeInsetsDirectional.fromSTEB(0.0, 8.0, 0.0, 8.0),
-              child: AppButton(
-                key: const ValueKey('Button_mqqr'),
-                label: FFLocalizations.of(context)
-                    .getText('jvlhc56j' /* Log in */),
-                onPressed: () async {
-                  HapticFeedback.lightImpact();
-                  GoRouter.of(context).prepareAuthEvent();
-                  final user = await authManager.signInWithEmail(
-                    context,
-                    _model.emailAddressTextController.text,
-                    _model.passwordTextController.text,
-                  );
-                  if (user == null) return;
-                  unawaited(AnalyticsService.instance.trackLogIn());
-                  if (context.mounted) {
-                    context.goNamedAuth(HomeWidget.routeName, context.mounted);
-                  }
-                },
-              ),
-            ),
-            // Apple sign-in (iOS only)
-            if (!isAndroid) _appleButton(isRegister: false),
-            // Forgot password
-            Column(
-              children: [
-                Align(
-                  alignment: AlignmentDirectional(0.0, 0.0),
-                  child: InkWell(
-                    splashColor: Colors.transparent,
-                    focusColor: Colors.transparent,
-                    hoverColor: Colors.transparent,
-                    highlightColor: Colors.transparent,
-                    onTap: () async {
-                      HapticFeedback.lightImpact();
-                      context.pushNamed(ForgotPasswordWidget.routeName);
-                    },
-                    child: RichText(
-                      textScaler: MediaQuery.of(context).textScaler,
-                      text: TextSpan(
-                        children: [
-                          TextSpan(
-                            text: FFLocalizations.of(context)
-                                .getText('k1r81ycx' /* Forgot password?  */),
-                            style: const TextStyle(),
-                          ),
-                          TextSpan(
-                            text: FFLocalizations.of(context)
-                                .getText('f4zg2rq8' /* Reset */),
-                            style: FlutterFlowTheme.of(context)
-                                .bodyMedium
-                                .override(
-                                  fontFamily: FlutterFlowTheme.of(context)
-                                      .bodyMediumFamily,
-                                  color: FlutterFlowTheme.of(context).primary,
-                                  letterSpacing: 0.0,
-                                  fontWeight: FontWeight.w600,
-                                  useGoogleFonts:
-                                      !FlutterFlowTheme.of(context)
-                                          .bodyMediumIsCustom,
-                                ),
-                          ),
-                        ],
-                        style: FlutterFlowTheme.of(context).bodyMedium.override(
-                              fontFamily:
-                                  FlutterFlowTheme.of(context).bodyMediumFamily,
-                              letterSpacing: 0.0,
-                              useGoogleFonts: !FlutterFlowTheme.of(context)
-                                  .bodyMediumIsCustom,
-                            ),
-                      ),
-                    ),
-                  ),
-                ),
-              ]
-                  .divide(const SizedBox(height: 16.0))
-                  .around(const SizedBox(height: 8.0)),
-            ),
-            _termsFooter(),
           ],
+        ),
+      ],
+    );
+  }
+
+  // ── Вход через Apple ──────────────────────────────────────────────────────
+
+  Widget _appleButton({required bool isRegister}) {
+    final theme = FlutterFlowTheme.of(context);
+    return FFButtonWidget(
+      onPressed: () async {
+        unawaited(AnalyticsService.instance.trackCreateProfileAppleId());
+        GoRouter.of(context).prepareAuthEvent();
+        final user = await authManager.signInWithApple(context);
+        if (user == null) return;
+        if (isRegister) {
+          unawaited(
+              AnalyticsService.instance.trackCreateAccount(from: 'log_in_page'));
+          if (context.mounted) {
+            context.goNamedAuth(
+              OnboardingProfileWidget.routeName,
+              context.mounted,
+              extra: <String, dynamic>{
+                '__transition_info__': TransitionInfo(
+                  hasTransition: true,
+                  transitionType: PageTransitionType.fade,
+                ),
+              },
+            );
+          }
+        } else {
+          unawaited(AnalyticsService.instance.trackLogIn());
+          if (context.mounted) {
+            context.goNamedAuth(HomeWidget.routeName, context.mounted);
+          }
+        }
+      },
+      text: _t('gbhzkxej' /* Continue with Apple */),
+      icon: const Icon(Icons.apple, size: 20.0),
+      options: FFButtonOptions(
+        width: double.infinity,
+        // Та же высота, что у AppButton: иначе две кнопки подряд выглядят
+        // разнокалиберными.
+        height: theme.size.buttonLg,
+        padding: EdgeInsets.zero,
+        iconPadding: EdgeInsets.zero,
+        color: theme.primaryText,
+        textStyle: theme.labelLarge.override(
+          fontFamily: theme.labelLargeFamily,
+          color: theme.alternate,
+          letterSpacing: 0.0,
+          fontWeight: FontWeight.w600,
+          useGoogleFonts: !theme.labelLargeIsCustom,
+        ),
+        elevation: 0.0,
+        borderSide: const BorderSide(color: Colors.transparent, width: 1.0),
+        borderRadius: BorderRadius.circular(theme.radii.full),
+      ),
+    );
+  }
+
+  /// Заголовок вкладки.
+  ///
+  /// Под видимым заголовком лежит невидимый заголовок соседней вкладки, и блок
+  /// занимает высоту более длинного из двух — одинаковую на обеих вкладках.
+  /// Без этого «С возвращением» и «Создать аккаунт» разной длины: там, где
+  /// одно переносится на вторую строку, а другое нет (а в 11 языках такое
+  /// найдётся всегда), вся форма под ним съезжала на строку при переключении.
+  Widget _heading({required bool isRegister}) {
+    final theme = FlutterFlowTheme.of(context);
+    final style = theme.headlineMedium.override(
+      fontFamily: theme.headlineMediumFamily,
+      letterSpacing: 0.0,
+      fontWeight: FontWeight.w600,
+      useGoogleFonts: !theme.headlineMediumIsCustom,
+    );
+    const signIn = 's2sex1cq' /* Welcome back */;
+    const register = 'v4ogufdc' /* Create account */;
+
+    return Stack(
+      children: [
+        ExcludeSemantics(
+          child: Opacity(
+            opacity: 0.0,
+            child: Text(_t(isRegister ? signIn : register), style: style),
           ),
         ),
-      );
+        Text(_t(isRegister ? register : signIn), style: style),
+      ],
+    );
+  }
 
-  // ── Register tab content ──────────────────────────────────────────────────
+  // ── Форма: одна разметка на обе вкладки ───────────────────────────────────
 
-  Widget _registerForm() => SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(24.0, 24.0, 24.0, 100.0),
-        child: Form(
-          key: _model.formKeyRegister,
-          autovalidateMode: AutovalidateMode.disabled,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                FFLocalizations.of(context)
-                    .getText('v4ogufdc' /* Create your profile */),
-                style: FlutterFlowTheme.of(context).headlineMedium.override(
-                      fontFamily:
-                          FlutterFlowTheme.of(context).headlineMediumFamily,
-                      letterSpacing: 0.0,
-                      fontWeight: FontWeight.w600,
-                      useGoogleFonts:
-                          !FlutterFlowTheme.of(context).headlineMediumIsCustom,
-                    ),
-              ),
-              const SizedBox(height: 24.0),
-              // Email
-              Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 16.0),
-                child: AppTextField(
-                  controller: _model.emailRegisterTextController,
-                  focusNode: _model.emailRegisterFocusNode,
-                  hintText: FFLocalizations.of(context)
-                      .getText('fzz6pquo' /* Email address */),
-                  keyboardType: TextInputType.emailAddress,
-                  textInputAction: TextInputAction.next,
-                  autofillHints: const [AutofillHints.email],
-                  validator: _model.emailRegisterTextControllerValidator
-                      .asValidator(context),
-                ),
-              ),
-              // Password
-              Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 16.0),
-                child: AppTextField.password(
-                  controller: _model.passwordRegisterTextController,
-                  focusNode: _model.passwordRegisterFocusNode,
-                  hintText: FFLocalizations.of(context)
-                      .getText('jl6rrleg' /* Password */),
-                  textInputAction: TextInputAction.done,
-                  autofillHints: const [AutofillHints.newPassword],
-                  validator: _model.passwordRegisterTextControllerValidator
-                      .asValidator(context),
-                ),
-              ),
-              // Create account button
-              Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(0.0, 8.0, 0.0, 8.0),
-                child: AppButton(
-                  label: FFLocalizations.of(context)
-                      .getText('o5q6qmi9' /* Create account */),
-                  onPressed: () async {
-                    HapticFeedback.lightImpact();
-                    if (_model.formKeyRegister.currentState == null ||
-                        !_model.formKeyRegister.currentState!.validate()) {
-                      return;
-                    }
-                    GoRouter.of(context).prepareAuthEvent();
-                    final user = await authManager.createAccountWithEmail(
-                      context,
-                      _model.emailRegisterTextController.text,
-                      _model.passwordRegisterTextController.text,
-                    );
-                    if (user == null) return;
-                    unawaited(AnalyticsService.instance
-                        .trackCreateAccount(from: 'log_in_page'));
-                    if (context.mounted) {
-                      context.goNamedAuth(
-                        OnboardingProfileWidget.routeName,
-                        context.mounted,
-                        extra: <String, dynamic>{
-                          '__transition_info__': TransitionInfo(
-                            hasTransition: true,
-                            transitionType: PageTransitionType.fade,
-                          ),
-                        },
-                      );
-                    }
-                  },
-                ),
-              ),
-              // Apple sign-up (iOS only)
-              if (!isAndroid) _appleButton(isRegister: true),
-              _termsFooter(),
+  Widget _authForm({required bool isRegister}) {
+    final theme = FlutterFlowTheme.of(context);
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(theme.space.s24),
+      child: Form(
+        key: isRegister ? _model.formKeyRegister : _model.formKeyLogin,
+        autovalidateMode: AutovalidateMode.disabled,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _heading(isRegister: isRegister),
+            SizedBox(height: theme.space.s24),
+            AppTextField(
+              // Ключи читает integration_test/test.dart — на вкладке входа они
+              // обязаны остаться.
+              key: isRegister ? null : const ValueKey('emailAddress_jmyt'),
+              controller: isRegister
+                  ? _model.emailRegisterTextController
+                  : _model.emailAddressTextController,
+              focusNode: isRegister
+                  ? _model.emailRegisterFocusNode
+                  : _model.emailAddressFocusNode,
+              hintText: isRegister
+                  ? _t('fzz6pquo' /* Email address */)
+                  : _t('v6o9xcii' /* Email address */),
+              keyboardType: TextInputType.emailAddress,
+              textInputAction: TextInputAction.next,
+              autofillHints: const [AutofillHints.email],
+              validator: (isRegister
+                      ? _model.emailRegisterTextControllerValidator
+                      : _model.emailAddressTextControllerValidator)
+                  .asValidator(context),
+            ),
+            SizedBox(height: theme.space.s16),
+            AppTextField.password(
+              controller: isRegister
+                  ? _model.passwordRegisterTextController
+                  : _model.passwordTextController,
+              focusNode: isRegister
+                  ? _model.passwordRegisterFocusNode
+                  : _model.passwordFocusNode,
+              hintText: isRegister
+                  ? _t('jl6rrleg' /* Password */)
+                  : _t('8o8sm32x' /* Password */),
+              textInputAction: TextInputAction.done,
+              autofillHints: [
+                isRegister ? AutofillHints.newPassword : AutofillHints.password
+              ],
+              validator: (isRegister
+                      ? _model.passwordRegisterTextControllerValidator
+                      : _model.passwordTextControllerValidator)
+                  .asValidator(context),
+            ),
+            SizedBox(height: theme.space.s24),
+            AppButton(
+              key: isRegister ? null : const ValueKey('Button_mqqr'),
+              label: isRegister
+                  ? _t('o5q6qmi9' /* Create account */)
+                  : _t('jvlhc56j' /* Sign in */),
+              onPressed: isRegister ? _createAccount : _signIn,
+            ),
+            if (!isAndroid) ...[
+              SizedBox(height: theme.space.s12),
+              _appleButton(isRegister: isRegister),
             ],
-          ),
+            // «Забыли пароль?» стоит последним и только на вкладке входа:
+            // появляясь снизу, он ничего выше себя не сдвигает.
+            if (!isRegister) ...[
+              SizedBox(height: theme.space.s24),
+              Align(
+                alignment: AlignmentDirectional.center,
+                child: InkWell(
+                  splashColor: Colors.transparent,
+                  focusColor: Colors.transparent,
+                  hoverColor: Colors.transparent,
+                  highlightColor: Colors.transparent,
+                  onTap: () async {
+                    HapticFeedback.lightImpact();
+                    context.pushNamed(ForgotPasswordWidget.routeName);
+                  },
+                  child: RichText(
+                    textScaler: MediaQuery.of(context).textScaler,
+                    text: TextSpan(
+                      children: [
+                        TextSpan(
+                          text: _t('k1r81ycx' /* Forgot password?  */),
+                          style: const TextStyle(),
+                        ),
+                        TextSpan(
+                          text: _t('f4zg2rq8' /* Reset */),
+                          style: theme.bodyMedium.override(
+                            fontFamily: theme.bodyMediumFamily,
+                            color: theme.primary,
+                            letterSpacing: 0.0,
+                            fontWeight: FontWeight.w600,
+                            useGoogleFonts: !theme.bodyMediumIsCustom,
+                          ),
+                        ),
+                      ],
+                      style: theme.bodyMedium.override(
+                        fontFamily: theme.bodyMediumFamily,
+                        color: theme.secondaryText,
+                        letterSpacing: 0.0,
+                        useGoogleFonts: !theme.bodyMediumIsCustom,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ],
         ),
+      ),
+    );
+  }
+
+  Future<void> _signIn() async {
+    HapticFeedback.lightImpact();
+    GoRouter.of(context).prepareAuthEvent();
+    final user = await authManager.signInWithEmail(
+      context,
+      _model.emailAddressTextController.text,
+      _model.passwordTextController.text,
+    );
+    if (user == null) return;
+    unawaited(AnalyticsService.instance.trackLogIn());
+    if (context.mounted) {
+      context.goNamedAuth(HomeWidget.routeName, context.mounted);
+    }
+  }
+
+  Future<void> _createAccount() async {
+    HapticFeedback.lightImpact();
+    if (_model.formKeyRegister.currentState == null ||
+        !_model.formKeyRegister.currentState!.validate()) {
+      return;
+    }
+    GoRouter.of(context).prepareAuthEvent();
+    final user = await authManager.createAccountWithEmail(
+      context,
+      _model.emailRegisterTextController.text,
+      _model.passwordRegisterTextController.text,
+    );
+    if (user == null) return;
+    unawaited(AnalyticsService.instance.trackCreateAccount(from: 'log_in_page'));
+    if (context.mounted) {
+      context.goNamedAuth(
+        OnboardingProfileWidget.routeName,
+        context.mounted,
+        extra: <String, dynamic>{
+          '__transition_info__': TransitionInfo(
+            hasTransition: true,
+            transitionType: PageTransitionType.fade,
+          ),
+        },
       );
+    }
+  }
 
   // ── Build ─────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
@@ -515,9 +388,9 @@ class _LogInPageWidgetState extends State<LogInPageWidget>
         canPop: false,
         child: Scaffold(
           key: scaffoldKey,
-          backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+          backgroundColor: theme.alternate,
           appBar: AppBar(
-            backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+            backgroundColor: theme.alternate,
             automaticallyImplyLeading: false,
             leading: FlutterFlowIconButton(
               borderColor: Colors.transparent,
@@ -526,7 +399,7 @@ class _LogInPageWidgetState extends State<LogInPageWidget>
               buttonSize: 60.0,
               icon: Icon(
                 Icons.arrow_back_rounded,
-                color: FlutterFlowTheme.of(context).primaryText,
+                color: theme.primaryText,
                 size: 30.0,
               ),
               onPressed: () async {
@@ -543,52 +416,41 @@ class _LogInPageWidgetState extends State<LogInPageWidget>
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(56.0),
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(24.0, 0.0, 24.0, 12.0),
+                padding: EdgeInsets.fromLTRB(
+                    theme.space.s24, 0.0, theme.space.s24, theme.space.s12),
                 child: Container(
                   height: 44.0,
                   decoration: BoxDecoration(
-                    color: FlutterFlowTheme.of(context).alternate,
-                    borderRadius: BorderRadius.circular(30.0),
+                    color: theme.surfaceMuted,
+                    borderRadius: BorderRadius.circular(theme.radii.full),
                   ),
                   child: TabBar(
                     controller: _tabController,
                     indicator: BoxDecoration(
-                      color: FlutterFlowTheme.of(context).primary,
-                      borderRadius: BorderRadius.circular(30.0),
+                      color: theme.primary,
+                      borderRadius: BorderRadius.circular(theme.radii.full),
                     ),
                     indicatorSize: TabBarIndicatorSize.tab,
                     dividerColor: Colors.transparent,
-                    labelColor: Colors.white,
-                    unselectedLabelColor:
-                        FlutterFlowTheme.of(context).secondaryText,
-                    labelStyle: FlutterFlowTheme.of(context).titleSmall.override(
-                          fontFamily:
-                              FlutterFlowTheme.of(context).titleSmallFamily,
-                          fontSize: 14.0,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.0,
-                          useGoogleFonts:
-                              !FlutterFlowTheme.of(context).titleSmallIsCustom,
-                        ),
-                    unselectedLabelStyle:
-                        FlutterFlowTheme.of(context).titleSmall.override(
-                              fontFamily:
-                                  FlutterFlowTheme.of(context).titleSmallFamily,
-                              fontSize: 14.0,
-                              fontWeight: FontWeight.normal,
-                              letterSpacing: 0.0,
-                              useGoogleFonts: !FlutterFlowTheme.of(context)
-                                  .titleSmallIsCustom,
-                            ),
+                    labelColor: theme.onPrimary,
+                    unselectedLabelColor: theme.secondaryText,
+                    labelStyle: theme.titleSmall.override(
+                      fontFamily: theme.titleSmallFamily,
+                      fontSize: 14.0,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.0,
+                      useGoogleFonts: !theme.titleSmallIsCustom,
+                    ),
+                    unselectedLabelStyle: theme.titleSmall.override(
+                      fontFamily: theme.titleSmallFamily,
+                      fontSize: 14.0,
+                      fontWeight: FontWeight.normal,
+                      letterSpacing: 0.0,
+                      useGoogleFonts: !theme.titleSmallIsCustom,
+                    ),
                     tabs: [
-                      Tab(
-                        text: FFLocalizations.of(context)
-                            .getText('jvlhc56j' /* Log in */),
-                      ),
-                      Tab(
-                        text: FFLocalizations.of(context)
-                            .getText('o5q6qmi9' /* Create account */),
-                      ),
+                      Tab(text: _t('jvlhc56j' /* Sign in */)),
+                      Tab(text: _t('o5q6qmi9' /* Create account */)),
                     ],
                   ),
                 ),
@@ -600,64 +462,22 @@ class _LogInPageWidgetState extends State<LogInPageWidget>
           ),
           body: SafeArea(
             top: true,
-            child: Stack(
+            child: Column(
               children: [
-                // Carousel background (hidden when keyboard visible)
-                if (!(isWeb
-                    ? MediaQuery.viewInsetsOf(context).bottom > 0
-                    : _isKeyboardVisible))
-                  Align(
-                    alignment: AlignmentDirectional(0.0, 0.88),
-                    child: Transform.scale(
-                      scaleX: 1.2,
-                      scaleY: 1.2,
-                      child: SizedBox(
-                          width: double.infinity,
-                          height: 190.0,
-                          child: CarouselSlider(
-                            items: const [
-                              FeatureScoreCard(),
-                              FeatureScanCard(),
-                              FeatureIngredientsCard(),
-                            ],
-                            carouselController:
-                                _model.carouselController ??=
-                                    CarouselSliderController(),
-                            options: CarouselOptions(
-                              initialPage: 1,
-                              viewportFraction: 0.6,
-                              disableCenter: true,
-                              enlargeCenterPage: true,
-                              enlargeFactor: 0.25,
-                              enableInfiniteScroll: true,
-                              scrollDirection: Axis.horizontal,
-                              autoPlay: true,
-                              autoPlayAnimationDuration:
-                                  const Duration(milliseconds: 800),
-                              autoPlayInterval:
-                                  const Duration(milliseconds: 4800),
-                              autoPlayCurve: Curves.linear,
-                              pauseAutoPlayInFiniteScroll: true,
-                              onPageChanged: (index, _) =>
-                                  _model.carouselCurrentIndex = index,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ).animateOnPageLoad(
-                        animationsMap['transformOnPageLoadAnimation']!),
-                // Tab content
-                TabBarView(
-                  controller: _tabController,
-                  children: [
-                    _loginForm(),
-                    _registerForm(),
-                  ],
-                ).animateOnPageLoad(
-                    animationsMap['columnOnPageLoadAnimation']!),
-
-
-
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _authForm(isRegister: false),
+                      _authForm(isRegister: true),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(theme.space.s24, theme.space.s8,
+                      theme.space.s24, theme.space.s12),
+                  child: _termsFooter(),
+                ),
               ],
             ),
           ),

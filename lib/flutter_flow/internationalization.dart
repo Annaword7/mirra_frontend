@@ -175,17 +175,17 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
   // CreateAccountPage
   {
     'v4ogufdc': {
-      'en': 'Create your profile',
-      'es': 'Crea tu perfil',
-      'ru': 'Создайте профиль',
-      'de': 'Profil erstellen',
-      'fr': 'Créez votre profil',
-      'it': 'Crea il tuo profilo',
-      'pt': 'Crie seu perfil',
-      'tr': 'Profilinizi oluşturun',
-      'ja': 'プロフィールを作成',
-      'ko': '프로필 만들기',
-      'zh': '创建个人资料',
+      'en': 'Create account',
+      'es': 'Crear cuenta',
+      'ru': 'Создать аккаунт',
+      'de': 'Konto erstellen',
+      'fr': 'Créer un compte',
+      'it': 'Crea account',
+      'pt': 'Criar conta',
+      'tr': 'Hesap oluştur',
+      'ja': 'アカウントを作成',
+      'ko': '계정 만들기',
+      'zh': '创建账户',
     },
     'fzz6pquo': {
       'en': 'Email address',
