@@ -38,10 +38,11 @@ class FeedbackService {
       state.feedbackBannerDismissed = false;
     }
 
-    // New user (never shown) → wait for the 4th successful scan. Asking after
-    // the first one asks before the product has earned an opinion, and the
-    // answer costs a store rating either way.
-    if (state.feedbackLastShownMs == 0) return state.successfulScans >= 4;
+    // New user (never shown) → wait for the 2nd successful scan. The very
+    // first result is always taken by the soft paywall, which returns early
+    // and leaves the prompt pending, so the second scan is the earliest moment
+    // this can appear at all — waiting longer only loses ratings.
+    if (state.feedbackLastShownMs == 0) return state.successfulScans >= 2;
 
     // Returning user → 14-day cooldown from last shown
     final daysPassed =

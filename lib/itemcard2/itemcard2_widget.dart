@@ -162,9 +162,13 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
           await FeedbackService.shouldShowPrompt(feedbackState)) {
         feedbackState.feedbackPendingScan = false;
         await FeedbackService.recordShown(feedbackState);
-        unawaited(AnalyticsService.instance.trackPopupReviewsShow());
         await Future.delayed(const Duration(seconds: 3));
         if (context.mounted) {
+          // Событие именно здесь, а не до задержки: за эти три секунды человек
+          // успевает уйти с карточки, окно тогда не появляется — а событие
+          // описано как «появилось окно» и завышало бы знаменатель для
+          // popup_reviews_yes и popup_reviews_no.
+          unawaited(AnalyticsService.instance.trackPopupReviewsShow());
           await showDialog(
             context: context,
             barrierDismissible: true,
