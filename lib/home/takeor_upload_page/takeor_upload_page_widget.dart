@@ -572,7 +572,9 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
     );
     if (_model.useranalyspage?.firstOrNull?.countryId != null) return;
 
-    await showModalBottomSheet(
+    // `true` приходит только из «Продолжить» внутри листа; всё остальное —
+    // свайп или тап по затемнению.
+    final quickSetupConfirmed = await showModalBottomSheet<bool>(
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       context: context,
@@ -584,6 +586,9 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
         child: const GuestPrefsSheet(),
       ),
     );
+    if (quickSetupConfirmed != true) {
+      unawaited(AnalyticsService.instance.trackQuickSetupSwipe());
+    }
 
     // Reload so the API calls pick up the newly chosen country.
     _model.useranalyspage = await UsersTable().queryRows(
@@ -831,6 +836,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
       ),
       icon: Icons.camera_alt,
       onPressed: () async {
+        unawaited(AnalyticsService.instance.trackScanPhotoTake());
         // No local quota gate: the server refuses over-quota scans with a 429
         // on /extract-product-info, which is the single source of truth for
         // both the limit and the reset date.
@@ -1320,6 +1326,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
       ),
       icon: Icons.photo_library,
       onPressed: () async {
+        unawaited(AnalyticsService.instance.trackScanPhotoChooseGallery());
         debugPrint('[gallery] tap: '
             'host=${FFDevEnvironmentValues().backendhost} '
             'tokenEmpty=${currentJwtToken.isEmpty}');
@@ -1451,8 +1458,15 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                   children: [
                     _HintCard(
                       expanded: _hintExpanded,
-                      onToggle: () =>
-                          setState(() => _hintExpanded = !_hintExpanded),
+                      onToggle: () {
+                        final opening = !_hintExpanded;
+                        unawaited(opening
+                            ? AnalyticsService.instance
+                                .trackScanPhotoTipsOpen()
+                            : AnalyticsService.instance
+                                .trackScanPhotoTipsClose());
+                        setState(() => _hintExpanded = opening);
+                      },
                     ),
                     const SizedBox(height: 12),
                     _buildCameraButton(context),

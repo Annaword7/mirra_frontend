@@ -5,8 +5,8 @@ import '/flutter_flow/flutter_flow_util.dart';
 import '/design_system/components/app_button.dart';
 import '/design_system/components/app_text_field.dart';
 import '/design_system/components/mirra_bottom_sheet.dart';
+import '/flutter_flow/analytics_service.dart';
 import 'dart:async';
-import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
@@ -31,6 +31,10 @@ class _NegativeFeedbackWidgetState extends State<NegativeFeedbackWidget> {
   @override
   void initState() {
     super.initState();
+    // «Тапнул на строку» = поле получило фокус. Слушаем фокус, а не onTap:
+    // в поле попадают и с клавиатуры (кнопка «дальше» из комментария в email).
+    _commentFocusNode.addListener(_onCommentFocus);
+    _emailFocusNode.addListener(_onEmailFocus);
     if (!isWeb) {
       _keyboardSubscription =
           KeyboardVisibilityController().onChange.listen((visible) {
@@ -39,11 +43,25 @@ class _NegativeFeedbackWidgetState extends State<NegativeFeedbackWidget> {
     }
   }
 
+  void _onCommentFocus() {
+    if (_commentFocusNode.hasFocus) {
+      unawaited(AnalyticsService.instance.trackPopupReviewsTapComment());
+    }
+  }
+
+  void _onEmailFocus() {
+    if (_emailFocusNode.hasFocus) {
+      unawaited(AnalyticsService.instance.trackPopupReviewsTapEmail());
+    }
+  }
+
   @override
   void dispose() {
     _commentController.dispose();
+    _commentFocusNode.removeListener(_onCommentFocus);
     _commentFocusNode.dispose();
     _emailController.dispose();
+    _emailFocusNode.removeListener(_onEmailFocus);
     _emailFocusNode.dispose();
     if (!isWeb) _keyboardSubscription.cancel();
     super.dispose();
@@ -124,6 +142,7 @@ class _NegativeFeedbackWidgetState extends State<NegativeFeedbackWidget> {
               label: FFLocalizations.of(context).getText('fc_neg_submit'),
               onPressed: () async {
                 HapticFeedback.lightImpact();
+                unawaited(AnalyticsService.instance.trackPopupReviewsTapSend());
                 if (_formKey.currentState == null ||
                     !_formKey.currentState!.validate()) {
                   return;
@@ -136,8 +155,6 @@ class _NegativeFeedbackWidgetState extends State<NegativeFeedbackWidget> {
                   message: _commentController.text,
                   email: email,
                 );
-                await FirebaseAnalytics.instance
-                    .logEvent(name: 'feedback_submitted');
                 if (context.mounted) Navigator.pop(context);
               },
             ),

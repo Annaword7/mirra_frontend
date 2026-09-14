@@ -71,6 +71,11 @@ class _CreateAccountPageWidgetState extends State<CreateAccountPageWidget>
     _model.passwordTextController ??= TextEditingController();
     _model.passwordFocusNode ??= FocusNode();
 
+    // «Тапнул на строку» = поле получило фокус: в пароль попадают и кнопкой
+    // «дальше» с клавиатуры, а не только тапом.
+    _model.emailAddressFocusNode!.addListener(_onEmailFocus);
+    _model.passwordFocusNode!.addListener(_onPasswordFocus);
+
     animationsMap.addAll({
       'transformOnPageLoadAnimation': AnimationInfo(
         trigger: AnimationTrigger.onPageLoad,
@@ -118,12 +123,26 @@ class _CreateAccountPageWidgetState extends State<CreateAccountPageWidget>
 
   @override
   void dispose() {
+    _model.emailAddressFocusNode?.removeListener(_onEmailFocus);
+    _model.passwordFocusNode?.removeListener(_onPasswordFocus);
     _model.dispose();
 
     if (!isWeb) {
       _keyboardVisibilitySubscription.cancel();
     }
     super.dispose();
+  }
+
+  void _onEmailFocus() {
+    if (_model.emailAddressFocusNode?.hasFocus ?? false) {
+      unawaited(AnalyticsService.instance.trackCreateProfileEmailTap());
+    }
+  }
+
+  void _onPasswordFocus() {
+    if (_model.passwordFocusNode?.hasFocus ?? false) {
+      unawaited(AnalyticsService.instance.trackCreateProfilePasswordTap());
+    }
   }
 
   Widget _termsFooter() => Column(
@@ -443,7 +462,9 @@ class _CreateAccountPageWidgetState extends State<CreateAccountPageWidget>
                                       if (user == null) {
                                         return;
                                       }
-                                      unawaited(AnalyticsService.instance.trackSignUp());
+                                      unawaited(AnalyticsService.instance
+                                          .trackCreateAccount(
+                                              from: 'create_account_page'));
 
                                       context.goNamedAuth(
                                         OnboardingProfileWidget.routeName,
@@ -466,6 +487,8 @@ class _CreateAccountPageWidgetState extends State<CreateAccountPageWidget>
                                             0.0, 8.0, 0.0, 12.0),
                                         child: FFButtonWidget(
                                           onPressed: () async {
+                                            unawaited(AnalyticsService.instance
+                                                .trackCreateProfileAppleId());
                                             GoRouter.of(context)
                                                 .prepareAuthEvent();
                                             final user = await authManager
@@ -473,7 +496,10 @@ class _CreateAccountPageWidgetState extends State<CreateAccountPageWidget>
                                             if (user == null) {
                                               return;
                                             }
-                                            unawaited(AnalyticsService.instance.trackSignUp(method: 'apple'));
+                                            unawaited(AnalyticsService.instance
+                                                .trackCreateAccount(
+                                                    from:
+                                                        'create_account_page'));
 
                                             context.goNamedAuth(
                                               OnboardingProfileWidget.routeName,

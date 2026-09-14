@@ -75,6 +75,21 @@ class ErrorPopupWidget extends StatelessWidget {
   /// instrumenting ~25 error branches across the two (mirrored) scan chains.
   static Future<void> show(BuildContext context, ErrorPopupType type) {
     unawaited(AnalyticsService.instance.trackAnalysisFailed(reason: type.name));
+    // Два из пяти типов отдельно названы в разметке маркетинга — им нужны
+    // именные события поверх общего analysis_failed.
+    switch (type) {
+      case ErrorPopupType.productNotFound:
+        unawaited(
+            AnalyticsService.instance.trackShowScanProductNotRecognized());
+        break;
+      case ErrorPopupType.ingredientsNotFound:
+        unawaited(AnalyticsService.instance.trackScanIngredientsNotFound());
+        break;
+      case ErrorPopupType.subscriptionSync:
+      case ErrorPopupType.unsupported:
+      case ErrorPopupType.generic:
+        break;
+    }
     return showDialog(
       context: context,
       barrierDismissible: true,
@@ -167,7 +182,13 @@ class ErrorPopupWidget extends StatelessWidget {
         SizedBox(height: theme.space.s24),
         AppButton(
           label: FFLocalizations.of(context).getText('err_ok_btn'),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            if (type == ErrorPopupType.productNotFound) {
+              unawaited(
+                  AnalyticsService.instance.trackScanProductNotRecognizedOk());
+            }
+            Navigator.pop(context);
+          },
         ),
       ],
     );
@@ -215,6 +236,14 @@ class _IngredientsInputSheetState extends State<_IngredientsInputSheet> {
   void _submit() {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
+    // Запятая — разделитель INCI, но из буфера часто прилетает список с
+    // переносами строк или точкой с запятой; считаем по всем трём.
+    final count =
+        text.split(RegExp(r'[,;\n]')).where((p) => p.trim().isNotEmpty).length;
+    unawaited(AnalyticsService.instance.trackScanIngredientsManually(
+      length: text.length,
+      ingredientsCount: count,
+    ));
     Navigator.pop(
       context,
       IngredientInputResult(IngredientInputAction.manualText, text),
@@ -316,7 +345,10 @@ class _LowConfidenceChoiceDialog extends StatelessWidget {
         AppButton(
           label: loc.getText('err_photograph_ingredients'),
           icon: Icons.photo_camera_rounded,
-          onPressed: () => Navigator.pop(context, IngredientInputAction.photo),
+          onPressed: () {
+            unawaited(AnalyticsService.instance.trackScanPhotoIngredients());
+            Navigator.pop(context, IngredientInputAction.photo);
+          },
         ),
         const SizedBox(height: 8.0),
         AppButton(

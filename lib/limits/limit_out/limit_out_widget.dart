@@ -127,7 +127,7 @@ class _LimitOutWidgetState extends State<LimitOutWidget> {
                       label: loc.getText('cscoyn8e' /* Upgrade to Pro */),
                       onPressed: () async {
                         unawaited(AnalyticsService.instance
-                            .trackUpgradePromptTapped(trigger: 'scan_limit'));
+                            .trackPremiumTap(from: 'scan_limit'));
                         Navigator.pop(context);
                         context.pushNamed(PaywallpageWidget.routeName);
                       },

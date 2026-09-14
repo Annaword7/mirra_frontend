@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:ui' show ImageFilter;
 
+import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_animations.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/design_system/foundations/layout.dart';
@@ -103,6 +105,7 @@ class _NavbarWidgetState extends State<NavbarWidget>
     IconData? activeIconData,
     required String label,
     required String routeName,
+    Future<void> Function()? track,
   }) {
     final active = widget.activePage == pageId;
     final color =
@@ -116,6 +119,9 @@ class _NavbarWidgetState extends State<NavbarWidget>
         highlightColor: Colors.transparent,
         onTap: () {
           HapticFeedback.lightImpact();
+          // Тап по значку считаем и тогда, когда пользователь уже на этой
+          // вкладке: в разметке событие описано как нажатие на значок.
+          if (track != null) unawaited(track());
           if (active) {
             widget.onScrollToTop?.call();
           } else {
@@ -222,6 +228,7 @@ class _NavbarWidgetState extends State<NavbarWidget>
                               label: FFLocalizations.of(context)
                                   .getText('kndykt66' /* Home */),
                               routeName: HomeWidget.routeName,
+                              track: AnalyticsService.instance.trackHomeTap,
                             ),
                             _buildTab(
                               pageId: 1,
@@ -229,6 +236,7 @@ class _NavbarWidgetState extends State<NavbarWidget>
                               label: FFLocalizations.of(context)
                                   .getText('f0lv5sbb' /* Explore */),
                               routeName: TopratedWidget.routeName,
+                              track: AnalyticsService.instance.trackOverviewTap,
                             ),
                             const Expanded(child: SizedBox(height: 40.0)),
                             _buildTab(
@@ -238,6 +246,8 @@ class _NavbarWidgetState extends State<NavbarWidget>
                               label: FFLocalizations.of(context)
                                   .getText('cb_bag_title'),
                               routeName: BagWidget.routeName,
+                              track:
+                                  AnalyticsService.instance.trackBeautyBagTap,
                             ),
                             _buildTab(
                               pageId: 4,
@@ -278,6 +288,8 @@ class _NavbarWidgetState extends State<NavbarWidget>
                 child: InkWell(
                   onTap: () {
                     HapticFeedback.lightImpact();
+                    unawaited(
+                        AnalyticsService.instance.trackScanPhotoTap());
                     context.pushNamed(
                       TakeorUploadPageWidget.routeName,
                       extra: <String, dynamic>{

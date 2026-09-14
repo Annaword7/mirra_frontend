@@ -1,6 +1,7 @@
+import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import 'package:firebase_analytics/firebase_analytics.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:in_app_review/in_app_review.dart';
@@ -156,7 +157,7 @@ class FeedbackCollectorWidget extends StatelessWidget {
                       borderRadius: BorderRadius.circular(50),
                       onTap: () async {
                         HapticFeedback.mediumImpact();
-                        await FirebaseAnalytics.instance.logEvent(name: 'feedback_positive');
+                        unawaited(AnalyticsService.instance.trackPopupReviewsYes());
                         FFAppState().feedbackReviewSubmitted = true;
                         FFAppState().feedbackLastShownVersion = await _appVersion();
                         final inAppReview = InAppReview.instance;
@@ -215,7 +216,7 @@ class FeedbackCollectorWidget extends StatelessWidget {
                   TextButton(
                     onPressed: () async {
                       HapticFeedback.lightImpact();
-                      await FirebaseAnalytics.instance.logEvent(name: 'feedback_negative');
+                      unawaited(AnalyticsService.instance.trackPopupReviewsNo());
                       FFAppState().feedbackBannerDismissed = true;
                       FFAppState().feedbackLastShownVersion = await _appVersion();
                       if (context.mounted) {

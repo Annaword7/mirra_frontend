@@ -137,8 +137,8 @@ class _OutOfGenerationsWidgetState extends State<OutOfGenerationsWidget>
                     HapticFeedback.lightImpact();
 
                     unawaited(AnalyticsService.instance
-                        .trackUpgradePromptTapped(
-                            trigger: 'out_of_generations'));
+                        .trackPremiumTap(
+                            from: 'out_of_generations'));
 
                     context.pushNamed(PaywallpageWidget.routeName);
 

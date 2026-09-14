@@ -6,6 +6,7 @@ import '/backend/supabase/database/tables/product_prices.dart';
 import '/backend/supabase/supabase.dart';
 import '/components/navbar/navbar_widget.dart';
 import '/domain/products/product_photo.dart';
+import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
@@ -553,6 +554,10 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                 'fjrdil62' /* Update to PRO */,
                                               ),
                                               onPressed: () {
+                                                unawaited(AnalyticsService
+                                                    .instance
+                                                    .trackPremiumTap(
+                                                        from: 'home'));
                                                 context.pushNamed(
                                                     PaywallpageWidget
                                                         .routeName);
@@ -591,6 +596,8 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                       hoverColor: Colors.transparent,
                                       highlightColor: Colors.transparent,
                                       onTap: () async {
+                                        unawaited(AnalyticsService.instance
+                                            .trackAccountTap());
                                         context
                                             .pushNamed(ProfileWidget.routeName);
                                       },
@@ -809,6 +816,8 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                       body: subtitle,
                                       ctaLabel: btnLabel,
                                       onCta: () {
+                                        unawaited(AnalyticsService.instance
+                                            .trackAddProduct());
                                         context.pushNamed(
                                             TakeorUploadPageWidget.routeName);
                                       },

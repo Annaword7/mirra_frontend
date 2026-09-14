@@ -58,6 +58,9 @@ Future<List<SelectedFile>?> selectMediaWithSourceBottomSheet({
   Color backgroundColor = const Color(0xFFF5F5F5),
   bool includeDimensions = false,
   bool includeBlurHash = false,
+  /// Какой источник выбрал пользователь. Выбор происходит внутри этой функции
+  /// и наружу иначе не виден, а аналитике нужно отличать камеру от галереи.
+  void Function(MediaSource)? onSourceSelected,
 }) async {
   final createUploadMediaListTile =
       (String label, MediaSource mediaSource) => ListTile(
@@ -137,6 +140,7 @@ Future<List<SelectedFile>?> selectMediaWithSourceBottomSheet({
   if (mediaSource == null) {
     return null;
   }
+  onSourceSelected?.call(mediaSource);
   return selectMedia(
     storageFolderPath: storageFolderPath,
     maxWidth: maxWidth,

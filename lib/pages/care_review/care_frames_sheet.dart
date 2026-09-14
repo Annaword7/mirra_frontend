@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import '/backend/supabase/database/database.dart';
 import '/design_system/components/app_button.dart';
 import '/design_system/components/mirra_bottom_sheet.dart';
 import '/design_system/components/selectable_row.dart';
 import '/domain/client_card/client_card_service.dart';
+import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'package:flutter/material.dart';
@@ -55,6 +58,10 @@ class _CareFramesSheetState extends State<CareFramesSheet> {
 
   Future<void> _save() async {
     setState(() => _saving = true);
+    unawaited(AnalyticsService.instance.trackCareFramesContinue(
+      fragranceFree: _fragranceFree,
+      maxSteps: _maxSteps,
+    ));
     try {
       await ClientCardService.instance.updateAnamnesis(
         // «Не указывать» — тоже ответ: без него правило беременности не
@@ -163,6 +170,8 @@ class _CareFramesSheetState extends State<CareFramesSheet> {
         selected: _pregnancy == value,
         onTap: () {
           HapticFeedback.lightImpact();
+          unawaited(AnalyticsService.instance
+              .trackCareFramesPregnancy(typePregnancy: value));
           setState(() => _pregnancy = value);
         },
       );

@@ -4,7 +4,6 @@ import '/auth/supabase_auth/auth_util.dart';
 import '/components/feedback_collector/feedback_collector_widget.dart';
 import '/components/feedback_collector/feedback_service.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
-import 'package:firebase_analytics/firebase_analytics.dart';
 import '/flutter_flow/analytics_service.dart';
 import '/backend/api_requests/api_calls.dart';
 import '/backend/supabase/supabase.dart';
@@ -163,8 +162,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
           await FeedbackService.shouldShowPrompt(feedbackState)) {
         feedbackState.feedbackPendingScan = false;
         await FeedbackService.recordShown(feedbackState);
-        await FirebaseAnalytics.instance
-            .logEvent(name: 'feedback_prompt_shown');
+        unawaited(AnalyticsService.instance.trackPopupReviewsShow());
         await Future.delayed(const Duration(seconds: 3));
         if (context.mounted) {
           await showDialog(
@@ -281,7 +279,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
     if (!FFAppState().isprouser && bag.length >= kFreeBagSlots) {
       if (!context.mounted) return;
       unawaited(AnalyticsService.instance
-          .trackUpgradePromptTapped(trigger: 'bag_add_from_card'));
+          .trackPremiumTap(from: 'bag_add_from_card'));
       context.pushNamed(PaywallpageWidget.routeName);
       return;
     }
@@ -552,6 +550,10 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
             floatingActionButton: SpeedDial(
               icon: Icons.tune,
               activeIcon: Icons.close,
+              onOpen: () => unawaited(
+                  AnalyticsService.instance.trackProductSettings()),
+              onClose: () => unawaited(
+                  AnalyticsService.instance.trackProductSettingClose()),
               backgroundColor: FlutterFlowTheme.of(context).primary,
               foregroundColor: Colors.white,
               activeBackgroundColor: FlutterFlowTheme.of(context).primary,
@@ -568,12 +570,17 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
                   foregroundColor: Colors.white,
                   label: FFLocalizations.of(context).getText('fab_print'),
                   labelStyle: FlutterFlowTheme.of(context).bodyMedium,
-                  onTap: () => context.pushNamed(
-                    ShareproductWidget.routeName,
-                    queryParameters: {
-                      'imageid': serializeParam(widget.imageid, ParamType.int),
-                    }.withoutNulls,
-                  ),
+                  onTap: () {
+                    unawaited(AnalyticsService.instance
+                        .trackProductSettingPrint());
+                    context.pushNamed(
+                      ShareproductWidget.routeName,
+                      queryParameters: {
+                        'imageid':
+                            serializeParam(widget.imageid, ParamType.int),
+                      }.withoutNulls,
+                    );
+                  },
                 ),
                 // Share link
                 SpeedDialChild(
@@ -583,6 +590,8 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
                   label: FFLocalizations.of(context).getText('fab_share'),
                   labelStyle: FlutterFlowTheme.of(context).bodyMedium,
                   onTap: () async {
+                    unawaited(AnalyticsService.instance
+                        .trackProductSettingShare());
                     unawaited(AnalyticsService.instance
                         .trackShareLinkTapped(imageId: widget.imageid ?? 0));
                     await Future.delayed(const Duration(milliseconds: 300));
@@ -603,9 +612,14 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
                   label: FFLocalizations.of(context).getText(
                       _inBag ? 'cb_remove_from_bag' : 'cb_add_choice_title'),
                   labelStyle: FlutterFlowTheme.of(context).bodyMedium,
-                  onTap: () => _inBag
-                      ? _removeFromBag()
-                      : _addToBag(itemcard2ImagesRow.user == currentUserUid),
+                  onTap: () {
+                    unawaited(AnalyticsService.instance
+                        .trackProductSettingAddBag());
+                    unawaited(_inBag
+                        ? _removeFromBag()
+                        : _addToBag(
+                            itemcard2ImagesRow.user == currentUserUid));
+                  },
                 ),
                 // Add to favourite (owner, not yet favourited)
                 SpeedDialChild(
@@ -741,6 +755,8 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
                   label: FFLocalizations.of(context).getText('fab_spam'),
                   labelStyle: FlutterFlowTheme.of(context).bodyMedium,
                   onTap: () async {
+                    unawaited(AnalyticsService.instance
+                        .trackProductSettingsSpam());
                     final confirmed = await showModalBottomSheet<bool>(
                       isScrollControlled: true,
                       backgroundColor: Colors.transparent,
@@ -778,6 +794,8 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
                   label: FFLocalizations.of(context).getText('fab_copy'),
                   labelStyle: FlutterFlowTheme.of(context).bodyMedium,
                   onTap: () async {
+                    unawaited(AnalyticsService.instance
+                        .trackProductSettingsCopy());
                     if (currentUserUid.isEmpty || currentUserIsAnonymous) {
                       await showModalBottomSheet(
                         isScrollControlled: true,

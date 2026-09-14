@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import '/design_system/foundations/image_thumb.dart';
 import '/design_system/components/screen_loader.dart';
 import '/backend/supabase/database/database.dart';
@@ -5,6 +7,7 @@ import '/components/navbar/navbar_widget.dart';
 import '/design_system/components/app_button.dart';
 import '/design_system/components/mirra_empty_state.dart';
 import '/domain/care_planning/care_planning_service.dart';
+import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/notification_service.dart';
@@ -165,6 +168,8 @@ class _RoutineWidgetState extends State<RoutineWidget> {
 
   Future<void> _togglePush(String part, bool value) async {
     HapticFeedback.lightImpact();
+    unawaited(AnalyticsService.instance
+        .trackRoutinePush(enabled: value, time: part));
     final app = FFAppState();
     setState(() {
       if (part == 'am') {
@@ -190,10 +195,11 @@ class _RoutineWidgetState extends State<RoutineWidget> {
           .whereType<int>()
           .toList();
 
-  Future<void> _openSheet(int imageId) async {
+  Future<void> _openSheet(int imageId, String part) async {
     final pres = _prescriptionByImage(imageId);
     if (pres == null) return;
     HapticFeedback.lightImpact();
+    unawaited(AnalyticsService.instance.trackRoutineProduct(time: part));
     final changed = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
@@ -240,8 +246,11 @@ class _RoutineWidgetState extends State<RoutineWidget> {
           if (!_loading && !_noRegimen)
             IconButton(
               icon: const Icon(Icons.tune_rounded, color: Colors.black54),
-              onPressed: () =>
-                  context.pushNamed(CareReviewWidget.routeName),
+              onPressed: () {
+                unawaited(
+                    AnalyticsService.instance.trackRoutineViewAnalysis());
+                context.pushNamed(CareReviewWidget.routeName);
+              },
             ),
         ],
       ),
@@ -263,7 +272,11 @@ class _RoutineWidgetState extends State<RoutineWidget> {
                     _DaySelector(
                       labels: _weekdayLabels,
                       selected: _selectedDay,
-                      onSelect: (d) => setState(() => _selectedDay = d),
+                      onSelect: (d) {
+                        unawaited(AnalyticsService.instance
+                            .trackRoutineDay(day: '$d'));
+                        setState(() => _selectedDay = d);
+                      },
                       primary: theme.primary,
                     ),
                     Expanded(
@@ -280,7 +293,7 @@ class _RoutineWidgetState extends State<RoutineWidget> {
                             pushOn: app.carePushAm,
                             pushLabel: _t('care_push_toggle'),
                             onTogglePush: (v) => _togglePush('am', v),
-                            onTapItem: _openSheet,
+                            onTapItem: (id) => _openSheet(id, 'am'),
                             emptyText: _t('cb_routine_day_empty'),
                             freqTemplate: _t('care_freq_week'),
                           ),
@@ -295,7 +308,7 @@ class _RoutineWidgetState extends State<RoutineWidget> {
                             pushOn: app.carePushPm,
                             pushLabel: _t('care_push_toggle'),
                             onTogglePush: (v) => _togglePush('pm', v),
-                            onTapItem: _openSheet,
+                            onTapItem: (id) => _openSheet(id, 'pm'),
                             emptyText: _t('cb_routine_day_empty'),
                             freqTemplate: _t('care_freq_week'),
                           ),
@@ -559,6 +572,8 @@ class _PrescriptionSheetState extends State<_PrescriptionSheet> {
 
   Future<void> _save() async {
     setState(() => _busy = true);
+    unawaited(AnalyticsService.instance.trackRoutineProductSave(
+        day: (_days.toList()..sort()).join(',')));
     final resp = await CarePlanningService.instance.refineDirective(
       widget.prescription['id'].toString(),
       pinnedDays: _days.toList()..sort(),
@@ -578,6 +593,10 @@ class _PrescriptionSheetState extends State<_PrescriptionSheet> {
 
   Future<void> _toggleSuspend() async {
     final suspended = widget.prescription['status'] == 'suspended';
+    // Событие есть только на паузу: возобновление в разметке не описано.
+    if (!suspended) {
+      unawaited(AnalyticsService.instance.trackRoutineProductPause());
+    }
     setState(() => _busy = true);
     final id = widget.prescription['id'].toString();
     final resp = suspended

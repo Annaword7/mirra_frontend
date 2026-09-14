@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import '/auth/supabase_auth/auth_util.dart';
 import '/backend/supabase/supabase.dart';
+import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/design_system/components/selectable_row.dart';
@@ -198,6 +201,10 @@ class _CountriesWidgetState extends State<CountriesWidget> {
                                     selected: countriesUsersRow?.countryId ==
                                         listViewCountriesRow.id,
                                     onTap: () async {
+                                      unawaited(AnalyticsService.instance
+                                          .trackYourRegion(
+                                              region: listViewCountriesRow
+                                                  .nameEn));
                                       await UsersTable().update(
                                         data: {
                                           'country_id': listViewCountriesRow.id,

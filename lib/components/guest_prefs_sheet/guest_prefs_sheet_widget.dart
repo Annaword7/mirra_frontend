@@ -39,6 +39,10 @@ class _GuestPrefsSheetState extends State<GuestPrefsSheet> {
 
   Future<void> _save() async {
     setState(() => _saving = true);
+    unawaited(AnalyticsService.instance.trackQuickSetupContinue(
+      interfaceLanguage: _lang,
+      yourRegion: _countryId?.toString() ?? 'not_set',
+    ));
     try {
       // Ensure a signed-in user (re-uses the existing anonymous session if the
       // scan flow already created one — see supabase_auth_manager).

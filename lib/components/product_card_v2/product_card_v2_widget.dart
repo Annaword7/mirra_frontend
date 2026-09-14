@@ -452,6 +452,9 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
   void _pickSkinType(
       BuildContext sheetContext, StateSetter setSheetState, String? skinType) {
     HapticFeedback.lightImpact();
+    // `all` — строка «для всех типов кожи», то есть сброс выбора.
+    unawaited(AnalyticsService.instance
+        .trackProductSkin(skinName: skinType ?? 'all'));
     setState(() {
       _userTouchedMatrix = true;
       _selectedSkinType = skinType;
@@ -549,8 +552,8 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
             padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 0),
             child: InkWell(
               onTap: () {
-                unawaited(AnalyticsService.instance.trackUpgradePromptTapped(
-                    trigger: 'card_hidden_ingredients'));
+                unawaited(AnalyticsService.instance.trackPremiumTap(
+                    from: 'card_hidden_ingredients'));
                 context.pushNamed(PaywallpageWidget.routeName);
               },
               child: Text(

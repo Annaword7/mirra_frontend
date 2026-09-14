@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '/auth/supabase_auth/auth_util.dart';
 import '/backend/api_requests/api_calls.dart';
+import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/design_system/components/mirra_bottom_sheet.dart';
@@ -111,7 +114,9 @@ class _LinkTelegramSheetState extends State<LinkTelegramSheet> {
     final ok = response.succeeded && (LinkTelegramCall.ok(response.jsonBody) ?? false);
     debugPrint('[link-tg] parsed ok=$ok errCode=${LinkTelegramCall.errorCode(response.jsonBody)}');
     if (ok) {
-      Navigator.of(context).pop();
+      // `true` отличает удачную привязку от закрытия листа — по нему профиль
+      // решает, слать ли link_telegram_swipe.
+      Navigator.of(context).pop(true);
       _toast(FFLocalizations.of(context).getText('lt_linked'));
       return;
     }
@@ -184,6 +189,7 @@ class _LinkTelegramSheetState extends State<LinkTelegramSheet> {
             label: FFLocalizations.of(context).getText('lt_link_btn'),
             loading: _submitting,
             onPressed: () {
+              unawaited(AnalyticsService.instance.trackLinkTelegramLink());
               _submit();
             },
           ),

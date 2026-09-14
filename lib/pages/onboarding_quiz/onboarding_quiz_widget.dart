@@ -3,9 +3,11 @@ import '/backend/supabase/supabase.dart';
 import '/design_system/components/app_button.dart';
 import '/design_system/components/confirm_dialog.dart';
 import '/domain/care_planning/care_planning_service.dart';
+import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/index.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'skin_type_resolver.dart';
@@ -155,6 +157,7 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
       });
 
   void _back() {
+    unawaited(AnalyticsService.instance.trackTapBack(from: _step.name));
     switch (_step) {
       case _Step.determine:
         _go(_Step.type, forward: false);
@@ -220,6 +223,7 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
   /// ✕ в шапке. Правка профиля (анкету уже проходили) — просто выход без
   /// записи: спрашивать «пропустить настройку?» там нечего, настройка уже была.
   Future<void> _dismiss() async {
+    unawaited(AnalyticsService.instance.trackOnboardingClose());
     if (!FFAppState().onboardingDone) {
       await _confirmSkip();
       return;
@@ -250,7 +254,10 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
         onBackgroundTap: () => Navigator.pop(ctx, false),
       ),
     );
-    if (ok == true) await _finish(save: false);
+    if (ok == true) {
+      unawaited(AnalyticsService.instance.trackOnboardingSkipAll());
+      await _finish(save: false);
+    }
   }
 
   // ── Build ───────────────────────────────────────────────────────────────
@@ -707,6 +714,8 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
 
   Widget _buildType(FlutterFlowTheme theme) {
     void pick(String t) => _pickTap(() {
+          unawaited(AnalyticsService.instance
+              .trackOnboardingSkin(typeSkin: t, via: 'direct'));
           _skinType = t;
           _typeViaDetermine = false;
           _forward = true;
@@ -853,6 +862,8 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
                   label: _t('obq_det_confirm'),
                   size: AppButtonSize.md,
                   onPressed: () => _pickTap(() {
+                    unawaited(AnalyticsService.instance
+                        .trackOnboardingSkin(typeSkin: result, via: 'determine'));
                     _skinType = result;
                     _typeViaDetermine = true;
                     _forward = true;
@@ -885,14 +896,22 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
             yesKey: 'obq_sens_yes_short',
             noKey: 'obq_sens_no_short',
             value: _sensitive,
-            onPick: (v) => _sensitive = v),
+            onPick: (v) {
+              unawaited(AnalyticsService.instance
+                  .trackOnboardingSkinNew(typeNew: v));
+              _sensitive = v;
+            }),
         const SizedBox(height: 28),
         _binaryQuestion(theme,
             titleKey: 'obq_acne_title',
             yesKey: 'obq_acne_yes_short',
             noKey: 'obq_acne_no_short',
             value: _acneProne,
-            onPick: (v) => _acneProne = v),
+            onPick: (v) {
+              unawaited(AnalyticsService.instance
+                  .trackOnboardingSkinEruption(typeEruption: v));
+              _acneProne = v;
+            }),
       ],
     );
   }
@@ -1046,14 +1065,20 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
         children.add(AppButton(
           label: _t('obq_welcome_start'),
           trailingIcon: Icons.arrow_forward_rounded,
-          onPressed: () => _go(_Step.type),
+          onPressed: () {
+            unawaited(AnalyticsService.instance.trackOnboardingGo());
+            _go(_Step.type);
+          },
         ));
         children.add(const SizedBox(height: 4));
         children.add(AppButton(
           label: _t('obq_welcome_skip'),
           variant: AppButtonVariant.text,
           size: AppButtonSize.md,
-          onPressed: _confirmSkip,
+          onPressed: () {
+            unawaited(AnalyticsService.instance.trackOnboardingSkip());
+            _confirmSkip();
+          },
         ));
         break;
       case _Step.traits:
@@ -1067,7 +1092,13 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
       case _Step.goals:
         children.add(AppButton(
           label: _t('obq_next'),
-          onPressed: _goals.isEmpty ? null : () => _go(_Step.result),
+          onPressed: _goals.isEmpty
+              ? null
+              : () {
+                  unawaited(AnalyticsService.instance
+                      .trackOnboardingImportantContinue(typeImportant: _goals));
+                  _go(_Step.result);
+                },
         ));
         children.add(const SizedBox(height: 4));
         children.add(AppButton(
@@ -1075,6 +1106,7 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
           variant: AppButtonVariant.text,
           size: AppButtonSize.md,
           onPressed: () {
+            unawaited(AnalyticsService.instance.trackOnboardingNoGoal());
             _goals.clear();
             _go(_Step.result);
           },
@@ -1083,14 +1115,25 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
       case _Step.result:
         children.add(AppButton(
           label: _t('obq_result_save'),
-          onPressed: () => _finish(save: true),
+          onPressed: () {
+            unawaited(AnalyticsService.instance.trackOnboardingDone(
+              skinType: _skinType,
+              sensitive: _sensitive,
+              acneProne: _acneProne,
+              goalsCount: _goals.length,
+            ));
+            _finish(save: true);
+          },
         ));
         children.add(const SizedBox(height: 4));
         children.add(AppButton(
           label: _t('obq_result_edit'),
           variant: AppButtonVariant.text,
           size: AppButtonSize.md,
-          onPressed: () => _go(_Step.type, forward: false),
+          onPressed: () {
+            unawaited(AnalyticsService.instance.trackOnboardingEdit());
+            _go(_Step.type, forward: false);
+          },
         ));
         break;
       // type / determine advance on tap — no footer button.

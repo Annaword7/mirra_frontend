@@ -166,7 +166,7 @@ class _BagWidgetState extends State<BagWidget> {
   void _openPaywall({String trigger = 'bag_add_from_bag'}) {
     HapticFeedback.lightImpact();
     unawaited(
-        AnalyticsService.instance.trackUpgradePromptTapped(trigger: trigger));
+        AnalyticsService.instance.trackPremiumTap(from: trigger));
     context.pushNamed(PaywallpageWidget.routeName);
   }
 
@@ -203,12 +203,14 @@ class _BagWidgetState extends State<BagWidget> {
       ),
     );
     if (picked == null) return;
+    unawaited(AnalyticsService.instance.trackBeautyBagProductAdd());
     await CosmeticBagService.instance.add(picked);
     _load();
   }
 
   Future<void> _remove(int imageId) async {
     HapticFeedback.lightImpact();
+    unawaited(AnalyticsService.instance.trackBeautyBagProductDelete());
     await CosmeticBagService.instance.remove(imageId);
     _load();
   }
@@ -264,6 +266,9 @@ class _BagWidgetState extends State<BagWidget> {
     final IconData icon;
     final String status;
     final String button;
+    // Кнопка одна, а действий два: пока разбора нет — «проверить», дальше —
+    // «открыть». Событие должно различать их так же, как различает человек.
+    final bool ctaIsCheck = !hasRegimen || stale;
     if (_regimenLoading) {
       accent = theme.primary;
       icon = Icons.hourglass_empty_rounded;
@@ -333,6 +338,9 @@ class _BagWidgetState extends State<BagWidget> {
           AppButton(
             label: button,
             onPressed: () async {
+              unawaited(ctaIsCheck
+                  ? AnalyticsService.instance.trackBeautyBagCheckFit()
+                  : AnalyticsService.instance.trackBeautyBagViewAnalysis());
               await context.pushNamed(CareReviewWidget.routeName);
               if (mounted) _load();
             },

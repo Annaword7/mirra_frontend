@@ -7,6 +7,7 @@ import '/backend/api_requests/api_calls.dart';
 import '/backend/supabase/database/tables/product_prices.dart';
 import '/backend/supabase/supabase.dart';
 import '/components/navbar/navbar_widget.dart';
+import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/design_system/components/app_button.dart';
@@ -200,7 +201,10 @@ class _TopratedWidgetState extends State<TopratedWidget> {
       _                   => v,
     };
 
-    showModalBottomSheet(
+    unawaited(AnalyticsService.instance.trackOverviewFilter());
+    // Лист отдаёт `true`, только если ушли через «Применить» или «Сбросить»;
+    // всё остальное — свайп вниз или тап по затемнению.
+    showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -240,8 +244,10 @@ class _TopratedWidgetState extends State<TopratedWidget> {
                       const Spacer(),
                       TextButton(
                         onPressed: () {
+                          unawaited(AnalyticsService.instance
+                              .trackOverviewFilterReset());
                           setSheet(() => tempFacets.clear());
-                          Navigator.of(ctx).pop();
+                          Navigator.of(ctx).pop(true);
                           _applyFilters({}, tempSort);
                         },
                         child: Text(lang == 'ru' ? 'Сбросить' : 'Reset',
@@ -342,7 +348,13 @@ class _TopratedWidgetState extends State<TopratedWidget> {
                     child: AppButton(
                       label: lang == 'ru' ? 'Применить' : 'Apply',
                       onPressed: () {
-                        Navigator.of(ctx).pop();
+                        unawaited(AnalyticsService.instance
+                            .trackOverviewFilterAdd(
+                                filter: tempFacets.entries
+                                    .expand((e) =>
+                                        e.value.map((v) => '${e.key}:$v'))
+                                    .toList()));
+                        Navigator.of(ctx).pop(true);
                         _applyFilters(tempFacets, tempSort);
                       },
                     ),
@@ -353,7 +365,11 @@ class _TopratedWidgetState extends State<TopratedWidget> {
           ),
         ),
       ),
-    );
+    ).then((closedByAction) {
+      if (closedByAction != true) {
+        unawaited(AnalyticsService.instance.trackOverviewFilterSwipe());
+      }
+    });
   }
 
   @override
@@ -685,12 +701,17 @@ class _TopratedWidgetState extends State<TopratedWidget> {
                                           final r = _searchResults![i];
                                           final imageId = r['image_id'] as int?;
                                           return GestureDetector(
-                                            onTap: imageId == null ? null : () => context.pushNamed(
-                                              Itemcard2Widget.routeName,
-                                              queryParameters: {
-                                                'imageid': serializeParam(imageId, ParamType.int),
-                                              }.withoutNulls,
-                                            ),
+                                            onTap: imageId == null ? null : () {
+                                              unawaited(AnalyticsService
+                                                  .instance
+                                                  .trackOverviewProductTap());
+                                              context.pushNamed(
+                                                Itemcard2Widget.routeName,
+                                                queryParameters: {
+                                                  'imageid': serializeParam(imageId, ParamType.int),
+                                                }.withoutNulls,
+                                              );
+                                            },
                                             child: ProductTile(
                                               imageUrl:  r['image_url']    as String?,
                                               brand:     r['brand']        as String?,
@@ -748,6 +769,8 @@ class _TopratedWidgetState extends State<TopratedWidget> {
                                         hoverColor: Colors.transparent,
                                         highlightColor: Colors.transparent,
                                         onTap: () async {
+                                          unawaited(AnalyticsService.instance
+                                              .trackOverviewProductTap());
                                           context.pushNamed(
                                             Itemcard2Widget.routeName,
                                             queryParameters: {

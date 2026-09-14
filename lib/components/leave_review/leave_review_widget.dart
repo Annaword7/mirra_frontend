@@ -1,5 +1,6 @@
 import '/auth/supabase_auth/auth_util.dart';
 import '/backend/api_requests/api_calls.dart';
+import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/design_system/components/app_button.dart';
@@ -193,13 +194,16 @@ class _LeaveReviewWidgetState extends State<LeaveReviewWidget> {
                     !_model.formKey.currentState!.validate()) {
                   return;
                 }
+                unawaited(AnalyticsService.instance.trackFeedbackSend());
                 await SendAppMessageCall.call(
                   token: currentJwtToken,
                   message: _model.folderTitleTextController.text,
                   email: currentUserEmail,
                 );
 
-                Navigator.pop(context);
+                // `true` отличает отправку от закрытия листа — по нему
+                // профиль решает, слать ли feedback_swipe.
+                Navigator.pop(context, true);
               },
             ),
         ].divide(SizedBox(height: 15.0)),

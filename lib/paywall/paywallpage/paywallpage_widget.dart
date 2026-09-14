@@ -113,25 +113,38 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
   }
 
   Future<void> _restorePurchases() async {
-    _model.rCUserID3 = await actions.rcEnsureLogin(context, currentUserUid);
-    await revenue_cat.restorePurchases();
-    final isEntitled =
-        await revenue_cat.isEntitled('EntitlementMirra') ?? false;
-    if (!isEntitled) {
-      await revenue_cat.loadOfferings();
-      if (mounted) _toast('rf9m3wk5');
+    // Ни одна ветка ниже не сообщает об отказе наружу: пользователь видит тост,
+    // и на этом всё. Исход считаем из finally — так он доезжает и когда цепочка
+    // обрывается исключением, а именно этот случай и есть «заплатил, а доступ
+    // не вернулся».
+    var result = 'error';
+    try {
+      _model.rCUserID3 = await actions.rcEnsureLogin(context, currentUserUid);
+      await revenue_cat.restorePurchases();
+      final isEntitled =
+          await revenue_cat.isEntitled('EntitlementMirra') ?? false;
+      if (!isEntitled) {
+        result = 'nothing_to_restore';
+        await revenue_cat.loadOfferings();
+        if (mounted) _toast('rf9m3wk5');
+        safeSetState(() {});
+        return;
+      }
+      // Restore only moved the entitlement inside RevenueCat; premium in our own
+      // database is what the app and the scan quota read. The TRANSFER webhook
+      // writes it too, but this is the path the user is actively waiting on, so
+      // don't make them wait for delivery.
+      await SubscriptionSyncCall.call(token: currentJwtToken);
+      FFAppState().isprouser = true;
+      // Только здесь: до записи в нашу базу доступа для приложения ещё нет,
+      // и рапортовать об успехе было бы враньём.
+      result = 'restored';
+      if (!mounted) return;
+      _toast('rs4p1dq2');
       safeSetState(() {});
-      return;
+    } finally {
+      unawaited(AnalyticsService.instance.trackPurchaseRestore(result: result));
     }
-    // Restore only moved the entitlement inside RevenueCat; premium in our own
-    // database is what the app and the scan quota read. The TRANSFER webhook
-    // writes it too, but this is the path the user is actively waiting on, so
-    // don't make them wait for delivery.
-    await SubscriptionSyncCall.call(token: currentJwtToken);
-    FFAppState().isprouser = true;
-    if (!mounted) return;
-    _toast('rs4p1dq2');
-    safeSetState(() {});
   }
 
   /// Leaves the paywall in either presentation. Navigator, not go_router: shown

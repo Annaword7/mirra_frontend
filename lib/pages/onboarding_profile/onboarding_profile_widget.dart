@@ -1,6 +1,7 @@
 import '/auth/supabase_auth/auth_util.dart';
 import '/backend/supabase/supabase.dart';
 import '/components/countryselector/countryselector_widget.dart';
+import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_animations.dart';
 import '/flutter_flow/flutter_flow_language_selector.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -119,6 +120,9 @@ class _OnboardingProfileWidgetState extends State<OnboardingProfileWidget>
   Future<void> _pickAvatar() async {
     final selectedMedia = await selectMediaWithSourceBottomSheet(
       context: context,
+      onSourceSelected: (source) => unawaited(
+          AnalyticsService.instance.trackProfileSettingsPhoto(
+              source: source == MediaSource.camera ? 'camera' : 'gallery')),
       storageFolderPath: 'user_profile_images',
       maxWidth: 1000,
       maxHeight: 1000,
@@ -285,6 +289,8 @@ class _OnboardingProfileWidgetState extends State<OnboardingProfileWidget>
                   return GestureDetector(
                     onTap: () {
                       HapticFeedback.selectionClick();
+                      unawaited(AnalyticsService.instance
+                          .trackProfileSettingsPhoto(source: 'icon_name'));
                       safeSetState(() => _model.profilePicture = url);
                     },
                     child: AnimatedContainer(
@@ -609,6 +615,10 @@ class _OnboardingProfileWidgetState extends State<OnboardingProfileWidget>
                         HapticFeedback.lightImpact();
                         if (_model.formKey.currentState == null ||
                             !_model.formKey.currentState!.validate()) return;
+                        unawaited(AnalyticsService.instance
+                            .trackProfileSettingsContinue(
+                                interfaceLanguage: FFLocalizations.of(context)
+                                    .languageCode));
                         await UsersTable().update(
                           data: {
                             'first_name':

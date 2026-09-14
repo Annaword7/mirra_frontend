@@ -218,11 +218,13 @@ class _LogInPageWidgetState extends State<LogInPageWidget>
         padding: EdgeInsetsDirectional.fromSTEB(0.0, 8.0, 0.0, 8.0),
         child: FFButtonWidget(
           onPressed: () async {
+            unawaited(AnalyticsService.instance.trackCreateProfileAppleId());
             GoRouter.of(context).prepareAuthEvent();
             final user = await authManager.signInWithApple(context);
             if (user == null) return;
             if (isRegister) {
-              unawaited(AnalyticsService.instance.trackSignUp(method: 'apple'));
+              unawaited(AnalyticsService.instance
+                  .trackCreateAccount(from: 'log_in_page'));
               if (context.mounted) {
                 context.goNamedAuth(
                   OnboardingProfileWidget.routeName,
@@ -236,7 +238,7 @@ class _LogInPageWidgetState extends State<LogInPageWidget>
                 );
               }
             } else {
-              unawaited(AnalyticsService.instance.trackLogin(method: 'apple'));
+              unawaited(AnalyticsService.instance.trackLogIn());
               if (context.mounted) {
                 context.goNamedAuth(HomeWidget.routeName, context.mounted);
               }
@@ -334,7 +336,7 @@ class _LogInPageWidgetState extends State<LogInPageWidget>
                     _model.passwordTextController.text,
                   );
                   if (user == null) return;
-                  unawaited(AnalyticsService.instance.trackLogin());
+                  unawaited(AnalyticsService.instance.trackLogIn());
                   if (context.mounted) {
                     context.goNamedAuth(HomeWidget.routeName, context.mounted);
                   }
@@ -475,7 +477,8 @@ class _LogInPageWidgetState extends State<LogInPageWidget>
                       _model.passwordRegisterTextController.text,
                     );
                     if (user == null) return;
-                    unawaited(AnalyticsService.instance.trackSignUp());
+                    unawaited(AnalyticsService.instance
+                        .trackCreateAccount(from: 'log_in_page'));
                     if (context.mounted) {
                       context.goNamedAuth(
                         OnboardingProfileWidget.routeName,

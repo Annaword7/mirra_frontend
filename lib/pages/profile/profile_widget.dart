@@ -229,8 +229,8 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                       .getText('1g4dikoz' /* Try premium */),
                                   onTap: () {
                                     unawaited(AnalyticsService.instance
-                                        .trackUpgradePromptTapped(
-                                            trigger: 'profile_try_premium'));
+                                        .trackPremiumTap(
+                                            from: 'profile_try_premium'));
                                     context.pushNamed(
                                         PaywallpageWidget.routeName);
                                   },
@@ -240,8 +240,12 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                   icon: Icons.edit_outlined,
                                   label: FFLocalizations.of(context)
                                       .getText('45rliy0n' /* Edit Profile */),
-                                  onTap: () => context
-                                      .pushNamed(EditProfileWidget.routeName),
+                                  onTap: () {
+                                    unawaited(AnalyticsService.instance
+                                        .trackProfileEdit(from: 'profile'));
+                                    context.pushNamed(
+                                        EditProfileWidget.routeName);
+                                  },
                                 ),
                               if (!currentUserIsAnonymous &&
                                   FFAppState().showLinkTelegram)
@@ -249,12 +253,23 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                   icon: Icons.send_rounded,
                                   label: FFLocalizations.of(context)
                                       .getText('cm_link_telegram'),
-                                  onTap: () => showModalBottomSheet(
-                                    context: context,
-                                    isScrollControlled: true,
-                                    backgroundColor: Colors.transparent,
-                                    builder: (_) => const LinkTelegramSheet(),
-                                  ),
+                                  onTap: () {
+                                    unawaited(AnalyticsService.instance
+                                        .trackLinkTelegram());
+                                    showModalBottomSheet<bool>(
+                                      context: context,
+                                      isScrollControlled: true,
+                                      backgroundColor: Colors.transparent,
+                                      builder: (_) => const LinkTelegramSheet(),
+                                    ).then((linked) {
+                                      // `true` отдаёт только кнопка
+                                      // «Привязать» внутри листа.
+                                      if (linked != true) {
+                                        unawaited(AnalyticsService.instance
+                                            .trackLinkTelegramSwipe());
+                                      }
+                                    });
+                                  },
                                 ),
                               if (!isWeb)
                                 Builder(
@@ -262,41 +277,64 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                     icon: Icons.share_outlined,
                                     label: FFLocalizations.of(context)
                                         .getText('0nawsp0z' /* Share */),
-                                    onTap: () => Share.share(
-                                      'https://apps.apple.com/us/app/m-rra-know-your-beauty/id6745415201',
-                                      sharePositionOrigin:
-                                          getWidgetBoundingBox(context),
-                                    ),
+                                    onTap: () {
+                                      unawaited(AnalyticsService.instance
+                                          .trackShareTap());
+                                      Share.share(
+                                        'https://apps.apple.com/us/app/m-rra-know-your-beauty/id6745415201',
+                                        sharePositionOrigin:
+                                            getWidgetBoundingBox(context),
+                                      );
+                                    },
                                   ),
                                 ),
                               SettingsRow(
                                 icon: Icons.textsms_outlined,
                                 label: FFLocalizations.of(context)
                                     .getText('yyo7sp77' /* Leave a Review */),
-                                onTap: () => showModalBottomSheet(
-                                  isScrollControlled: true,
-                                  backgroundColor: Colors.transparent,
-                                  enableDrag: false,
-                                  context: context,
-                                  builder: (context) => GestureDetector(
-                                    onTap: () {
-                                      FocusScope.of(context).unfocus();
-                                      FocusManager.instance.primaryFocus
-                                          ?.unfocus();
-                                    },
-                                    child: Padding(
-                                      padding: MediaQuery.viewInsetsOf(context),
-                                      child: LeaveReviewWidget(),
+                                onTap: () {
+                                  unawaited(AnalyticsService.instance
+                                      .trackFeedbackTap());
+                                  showModalBottomSheet<bool>(
+                                    isScrollControlled: true,
+                                    backgroundColor: Colors.transparent,
+                                    enableDrag: false,
+                                    context: context,
+                                    builder: (context) => GestureDetector(
+                                      onTap: () {
+                                        FocusScope.of(context).unfocus();
+                                        FocusManager.instance.primaryFocus
+                                            ?.unfocus();
+                                      },
+                                      child: Padding(
+                                        padding:
+                                            MediaQuery.viewInsetsOf(context),
+                                        child: LeaveReviewWidget(),
+                                      ),
                                     ),
-                                  ),
-                                ).then((value) => safeSetState(() {})),
+                                  ).then((sent) {
+                                    // Лист закрыли, не отправив отзыв. Тянуть
+                                    // его нельзя (enableDrag: false), закрытие
+                                    // идёт тапом по затемнению — событие в
+                                    // разметке всё равно называется swipe.
+                                    if (sent != true) {
+                                      unawaited(AnalyticsService.instance
+                                          .trackFeedbackSwipe());
+                                    }
+                                    safeSetState(() {});
+                                  });
+                                },
                               ),
                               SettingsRow(
                                 icon: Icons.face_retouching_natural,
                                 label: FFLocalizations.of(context)
                                     .getText('prof_skin_profile'),
-                                onTap: () => context
-                                    .pushNamed(OnboardingQuizWidget.routeName),
+                                onTap: () {
+                                  unawaited(AnalyticsService.instance
+                                      .trackSkinProfile());
+                                  context.pushNamed(
+                                      OnboardingQuizWidget.routeName);
+                                },
                               ),
                               SettingsRow(
                                 icon: Icons.language_sharp,
@@ -325,6 +363,8 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                   .getText('cm_create_account'),
                               onPressed: () {
                                 HapticFeedback.lightImpact();
+                                unawaited(AnalyticsService.instance
+                                    .trackCreateAccount(from: 'profile'));
                                 context.pushNamed(
                                   CreateAccountPageWidget.routeName,
                                   extra: <String, dynamic>{
@@ -346,6 +386,8 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                               variant: AppButtonVariant.secondary,
                               onPressed: () {
                                 HapticFeedback.lightImpact();
+                                unawaited(
+                                    AnalyticsService.instance.trackLogIn());
                                 context.pushNamed(
                                   LogInPageWidget.routeName,
                                   extra: <String, dynamic>{
@@ -417,6 +459,8 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                               variant: AppButtonVariant.secondary,
                               onPressed: () async {
                                 HapticFeedback.lightImpact();
+                                unawaited(AnalyticsService.instance
+                                    .trackAccountExit());
                                 FFAppState().isprouser = false;
                                 FFAppState().onboardingDone = false;
                                 FFAppState().analysesused = 0;
@@ -456,6 +500,8 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                               size: AppButtonSize.sm,
                               onPressed: () async {
                                 HapticFeedback.lightImpact();
+                                unawaited(AnalyticsService.instance
+                                    .trackAccountDelete());
                                 await showModalBottomSheet(
                                   isScrollControlled: true,
                                   backgroundColor: Colors.transparent,

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import '/design_system/foundations/layout.dart';
 import '/design_system/components/screen_loader.dart';
 import '/backend/supabase/database/database.dart';
@@ -6,6 +8,7 @@ import '/design_system/components/product_thumb.dart';
 import '/domain/care_planning/care_planning_service.dart';
 import '/domain/client_card/client_card_service.dart';
 import '/domain/products/product_photo.dart';
+import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'care_frames_sheet.dart';
@@ -153,6 +156,7 @@ class _CareReviewWidgetState extends State<CareReviewWidget> {
   Future<void> _accept() async {
     final id = _regimenId;
     if (id == null) return;
+    unawaited(AnalyticsService.instance.trackBeautyBagAddCalendar());
     final resp = await CarePlanningService.instance.accept(id);
     if (!mounted) return;
     if (resp.succeeded) {
@@ -612,7 +616,14 @@ class _CareReviewWidgetState extends State<CareReviewWidget> {
             borderRadius: BorderRadius.circular(12),
             child: InkWell(
               borderRadius: BorderRadius.circular(12),
-              onTap: () => setState(() => _warningsExpanded = !expanded),
+              onTap: () {
+                // Событие только на раскрытие: закрытие «Замечаний» в разметке
+                // не описано.
+                if (!expanded) {
+                  unawaited(AnalyticsService.instance.trackBeautyBagNotes());
+                }
+                setState(() => _warningsExpanded = !expanded);
+              },
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Row(
