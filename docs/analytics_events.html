@@ -1,0 +1,827 @@
+<title>Карта событий Mirra</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=JetBrains+Mono:wght@400;500;700&display=swap">
+
+<style>
+:root {
+  --ground: #FBFAFC;
+  --surface: #FFFFFF;
+  --surface-sunk: #F4F2F7;
+  --ink: #1A1725;
+  --ink-soft: #4A4460;
+  --muted: #6E6884;
+  --rule: #E3E0EA;
+  --rule-soft: #EFEDF3;
+  --accent: #4A3FBF;
+  --accent-soft: #EDEBFA;
+  --ok: #1B6E53;
+  --ok-soft: #E4F2EC;
+  --warn: #93540C;
+  --warn-soft: #FAEEDD;
+  --stop: #93284A;
+  --stop-soft: #FBE8EE;
+  --shadow: 0 1px 2px rgba(26, 23, 37, .05), 0 8px 24px -16px rgba(26, 23, 37, .3);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #131120;
+    --surface: #1B1829;
+    --surface-sunk: #221E33;
+    --ink: #ECE9F4;
+    --ink-soft: #C0BAD2;
+    --muted: #928BA8;
+    --rule: #2F2A42;
+    --rule-soft: #262236;
+    --accent: #A99BFF;
+    --accent-soft: #272144;
+    --ok: #6FD5AE;
+    --ok-soft: #16302A;
+    --warn: #E8B36B;
+    --warn-soft: #332616;
+    --stop: #F094B0;
+    --stop-soft: #361926;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px -16px rgba(0, 0, 0, .8);
+  }
+}
+
+:root[data-theme="dark"] {
+  --ground: #131120;
+  --surface: #1B1829;
+  --surface-sunk: #221E33;
+  --ink: #ECE9F4;
+  --ink-soft: #C0BAD2;
+  --muted: #928BA8;
+  --rule: #2F2A42;
+  --rule-soft: #262236;
+  --accent: #A99BFF;
+  --accent-soft: #272144;
+  --ok: #6FD5AE;
+  --ok-soft: #16302A;
+  --warn: #E8B36B;
+  --warn-soft: #332616;
+  --stop: #F094B0;
+  --stop-soft: #361926;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px -16px rgba(0, 0, 0, .8);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 24px 96px;
+}
+
+/* ── Header ─────────────────────────────────────────────── */
+
+.masthead {
+  padding: 64px 0 36px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.eyebrow {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 18px;
+}
+
+.masthead h1 {
+  font-family: Archivo, "Helvetica Neue", sans-serif;
+  font-weight: 700;
+  font-size: clamp(2.1rem, 5.5vw, 3.4rem);
+  line-height: 1.04;
+  letter-spacing: -.028em;
+  text-wrap: balance;
+  margin: 0 0 16px;
+}
+
+.lede {
+  max-width: 62ch;
+  font-size: 1.075rem;
+  color: var(--ink-soft);
+  margin: 0;
+}
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 34px;
+}
+
+.stat {
+  flex: 1 1 168px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 16px 18px;
+  box-shadow: var(--shadow);
+}
+
+.stat b {
+  display: block;
+  font-family: Archivo, sans-serif;
+  font-size: 1.9rem;
+  font-weight: 700;
+  letter-spacing: -.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.stat span {
+  display: block;
+  font-family: Archivo, sans-serif;
+  font-size: .775rem;
+  font-weight: 500;
+  letter-spacing: .01em;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.stat-ok b { color: var(--ok); }
+.stat-warn b { color: var(--warn); }
+.stat-stop b { color: var(--stop); }
+
+/* ── Shell ──────────────────────────────────────────────── */
+
+.shell {
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+  gap: 56px;
+  align-items: start;
+  margin-top: 48px;
+}
+
+.rail {
+  position: sticky;
+  top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rail-head {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 0 10px 10px;
+}
+
+.rail a {
+  font-family: Archivo, sans-serif;
+  font-size: .855rem;
+  font-weight: 500;
+  color: var(--ink-soft);
+  text-decoration: none;
+  padding: 6px 10px;
+  border-radius: 7px;
+  border-left: 2px solid transparent;
+}
+
+.rail a:hover,
+.rail a:focus-visible {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-left-color: var(--accent);
+  outline: none;
+}
+
+.main { min-width: 0; display: flex; flex-direction: column; gap: 52px; }
+
+/* ── Sections ───────────────────────────────────────────── */
+
+.sec { scroll-margin-top: 20px; }
+
+.sec > h2 {
+  font-family: Archivo, sans-serif;
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: -.018em;
+  margin: 0 0 6px;
+  text-wrap: balance;
+}
+
+.sec-note {
+  color: var(--muted);
+  font-size: .94rem;
+  margin: 0 0 22px;
+  max-width: 68ch;
+}
+
+/* ── Event grid ─────────────────────────────────────────── */
+
+.events {
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.ev {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.05fr) minmax(150px, .75fr) minmax(180px, 1.2fr);
+  gap: 6px 22px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--rule-soft);
+  align-items: baseline;
+}
+
+.ev:first-child { border-top: none; }
+
+.ev-name {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: .82rem;
+  font-weight: 500;
+  color: var(--ink);
+  word-break: break-word;
+}
+
+.ev-props {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  align-self: center;
+}
+
+.prop {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: .715rem;
+  background: var(--surface-sunk);
+  color: var(--ink-soft);
+  border-radius: 5px;
+  padding: 2px 7px;
+  white-space: nowrap;
+}
+
+.dash { color: var(--muted); font-size: .85rem; }
+
+.ev-where {
+  font-size: .91rem;
+  color: var(--ink-soft);
+}
+
+/* ── Change cards ───────────────────────────────────────── */
+
+.changes { display: flex; flex-direction: column; gap: 10px; }
+
+.chg {
+  display: grid;
+  grid-template-columns: 118px minmax(0, 1fr);
+  gap: 4px 20px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-left-width: 3px;
+  border-radius: 10px;
+  padding: 16px 20px;
+  box-shadow: var(--shadow);
+}
+
+.chg-renamed { border-left-color: var(--warn); }
+.chg-dropped { border-left-color: var(--stop); }
+.chg-added { border-left-color: var(--ok); }
+
+.chip {
+  font-family: Archivo, sans-serif;
+  font-size: .69rem;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  border-radius: 20px;
+  padding: 3px 10px;
+  justify-self: start;
+  align-self: start;
+  white-space: nowrap;
+}
+
+.chip-renamed { background: var(--warn-soft); color: var(--warn); }
+.chip-dropped { background: var(--stop-soft); color: var(--stop); }
+.chip-added { background: var(--ok-soft); color: var(--ok); }
+
+.chg-body { min-width: 0; }
+
+.chg-body p { margin: 0; color: var(--ink-soft); font-size: .94rem; }
+
+.move {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: .82rem;
+  margin-bottom: 5px;
+  line-height: 1.7;
+}
+
+.move .from { color: var(--muted); text-decoration: line-through; }
+.move .to { color: var(--accent); font-weight: 500; }
+.move .arrow { color: var(--muted); padding: 0 6px; }
+
+/* ── Setup table ────────────────────────────────────────── */
+
+.setup {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .93rem;
+}
+
+.setup th {
+  font-family: Archivo, sans-serif;
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: left;
+  padding: 0 16px 9px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.setup td {
+  padding: 11px 16px 11px 0;
+  border-bottom: 1px solid var(--rule-soft);
+  color: var(--ink-soft);
+  vertical-align: top;
+}
+
+.setup code {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: .8rem;
+  color: var(--ink);
+}
+
+.scroller { overflow-x: auto; }
+
+/* ── Callout ────────────────────────────────────────────── */
+
+.callout {
+  background: var(--accent-soft);
+  border-radius: 10px;
+  padding: 18px 22px;
+  font-size: .95rem;
+  color: var(--ink-soft);
+}
+
+.callout strong { color: var(--ink); font-weight: 600; }
+
+.callout code,
+.sec-note code,
+.chg-body code {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: .82em;
+  color: var(--accent);
+}
+
+.path {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: .73rem;
+  color: var(--muted);
+  display: block;
+  margin: -2px 0 20px;
+}
+
+@media (max-width: 900px) {
+  .shell { grid-template-columns: 1fr; gap: 32px; }
+  .rail { position: static; flex-direction: row; flex-wrap: wrap; gap: 6px; }
+  .rail-head { display: none; }
+  .rail a { border-left: none; background: var(--surface-sunk); }
+  .ev { grid-template-columns: 1fr; gap: 7px; padding: 16px 18px; }
+  .chg { grid-template-columns: 1fr; }
+}
+</style>
+
+<div class="wrap">
+
+<header class="masthead">
+  <p class="eyebrow">Mirra · Amplitude · 2.5.0</p>
+  <h1>Карта событий Mirra</h1>
+  <p class="lede">Что приложение реально отправляет в Amplitude после разметки, и чем это отличается
+    от таблицы «Mirra Marketing — Events». Источник правды — код; расхождения перечислены отдельно,
+    их нужно перенести в таблицу.</p>
+
+  <div class="stats">
+    <div class="stat"><b>101</b><span>событие в коде</span></div>
+    <div class="stat stat-ok"><b>83 / 85</b><span>из таблицы отправляются</span></div>
+    <div class="stat stat-warn"><b>13</b><span>переименовано</span></div>
+    <div class="stat stat-stop"><b>2</b><span>без экрана в приложении</span></div>
+  </div>
+</header>
+
+<div class="shell">
+
+  <nav class="rail">
+    <p class="rail-head">Разделы</p>
+    <a href="#changes">Расхождения</a>
+    <a href="#setup">Ключи</a>
+    <a href="#userprops">Свойства</a>
+    <a href="#auto">Автосъём</a>
+    <a href="#onboarding">Онбординг</a>
+    <a href="#frames">Рамки рутины</a>
+    <a href="#scan">Сканирование</a>
+    <a href="#home">Главная</a>
+    <a href="#account">Аккаунт</a>
+    <a href="#overview">Обзор</a>
+    <a href="#product">Продукт</a>
+    <a href="#bag">Косметичка</a>
+    <a href="#routine">Рутина</a>
+    <a href="#reviews">Просилка отзывов</a>
+    <a href="#legacy">Вне таблицы</a>
+  </nav>
+
+  <main class="main">
+
+    <!-- ── Расхождения ─────────────────────────────────── -->
+    <section class="sec" id="changes">
+      <h2>Расхождения с таблицей</h2>
+      <p class="sec-note">Единственный раздел, который требует действий с вашей стороны: эти
+        девять пунктов нужно поправить в таблице и в дашбордах.</p>
+
+      <div class="changes">
+
+        <div class="chg chg-renamed">
+          <span class="chip chip-renamed">Опечатка</span>
+          <div class="chg-body">
+            <p class="move"><span class="from">onbording_*</span><span class="arrow">→</span><span class="to">onboarding_*</span></p>
+            <p>В 14 событиях онбординга в таблице пропущена буква — переименованы 11 из них, ещё два
+              переехали в <code>care_frames_*</code>, одно не отправляется. Переименовывать после
+              выхода в прод — терять связность данных до и после, поэтому поправили сразу.</p>
+          </div>
+        </div>
+
+        <div class="chg chg-renamed">
+          <span class="chip chip-renamed">Переехало</span>
+          <div class="chg-body">
+            <p class="move"><span class="from">onbording_pregnancy</span><span class="arrow">→</span><span class="to">care_frames_pregnancy</span></p>
+            <p>Вопрос про беременность живёт не в онбординге, а в «Рамках рутины» внутри Разбора
+              косметички. Свойство <code>type_pregnancy</code> сохранено.</p>
+          </div>
+        </div>
+
+        <div class="chg chg-renamed">
+          <span class="chip chip-renamed">Переехало</span>
+          <div class="chg-body">
+            <p class="move"><span class="from">onbording_routine_continue</span><span class="arrow">→</span><span class="to">care_frames_continue</span></p>
+            <p>Фильтры рутины — там же, в «Рамках рутины». Свойства <code>fragrance_free</code> и
+              <code>steps_routine</code> сохранены.</p>
+          </div>
+        </div>
+
+        <div class="chg chg-dropped">
+          <span class="chip chip-dropped">Нет экрана</span>
+          <div class="chg-body">
+            <p class="move"><span class="to">onboarding_done</span> — свойства <span class="from">Age</span>, <span class="from">Budget</span></p>
+            <p>Возраст и бюджет не спрашиваются нигде в приложении: их не читает ни один расчёт.
+              Вместо них событие несёт реальные ответы анкеты — <code>skin_type</code>,
+              <code>sensitive</code>, <code>acne_prone</code>, <code>goals_count</code>.</p>
+          </div>
+        </div>
+
+        <div class="chg chg-dropped">
+          <span class="chip chip-dropped">Не шлём</span>
+          <div class="chg-body">
+            <p class="move"><span class="from">onbording_scan</span></p>
+            <p>На последнем шаге анкеты одна кнопка — «Сохранить и сканировать». Два события на один
+              тап дают только шум, поэтому осталось <code>onboarding_done</code>.</p>
+          </div>
+        </div>
+
+        <div class="chg chg-dropped">
+          <span class="chip chip-dropped">Не шлём</span>
+          <div class="chg-body">
+            <p class="move"><span class="from">end_session</span></p>
+            <p>Кнопки «Завершить сессию» в проде нет — её убрали намеренно: у гостя она уничтожала
+              единственный экземпляр его личности вместе с разборами и оплаченной подпиской.
+              Выход авторизованного пользователя покрывает <code>account_exit</code>.</p>
+          </div>
+        </div>
+
+        <div class="chg chg-renamed">
+          <span class="chip chip-renamed">Объединено</span>
+          <div class="chg-body">
+            <p class="move"><span class="to">premium_tap</span> — свойство <span class="to">from</span></p>
+            <p>В приложении уже жило событие на тот же тап с более подробным источником. Значения
+              <code>from</code> богаче, чем <code>home/account</code> из таблицы: <code>home</code>,
+              <code>profile_try_premium</code>, <code>scan_limit</code>,
+              <code>out_of_generations</code>, <code>card_hidden_ingredients</code>,
+              <code>bag_add_from_card</code>, <code>bag_over_limit</code>.</p>
+          </div>
+        </div>
+
+        <div class="chg chg-renamed">
+          <span class="chip chip-renamed">Регистр</span>
+          <div class="chg-body">
+            <p class="move"><span class="from">on/off</span>, <span class="from">Time</span><span class="arrow">→</span><span class="to">state</span>, <span class="to">time</span></p>
+            <p>Свойства <code>routine_push</code> приведены к snake_case. Смешанный регистр в именах
+              свойств Amplitude мешает строить графики: <code>Time</code> и <code>time</code> — две
+              разные колонки.</p>
+          </div>
+        </div>
+
+        <div class="chg chg-added">
+          <span class="chip chip-added">Добавлено</span>
+          <div class="chg-body">
+            <p class="move"><span class="to">onboarding_skin</span> — свойство <span class="to">via</span></p>
+            <p>В анкете есть ветка «Не знаю» → «определим вместе», которой нет в таблице. Без
+              свойства <code>via</code> (<code>direct</code> / <code>determine</code>) прошедшие её
+              просто пропадают из воронки. Туда же <code>goals_count</code> у
+              <code>onboarding_important_continue</code> — целей можно выбрать до трёх.</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── Ключи ───────────────────────────────────────── -->
+    <section class="sec" id="setup">
+      <h2>Ключ и дата-центр</h2>
+      <p class="sec-note">Ключ лежит в <code>assets/environment_values/environment*.json</code> рядом
+        с <code>backendhost</code>. Заполнен только прод — события с дев-сборок в продукте не нужны.</p>
+      <div class="scroller">
+        <table class="setup">
+          <thead>
+            <tr><th>Сборка</th><th>Файл</th><th>Ключ</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>prod</td><td><code>environment.json</code></td><td>заполнен</td></tr>
+            <tr><td>dev · <code>APP_ENV=dev</code></td><td><code>environment.dev.json</code></td><td>пусто — аналитика выключена</td></tr>
+            <tr><td>local · <code>APP_ENV=local</code></td><td><code>environment.local.json</code></td><td>пусто — аналитика выключена</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout" style="margin-top:20px">
+        <p style="margin:0 0 10px"><strong>Дата-центр — европейский.</strong> В конфигурации SDK
+          задан <code>serverZone: ServerZone.eu</code>. По умолчанию SDK шлёт в США, и события молча
+          не долетают — без единой ошибки на клиенте.</p>
+        <p style="margin:0"><strong>Проверять нужно прод-сборкой.</strong> <code>APP_ENV</code> по
+          умолчанию <code>prod</code>, так что обычный Xcode Run — это прод с ключом. Дев-аналитики
+          нет вовсе; следите, чтобы в <code>Generated.xcconfig</code> не залежался дев-дефайн от
+          прошлой сборки.</p>
+      </div>
+    </section>
+
+    <!-- ── Свойства пользователя ───────────────────────── -->
+    <section class="sec" id="userprops">
+      <h2>Свойства пользователя</h2>
+      <p class="sec-note">Ставятся один раз при инициализации и приклеиваются ко <strong>всем</strong>
+        последующим событиям. Это не события: по ним фильтруют, а не считают.</p>
+      <div class="events">
+        <div class="ev"><span class="ev-name">install_source</span><span class="ev-props"><span class="prop">app_store</span><span class="prop">testflight_or_xcode</span><span class="prop">simulator</span></span><span class="ev-where">TestFlight шлёт события в тот же продовый проект, а покупки там песочные. Один сегмент «только App Store» чистит сразу все графики</span></div>
+        <div class="ev"><span class="ev-name">app_env</span><span class="ev-props"><span class="prop">Production</span><span class="prop">Development</span><span class="prop">Local</span></span><span class="ev-where">Страховка от залипшего дев-дефайна в Generated.xcconfig — аварии, из-за которой дев уехал в стор в билде 108</span></div>
+      </div>
+      <p class="sec-note" style="margin:18px 0 0">Источник установки читается из
+        <code>installerStore</code> пакета <code>package_info_plus</code>: на iOS он определяется по
+        имени файла чека. У сборки, поставленной из Xcode на устройство, чек такой же песочный, как у
+        TestFlight — различить их нельзя, поэтому значение так и называется. Граница, которая нужна на
+        практике, проходит между App Store и всем остальным, и она надёжна.</p>
+    </section>
+
+    <!-- ── Автосъём ────────────────────────────────────── -->
+    <section class="sec" id="auto">
+      <h2>Что снимается без нашего кода</h2>
+      <p class="sec-note">Отдельных событий на открытие экрана заводить не нужно.</p>
+      <div class="callout">
+        <p style="margin:0 0 10px"><strong>Экраны.</strong> Переходы снимает
+          <code>AmplitudeNavigatorObserver</code>: на каждый маршрут приходит
+          <code>[Amplitude] Screen Viewed</code> со свойством
+          <code>[Amplitude] Screen Name</code> — именем маршрута.</p>
+        <p style="margin:0"><strong>Сессии и жизненный цикл.</strong> Включены
+          <code>sessions</code>, <code>appLifecycles</code> и <code>deepLinks</code>: старт и конец
+          сессии, установка, обновление и открытие по диплинку приходят сами.</p>
+      </div>
+    </section>
+
+    <!-- ── Онбординг ───────────────────────────────────── -->
+    <section class="sec" id="onboarding">
+      <h2>Онбординг</h2>
+      <span class="path">pages/onboarding_quiz/onboarding_quiz_widget.dart</span>
+      <div class="events">
+        <div class="ev"><span class="ev-name">onboarding_go</span><span class="dash">—</span><span class="ev-where">«Поехали» на первом экране</span></div>
+        <div class="ev"><span class="ev-name">onboarding_skip</span><span class="dash">—</span><span class="ev-where">«Пропустить» на первом экране</span></div>
+        <div class="ev"><span class="ev-name">onboarding_close</span><span class="dash">—</span><span class="ev-where">Крестик в шапке</span></div>
+        <div class="ev"><span class="ev-name">onboarding_skip_all</span><span class="dash">—</span><span class="ev-where">«Да, пропустить» в подтверждении</span></div>
+        <div class="ev"><span class="ev-name">tap_back</span><span class="ev-props"><span class="prop">from</span></span><span class="ev-where">Стрелка назад, <code>from</code> — шаг анкеты</span></div>
+        <div class="ev"><span class="ev-name">onboarding_skin</span><span class="ev-props"><span class="prop">type_skin</span><span class="prop">via</span></span><span class="ev-where">Выбор типа кожи — и прямой, и через «определим вместе»</span></div>
+        <div class="ev"><span class="ev-name">onboarding_skin_new</span><span class="ev-props"><span class="prop">type_new</span></span><span class="ev-where">Вопрос про чувствительность</span></div>
+        <div class="ev"><span class="ev-name">onboarding_skin_eruption</span><span class="ev-props"><span class="prop">type_eruption</span></span><span class="ev-where">Вопрос про высыпания</span></div>
+        <div class="ev"><span class="ev-name">onboarding_important_continue</span><span class="ev-props"><span class="prop">type_important</span><span class="prop">goals_count</span></span><span class="ev-where">«Далее» на шаге целей</span></div>
+        <div class="ev"><span class="ev-name">onboarding_no_goal</span><span class="dash">—</span><span class="ev-where">«Пока без конкретной цели»</span></div>
+        <div class="ev"><span class="ev-name">onboarding_done</span><span class="ev-props"><span class="prop">skin_type</span><span class="prop">sensitive</span><span class="prop">acne_prone</span><span class="prop">goals_count</span></span><span class="ev-where">«Сохранить и сканировать» — анкета пройдена</span></div>
+        <div class="ev"><span class="ev-name">onboarding_edit</span><span class="dash">—</span><span class="ev-where">«Изменить» на экране результата</span></div>
+      </div>
+    </section>
+
+    <!-- ── Рамки рутины ────────────────────────────────── -->
+    <section class="sec" id="frames">
+      <h2>Рамки рутины</h2>
+      <span class="path">pages/care_review/care_frames_sheet.dart · внутри Разбора косметички</span>
+      <div class="events">
+        <div class="ev"><span class="ev-name">care_frames_pregnancy</span><span class="ev-props"><span class="prop">type_pregnancy</span></span><span class="ev-where">Выбор статуса беременности</span></div>
+        <div class="ev"><span class="ev-name">care_frames_continue</span><span class="ev-props"><span class="prop">fragrance_free</span><span class="prop">steps_routine</span></span><span class="ev-where">«Сохранить»</span></div>
+      </div>
+    </section>
+
+    <!-- ── Сканирование ────────────────────────────────── -->
+    <section class="sec" id="scan">
+      <h2>Экран сканирования</h2>
+      <span class="path">home/takeor_upload_page · components/error_popup · components/guest_prefs_sheet</span>
+      <div class="events">
+        <div class="ev"><span class="ev-name">scan_photo_tap</span><span class="dash">—</span><span class="ev-where">Центральная кнопка навбара</span></div>
+        <div class="ev"><span class="ev-name">scan_photo_tips_open</span><span class="dash">—</span><span class="ev-where">Раскрыл подсказки для фото</span></div>
+        <div class="ev"><span class="ev-name">scan_photo_tips_close</span><span class="dash">—</span><span class="ev-where">Свернул подсказки</span></div>
+        <div class="ev"><span class="ev-name">scan_photo_take</span><span class="dash">—</span><span class="ev-where">«Сделать фото»</span></div>
+        <div class="ev"><span class="ev-name">scan_photo_choose_gallery</span><span class="dash">—</span><span class="ev-where">«Выбрать из галереи»</span></div>
+        <div class="ev"><span class="ev-name">quick_setup_continue</span><span class="ev-props"><span class="prop">interface_language</span><span class="prop">your_region</span></span><span class="ev-where">«Продолжить» в Быстрой настройке</span></div>
+        <div class="ev"><span class="ev-name">quick_setup_swipe</span><span class="dash">—</span><span class="ev-where">Лист Быстрой настройки закрыт без «Продолжить»</span></div>
+        <div class="ev"><span class="ev-name">show_scan_product_not_recognized</span><span class="dash">—</span><span class="ev-where">Показ окна «Продукт не распознан»</span></div>
+        <div class="ev"><span class="ev-name">scan_product_not_recognized_ok</span><span class="dash">—</span><span class="ev-where">«Хорошо» в этом окне</span></div>
+        <div class="ev"><span class="ev-name">scan_ingredients_not_found</span><span class="dash">—</span><span class="ev-where">Показ окна «Состав не найден»</span></div>
+        <div class="ev"><span class="ev-name">scan_photo_ingredients</span><span class="dash">—</span><span class="ev-where">«Сфотографировать состав»</span></div>
+        <div class="ev"><span class="ev-name">scan_ingredients_manually</span><span class="ev-props"><span class="prop">length</span><span class="prop">ingredients_count</span></span><span class="ev-where">Состав введён вручную</span></div>
+      </div>
+      <p class="sec-note" style="margin:18px 0 0">Все окна отказов проходят через один компонент,
+        поэтому события стоят там, а не дублируются в двух зеркальных цепочках сканера — камерной и
+        галерейной.</p>
+      <div class="callout" style="margin-top:18px">
+        <p style="margin:0"><strong>Введённый состав в аналитику не уходит — намеренно.</strong> Текст
+          отправляется на бэкенд и хранится против записи скана, читать его нужно оттуда. В Amplitude
+          идут только <code>length</code> и <code>ingredients_count</code>: свободный текст из буфера
+          даёт неограниченную кардинальность — по такому свойству не построить ни сегмент, ни воронку —
+          и тащит вместе с <code>user_id</code> содержимое, которого мы не звали. Числа отвечают на тот
+          же вопрос: вставили полный INCI с этикетки или вбили пару слов руками и сдались.</p>
+      </div>
+    </section>
+
+    <!-- ── Главная ─────────────────────────────────────── -->
+    <section class="sec" id="home">
+      <h2>Главный экран</h2>
+      <span class="path">home/home · components/navbar</span>
+      <div class="events">
+        <div class="ev"><span class="ev-name">home_tap</span><span class="dash">—</span><span class="ev-where">Вкладка «Главная»</span></div>
+        <div class="ev"><span class="ev-name">account_tap</span><span class="dash">—</span><span class="ev-where">Значок аккаунта в шапке</span></div>
+        <div class="ev"><span class="ev-name">add_product</span><span class="dash">—</span><span class="ev-where">«Добавить продукт» в пустом состоянии</span></div>
+        <div class="ev"><span class="ev-name">premium_tap</span><span class="ev-props"><span class="prop">from</span></span><span class="ev-where">Любой вход в подписку — семь источников</span></div>
+      </div>
+    </section>
+
+    <!-- ── Аккаунт ─────────────────────────────────────── -->
+    <section class="sec" id="account">
+      <h2>Настройки аккаунта</h2>
+      <span class="path">pages/profile · pages/edit_profile · pages/create_account_page · settings/langs · settings/countries</span>
+      <div class="events">
+        <div class="ev"><span class="ev-name">share_tap</span><span class="dash">—</span><span class="ev-where">«Поделиться»</span></div>
+        <div class="ev"><span class="ev-name">feedback_tap</span><span class="dash">—</span><span class="ev-where">«Оставить отзыв»</span></div>
+        <div class="ev"><span class="ev-name">feedback_send</span><span class="dash">—</span><span class="ev-where">«Отправить» в листе отзыва</span></div>
+        <div class="ev"><span class="ev-name">feedback_swipe</span><span class="dash">—</span><span class="ev-where">Лист отзыва закрыт без отправки</span></div>
+        <div class="ev"><span class="ev-name">skin_profile</span><span class="dash">—</span><span class="ev-where">«Профиль кожи»</span></div>
+        <div class="ev"><span class="ev-name">app_language</span><span class="ev-props"><span class="prop">language</span></span><span class="ev-where">Момент выбора языка, а не тап по строке</span></div>
+        <div class="ev"><span class="ev-name">your_region</span><span class="ev-props"><span class="prop">region</span></span><span class="ev-where">Момент выбора региона</span></div>
+        <div class="ev"><span class="ev-name">create_account</span><span class="ev-props"><span class="prop">from</span></span><span class="ev-where">Аккаунт создан — email или Apple</span></div>
+        <div class="ev"><span class="ev-name">log_in</span><span class="dash">—</span><span class="ev-where">Вход в существующий аккаунт</span></div>
+        <div class="ev"><span class="ev-name">create_profile_email_tap</span><span class="dash">—</span><span class="ev-where">Фокус на поле email</span></div>
+        <div class="ev"><span class="ev-name">create_profile_password_tap</span><span class="dash">—</span><span class="ev-where">Фокус на поле пароля</span></div>
+        <div class="ev"><span class="ev-name">create_profile_apple_id</span><span class="dash">—</span><span class="ev-where">Тап по «Войти через Apple»</span></div>
+        <div class="ev"><span class="ev-name">profile_settings_photo</span><span class="ev-props"><span class="prop">source</span></span><span class="ev-where">Фото профиля: <code>gallery</code>, <code>camera</code>, <code>icon_name</code></span></div>
+        <div class="ev"><span class="ev-name">profile_settings_continue</span><span class="ev-props"><span class="prop">interface_language</span></span><span class="ev-where">«Далее» в настройках профиля</span></div>
+        <div class="ev"><span class="ev-name">profile_edit</span><span class="ev-props"><span class="prop">from</span></span><span class="ev-where">«Редактировать профиль»</span></div>
+        <div class="ev"><span class="ev-name">profile_edit_save</span><span class="dash">—</span><span class="ev-where">«Сохранить изменения»</span></div>
+        <div class="ev"><span class="ev-name">link_telegram</span><span class="dash">—</span><span class="ev-where">«Привязать телеграм»</span></div>
+        <div class="ev"><span class="ev-name">link_telegram_link</span><span class="dash">—</span><span class="ev-where">«Привязать» в листе</span></div>
+        <div class="ev"><span class="ev-name">link_telegram_swipe</span><span class="dash">—</span><span class="ev-where">Лист закрыт без привязки</span></div>
+        <div class="ev"><span class="ev-name">account_exit</span><span class="dash">—</span><span class="ev-where">«Выйти из аккаунта»</span></div>
+        <div class="ev"><span class="ev-name">account_delete</span><span class="dash">—</span><span class="ev-where">«Удалить аккаунт»</span></div>
+      </div>
+      <p class="sec-note" style="margin:18px 0 0">Тап по строке email и по строке пароля считается по
+        фокусу поля, а не по касанию: в пароль попадают и кнопкой «дальше» с клавиатуры, и такой
+        переход тоже нужно видеть.</p>
+    </section>
+
+    <!-- ── Обзор ───────────────────────────────────────── -->
+    <section class="sec" id="overview">
+      <h2>Обзор</h2>
+      <span class="path">topratings/toprated · вкладка Explore</span>
+      <div class="events">
+        <div class="ev"><span class="ev-name">overview_tap</span><span class="dash">—</span><span class="ev-where">Вкладка в навбаре</span></div>
+        <div class="ev"><span class="ev-name">overview_filter</span><span class="dash">—</span><span class="ev-where">Значок фильтра</span></div>
+        <div class="ev"><span class="ev-name">overview_filter_reset</span><span class="dash">—</span><span class="ev-where">«Сбросить»</span></div>
+        <div class="ev"><span class="ev-name">overview_filter_add</span><span class="ev-props"><span class="prop">filter</span></span><span class="ev-where">«Применить», список вида <code>фасет:значение</code></span></div>
+        <div class="ev"><span class="ev-name">overview_filter_swipe</span><span class="dash">—</span><span class="ev-where">Лист фильтров закрыт без действия</span></div>
+        <div class="ev"><span class="ev-name">overview_product_tap</span><span class="dash">—</span><span class="ev-where">Тап по продукту</span></div>
+      </div>
+    </section>
+
+    <!-- ── Продукт ─────────────────────────────────────── -->
+    <section class="sec" id="product">
+      <h2>Экран продукта</h2>
+      <span class="path">itemcard2 · components/product_card_v2</span>
+      <div class="events">
+        <div class="ev"><span class="ev-name">product_skin</span><span class="ev-props"><span class="prop">skin_name</span></span><span class="ev-where">Выбор типа кожи в сведениях, <code>all</code> — «для всех типов»</span></div>
+        <div class="ev"><span class="ev-name">product_settings</span><span class="dash">—</span><span class="ev-where">Открытие меню действий</span></div>
+        <div class="ev"><span class="ev-name">product_setting_close</span><span class="dash">—</span><span class="ev-where">Закрытие меню</span></div>
+        <div class="ev"><span class="ev-name">product_settings_copy</span><span class="dash">—</span><span class="ev-where">«Скопировать»</span></div>
+        <div class="ev"><span class="ev-name">product_settings_spam</span><span class="dash">—</span><span class="ev-where">«Спам»</span></div>
+        <div class="ev"><span class="ev-name">product_setting_add_bag</span><span class="dash">—</span><span class="ev-where">«В косметичку»</span></div>
+        <div class="ev"><span class="ev-name">product_setting_share</span><span class="dash">—</span><span class="ev-where">«Поделиться»</span></div>
+        <div class="ev"><span class="ev-name">product_setting_print</span><span class="dash">—</span><span class="ev-where">«Напечатать»</span></div>
+      </div>
+      <p class="sec-note" style="margin:18px 0 0">Имена в этой группе разнобойные —
+        <code>product_settings_copy</code> и <code>product_setting_share</code>. Так в таблице,
+        менять не стали; скажите, если хотите привести к одному виду.</p>
+    </section>
+
+    <!-- ── Косметичка ──────────────────────────────────── -->
+    <section class="sec" id="bag">
+      <h2>Косметичка</h2>
+      <span class="path">pages/bag · pages/care_review</span>
+      <div class="events">
+        <div class="ev"><span class="ev-name">beauty_bag_tap</span><span class="dash">—</span><span class="ev-where">Вкладка в навбаре</span></div>
+        <div class="ev"><span class="ev-name">beauty_bag_product_add</span><span class="dash">—</span><span class="ev-where">Продукт выбран в листе добавления</span></div>
+        <div class="ev"><span class="ev-name">beauty_bag_product_delete</span><span class="dash">—</span><span class="ev-where">Удаление из слота</span></div>
+        <div class="ev"><span class="ev-name">beauty_bag_check_fit</span><span class="dash">—</span><span class="ev-where">«Проверить совместимость»</span></div>
+        <div class="ev"><span class="ev-name">beauty_bag_view_analysis</span><span class="dash">—</span><span class="ev-where">«Открыть разбор» из косметички</span></div>
+        <div class="ev"><span class="ev-name">beauty_bag_notes</span><span class="dash">—</span><span class="ev-where">Раскрытие «Замечаний»</span></div>
+        <div class="ev"><span class="ev-name">beauty_bag_add_calendar</span><span class="dash">—</span><span class="ev-where">«Добавить в календарь»</span></div>
+      </div>
+      <p class="sec-note" style="margin:18px 0 0">
+        <code>beauty_bag_check_fit</code> и <code>beauty_bag_view_analysis</code> — одна кнопка в двух
+        состояниях: пока разбора нет, она «проверить», дальше становится «открыть». Вход в разбор из
+        рутины — отдельное событие <code>routine_view_analysis</code>: раньше оба входа были одним
+        <code>view_analysis</code> со свойством <code>from</code>, но префикс события и так называет
+        экран.</p>
+    </section>
+
+    <!-- ── Рутина ──────────────────────────────────────── -->
+    <section class="sec" id="routine">
+      <h2>Рутина</h2>
+      <span class="path">pages/routine</span>
+      <div class="events">
+        <div class="ev"><span class="ev-name">routine_day</span><span class="ev-props"><span class="prop">day</span></span><span class="ev-where">Выбор дня недели, 1—7</span></div>
+        <div class="ev"><span class="ev-name">routine_push</span><span class="ev-props"><span class="prop">state</span><span class="prop">time</span></span><span class="ev-where">Переключатель пуша: <code>on/off</code> и <code>am/pm</code></span></div>
+        <div class="ev"><span class="ev-name">routine_product</span><span class="ev-props"><span class="prop">time</span></span><span class="ev-where">Тап по продукту — утро или вечер</span></div>
+        <div class="ev"><span class="ev-name">routine_product_save</span><span class="ev-props"><span class="prop">day</span></span><span class="ev-where">«Сохранить», выбранные дни списком</span></div>
+        <div class="ev"><span class="ev-name">routine_product_pause</span><span class="dash">—</span><span class="ev-where">«Приостановить»; возобновление в таблице не описано</span></div>
+        <div class="ev"><span class="ev-name">routine_view_analysis</span><span class="dash">—</span><span class="ev-where">«Открыть разбор» из рутины</span></div>
+      </div>
+    </section>
+
+    <!-- ── Просилка ────────────────────────────────────── -->
+    <section class="sec" id="reviews">
+      <h2>Просилка отзывов</h2>
+      <span class="path">components/feedback_collector · вызывается с карточки продукта</span>
+      <div class="events">
+        <div class="ev"><span class="ev-name">popup_reviews_show</span><span class="dash">—</span><span class="ev-where">Показ окна</span></div>
+        <div class="ev"><span class="ev-name">popup_reviews_yes</span><span class="dash">—</span><span class="ev-where">«Да»</span></div>
+        <div class="ev"><span class="ev-name">popup_reviews_no</span><span class="dash">—</span><span class="ev-where">«Нет»</span></div>
+        <div class="ev"><span class="ev-name">popup_reviews_tap_comment</span><span class="dash">—</span><span class="ev-where">Фокус на поле комментария</span></div>
+        <div class="ev"><span class="ev-name">popup_reviews_tap_email</span><span class="dash">—</span><span class="ev-where">Фокус на поле email</span></div>
+        <div class="ev"><span class="ev-name">popup_reviews_tap_send</span><span class="dash">—</span><span class="ev-where">«Отправить»</span></div>
+      </div>
+    </section>
+
+    <!-- ── Вне таблицы ─────────────────────────────────── -->
+    <section class="sec" id="legacy">
+      <h2>События вне таблицы</h2>
+      <p class="sec-note">Почти все существовали до неё и собирались в GA4 — это воронка покупки и
+        качество разбора, которых в разметке маркетинга нет. Исключение — <code>purchase_restore</code>:
+        его в таблице нет, а кнопка «Восстановить покупки» на пейволле есть, и без события не видно,
+        работает ли она.</p>
+      <div class="events">
+        <div class="ev"><span class="ev-name">purchase_restore</span><span class="ev-props"><span class="prop">result</span></span><span class="ev-where">«Восстановить покупки»: <code>restored</code>, <code>nothing_to_restore</code> или <code>error</code></span></div>
+        <div class="ev"><span class="ev-name">anon_session_started</span><span class="dash">—</span><span class="ev-where">Создана гостевая сессия</span></div>
+        <div class="ev"><span class="ev-name">anon_converted</span><span class="dash">—</span><span class="ev-where">Гость стал пользователем с аккаунтом</span></div>
+        <div class="ev"><span class="ev-name">analysis_started</span><span class="ev-props"><span class="prop">source</span></span><span class="ev-where">Начало разбора — камера или галерея</span></div>
+        <div class="ev"><span class="ev-name">analysis_completed</span><span class="ev-props"><span class="prop">image_id</span><span class="prop">score</span><span class="prop">product_type</span></span><span class="ev-where">Разбор дошёл до карточки</span></div>
+        <div class="ev"><span class="ev-name">analysis_failed</span><span class="ev-props"><span class="prop">reason</span></span><span class="ev-where">Вся таксономия отказов разбора</span></div>
+        <div class="ev"><span class="ev-name">card_opened</span><span class="ev-props"><span class="prop">image_id</span><span class="prop">source</span></span><span class="ev-where">Открытие карточки продукта</span></div>
+        <div class="ev"><span class="ev-name">share_link_tapped</span><span class="ev-props"><span class="prop">image_id</span></span><span class="ev-where">Поделиться ссылкой на продукт</span></div>
+        <div class="ev"><span class="ev-name">share_card_created</span><span class="ev-props"><span class="prop">image_id</span><span class="prop">format</span></span><span class="ev-where">Сгенерирована картинка для сторис</span></div>
+        <div class="ev"><span class="ev-name">board_created</span><span class="dash">—</span><span class="ev-where">Создана подборка</span></div>
+        <div class="ev"><span class="ev-name">product_added_to_board</span><span class="ev-props"><span class="prop">image_id</span></span><span class="ev-where">Продукт добавлен в подборку</span></div>
+        <div class="ev"><span class="ev-name">favourite_added</span><span class="ev-props"><span class="prop">image_id</span></span><span class="ev-where">Добавлено в избранное</span></div>
+        <div class="ev"><span class="ev-name">favourite_removed</span><span class="ev-props"><span class="prop">image_id</span></span><span class="ev-where">Убрано из избранного</span></div>
+        <div class="ev"><span class="ev-name">upgrade_prompt_shown</span><span class="ev-props"><span class="prop">trigger</span></span><span class="ev-where">Показ промо подписки — знаменатель для <code>premium_tap</code></span></div>
+        <div class="ev"><span class="ev-name">paywall_offerings_loaded</span><span class="ev-props"><span class="prop">ready</span><span class="prop">configured</span></span><span class="ev-where">Пейволл догрузил тарифы; <code>ready: false</code> — тупик</span></div>
+        <div class="ev"><span class="ev-name">purchase_started</span><span class="ev-props"><span class="prop">package</span></span><span class="ev-where">Начало покупки</span></div>
+        <div class="ev"><span class="ev-name">purchase_completed</span><span class="ev-props"><span class="prop">package</span></span><span class="ev-where">Подписка оформлена</span></div>
+        <div class="ev"><span class="ev-name">purchase_failed</span><span class="ev-props"><span class="prop">package</span><span class="prop">code</span><span class="prop">cancelled</span></span><span class="ev-where">Покупка не прошла или отменена</span></div>
+        <div class="ev"><span class="ev-name">ingredients_tab_opened</span><span class="ev-props"><span class="prop">image_id</span></span><span class="ev-where">Объявлено, но не вызывается — так было и до этой задачи</span></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+</div>
