@@ -1121,10 +1121,6 @@ class DeleteUserNEWBCNDCall {
     String? host,
     String? userId = '',
     String? token = '',
-    // Keychain-идентичность устройства — user_id в Amplitude. Бэкенд по ней
-    // вычищает профиль через Deletion API: удаление аккаунта без этого
-    // оставляет поведенческую историю человека в аналитике.
-    String? analyticsId,
   }) async {
     host ??= FFDevEnvironmentValues().backendhost;
 
@@ -1136,10 +1132,7 @@ class DeleteUserNEWBCNDCall {
         'Authorization': 'Bearer ${token}',
         'Content-Type': 'application/json',
       },
-      params: {
-        if (analyticsId != null && analyticsId.isNotEmpty)
-          'analytics_id': analyticsId,
-      },
+      params: {},
       returnBody: true,
       encodeBodyUtf8: false,
       decodeUtf8: false,

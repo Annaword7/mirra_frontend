@@ -449,7 +449,7 @@ body {
     <section class="sec" id="changes">
       <h2>Расхождения с таблицей</h2>
       <p class="sec-note">Единственный раздел, который требует действий с вашей стороны: эти
-        девять пунктов нужно поправить в таблице и в дашбордах.</p>
+        десять пунктов нужно поправить в таблице и в дашбордах.</p>
 
       <div class="changes">
 
@@ -532,6 +532,17 @@ body {
           </div>
         </div>
 
+        <div class="chg chg-renamed">
+          <span class="chip chip-renamed">Объединено</span>
+          <div class="chg-body">
+            <p class="move"><span class="from">show_scan_product_not_recognized</span>, <span class="from">scan_ingredients_not_found</span><span class="arrow">→</span><span class="to">analysis_failed</span> — свойство <span class="to">reason</span></p>
+            <p>Показ любого окна отказа уже считало <code>analysis_failed</code> с <code>reason</code>
+              из той же точки кода: именные события дублировали его один в один. В дашборде
+              фильтровать по <code>reason</code> = <code>productNotFound</code> /
+              <code>ingredientsNotFound</code>.</p>
+          </div>
+        </div>
+
         <div class="chg chg-added">
           <span class="chip chip-added">Добавлено</span>
           <div class="chg-body">
@@ -580,21 +591,20 @@ body {
       <p class="sec-note">Ставятся один раз при инициализации и приклеиваются ко <strong>всем</strong>
         последующим событиям. Это не события: по ним фильтруют, а не считают.</p>
       <div class="callout" style="margin-bottom:18px">
-        <p style="margin:0 0 10px"><strong><code>user_id</code> — не Supabase-uuid, а UUID устройства из Keychain.</strong>
-          Amplitude не склеивает двух разных <code>user_id</code>, а Supabase-uuid меняется при переустановке и
-          при входе через Apple. Keychain переживает удаление приложения и уезжает в бэкап на новый телефон.
-          Цена: один девайс = один пользователь; тот же аккаунт на iPhone и iPad — два. Сколько таких людей,
-          видно по <code>supabase_uid</code>.</p>
-        <p style="margin:0"><strong>Удаление аккаунта</strong> — клиент передаёт <code>analytics_id</code> бэкенду, тот читает
-          <code>users.analytics_ids</code> (все устройства человека — приложение регистрирует своё при каждом auth-событии)
-          и вызывает Amplitude User Privacy API для всех разом (до 30 дней); клиент делает <code>reset()</code> и
-          чеканит новую идентичность. Следующий аноним на устройстве к истории удалённого не пришивается.</p>
+        <p style="margin:0 0 10px"><strong>Стандартная модель Amplitude.</strong> <code>device_id</code> — UUID
+          устройства из Keychain, переживает переустановку. <code>user_id</code> — Supabase uuid, но только у аккаунта:
+          аноним ходит без него, и Amplitude склеивает его историю в первый <code>user_id</code>, который появится на
+          устройстве. Тот же аккаунт на iPhone и iPad равен одному пользователю.</p>
+        <p style="margin:0"><strong>Удаление аккаунта</strong> — бэкенд вызывает Amplitude User Privacy API по uuid (до
+          30 дней), в удаление входят все устройства, где человек входил. Клиент делает <code>reset()</code> и чеканит
+          новый <code>device_id</code>, чтобы следующий аноним не лёг в историю удалённого. Подробно:
+          <code>docs/identity_flow.md</code>.</p>
       </div>
       <div class="events">
         <div class="ev"><span class="ev-name">install_source</span><span class="ev-props"><span class="prop">app_store</span><span class="prop">testflight_or_xcode</span><span class="prop">simulator</span></span><span class="ev-where">TestFlight шлёт события в тот же продовый проект, а покупки там песочные. Один сегмент «только App Store» чистит сразу все графики</span></div>
         <div class="ev"><span class="ev-name">app_env</span><span class="ev-props"><span class="prop">Production</span><span class="prop">Development</span><span class="prop">Local</span></span><span class="ev-where">Страховка от залипшего дев-дефайна в Generated.xcconfig — аварии, из-за которой дев уехал в стор в билде 108</span></div>
-        <div class="ev"><span class="ev-name">supabase_uid</span><span class="ev-props"><span class="prop">uuid</span></span><span class="ev-where">Текущая строка в базе; ставится из auth-стрима при каждой смене сессии</span></div>
-        <div class="ev"><span class="ev-name">supabase_uids</span><span class="ev-props"><span class="prop">список uuid</span></span><span class="ev-where">Все строки, какими человек был на этом устройстве — переустановка, Apple-вход, выход дают новые</span></div>
+        <div class="ev"><span class="ev-name">supabase_uid</span><span class="ev-props"><span class="prop">uuid</span></span><span class="ev-where">Текущая строка в базе, в том числе у анонима: у него нет user_id, и найти его иначе нельзя</span></div>
+        
       </div>
       <p class="sec-note" style="margin:18px 0 0">Источник установки читается из
         <code>installerStore</code> пакета <code>package_info_plus</code>: на iOS он определяется по
@@ -660,15 +670,15 @@ body {
         <div class="ev"><span class="ev-name">scan_photo_choose_gallery</span><span class="dash">—</span><span class="ev-where">«Выбрать из галереи»</span></div>
         <div class="ev"><span class="ev-name">quick_setup_continue</span><span class="ev-props"><span class="prop">interface_language</span><span class="prop">your_region</span></span><span class="ev-where">«Продолжить» в Быстрой настройке</span></div>
         <div class="ev"><span class="ev-name">quick_setup_swipe</span><span class="dash">—</span><span class="ev-where">Лист Быстрой настройки закрыт без «Продолжить»</span></div>
-        <div class="ev"><span class="ev-name">show_scan_product_not_recognized</span><span class="dash">—</span><span class="ev-where">Показ окна «Продукт не распознан»</span></div>
-        <div class="ev"><span class="ev-name">scan_product_not_recognized_ok</span><span class="dash">—</span><span class="ev-where">«Хорошо» в этом окне</span></div>
-        <div class="ev"><span class="ev-name">scan_ingredients_not_found</span><span class="dash">—</span><span class="ev-where">Показ окна «Состав не найден»</span></div>
+        <div class="ev"><span class="ev-name">scan_product_not_recognized_ok</span><span class="dash">—</span><span class="ev-where">«Хорошо» в окне «Продукт не распознан»</span></div>
         <div class="ev"><span class="ev-name">scan_photo_ingredients</span><span class="dash">—</span><span class="ev-where">«Сфотографировать состав»</span></div>
         <div class="ev"><span class="ev-name">scan_ingredients_manually</span><span class="ev-props"><span class="prop">length</span><span class="prop">ingredients_count</span></span><span class="ev-where">Состав введён вручную</span></div>
       </div>
       <p class="sec-note" style="margin:18px 0 0">Все окна отказов проходят через один компонент,
         поэтому события стоят там, а не дублируются в двух зеркальных цепочках сканера — камерной и
-        галерейной.</p>
+        галерейной. Показ любого окна отказа считает одно событие <code>analysis_failed</code> со
+        свойством <code>reason</code> (раздел «Вне таблицы»); отдельных событий на показ окон
+        «Продукт не распознан» и «Состав не найден» нет.</p>
       <div class="callout" style="margin-top:18px">
         <p style="margin:0"><strong>Введённый состав в аналитику не уходит — намеренно.</strong> Текст
           отправляется на бэкенд и хранится против записи скана, читать его нужно оттуда. В Amplitude
@@ -731,10 +741,17 @@ body {
         <div class="ev"><span class="ev-name">overview_tap</span><span class="dash">—</span><span class="ev-where">Вкладка в навбаре</span></div>
         <div class="ev"><span class="ev-name">overview_filter</span><span class="dash">—</span><span class="ev-where">Значок фильтра</span></div>
         <div class="ev"><span class="ev-name">overview_filter_reset</span><span class="dash">—</span><span class="ev-where">«Сбросить»</span></div>
-        <div class="ev"><span class="ev-name">overview_filter_add</span><span class="ev-props"><span class="prop">filter</span></span><span class="ev-where">«Применить», список вида <code>фасет:значение</code></span></div>
+        <div class="ev"><span class="ev-name">overview_filter_add</span><span class="ev-props"><span class="prop">form</span><span class="prop">goal</span><span class="prop">active</span><span class="prop">composition_flags</span><span class="prop">sort</span><span class="prop">filters_count</span></span><span class="ev-where">«Применить»</span></div>
         <div class="ev"><span class="ev-name">overview_filter_swipe</span><span class="dash">—</span><span class="ev-where">Лист фильтров закрыт без действия</span></div>
         <div class="ev"><span class="ev-name">overview_product_tap</span><span class="dash">—</span><span class="ev-where">Тап по продукту</span></div>
       </div>
+      <p class="sec-note" style="margin:18px 0 0">Фасеты у <code>overview_filter_add</code> идут отдельными
+        свойствами по образцу <code>onboarding_done</code>: одна колонка со строками
+        <code>фасет:значение</code> не давала ни разбивки по одному фасету, ни сегмента по нему. Фасет без
+        выбора не отправляется. <code>sort</code> — <code>fit</code>, <code>formula</code>,
+        <code>price_asc</code> или <code>price_desc</code>; <code>filters_count</code> — сколько чипов
+        выбрано всего. При группировке по списку Amplitude считает каждое значение отдельно, так что
+        сумма по разбивке больше числа событий.</p>
     </section>
 
     <!-- ── Продукт ─────────────────────────────────────── -->
@@ -818,7 +835,7 @@ body {
         <div class="ev"><span class="ev-name">anon_converted</span><span class="dash">—</span><span class="ev-where">Гость стал пользователем с аккаунтом</span></div>
         <div class="ev"><span class="ev-name">analysis_started</span><span class="ev-props"><span class="prop">source</span></span><span class="ev-where">Начало разбора — камера или галерея</span></div>
         <div class="ev"><span class="ev-name">analysis_completed</span><span class="ev-props"><span class="prop">image_id</span><span class="prop">score</span><span class="prop">product_type</span></span><span class="ev-where">Разбор дошёл до карточки</span></div>
-        <div class="ev"><span class="ev-name">analysis_failed</span><span class="ev-props"><span class="prop">reason</span></span><span class="ev-where">Вся таксономия отказов разбора</span></div>
+        <div class="ev"><span class="ev-name">analysis_failed</span><span class="ev-props"><span class="prop">reason</span></span><span class="ev-where">Показ окна отказа; <code>reason</code>: <code>productNotFound</code>, <code>ingredientsNotFound</code>, <code>subscriptionSync</code>, <code>unsupported</code>, <code>generic</code></span></div>
         <div class="ev"><span class="ev-name">card_opened</span><span class="ev-props"><span class="prop">image_id</span><span class="prop">source</span></span><span class="ev-where">Открытие карточки продукта</span></div>
         <div class="ev"><span class="ev-name">share_link_tapped</span><span class="ev-props"><span class="prop">image_id</span></span><span class="ev-where">Поделиться ссылкой на продукт</span></div>
         <div class="ev"><span class="ev-name">share_card_created</span><span class="ev-props"><span class="prop">image_id</span><span class="prop">format</span></span><span class="ev-where">Сгенерирована картинка для сторис</span></div>

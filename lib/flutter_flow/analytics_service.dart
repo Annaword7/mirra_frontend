@@ -10,7 +10,6 @@ import 'package:amplitude_flutter/observers/amplitude_navigator_observer.dart';
 import 'package:flutter/widgets.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-import '/backend/supabase/supabase.dart';
 import '/environment_values.dart';
 import 'device_identity.dart';
 
@@ -27,11 +26,9 @@ class AnalyticsService {
 
   Amplitude? _amplitude;
 
-  /// Keychain-идентичность устройства — это и есть `user_id` в Amplitude.
-  /// Доступна синхронно после [init]: её отправляют бэкенду при удалении
-  /// аккаунта, чтобы он вычистил профиль из Amplitude.
+  /// Keychain-идентичность устройства — `device_id` в Amplitude. Переживает
+  /// переустановку, поэтому аноним после неё остаётся тем же пользователем.
   String? _identity;
-  String? get analyticsUserId => _identity;
 
   /// Initialised from `main()` once the environment values are loaded.
   /// Без ключа (local-сборка, забытый ключ в environment.json) сервис остаётся
@@ -52,8 +49,10 @@ class AnalyticsService {
     }
     _amplitude = Amplitude(Configuration(
       apiKey: apiKey,
-      // user_id задаётся до первого события — анонимного окна на старте нет.
-      userId: _identity,
+      // Свой device_id вместо сгенерированного SDK: тот живёт в UserDefaults и
+      // стирается с приложением, а этот лежит в Keychain. user_id придёт из
+      // auth-стрима, когда станет ясно, аккаунт это или аноним.
+      deviceId: _identity,
       // Проект живёт в европейском дата-центре. По умолчанию SDK шлёт в США, и
       // события просто не долетают — молча, без ошибки на клиенте.
       serverZone: ServerZone.eu,
@@ -123,25 +122,28 @@ class AnalyticsService {
 
   // ── Identity ──────────────────────────────────────────────────────────────
 
-  /// Вызывается из auth-стрима. `user_id` в Amplitude при этом не трогаем —
-  /// он привязан к устройству, а Supabase-uuid идёт свойствами пользователя:
-  /// `supabase_uid` — текущий, `supabase_uids` — все, какими человек был
-  /// (переустановка, вход через Apple, выход из аккаунта дают новые uuid).
-  /// Пустой uid — момент между выходом и чеканкой нового анонима: текущий
-  /// снимаем, чтобы события в этом окне не приписались прежнему.
-  Future<void> setSupabaseUid(String? uid) async {
+  /// Вызывается из auth-стрима при каждой смене сессии.
+  ///
+  /// `user_id` получает только аккаунт. Аноним ходит без него, на одном
+  /// `device_id`: Amplitude склеивает анонимную историю устройства в первого
+  /// `user_id`, который на нём появится, и только в него. Если бы анонимный
+  /// uuid уходил как `user_id`, ни регистрация, ни вход уже ничего бы не
+  /// склеили — двух разных `user_id` Amplitude не объединяет.
+  ///
+  /// Свойство `supabase_uid` ставится всем: по нему анонима можно найти в
+  /// базе. Пустой uid — окно между выходом и чеканкой нового анонима.
+  Future<void> setSupabaseUid(String? uid, {required bool anonymous}) async {
     final amplitude = _amplitude;
     if (amplitude == null) return;
     try {
       if (!await amplitude.isBuilt) return;
+      final hasUid = uid != null && uid.isNotEmpty;
+      await amplitude.setUserId(hasUid && !anonymous ? uid : null);
       final identify = Identify();
-      if (uid == null || uid.isEmpty) {
-        identify.unset('supabase_uid');
+      if (hasUid) {
+        identify.set('supabase_uid', uid);
       } else {
-        identify
-          ..set('supabase_uid', uid)
-          ..preInsert('supabase_uids', uid);
-        unawaited(_registerIdentity());
+        identify.unset('supabase_uid');
       }
       await amplitude.identify(identify);
     } catch (e) {
@@ -149,37 +151,19 @@ class AnalyticsService {
     }
   }
 
-  /// Записывает идентичность устройства в строку пользователя
-  /// (`users.analytics_ids`). При удалении аккаунта бэкенд по этому списку
-  /// вычищает из Amplitude все устройства человека, а не только то, с которого
-  /// он удалял. RPC идемпотентна и выбирает строку по auth.uid() — зовём при
-  /// каждом auth-событии, лишний вызов ничего не стоит.
-  Future<void> _registerIdentity() async {
-    final identity = _identity;
-    if (identity == null) return;
-    try {
-      await SupaFlow.client.rpc(
-        'register_analytics_id',
-        params: {'p_analytics_id': identity},
-      );
-    } catch (e) {
-      // До применения миграции функции нет — это не повод шуметь громче.
-      debugPrint('Amplitude: register_analytics_id failed: $e');
-    }
-  }
-
-  /// Удаление аккаунта. Человек попросил забыть его — значит следующий
-  /// аноним на этом устройстве не должен пришиваться к прежней истории:
-  /// сбрасываем SDK, чеканим новую идентичность и заново ставим свойства
-  /// установки. Сам старый профиль вычищает бэкенд через Deletion API — SDK
-  /// с устройства этого сделать не может.
+  /// Удаление аккаунта. Сам профиль вычищает бэкенд через Deletion API по
+  /// Supabase uuid — SDK с устройства этого сделать не может. Здесь вторая
+  /// половина: Amplitude приписывает анонимные события устройства последнему
+  /// известному `user_id`, и без нового `device_id` следующий аноним лёг бы
+  /// в историю удалённого. Сбрасываем SDK, чеканим новую идентичность и
+  /// заново ставим свойства установки.
   Future<void> forgetUser() async {
     final amplitude = _amplitude;
     if (amplitude == null) return;
     try {
       await amplitude.reset();
       _identity = await DeviceIdentity.rotate();
-      await amplitude.setUserId(_identity);
+      await amplitude.setDeviceId(_identity);
       await _identifyInstall();
     } catch (e) {
       debugPrint('Amplitude forgetUser failed: $e');
@@ -301,14 +285,8 @@ class AnalyticsService {
 
   Future<void> trackQuickSetupSwipe() => _log('quick_setup_swipe');
 
-  Future<void> trackShowScanProductNotRecognized() =>
-      _log('show_scan_product_not_recognized');
-
   Future<void> trackScanProductNotRecognizedOk() =>
       _log('scan_product_not_recognized_ok');
-
-  Future<void> trackScanIngredientsNotFound() =>
-      _log('scan_ingredients_not_found');
 
   Future<void> trackScanPhotoIngredients() => _log('scan_photo_ingredients');
 
@@ -401,8 +379,20 @@ class AnalyticsService {
 
   Future<void> trackOverviewFilterSwipe() => _log('overview_filter_swipe');
 
-  Future<void> trackOverviewFilterAdd({required List<String> filter}) =>
-      _log('overview_filter_add', {'filter': filter});
+  /// Каждый фасет — отдельное свойство, как ответы анкеты в
+  /// [trackOnboardingDone]: одна колонка со строками `фасет:значение` не даёт
+  /// в Amplitude ни разбивки по одному фасету, ни сегмента по нему. Фасеты
+  /// без выбора не отправляются.
+  Future<void> trackOverviewFilterAdd({
+    required Map<String, Set<String>> facets,
+    required String sort,
+  }) =>
+      _log('overview_filter_add', {
+        for (final e in facets.entries)
+          if (e.value.isNotEmpty) e.key: e.value.toList(),
+        'sort': sort,
+        'filters_count': facets.values.fold<int>(0, (n, s) => n + s.length),
+      });
 
   Future<void> trackOverviewProductTap() => _log('overview_product_tap');
 

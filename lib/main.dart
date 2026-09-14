@@ -192,11 +192,17 @@ class _MyAppState extends State<MyApp> {
           unawaited(revenue_cat.login(user.uid));
           NotificationService.instance.onUserLogin();
           FirebaseCrashlytics.instance.setUserIdentifier(user.uid ?? '');
-          unawaited(AnalyticsService.instance.setSupabaseUid(user.uid));
+          // Аккаунт получает user_id, аноним ходит без него: Amplitude склеит
+          // анонимную историю устройства в первый user_id, который появится.
+          unawaited(AnalyticsService.instance.setSupabaseUid(
+            user.uid,
+            anonymous: user is MiRRADevSupabaseUser && user.isAnonymous,
+          ));
         } else {
           unawaited(revenue_cat.login(null));
           FirebaseCrashlytics.instance.setUserIdentifier('');
-          unawaited(AnalyticsService.instance.setSupabaseUid(null));
+          unawaited(AnalyticsService.instance
+              .setSupabaseUid(null, anonymous: true));
           // Mint the guest session from here rather than from a launch
           // callback: driven by the auth stream it cannot start before the
           // client has reported that there is no session, which is what made

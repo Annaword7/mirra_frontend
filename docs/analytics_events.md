@@ -50,6 +50,7 @@
 | `premium_tap` `from (home/account)` | `premium_tap` `from` | Значения точнее, чем в таблице: `home`, `profile_try_premium`, `scan_limit`, `out_of_generations`, `card_hidden_ingredients`, `bag_add_from_card`, `bag_over_limit`. |
 | `routine_push` `on/off`, `Time` | `routine_push` `state`, `time` | Свойства приведены к snake_case: смешанный регистр в Amplitude мешает строить графики. |
 | `profile_settings_photo` | свойство `source` | Значения как в таблице: `gallery`, `camera`, `icon_name`. |
+| `show_scan_product_not_recognized`, `scan_ingredients_not_found` | `analysis_failed` `reason` | Показ любого окна отказа уже считало `analysis_failed` с `reason` из той же точки: именные события дублировали его один в один. В дашборде фильтровать по `reason` = `productNotFound` / `ingredientsNotFound`. |
 
 ## Свойства, добавленные сверх таблицы
 
@@ -60,33 +61,30 @@
 
 ## Идентичность пользователя
 
-`user_id` в Amplitude — **не** Supabase-uuid, а UUID устройства из Keychain
-(`lib/flutter_flow/device_identity.dart`). Причина: Amplitude не склеивает
-двух разных `user_id`, а Supabase-uuid меняется при переустановке (сессия
-лежит в SharedPreferences и стирается) и при входе через Apple (создаётся
-новый аккаунт; регистрация по email uuid сохраняет). Keychain — единственное
-хранилище, переживающее удаление приложения; `first_unlock` даёт идентичности
-уехать в зашифрованный бэкап и переехать на новый телефон.
+Стандартная модель Amplitude: `device_id` живёт на устройстве, `user_id`
+появляется при входе в аккаунт.
 
-Цена: один девайс = один пользователь Amplitude. Тот же аккаунт на iPhone и
-iPad — два пользователя, и объединить их нельзя. Сколько таких людей, видно по
-`supabase_uid`: пользователи, делящие один uuid, и есть кросс-девайсные.
+- `device_id` — UUID устройства из Keychain (`device_identity.dart`), а не
+  сгенерированный SDK: тот стирается с приложением. Аноним после переустановки
+  остаётся тем же пользователем.
+- `user_id` — Supabase uuid, но **только у аккаунта**. Аноним ходит без него.
+  Amplitude склеивает анонимную историю устройства в первый `user_id`, который
+  на нём появится, и только в него; отправляй мы анонимный uuid как `user_id`,
+  ни регистрация, ни вход ничего бы не склеили.
 
-Supabase-uuid уходит свойствами: `supabase_uid` — текущий, `supabase_uids` —
-накопительный список всех, какими человек был (переустановка, Apple-вход,
-выход из аккаунта дают новые). Так в карточке пользователя видна вся его
-история в базе.
+Итог: тот же аккаунт на iPhone и iPad равен одному пользователю; аноним
+привязан к устройству, иначе не бывает ни в одной аналитике.
 
-**Удаление аккаунта.** Клиент шлёт `analytics_id` бэкенду, тот перед каскадом
-читает `users.analytics_ids` — все устройства, какие приложение регистрировало
-под этим uid через RPC `register_analytics_id` при каждом auth-событии, — и
-после успешного `delete_user_cascade` вызывает Amplitude User Privacy API для
-всех разом (EU-хост, пара `AMPLITUDE_API_KEY`/`AMPLITUDE_SECRET_KEY` в env
-бэкенда; удаление исполняется до 30 дней). Так человек, ходивший с двух
-устройств, вычищается целиком, а не только с того, с которого удалял. Клиент затем делает `reset()` и чеканит новую идентичность —
-следующий аноним на устройстве не пришивается к истории удалённого. Без пары
-ключей удаление аккаунта работает, но бэкенд пишет ERROR с id, который надо
-удалить руками: молчаливый пропуск здесь — нарушение права на забвение.
+Подробно, со всеми сценариями: `identity_flow.md`.
+
+**Удаление аккаунта.** Бэкенд после успешного `delete_user_cascade` вызывает
+Amplitude User Privacy API с `user_ids: [uuid]` (EU-хост, пара
+`AMPLITUDE_API_KEY`/`AMPLITUDE_SECRET_KEY` в env бэкенда; удаление исполняется
+до 30 дней). В это удаление входят все устройства, где человек входил, вместе с
+их анонимной историей до входа. Клиент затем делает `reset()` и чеканит новый
+`device_id`: иначе следующий аноним на устройстве лёг бы в историю удалённого.
+Без пары ключей удаление аккаунта работает, но бэкенд пишет ERROR с uuid,
+который надо удалить руками.
 
 ## Свойства пользователя
 
@@ -96,8 +94,7 @@ Supabase-uuid уходит свойствами: `supabase_uid` — текущи
 | Свойство | Значения | Зачем |
 |---|---|---|
 | `install_source` | `app_store`, `testflight_or_xcode`, `simulator`, `unknown` | TestFlight шлёт события в тот же продовый проект, что и живые пользователи, а покупки там песочные — без этого свойства конверсия в оплату завышена на неизвестную величину. Один сегмент «только App Store» чистит сразу все графики. |
-| `supabase_uid` | uuid | Текущая строка в базе. Ставится из auth-стрима при каждой смене сессии. |
-| `supabase_uids` | список uuid | Все строки, какими человек был на этом устройстве. `preInsert` — без дублей. |
+| `supabase_uid` | uuid | Текущая строка в базе, в том числе у анонима: у него нет `user_id`, и найти его иначе нельзя. Ставится из auth-стрима при каждой смене сессии. |
 | `app_env` | `Production`, `Development`, `Local` | Страховка от залипшего дев-дефайна в `Generated.xcconfig` — той самой аварии, из-за которой дев уехал в стор в билде 108. Со свойством это видно в первый же день. |
 
 Источник установки читается из `installerStore` пакета `package_info_plus`: на
@@ -152,15 +149,15 @@ iOS он определяется по имени файла чека. У сбо
 | `scan_photo_choose_gallery` | — | «Выбрать из галереи» |
 | `quick_setup_continue` | `interface_language`, `your_region` | «Продолжить» в Быстрой настройке |
 | `quick_setup_swipe` | — | Лист Быстрой настройки закрыт без «Продолжить» |
-| `show_scan_product_not_recognized` | — | Показ окна «Продукт не распознан» |
-| `scan_product_not_recognized_ok` | — | «Хорошо» в этом окне |
-| `scan_ingredients_not_found` | — | Показ окна «Состав не найден» |
+| `scan_product_not_recognized_ok` | — | «Хорошо» в окне «Продукт не распознан» |
 | `scan_photo_ingredients` | — | «Сфотографировать состав» |
 | `scan_ingredients_manually` | `length`, `ingredients_count` | Состав введён вручную |
 
 Окна ошибок живут в `components/error_popup` — единственная точка на всю
 таксономию отказов, поэтому события стоят там, а не в двух зеркальных цепочках
-сканера.
+сканера. Показ любого окна отказа считает одно событие `analysis_failed` со
+свойством `reason` (см. «События вне таблицы»); отдельных событий на показ окон
+«Продукт не распознан» и «Состав не найден» нет.
 
 **Сам введённый состав в аналитику не уходит — намеренно.** Текст отправляется
 на бэкенд (`ingredients` в `SetIngredients`) и хранится против записи скана,
@@ -217,9 +214,17 @@ iOS он определяется по имени файла чека. У сбо
 | `overview_tap` | — | Вкладка в навбаре |
 | `overview_filter` | — | Значок фильтра |
 | `overview_filter_reset` | — | «Сбросить» |
-| `overview_filter_add` | `filter` — список `фасет:значение` | «Применить» |
+| `overview_filter_add` | `form`, `goal`, `active`, `composition_flags` — списки выбранного; `sort`; `filters_count` | «Применить» |
 | `overview_filter_swipe` | — | Лист фильтров закрыт без действия |
 | `overview_product_tap` | — | Тап по продукту |
+
+Фасеты у `overview_filter_add` идут отдельными свойствами по образцу
+`onboarding_done`: одна колонка со строками `фасет:значение` не давала в
+Amplitude ни разбивки по одному фасету, ни сегмента по нему. Фасет без выбора
+не отправляется. `sort` — `fit`, `formula`, `price_asc` или `price_desc`;
+`filters_count` — сколько чипов выбрано всего. При группировке по списку
+Amplitude считает каждое значение отдельно, так что сумма по разбивке больше
+числа событий.
 
 ### Экран продукта — `itemcard2`, `components/product_card_v2`
 
@@ -290,7 +295,7 @@ iOS он определяется по имени файла чека. У сбо
 | `anon_session_started`, `anon_converted` | — |
 | `analysis_started` | `source` |
 | `analysis_completed` | `image_id`, `score`, `product_type` |
-| `analysis_failed` | `reason` |
+| `analysis_failed` | `reason`: `productNotFound`, `ingredientsNotFound`, `subscriptionSync`, `unsupported`, `generic` — тип показанного окна отказа |
 | `card_opened` | `image_id`, `source` |
 | `ingredients_tab_opened` | `image_id` — объявлено, но нигде не вызывается ещё до этой задачи |
 | `share_link_tapped`, `share_card_created` | `image_id`, `format` |

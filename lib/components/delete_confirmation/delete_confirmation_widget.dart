@@ -77,13 +77,12 @@ class _DeleteConfirmationWidgetState extends State<DeleteConfirmationWidget> {
           host: FFDevEnvironmentValues().backendhost,
           userId: currentUserUid,
           token: currentJwtToken,
-          analyticsId: AnalyticsService.instance.analyticsUserId,
         );
 
         if ((_model.deleteuseranswer?.succeeded ?? true)) {
-          // Бэкенд уже получил analytics_id и запустил удаление профиля в
-          // Amplitude; здесь — вторая половина: новая идентичность, чтобы
-          // следующий аноним не пришился к истории удалённого.
+          // Бэкенд уже запустил удаление профиля в Amplitude по uuid; здесь
+          // вторая половина: новый device_id, чтобы следующий аноним не
+          // пришился к истории удалённого.
           await AnalyticsService.instance.forgetUser();
           FFAppState().isprouser = false;
           FFAppState().analysesused = 0;
