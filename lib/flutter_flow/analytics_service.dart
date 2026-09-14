@@ -10,6 +10,7 @@ import 'package:amplitude_flutter/observers/amplitude_navigator_observer.dart';
 import 'package:flutter/widgets.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import '/backend/supabase/supabase.dart';
 import '/environment_values.dart';
 import 'device_identity.dart';
 
@@ -140,10 +141,30 @@ class AnalyticsService {
         identify
           ..set('supabase_uid', uid)
           ..preInsert('supabase_uids', uid);
+        unawaited(_registerIdentity());
       }
       await amplitude.identify(identify);
     } catch (e) {
       debugPrint('Amplitude setSupabaseUid failed: $e');
+    }
+  }
+
+  /// Записывает идентичность устройства в строку пользователя
+  /// (`users.analytics_ids`). При удалении аккаунта бэкенд по этому списку
+  /// вычищает из Amplitude все устройства человека, а не только то, с которого
+  /// он удалял. RPC идемпотентна и выбирает строку по auth.uid() — зовём при
+  /// каждом auth-событии, лишний вызов ничего не стоит.
+  Future<void> _registerIdentity() async {
+    final identity = _identity;
+    if (identity == null) return;
+    try {
+      await SupaFlow.client.rpc(
+        'register_analytics_id',
+        params: {'p_analytics_id': identity},
+      );
+    } catch (e) {
+      // До применения миграции функции нет — это не повод шуметь громче.
+      debugPrint('Amplitude: register_analytics_id failed: $e');
     }
   }
 

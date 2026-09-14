@@ -585,9 +585,10 @@ body {
           при входе через Apple. Keychain переживает удаление приложения и уезжает в бэкап на новый телефон.
           Цена: один девайс = один пользователь; тот же аккаунт на iPhone и iPad — два. Сколько таких людей,
           видно по <code>supabase_uid</code>.</p>
-        <p style="margin:0"><strong>Удаление аккаунта</strong> — клиент передаёт <code>analytics_id</code> бэкенду, тот вызывает
-          Amplitude User Privacy API (до 30 дней), клиент делает <code>reset()</code> и чеканит новую идентичность.
-          Следующий аноним на устройстве к истории удалённого не пришивается.</p>
+        <p style="margin:0"><strong>Удаление аккаунта</strong> — клиент передаёт <code>analytics_id</code> бэкенду, тот читает
+          <code>users.analytics_ids</code> (все устройства человека — приложение регистрирует своё при каждом auth-событии)
+          и вызывает Amplitude User Privacy API для всех разом (до 30 дней); клиент делает <code>reset()</code> и
+          чеканит новую идентичность. Следующий аноним на устройстве к истории удалённого не пришивается.</p>
       </div>
       <div class="events">
         <div class="ev"><span class="ev-name">install_source</span><span class="ev-props"><span class="prop">app_store</span><span class="prop">testflight_or_xcode</span><span class="prop">simulator</span></span><span class="ev-where">TestFlight шлёт события в тот же продовый проект, а покупки там песочные. Один сегмент «только App Store» чистит сразу все графики</span></div>
