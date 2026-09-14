@@ -579,9 +579,21 @@ body {
       <h2>Свойства пользователя</h2>
       <p class="sec-note">Ставятся один раз при инициализации и приклеиваются ко <strong>всем</strong>
         последующим событиям. Это не события: по ним фильтруют, а не считают.</p>
+      <div class="callout" style="margin-bottom:18px">
+        <p style="margin:0 0 10px"><strong><code>user_id</code> — не Supabase-uuid, а UUID устройства из Keychain.</strong>
+          Amplitude не склеивает двух разных <code>user_id</code>, а Supabase-uuid меняется при переустановке и
+          при входе через Apple. Keychain переживает удаление приложения и уезжает в бэкап на новый телефон.
+          Цена: один девайс = один пользователь; тот же аккаунт на iPhone и iPad — два. Сколько таких людей,
+          видно по <code>supabase_uid</code>.</p>
+        <p style="margin:0"><strong>Удаление аккаунта</strong> — клиент передаёт <code>analytics_id</code> бэкенду, тот вызывает
+          Amplitude User Privacy API (до 30 дней), клиент делает <code>reset()</code> и чеканит новую идентичность.
+          Следующий аноним на устройстве к истории удалённого не пришивается.</p>
+      </div>
       <div class="events">
         <div class="ev"><span class="ev-name">install_source</span><span class="ev-props"><span class="prop">app_store</span><span class="prop">testflight_or_xcode</span><span class="prop">simulator</span></span><span class="ev-where">TestFlight шлёт события в тот же продовый проект, а покупки там песочные. Один сегмент «только App Store» чистит сразу все графики</span></div>
         <div class="ev"><span class="ev-name">app_env</span><span class="ev-props"><span class="prop">Production</span><span class="prop">Development</span><span class="prop">Local</span></span><span class="ev-where">Страховка от залипшего дев-дефайна в Generated.xcconfig — аварии, из-за которой дев уехал в стор в билде 108</span></div>
+        <div class="ev"><span class="ev-name">supabase_uid</span><span class="ev-props"><span class="prop">uuid</span></span><span class="ev-where">Текущая строка в базе; ставится из auth-стрима при каждой смене сессии</span></div>
+        <div class="ev"><span class="ev-name">supabase_uids</span><span class="ev-props"><span class="prop">список uuid</span></span><span class="ev-where">Все строки, какими человек был на этом устройстве — переустановка, Apple-вход, выход дают новые</span></div>
       </div>
       <p class="sec-note" style="margin:18px 0 0">Источник установки читается из
         <code>installerStore</code> пакета <code>package_info_plus</code>: на iOS он определяется по
