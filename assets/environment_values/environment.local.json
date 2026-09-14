@@ -1,3 +1,4 @@
 {
-  "backendhost": "http://localhost:8080/"
+  "backendhost": "http://localhost:8080/",
+  "amplitudekey": ""
 }

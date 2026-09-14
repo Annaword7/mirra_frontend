@@ -1,29 +1,425 @@
-import 'package:firebase_analytics/firebase_analytics.dart';
+import 'dart:async';
 
-/// Singleton analytics service wrapping FirebaseAnalytics.
+import 'package:amplitude_flutter/amplitude.dart';
+import 'package:amplitude_flutter/autocapture/autocapture.dart';
+import 'package:amplitude_flutter/configuration.dart';
+import 'package:amplitude_flutter/constants.dart';
+import 'package:amplitude_flutter/events/base_event.dart';
+import 'package:amplitude_flutter/events/identify.dart';
+import 'package:amplitude_flutter/observers/amplitude_navigator_observer.dart';
+import 'package:flutter/widgets.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+
+import '/environment_values.dart';
+
+/// Singleton analytics service wrapping Amplitude.
 /// Usage: AnalyticsService.instance.trackCardOpened(source: 'home');
+///
+/// Event names and properties follow the marketing event map maintained by the
+/// product team (docs/analytics_events.md). Call sites never spell an event
+/// name out — every event is a method here, so the schema lives in one file and
+/// a rename is a compile error rather than silent data loss.
 class AnalyticsService {
   AnalyticsService._();
   static final AnalyticsService instance = AnalyticsService._();
 
-  final FirebaseAnalytics _analytics = FirebaseAnalytics.instance;
+  Amplitude? _amplitude;
 
-  FirebaseAnalyticsObserver get observer =>
-      FirebaseAnalyticsObserver(analytics: _analytics);
+  /// Initialised from `main()` once the environment values are loaded.
+  /// Без ключа (local-сборка, забытый ключ в environment.json) сервис остаётся
+  /// выключенным и каждый вызов — no-op: приложение работает как обычно.
+  void init() {
+    final apiKey = FFDevEnvironmentValues().amplitudekey;
+    if (apiKey.isEmpty) {
+      debugPrint('Amplitude: no key for '
+          '${FFDevEnvironmentValues.currentEnvironment} — analytics disabled');
+      return;
+    }
+    _amplitude = Amplitude(Configuration(
+      apiKey: apiKey,
+      // Проект живёт в европейском дата-центре. По умолчанию SDK шлёт в США, и
+      // события просто не долетают — молча, без ошибки на клиенте.
+      serverZone: ServerZone.eu,
+      logLevel:
+          FFDevEnvironmentValues.isNonProd ? LogLevel.debug : LogLevel.warn,
+      // screenViews требует и эту опцию, и observer в navigatorObservers —
+      // нативный автокапчур не видит переходов внутри Flutter.
+      autocapture: const AutocaptureOptions(
+        sessions: true,
+        appLifecycles: true,
+        deepLinks: true,
+        screenViews: true,
+      ),
+    ));
+    unawaited(_identifyInstall());
+  }
 
-  // ── Authentication ────────────────────────────────────────────────────────
+  /// Откуда приехало приложение и на каком окружении собрано. Именно свойства
+  /// пользователя, а не события: они приклеиваются ко всем последующим
+  /// событиям, и один сегмент «только App Store» чистит сразу все графики, а
+  /// не одно событие.
+  ///
+  /// `app_env` нужен на случай, который уже случался: дев-дефайн залипает в
+  /// `Generated.xcconfig` и уезжает в релиз. Со свойством это видно в первый
+  /// же день, а не через месяц по кривым цифрам.
+  Future<void> _identifyInstall() async {
+    try {
+      final info = await PackageInfo.fromPlatform();
+      await setUserProperties({
+        'install_source': _installSource(info.installerStore),
+        'app_env': FFDevEnvironmentValues.currentEnvironment,
+      });
+    } catch (e) {
+      debugPrint('Amplitude: install source unavailable: $e');
+    }
+  }
 
-  Future<void> trackSignUp({String method = 'email'}) =>
-      _analytics.logSignUp(signUpMethod: method);
+  /// `com.apple` в подписи графика не читается — раскладываем в слова.
+  ///
+  /// Сборка, поставленная из Xcode на устройство, несёт такой же песочный чек,
+  /// как и TestFlight, поэтому различить их нельзя и врать об этом не будем.
+  /// Граница, которая нужна на практике, проходит между App Store и всем
+  /// остальным, и она определяется надёжно.
+  static String _installSource(String? store) {
+    if (store == null || store.isEmpty) return 'unknown';
+    switch (store) {
+      case 'com.apple':
+        return 'app_store';
+      case 'com.apple.testflight':
+        return 'testflight_or_xcode';
+      case 'com.apple.simulator':
+        return 'simulator';
+      default:
+        return store; // Android: com.android.vending и прочие
+    }
+  }
 
-  Future<void> trackLogin({String method = 'email'}) =>
-      _analytics.logLogin(loginMethod: method);
+  /// Attach to the router's `observers` — this is what emits
+  /// `[Amplitude] Screen Viewed` for every named route. Пустой список, пока
+  /// сервис выключен.
+  List<NavigatorObserver> get navigatorObservers {
+    final amplitude = _amplitude;
+    return amplitude == null
+        ? const []
+        : [AmplitudeNavigatorObserver(amplitude)];
+  }
 
-  Future<void> trackAnonSessionStarted() =>
-      _log('anon_session_started');
+  // ── Identity ──────────────────────────────────────────────────────────────
 
-  Future<void> trackAnonConverted() =>
-      _log('anon_converted');
+  /// Вызывается из auth-стрима: пустой uid — гость, Amplitude остаётся на
+  /// device_id.
+  Future<void> setUserId(String? uid) async {
+    final amplitude = _amplitude;
+    if (amplitude == null) return;
+    try {
+      await amplitude.setUserId(uid == null || uid.isEmpty ? null : uid);
+    } catch (e) {
+      debugPrint('Amplitude setUserId failed: $e');
+    }
+  }
+
+  Future<void> setUserProperties(Map<String, Object?> properties) async {
+    final amplitude = _amplitude;
+    if (amplitude == null) return;
+    try {
+      // Как и в _log: до готовности нативной стороны вызов теряется молча.
+      if (!await amplitude.isBuilt) return;
+      final identify = Identify();
+      properties.forEach((key, value) {
+        if (value != null) identify.set(key, value);
+      });
+      await amplitude.identify(identify);
+    } catch (e) {
+      debugPrint('Amplitude identify failed: $e');
+    }
+  }
+
+  // ── Onboarding ────────────────────────────────────────────────────────────
+
+  Future<void> trackOnboardingGo() => _log('onboarding_go');
+
+  Future<void> trackOnboardingSkip() => _log('onboarding_skip');
+
+  Future<void> trackOnboardingClose() => _log('onboarding_close');
+
+  /// Ушёл из анкеты через «Да, пропустить» — профиль не сохранён.
+  Future<void> trackOnboardingSkipAll() => _log('onboarding_skip_all');
+
+  /// [from] — шаг, с которого нажали стрелку назад.
+  Future<void> trackTapBack({required String from}) =>
+      _log('tap_back', {'from': from});
+
+  /// [via] отличает прямой выбор типа кожи от ветки «Не знаю» → «определим
+  /// вместе»: без него пользователи под-квиза не видны в воронке.
+  Future<void> trackOnboardingSkin({
+    required String typeSkin,
+    required String via, // direct | determine
+  }) =>
+      _log('onboarding_skin', {'type_skin': typeSkin, 'via': via});
+
+  Future<void> trackOnboardingSkinNew({required bool typeNew}) =>
+      _log('onboarding_skin_new', {'type_new': typeNew});
+
+  Future<void> trackOnboardingSkinEruption({required bool typeEruption}) =>
+      _log('onboarding_skin_eruption', {'type_eruption': typeEruption});
+
+  Future<void> trackOnboardingImportantContinue({
+    required List<String> typeImportant,
+  }) =>
+      _log('onboarding_important_continue', {
+        'type_important': typeImportant,
+        'goals_count': typeImportant.length,
+      });
+
+  Future<void> trackOnboardingNoGoal() => _log('onboarding_no_goal');
+
+  /// Анкета пройдена и профиль сохранён — это та же кнопка «Сохранить и
+  /// сканировать», что в таблице значилась как `onbording_scan`; отдельного
+  /// экрана «Готово» в приложении нет. Возраст и бюджет мы не спрашиваем, их
+  /// место заняли реальные ответы анкеты.
+  Future<void> trackOnboardingDone({
+    required String? skinType,
+    required bool? sensitive,
+    required bool? acneProne,
+    required int goalsCount,
+  }) =>
+      _log('onboarding_done', {
+        if (skinType != null) 'skin_type': skinType,
+        if (sensitive != null) 'sensitive': sensitive,
+        if (acneProne != null) 'acne_prone': acneProne,
+        'goals_count': goalsCount,
+      });
+
+  Future<void> trackOnboardingEdit() => _log('onboarding_edit');
+
+  // ── Рамки рутины (было onbording_pregnancy / onbording_routine_continue) ──
+  //
+  // Вопросы про беременность и рамки рутины переехали из онбординга в «Разбор
+  // косметички», поэтому и события названы по месту, где живут.
+
+  Future<void> trackCareFramesPregnancy({required String typePregnancy}) =>
+      _log('care_frames_pregnancy', {'type_pregnancy': typePregnancy});
+
+  Future<void> trackCareFramesContinue({
+    required bool fragranceFree,
+    required int? maxSteps,
+  }) =>
+      _log('care_frames_continue', {
+        'fragrance_free': fragranceFree,
+        'steps_routine': maxSteps ?? 'no_limit',
+      });
+
+  // ── Scan screen ───────────────────────────────────────────────────────────
+
+  Future<void> trackScanPhotoTap() => _log('scan_photo_tap');
+
+  Future<void> trackScanPhotoTipsOpen() => _log('scan_photo_tips_open');
+
+  Future<void> trackScanPhotoTipsClose() => _log('scan_photo_tips_close');
+
+  Future<void> trackScanPhotoTake() => _log('scan_photo_take');
+
+  Future<void> trackScanPhotoChooseGallery() =>
+      _log('scan_photo_choose_gallery');
+
+  Future<void> trackQuickSetupContinue({
+    required String interfaceLanguage,
+    required String yourRegion,
+  }) =>
+      _log('quick_setup_continue', {
+        'interface_language': interfaceLanguage,
+        'your_region': yourRegion,
+      });
+
+  Future<void> trackQuickSetupSwipe() => _log('quick_setup_swipe');
+
+  Future<void> trackShowScanProductNotRecognized() =>
+      _log('show_scan_product_not_recognized');
+
+  Future<void> trackScanProductNotRecognizedOk() =>
+      _log('scan_product_not_recognized_ok');
+
+  Future<void> trackScanIngredientsNotFound() =>
+      _log('scan_ingredients_not_found');
+
+  Future<void> trackScanPhotoIngredients() => _log('scan_photo_ingredients');
+
+  /// Только форма ввода, не содержимое: сам состав уже уходит на бэкенд и
+  /// лежит против записи скана, а свободный текст из буфера в аналитике — это
+  /// и неограниченная кардинальность (по такому свойству не построить ни
+  /// сегмент, ни воронку), и чужие данные, которых мы не звали.
+  /// [length] и [ingredientsCount] отвечают на реальный вопрос: вставили
+  /// полный INCI с этикетки или вбили пару слов руками и сдались.
+  Future<void> trackScanIngredientsManually({
+    required int length,
+    required int ingredientsCount,
+  }) =>
+      _log('scan_ingredients_manually', {
+        'length': length,
+        'ingredients_count': ingredientsCount,
+      });
+
+  // ── Home ──────────────────────────────────────────────────────────────────
+
+  Future<void> trackHomeTap() => _log('home_tap');
+
+  Future<void> trackAccountTap() => _log('account_tap');
+
+  Future<void> trackAddProduct() => _log('add_product');
+
+  // ── Account settings ──────────────────────────────────────────────────────
+
+  Future<void> trackShareTap() => _log('share_tap');
+
+  Future<void> trackFeedbackTap() => _log('feedback_tap');
+
+  Future<void> trackFeedbackSend() => _log('feedback_send');
+
+  Future<void> trackFeedbackSwipe() => _log('feedback_swipe');
+
+  Future<void> trackSkinProfile() => _log('skin_profile');
+
+  Future<void> trackAppLanguage({required String language}) =>
+      _log('app_language', {'language': language});
+
+  Future<void> trackYourRegion({required String region}) =>
+      _log('your_region', {'region': region});
+
+  Future<void> trackCreateAccount({required String from}) =>
+      _log('create_account', {'from': from});
+
+  Future<void> trackLogIn() => _log('log_in');
+
+  Future<void> trackCreateProfileEmailTap() =>
+      _log('create_profile_email_tap');
+
+  Future<void> trackCreateProfilePasswordTap() =>
+      _log('create_profile_password_tap');
+
+  Future<void> trackCreateProfileAppleId() => _log('create_profile_apple_id');
+
+  Future<void> trackProfileSettingsPhoto({required String source}) =>
+      _log('profile_settings_photo', {'source': source});
+
+  Future<void> trackProfileSettingsContinue({
+    required String interfaceLanguage,
+  }) =>
+      _log('profile_settings_continue', {
+        'interface_language': interfaceLanguage,
+      });
+
+  Future<void> trackProfileEdit({required String from}) =>
+      _log('profile_edit', {'from': from});
+
+  Future<void> trackProfileEditSave() => _log('profile_edit_save');
+
+  Future<void> trackLinkTelegram() => _log('link_telegram');
+
+  Future<void> trackLinkTelegramLink() => _log('link_telegram_link');
+
+  Future<void> trackLinkTelegramSwipe() => _log('link_telegram_swipe');
+
+  Future<void> trackAccountExit() => _log('account_exit');
+
+  Future<void> trackAccountDelete() => _log('account_delete');
+
+  // ── Overview (вкладка Explore) ────────────────────────────────────────────
+
+  Future<void> trackOverviewTap() => _log('overview_tap');
+
+  Future<void> trackOverviewFilter() => _log('overview_filter');
+
+  Future<void> trackOverviewFilterReset() => _log('overview_filter_reset');
+
+  Future<void> trackOverviewFilterSwipe() => _log('overview_filter_swipe');
+
+  Future<void> trackOverviewFilterAdd({required List<String> filter}) =>
+      _log('overview_filter_add', {'filter': filter});
+
+  Future<void> trackOverviewProductTap() => _log('overview_product_tap');
+
+  // ── Product screen ────────────────────────────────────────────────────────
+
+  Future<void> trackProductSkin({required String skinName}) =>
+      _log('product_skin', {'skin_name': skinName});
+
+  Future<void> trackProductSettings() => _log('product_settings');
+
+  Future<void> trackProductSettingsCopy() => _log('product_settings_copy');
+
+  Future<void> trackProductSettingsSpam() => _log('product_settings_spam');
+
+  Future<void> trackProductSettingAddBag() => _log('product_setting_add_bag');
+
+  Future<void> trackProductSettingShare() => _log('product_setting_share');
+
+  Future<void> trackProductSettingPrint() => _log('product_setting_print');
+
+  Future<void> trackProductSettingClose() => _log('product_setting_close');
+
+  // ── Cosmetic bag ──────────────────────────────────────────────────────────
+
+  Future<void> trackBeautyBagTap() => _log('beauty_bag_tap');
+
+  Future<void> trackBeautyBagProductAdd() => _log('beauty_bag_product_add');
+
+  Future<void> trackBeautyBagProductDelete() =>
+      _log('beauty_bag_product_delete');
+
+  Future<void> trackBeautyBagCheckFit() => _log('beauty_bag_check_fit');
+
+  /// «Открыть разбор» из косметички. Вход из рутины — отдельное событие
+  /// [trackRoutineViewAnalysis]: префикс события называет экран, с которого
+  /// нажали, поэтому свойство `from` тут не нужно.
+  Future<void> trackBeautyBagViewAnalysis() =>
+      _log('beauty_bag_view_analysis');
+
+  Future<void> trackBeautyBagNotes() => _log('beauty_bag_notes');
+
+  Future<void> trackBeautyBagAddCalendar() => _log('beauty_bag_add_calendar');
+
+  // ── Routine ───────────────────────────────────────────────────────────────
+
+  Future<void> trackRoutineDay({required String day}) =>
+      _log('routine_day', {'day': day});
+
+  Future<void> trackRoutinePush({required bool enabled, String? time}) =>
+      _log('routine_push', {
+        'state': enabled ? 'on' : 'off',
+        if (time != null) 'time': time,
+      });
+
+  Future<void> trackRoutineProduct({required String time}) =>
+      _log('routine_product', {'time': time});
+
+  Future<void> trackRoutineProductSave({required String day}) =>
+      _log('routine_product_save', {'day': day});
+
+  Future<void> trackRoutineProductPause() => _log('routine_product_pause');
+
+  /// «Открыть разбор» из рутины — пара к [trackBeautyBagViewAnalysis].
+  Future<void> trackRoutineViewAnalysis() => _log('routine_view_analysis');
+
+  // ── Review prompt ─────────────────────────────────────────────────────────
+
+  Future<void> trackPopupReviewsShow() => _log('popup_reviews_show');
+
+  Future<void> trackPopupReviewsYes() => _log('popup_reviews_yes');
+
+  Future<void> trackPopupReviewsNo() => _log('popup_reviews_no');
+
+  Future<void> trackPopupReviewsTapComment() =>
+      _log('popup_reviews_tap_comment');
+
+  Future<void> trackPopupReviewsTapEmail() => _log('popup_reviews_tap_email');
+
+  Future<void> trackPopupReviewsTapSend() => _log('popup_reviews_tap_send');
+
+  // ── Session ───────────────────────────────────────────────────────────────
+
+  Future<void> trackAnonSessionStarted() => _log('anon_session_started');
+
+  Future<void> trackAnonConverted() => _log('anon_converted');
 
   // ── Analysis ──────────────────────────────────────────────────────────────
 
@@ -70,8 +466,7 @@ class AnalyticsService {
 
   // ── Boards ────────────────────────────────────────────────────────────────
 
-  Future<void> trackBoardCreated() =>
-      _log('board_created');
+  Future<void> trackBoardCreated() => _log('board_created');
 
   Future<void> trackProductAddedToBoard({required int imageId}) =>
       _log('product_added_to_board', {'image_id': imageId});
@@ -86,11 +481,16 @@ class AnalyticsService {
 
   // ── Upgrade ───────────────────────────────────────────────────────────────
 
+  /// Показ любого промо подписки. Отдельного события в таблице маркетинга нет —
+  /// это впечатление, а не тап, и без него у `premium_tap` нет знаменателя.
   Future<void> trackUpgradePromptShown({required String trigger}) =>
       _log('upgrade_prompt_shown', {'trigger': trigger});
 
-  Future<void> trackUpgradePromptTapped({required String trigger}) =>
-      _log('upgrade_prompt_tapped', {'trigger': trigger});
+  /// Тап по любому входу в подписку. Значения [from] точнее, чем
+  /// `home/account` из таблицы: у экрана продукта, косметички и упёршихся в
+  /// лимит — свои входы, и различать их дороже, чем схлопывать.
+  Future<void> trackPremiumTap({required String from}) =>
+      _log('premium_tap', {'from': from});
 
   // ── Paywall & purchase ────────────────────────────────────────────────────
 
@@ -102,9 +502,19 @@ class AnalyticsService {
     required bool configured,
   }) =>
       _log('paywall_offerings_loaded', {
-        'ready': ready ? 1 : 0,
-        'configured': configured ? 1 : 0,
+        'ready': ready,
+        'configured': configured,
       });
+
+  /// «Восстановить покупки». Событие одно, но с исходом: голый тап не отличает
+  /// «человеку нечего восстанавливать» от «заплатил, а доступ не вернулся» —
+  /// а это разные вещи, и вторая генерирует тикеты в поддержку и единицы в
+  /// App Store.
+  /// [result]: `restored` — доступ вернулся и записан в нашу базу;
+  /// `nothing_to_restore` — RevenueCat не нашёл активной подписки;
+  /// `error` — цепочка оборвалась, до восстановления не дошло.
+  Future<void> trackPurchaseRestore({required String result}) =>
+      _log('purchase_restore', {'result': result});
 
   Future<void> trackPurchaseStarted({required String package}) =>
       _log('purchase_started', {'package': package});
@@ -123,12 +533,30 @@ class AnalyticsService {
       _log('purchase_failed', {
         'package': package,
         'code': code,
-        'cancelled': cancelled ? 1 : 0,
+        'cancelled': cancelled,
       });
 
   // ── Internal ──────────────────────────────────────────────────────────────
 
-  Future<void> _log(String name,
-      [Map<String, Object>? parameters]) =>
-      _analytics.logEvent(name: name, parameters: parameters);
+  /// Аналитика не должна ронять экран: нативный канал может ответить ошибкой
+  /// (нет сети, SDK ещё не поднялся), и это не повод показывать пользователю
+  /// сбой. Ждём `isBuilt` — до инициализации нативная сторона события теряет.
+  Future<void> _log(String name, [Map<String, Object?>? parameters]) async {
+    final amplitude = _amplitude;
+    if (amplitude == null) return;
+    try {
+      if (!await amplitude.isBuilt) return;
+      await amplitude.track(BaseEvent(
+        name,
+        eventProperties: parameters == null
+            ? null
+            : {
+                for (final entry in parameters.entries)
+                  if (entry.value != null) entry.key: entry.value,
+              },
+      ));
+    } catch (e) {
+      debugPrint('Amplitude track "$name" failed: $e');
+    }
+  }
 }

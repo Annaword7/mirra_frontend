@@ -33,6 +33,7 @@ class FFDevEnvironmentValues {
           await rootBundle.loadString(environmentValuesPath);
       final data = await json.decode(response);
       _backendhost = data['backendhost'];
+      _amplitudekey = data['amplitudekey'] ?? '';
     } catch (e) {
       print('Error loading environment values: $e');
     }
@@ -40,4 +41,10 @@ class FFDevEnvironmentValues {
 
   String _backendhost = '';
   String get backendhost => _backendhost;
+
+  /// Amplitude write key. Заполнен только в prod: события с дев-сборок в
+  /// продукте не нужны, а пустой ключ выключает аналитику целиком — сервис
+  /// становится no-op, приложение работает как обычно.
+  String _amplitudekey = '';
+  String get amplitudekey => _amplitudekey;
 }

@@ -15,6 +15,7 @@ import 'auth/supabase_auth/auth_util.dart';
 
 import '/backend/supabase/supabase.dart';
 import 'backend/firebase/firebase_config.dart';
+import 'flutter_flow/analytics_service.dart';
 import 'flutter_flow/flutter_flow_util.dart';
 import 'flutter_flow/internationalization.dart';
 import 'flutter_flow/revenue_cat_util.dart' as revenue_cat;
@@ -28,6 +29,10 @@ void main() async {
 
   final environmentValues = FFDevEnvironmentValues();
   await environmentValues.initialize();
+
+  // Ключ живёт в environment.json, поэтому поднимаем Amplitude сразу после
+  // него и до createRouter() — роутер забирает навигационный observer.
+  AnalyticsService.instance.init();
 
   // Start Supabase early — runs in parallel with Firebase init
   final supaFuture = SupaFlow.initialize();
@@ -187,9 +192,11 @@ class _MyAppState extends State<MyApp> {
           unawaited(revenue_cat.login(user.uid));
           NotificationService.instance.onUserLogin();
           FirebaseCrashlytics.instance.setUserIdentifier(user.uid ?? '');
+          unawaited(AnalyticsService.instance.setUserId(user.uid));
         } else {
           unawaited(revenue_cat.login(null));
           FirebaseCrashlytics.instance.setUserIdentifier('');
+          unawaited(AnalyticsService.instance.setUserId(null));
           // Mint the guest session from here rather than from a launch
           // callback: driven by the auth stream it cannot start before the
           // client has reported that there is no session, which is what made

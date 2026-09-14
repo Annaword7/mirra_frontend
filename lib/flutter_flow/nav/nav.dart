@@ -98,7 +98,8 @@ GoRouter createRouter(AppStateNotifier appStateNotifier, [Widget? entryPage]) =>
       debugLogDiagnostics: true,
       refreshListenable: appStateNotifier,
       navigatorKey: appNavigatorKey,
-      observers: [AnalyticsService.instance.observer],
+      // Пусто, когда ключа Amplitude нет: сервис выключен, наблюдать нечем.
+      observers: AnalyticsService.instance.navigatorObservers,
       errorBuilder: (context, state) {
         if (appStateNotifier.loading) {
           return const _RouteLoader();
