@@ -11,6 +11,7 @@ import 'package:flutter/widgets.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '/environment_values.dart';
+import 'device_identity.dart';
 
 /// Singleton analytics service wrapping Amplitude.
 /// Usage: AnalyticsService.instance.trackCardOpened(source: 'home');
@@ -25,18 +26,33 @@ class AnalyticsService {
 
   Amplitude? _amplitude;
 
+  /// Keychain-идентичность устройства — это и есть `user_id` в Amplitude.
+  /// Доступна синхронно после [init]: её отправляют бэкенду при удалении
+  /// аккаунта, чтобы он вычистил профиль из Amplitude.
+  String? _identity;
+  String? get analyticsUserId => _identity;
+
   /// Initialised from `main()` once the environment values are loaded.
   /// Без ключа (local-сборка, забытый ключ в environment.json) сервис остаётся
   /// выключенным и каждый вызов — no-op: приложение работает как обычно.
-  void init() {
+  Future<void> init() async {
     final apiKey = FFDevEnvironmentValues().amplitudekey;
     if (apiKey.isEmpty) {
       debugPrint('Amplitude: no key for '
           '${FFDevEnvironmentValues.currentEnvironment} — analytics disabled');
       return;
     }
+    // Если Keychain недоступен, стартуем без user_id — SDK поработает на
+    // своём device_id. Аналитика не должна ронять запуск.
+    try {
+      _identity = await DeviceIdentity.get();
+    } catch (e) {
+      debugPrint('Amplitude: device identity unavailable: $e');
+    }
     _amplitude = Amplitude(Configuration(
       apiKey: apiKey,
+      // user_id задаётся до первого события — анонимного окна на старте нет.
+      userId: _identity,
       // Проект живёт в европейском дата-центре. По умолчанию SDK шлёт в США, и
       // события просто не долетают — молча, без ошибки на клиенте.
       serverZone: ServerZone.eu,
@@ -106,15 +122,46 @@ class AnalyticsService {
 
   // ── Identity ──────────────────────────────────────────────────────────────
 
-  /// Вызывается из auth-стрима: пустой uid — гость, Amplitude остаётся на
-  /// device_id.
-  Future<void> setUserId(String? uid) async {
+  /// Вызывается из auth-стрима. `user_id` в Amplitude при этом не трогаем —
+  /// он привязан к устройству, а Supabase-uuid идёт свойствами пользователя:
+  /// `supabase_uid` — текущий, `supabase_uids` — все, какими человек был
+  /// (переустановка, вход через Apple, выход из аккаунта дают новые uuid).
+  /// Пустой uid — момент между выходом и чеканкой нового анонима: текущий
+  /// снимаем, чтобы события в этом окне не приписались прежнему.
+  Future<void> setSupabaseUid(String? uid) async {
     final amplitude = _amplitude;
     if (amplitude == null) return;
     try {
-      await amplitude.setUserId(uid == null || uid.isEmpty ? null : uid);
+      if (!await amplitude.isBuilt) return;
+      final identify = Identify();
+      if (uid == null || uid.isEmpty) {
+        identify.unset('supabase_uid');
+      } else {
+        identify
+          ..set('supabase_uid', uid)
+          ..preInsert('supabase_uids', uid);
+      }
+      await amplitude.identify(identify);
     } catch (e) {
-      debugPrint('Amplitude setUserId failed: $e');
+      debugPrint('Amplitude setSupabaseUid failed: $e');
+    }
+  }
+
+  /// Удаление аккаунта. Человек попросил забыть его — значит следующий
+  /// аноним на этом устройстве не должен пришиваться к прежней истории:
+  /// сбрасываем SDK, чеканим новую идентичность и заново ставим свойства
+  /// установки. Сам старый профиль вычищает бэкенд через Deletion API — SDK
+  /// с устройства этого сделать не может.
+  Future<void> forgetUser() async {
+    final amplitude = _amplitude;
+    if (amplitude == null) return;
+    try {
+      await amplitude.reset();
+      _identity = await DeviceIdentity.rotate();
+      await amplitude.setUserId(_identity);
+      await _identifyInstall();
+    } catch (e) {
+      debugPrint('Amplitude forgetUser failed: $e');
     }
   }
 

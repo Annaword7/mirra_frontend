@@ -32,7 +32,7 @@ void main() async {
 
   // Ключ живёт в environment.json, поэтому поднимаем Amplitude сразу после
   // него и до createRouter() — роутер забирает навигационный observer.
-  AnalyticsService.instance.init();
+  await AnalyticsService.instance.init();
 
   // Start Supabase early — runs in parallel with Firebase init
   final supaFuture = SupaFlow.initialize();
@@ -192,11 +192,11 @@ class _MyAppState extends State<MyApp> {
           unawaited(revenue_cat.login(user.uid));
           NotificationService.instance.onUserLogin();
           FirebaseCrashlytics.instance.setUserIdentifier(user.uid ?? '');
-          unawaited(AnalyticsService.instance.setUserId(user.uid));
+          unawaited(AnalyticsService.instance.setSupabaseUid(user.uid));
         } else {
           unawaited(revenue_cat.login(null));
           FirebaseCrashlytics.instance.setUserIdentifier('');
-          unawaited(AnalyticsService.instance.setUserId(null));
+          unawaited(AnalyticsService.instance.setSupabaseUid(null));
           // Mint the guest session from here rather than from a launch
           // callback: driven by the auth stream it cannot start before the
           // client has reported that there is no session, which is what made

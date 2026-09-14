@@ -1,6 +1,7 @@
 import '/auth/supabase_auth/auth_util.dart';
 import '/backend/api_requests/api_calls.dart';
 import '/design_system/components/confirm_dialog.dart';
+import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/revenue_cat_util.dart' as revenue_cat;
@@ -76,9 +77,14 @@ class _DeleteConfirmationWidgetState extends State<DeleteConfirmationWidget> {
           host: FFDevEnvironmentValues().backendhost,
           userId: currentUserUid,
           token: currentJwtToken,
+          analyticsId: AnalyticsService.instance.analyticsUserId,
         );
 
         if ((_model.deleteuseranswer?.succeeded ?? true)) {
+          // Бэкенд уже получил analytics_id и запустил удаление профиля в
+          // Amplitude; здесь — вторая половина: новая идентичность, чтобы
+          // следующий аноним не пришился к истории удалённого.
+          await AnalyticsService.instance.forgetUser();
           FFAppState().isprouser = false;
           FFAppState().analysesused = 0;
           // Удаление аккаунта — тот же «первый запуск», что и выход: тем же
