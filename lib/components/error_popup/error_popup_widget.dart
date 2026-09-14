@@ -73,23 +73,9 @@ class ErrorPopupWidget extends StatelessWidget {
   /// Every analysis failure surfaces through this dialog and nowhere else, so
   /// this is the one place that can report the whole failure taxonomy without
   /// instrumenting ~25 error branches across the two (mirrored) scan chains.
+  /// One event with `reason` = [type] name; no per-type events on top of it.
   static Future<void> show(BuildContext context, ErrorPopupType type) {
     unawaited(AnalyticsService.instance.trackAnalysisFailed(reason: type.name));
-    // Два из пяти типов отдельно названы в разметке маркетинга — им нужны
-    // именные события поверх общего analysis_failed.
-    switch (type) {
-      case ErrorPopupType.productNotFound:
-        unawaited(
-            AnalyticsService.instance.trackShowScanProductNotRecognized());
-        break;
-      case ErrorPopupType.ingredientsNotFound:
-        unawaited(AnalyticsService.instance.trackScanIngredientsNotFound());
-        break;
-      case ErrorPopupType.subscriptionSync:
-      case ErrorPopupType.unsupported:
-      case ErrorPopupType.generic:
-        break;
-    }
     return showDialog(
       context: context,
       barrierDismissible: true,
