@@ -1,6 +1,4 @@
 // Export pages
-export '/pages/create_account_page/create_account_page_widget.dart'
-    show CreateAccountPageWidget;
 export '/pages/log_in_page/log_in_page_widget.dart' show LogInPageWidget;
 export '/pages/onboarding_profile/onboarding_profile_widget.dart'
     show OnboardingProfileWidget;

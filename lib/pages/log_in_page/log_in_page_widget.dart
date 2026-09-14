@@ -20,11 +20,18 @@ export 'log_in_page_model.dart';
 /// Различаются только подписи, контроллеры и обработчики. Соглашение об
 /// использовании вынесено из вкладок вниз экрана — оно одинаковое для обеих,
 /// и на месте оно тоже не даёт разметке дёргаться.
+///
+/// Раньше рядом жил отдельный экран `/create-account` с той же формой. Он
+/// повторял вкладку регистрации и успел от неё отстать, поэтому удалён: те,
+/// кто вёл на него, открывают этот экран с `?tab=register`.
 class LogInPageWidget extends StatefulWidget {
-  const LogInPageWidget({super.key});
+  const LogInPageWidget({super.key, this.startOnRegister = false});
 
   static String routeName = 'LogInPage';
   static String routePath = '/log-in';
+
+  /// Открыть сразу вкладку «Создать аккаунт» (query-параметр `tab=register`).
+  final bool startOnRegister;
 
   @override
   State<LogInPageWidget> createState() => _LogInPageWidgetState();
@@ -41,7 +48,11 @@ class _LogInPageWidgetState extends State<LogInPageWidget>
   void initState() {
     super.initState();
     _model = createModel(context, () => LogInPageModel());
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(
+      length: 2,
+      vsync: this,
+      initialIndex: widget.startOnRegister ? 1 : 0,
+    );
 
     _model.emailAddressTextController ??= TextEditingController();
     _model.emailAddressFocusNode ??= FocusNode();
@@ -53,14 +64,35 @@ class _LogInPageWidgetState extends State<LogInPageWidget>
     _model.passwordRegisterTextController ??= TextEditingController();
     _model.passwordRegisterFocusNode ??= FocusNode();
 
+    // «Тапнул на строку» = поле получило фокус: в пароль попадают и кнопкой
+    // «дальше» с клавиатуры, а не только тапом. События слушают только поля
+    // регистрации — они и назывались create_profile_*, и до объединения
+    // экранов жили на /create-account.
+    _model.emailRegisterFocusNode!.addListener(_onRegisterEmailFocus);
+    _model.passwordRegisterFocusNode!.addListener(_onRegisterPasswordFocus);
+
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
   }
 
   @override
   void dispose() {
+    _model.emailRegisterFocusNode?.removeListener(_onRegisterEmailFocus);
+    _model.passwordRegisterFocusNode?.removeListener(_onRegisterPasswordFocus);
     _tabController.dispose();
     _model.dispose();
     super.dispose();
+  }
+
+  void _onRegisterEmailFocus() {
+    if (_model.emailRegisterFocusNode?.hasFocus ?? false) {
+      unawaited(AnalyticsService.instance.trackCreateProfileEmailTap());
+    }
+  }
+
+  void _onRegisterPasswordFocus() {
+    if (_model.passwordRegisterFocusNode?.hasFocus ?? false) {
+      unawaited(AnalyticsService.instance.trackCreateProfilePasswordTap());
+    }
   }
 
   String _t(String key) => FFLocalizations.of(context).getText(key);
@@ -182,37 +214,6 @@ class _LogInPageWidgetState extends State<LogInPageWidget>
     );
   }
 
-  /// Заголовок вкладки.
-  ///
-  /// Под видимым заголовком лежит невидимый заголовок соседней вкладки, и блок
-  /// занимает высоту более длинного из двух — одинаковую на обеих вкладках.
-  /// Без этого «С возвращением» и «Создать аккаунт» разной длины: там, где
-  /// одно переносится на вторую строку, а другое нет (а в 11 языках такое
-  /// найдётся всегда), вся форма под ним съезжала на строку при переключении.
-  Widget _heading({required bool isRegister}) {
-    final theme = FlutterFlowTheme.of(context);
-    final style = theme.headlineMedium.override(
-      fontFamily: theme.headlineMediumFamily,
-      letterSpacing: 0.0,
-      fontWeight: FontWeight.w600,
-      useGoogleFonts: !theme.headlineMediumIsCustom,
-    );
-    const signIn = 's2sex1cq' /* Welcome back */;
-    const register = 'v4ogufdc' /* Create account */;
-
-    return Stack(
-      children: [
-        ExcludeSemantics(
-          child: Opacity(
-            opacity: 0.0,
-            child: Text(_t(isRegister ? signIn : register), style: style),
-          ),
-        ),
-        Text(_t(isRegister ? register : signIn), style: style),
-      ],
-    );
-  }
-
   // ── Форма: одна разметка на обе вкладки ───────────────────────────────────
 
   Widget _authForm({required bool isRegister}) {
@@ -225,8 +226,6 @@ class _LogInPageWidgetState extends State<LogInPageWidget>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _heading(isRegister: isRegister),
-            SizedBox(height: theme.space.s24),
             AppTextField(
               // Ключи читает integration_test/test.dart — на вкладке входа они
               // обязаны остаться.

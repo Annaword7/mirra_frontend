@@ -146,14 +146,14 @@ GoRouter createRouter(AppStateNotifier appStateNotifier, [Widget? entryPage]) =>
           },
         ),
         FFRoute(
-          name: CreateAccountPageWidget.routeName,
-          path: CreateAccountPageWidget.routePath,
-          builder: (context, params) => CreateAccountPageWidget(),
-        ),
-        FFRoute(
           name: LogInPageWidget.routeName,
           path: LogInPageWidget.routePath,
-          builder: (context, params) => LogInPageWidget(),
+          builder: (context, params) => LogInPageWidget(
+            // `?tab=register` открывает вкладку «Создать аккаунт». Так сюда
+            // ведут те кнопки, что раньше открывали отдельный /create-account.
+            startOnRegister:
+                params.getParam('tab', ParamType.String) == 'register',
+          ),
         ),
         FFRoute(
           name: OnboardingProfileWidget.routeName,

@@ -366,7 +366,11 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                 unawaited(AnalyticsService.instance
                                     .trackCreateAccount(from: 'profile'));
                                 context.pushNamed(
-                                  CreateAccountPageWidget.routeName,
+                                  LogInPageWidget.routeName,
+                                  queryParameters: {
+                                    'tab': serializeParam(
+                                        'register', ParamType.String),
+                                  }.withoutNulls,
                                   extra: <String, dynamic>{
                                     '__transition_info__': TransitionInfo(
                                       hasTransition: true,

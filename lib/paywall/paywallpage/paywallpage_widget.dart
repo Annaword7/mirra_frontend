@@ -215,7 +215,12 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
     // createAccountWithEmail links the address to this anonymous account and
     // keeps the uuid; the Apple path mints a new one, and the sync call in
     // _claimAnonScans is what carries the subscription across.
-    ctx?.pushNamed(CreateAccountPageWidget.routeName);
+    ctx?.pushNamed(
+      LogInPageWidget.routeName,
+      queryParameters: {
+        'tab': serializeParam('register', ParamType.String),
+      }.withoutNulls,
+    );
   }
 
   // Single RevenueCat purchase flow for both plans (was copy-pasted per card).

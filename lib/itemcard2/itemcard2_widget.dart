@@ -1516,7 +1516,12 @@ class _AnonSaveSheet extends StatelessWidget {
                       FFLocalizations.of(context).getText('cm_create_account'),
                   onPressed: () {
                     Navigator.pop(context);
-                    context.pushNamed(CreateAccountPageWidget.routeName);
+                    context.pushNamed(
+                      LogInPageWidget.routeName,
+                      queryParameters: {
+                        'tab': serializeParam('register', ParamType.String),
+                      }.withoutNulls,
+                    );
                   },
                 ),
               ),

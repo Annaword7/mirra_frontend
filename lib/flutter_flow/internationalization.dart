@@ -172,7 +172,7 @@ bool _isSupportedLocale(Locale locale) {
 }
 
 final kTranslationsMap = <Map<String, Map<String, String>>>[
-  // CreateAccountPage
+  // CreateAccountPage — экран удалён, ключи читает вкладка регистрации
   {
     'v4ogufdc': {
       'en': 'Create account',
