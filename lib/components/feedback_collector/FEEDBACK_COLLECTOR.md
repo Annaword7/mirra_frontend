@@ -2,7 +2,7 @@
 
 ## Что это
 
-Система сбора отзывов от пользователей. Показывает диалог с вопросом "нравится ли приложение?" и ведёт по одной из двух веток:
+Система сбора отзывов от пользователей. Показывает диалог с вопросом «нравится ли приложение?» и ведёт по одной из двух веток:
 
 - **Позитивная** → нативный iOS-диалог App Store Review (`in_app_review`)
 - **Негативная** → bottom sheet с текстовым полем → отправка в Telegram через бота
@@ -18,50 +18,74 @@
 | `negative_feedback_widget.dart` | Bottom sheet для негативного фидбека |
 | `lib/backend/supabase/database/tables/feedback.dart` | Supabase-таблица `feedback` (лайки/дизлайки на карточках) — отдельная система, не связана |
 
+Не путать с `lib/components/leave_review/` — это «Оставить отзыв» из профиля, который пользователь открывает сам. Общего с просилкой только транспорт (`SendAppMessageCall`).
+
 ---
 
-## Условия показа (`FeedbackService.shouldShowPrompt`)
+## Условия показа
+
+Проверок две группы: сначала в карточке продукта, потом в `FeedbackService.shouldShowPrompt()`.
+
+### В карточке продукта (`itemcard2_widget.dart`)
+
+1. **Мягкий пейволл имеет приоритет.** Если у пользователя это первый собственный разбор и он не Pro — показывается пейволл, а функция делает `return`. Просилка в этот заход не появляется вовсе и сохраняет свой флаг до следующего скана.
+2. **`feedbackPendingScan == true`** — флаг ставится при каждом успешном скане в `takeor_upload_page_widget.dart` и гасится при показе. Просилка привязана к свежему скану, а не к любому открытию карточки.
+
+### В `FeedbackService.shouldShowPrompt(state)`
 
 Все условия должны выполняться одновременно:
 
-1. **Feature flag включён** — `FFAppState().feedbackCollectorEnabled == true` (по умолчанию `false`)
-2. **Пользователь ещё не оставил отзыв** — `feedbackReviewSubmitted == false`
-3. **iOS only** — на Android не показывается
-4. **Баннер не закрыт** — если закрыт (`feedbackBannerDismissed == true`), проверяется версия: если сменилась — сбрасывается и показывается снова
-5. **14 дней с первого запуска** (или с последнего показа) — считается от `feedbackFirstLaunchMs`
+1. **Feature flag включён** — `feedbackCollectorEnabled == true` (по умолчанию `false`, приходит из Remote Config)
+2. **iOS only** — на Android не показывается
+3. **Тот же пользователь** — при смене `currentUserUid` на устройстве все счётчики сбрасываются, новый человек получает просилку с нуля
+4. **Отзыв ещё не оставлен** — `feedbackReviewSubmitted == false`, иначе не показывается никогда
+5. **Баннер не закрыт** — если закрыт (`feedbackBannerDismissed == true`), проверяется версия приложения: сменилась — флаг сбрасывается и просилка возвращается
+6. **Частота:**
+   - первый раз (`feedbackLastShownMs == 0`) → нужно **2 успешных скана**
+   - дальше → **14 дней** от последнего показа (`feedbackLastShownMs`)
+
+Порог именно 2, а не 1: первый разбор всегда забирает мягкий пейволл, так что второй скан — самая ранняя точка, где просилку вообще можно показать.
 
 ---
 
 ## Где вызывается
 
-**`home_widget.dart:174`** — при открытии главного экрана:
-```dart
-FeedbackService.recordFirstLaunchIfNeeded();
-```
-Фиксирует первый запуск (точка отсчёта 14-дневного таймера). Идемпотентно.
+**`itemcard2_widget.dart`** — в `initState`, в постфрейм-колбэке, после загрузки разбора:
 
-**`itemcard2_widget.dart:110`** — при открытии карточки продукта:
 ```dart
-if (await FeedbackService.shouldShowPrompt()) {
-  await FeedbackService.recordShown(context.read<FFAppState>());
-  showDialog(...FeedbackCollectorWidget());
+if (feedbackState.feedbackPendingScan &&
+    await FeedbackService.shouldShowPrompt(feedbackState)) {
+  feedbackState.feedbackPendingScan = false;
+  await FeedbackService.recordShown(feedbackState);
+  await Future.delayed(const Duration(seconds: 3));
+  if (context.mounted) {
+    unawaited(AnalyticsService.instance.trackPopupReviewsShow());
+    await showDialog(...FeedbackCollectorWidget());
+  }
 }
 ```
-Диалог показывается поверх карточки продукта.
+
+Три секунды — чтобы человек успел увидеть разбор до вопроса.
+
+⚠️ `recordShown` вызывается **до** задержки, то есть 14-дневный кулдаун стартует, даже если за эти три секунды пользователь ушёл с карточки и окна не увидел. Событие `popup_reviews_show` при этом не отправляется — оно внутри проверки `context.mounted`, поэтому аналитика показов честная, а кулдаун — нет.
 
 ---
 
 ## Пользовательские сценарии
 
 ```
-Открыл карточку продукта
+Успешный скан → открылась карточка продукта
         ↓
-  [shouldShowPrompt?]
+  [первый разбор и не Pro?] ── да ──→ мягкий пейволл, просилка ждёт следующего скана
+        ↓ нет
+  [feedbackPendingScan и shouldShowPrompt?]
         ↓ да
-  ✨ Диалог: "Нравится MiRRA?"
+  пауза 3 секунды
+        ↓
+  ✨ Диалог: «Нравится MiRRA?»
         ↓
   ┌─────────────────────────────┐
-  │  ⭐ Да, круто               │   → requestReview() (нативный iOS)
+  │  ⭐ Да, круто               │   → requestReview() + openStoreListing()
   │                             │     feedbackReviewSubmitted = true
   │                             │     больше никогда не показывается
   ├─────────────────────────────┤
@@ -73,22 +97,26 @@ if (await FeedbackService.shouldShowPrompt()) {
 
 ---
 
-## AppState поля (персистентные, SharedPreferences)
+## AppState поля
 
-| Поле | Тип | По умолчанию | Описание |
-|------|-----|-------------|----------|
-| `feedbackCollectorEnabled` | `bool` | `false` | Feature flag — включает систему |
-| `feedbackReviewSubmitted` | `bool` | `false` | Пользователь нажал "Да" и увидел App Store диалог |
-| `feedbackBannerDismissed` | `bool` | `false` | Пользователь нажал "Нет" или закрыл диалог |
-| `feedbackLastShownVersion` | `String` | `''` | Версия приложения при последнем показе |
-| `feedbackFirstLaunchMs` | `int` | `0` | Timestamp первого запуска (мс) |
-| `feedbackLastShownMs` | `int` | `0` | Timestamp последнего показа (мс) |
+| Поле | Тип | По умолчанию | Персистентное | Описание |
+|------|-----|-------------|---------------|----------|
+| `feedbackCollectorEnabled` | `bool` | `false` | да | Feature flag — включает систему |
+| `feedbackPendingScan` | `bool` | `false` | **нет, только сессия** | Был свежий успешный скан |
+| `feedbackReviewSubmitted` | `bool` | `false` | да | Нажал «Да» и увидел App Store диалог |
+| `feedbackBannerDismissed` | `bool` | `false` | да | Нажал «Нет» или закрыл диалог |
+| `feedbackLastShownVersion` | `String` | `''` | да | Версия приложения при последнем показе |
+| `feedbackLastShownMs` | `int` | `0` | да | Timestamp последнего показа (мс) |
+| `feedbackUserId` | `String` | `''` | да | Чьи это счётчики — для сброса при смене пользователя |
+| `successfulScans` | `int` | `0` | да | Счётчик успешных сканов, общий с другими фичами |
 
 ---
 
 ## Как включить
 
-Feature flag выключен по умолчанию. Чтобы включить:
+Feature flag приходит из Supabase-таблицы `app_config` при старте приложения (`lib/backend/remote_config.dart`). Нужна строка с `key = 'feedbackCollectorEnabled'` и `value = 'true'`.
+
+Локально для отладки можно выставить напрямую:
 
 ```dart
 FFAppState().feedbackCollectorEnabled = true;
@@ -96,18 +124,23 @@ FFAppState().feedbackCollectorEnabled = true;
 
 ---
 
-## Firebase Analytics события
+## События Amplitude
 
 | Событие | Когда |
 |---------|-------|
-| `feedback_positive` | Нажата кнопка "Да, нравится" |
-| `feedback_negative` | Нажата кнопка "Нет, не очень" |
-| `feedback_submitted` | Отправлен текстовый фидбек (негативный путь) |
+| `popup_reviews_show` | Диалог реально появился на экране |
+| `popup_reviews_yes` | Нажата кнопка «Да, круто» |
+| `popup_reviews_no` | Нажата кнопка «Нет, не очень» |
+| `popup_reviews_tap_comment` | Фокус на поле комментария в негативной ветке |
+| `popup_reviews_tap_email` | Фокус на поле email |
+| `popup_reviews_tap_send` | Нажата кнопка отправки |
+
+Полная карта разметки — `docs/analytics_events.md`.
 
 ---
 
 ## Примечания
 
-- `NegativeFeedbackWidget` отправляет текст через `TelegrammessegeCall` — тот же Telegram-бот, что используется в backend
+- `NegativeFeedbackWidget` отправляет текст через `SendAppMessageCall` с `form: 'negative feedback'` — по этому полю письма из просилки отличаются от «Оставить отзыв» из профиля
 - Email в форме необязателен; если не заполнен — используется `currentUserEmail` авторизованного пользователя
 - Таблица `feedback` в Supabase — система лайков/дизлайков на карточках продуктов, не связана с этим компонентом
