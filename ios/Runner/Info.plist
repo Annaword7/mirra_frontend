@@ -41,6 +41,8 @@
 		<string>$(FLUTTER_BUILD_NAME)</string>
 		<key>CFBundleSignature</key>
 		<string>????</string>
+		<key>ITSAppUsesNonExemptEncryption</key>
+		<false/>
 		<key>LSSupportsOpeningDocumentsInPlace</key>
 		<false/>
 		<key>CFBundleDocumentTypes</key>
