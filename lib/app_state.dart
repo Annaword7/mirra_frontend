@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -292,6 +294,14 @@ class FFAppState extends ChangeNotifier {
   String get uploudedimagepath => _uploudedimagepath;
   set uploudedimagepath(String value) {
     _uploudedimagepath = value;
+  }
+
+  /// Байты только что выбранного фото. Экран ожидания рисует их вместо того,
+  /// чтобы качать из Storage файл, который сам же только что туда загрузил.
+  Uint8List? _scanPreviewBytes;
+  Uint8List? get scanPreviewBytes => _scanPreviewBytes;
+  set scanPreviewBytes(Uint8List? value) {
+    _scanPreviewBytes = value;
   }
 
   List<int> _spamlist = [];

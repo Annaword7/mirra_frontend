@@ -848,6 +848,15 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
           try {
             selectedMedia = await selectMedia(
               storageFolderPath: 'users_images',
+              // Бренд и название — крупный текст, 1600 px по длинной стороне
+              // хватает с запасом (сервер всё равно ужмёт до 1024 перед
+              // vision). imageQuality заодно перекодирует PNG-скриншоты из
+              // галереи в JPEG: оригинал доезжал до 3,6 МБ.
+              // Фото панели состава (_captureAndSubmitIngredientsPhoto)
+              // намеренно остаётся полноразмерным — там мелкий шрифт.
+              maxWidth: 1600.0,
+              maxHeight: 1600.0,
+              imageQuality: 85,
               multiImage: false,
             );
           } catch (e, s) {
@@ -859,6 +868,9 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
           if (selectedMedia != null &&
               selectedMedia
                   .every((m) => validateFileFormat(m.storagePath, context))) {
+            // Экран ожидания покажет эти байты, не дожидаясь Storage.
+            FFAppState().scanPreviewBytes =
+                selectedMedia.isNotEmpty ? selectedMedia.first.bytes : null;
             safeSetState(
                 () => _model.isDataUploading_uploadImageSupabaseCamera = true);
             var selectedUploadedFiles = <FFUploadedFile>[];
@@ -1339,6 +1351,10 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
           selectedMedia = await selectMedia(
             storageFolderPath: 'users_images',
             mediaSource: MediaSource.photoGallery,
+            // Те же рамки, что и у камеры — см. _buildCameraButton.
+            maxWidth: 1600.0,
+            maxHeight: 1600.0,
+            imageQuality: 85,
             multiImage: false,
           );
         } catch (e, s) {
@@ -1353,6 +1369,9 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
         if (selectedMedia != null &&
             selectedMedia
                 .every((m) => validateFileFormat(m.storagePath, context))) {
+          // Экран ожидания покажет эти байты, не дожидаясь Storage.
+          FFAppState().scanPreviewBytes =
+              selectedMedia.isNotEmpty ? selectedMedia.first.bytes : null;
           safeSetState(
               () => _model.isDataUploading_uploadImageSupabaseGallary = true);
           var selectedUploadedFiles = <FFUploadedFile>[];

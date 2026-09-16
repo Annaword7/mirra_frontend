@@ -82,17 +82,26 @@ class _AnalysisLoadingWidgetState extends State<AnalysisLoadingWidget> {
             left: 0,
             right: 0,
             height: photoHeight,
-            child: appState.uploudedimagepath.isNotEmpty
-                ? Image.network(
-                    appState.uploudedimagepath,
-                    // Только что снятое фото — полноразмерное с камеры.
-                    // Экран занимает половину высоты, 1080px хватает.
+            // Байты снятого фото уже в памяти — рисуем их, а не качаем из
+            // Storage файл, который приложение само туда только что положило.
+            // Экран занимает половину высоты, 1080px хватает.
+            child: appState.scanPreviewBytes != null
+                ? Image.memory(
+                    appState.scanPreviewBytes!,
                     cacheWidth: 1080,
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) =>
                         ColoredBox(color: theme.surfaceMuted),
                   )
-                : ColoredBox(color: theme.surfaceMuted),
+                : appState.uploudedimagepath.isNotEmpty
+                    ? Image.network(
+                        appState.uploudedimagepath,
+                        cacheWidth: 1080,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) =>
+                            ColoredBox(color: theme.surfaceMuted),
+                      )
+                    : ColoredBox(color: theme.surfaceMuted),
           ),
 
           // ── Градиент: лёгкое затемнение сверху, уход в фон снизу ──
