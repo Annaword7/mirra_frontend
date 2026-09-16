@@ -399,24 +399,36 @@ class ScientificanalysisNEWBCNDCall {
   "user_id": "${escapeStringForJson(userId)}",
   "language_code": "${escapeStringForJson(languageCode)}"
 }''';
-    return ApiManager.instance.makeApiCall(
-      callName: 'scientificanalysis NEW BCND',
-      apiUrl: '${host}api/mirra/scientific-analysis',
-      callType: ApiCallType.POST,
-      headers: {
-        'Authorization': 'Bearer ${token}',
-        'Content-Type': 'application/json',
-      },
-      params: {},
-      body: ffApiRequestBody,
-      bodyType: BodyType.JSON,
-      returnBody: true,
-      encodeBodyUtf8: false,
-      decodeUtf8: false,
-      cache: false,
-      isStreamingApi: false,
-      alwaysAllowBody: false,
-    );
+    return ApiManager.instance
+        .makeApiCall(
+          callName: 'scientificanalysis NEW BCND',
+          apiUrl: '${host}api/mirra/scientific-analysis',
+          callType: ApiCallType.POST,
+          headers: {
+            'Authorization': 'Bearer ${token}',
+            'Content-Type': 'application/json',
+          },
+          params: {},
+          body: ffApiRequestBody,
+          bodyType: BodyType.JSON,
+          returnBody: true,
+          encodeBodyUtf8: false,
+          decodeUtf8: false,
+          cache: false,
+          isStreamingApi: false,
+          alwaysAllowBody: false,
+        )
+        .timeout(
+          // Bound the request: the server's own ceiling is gunicorn --timeout 120,
+          // so no response by then means the socket is silently stuck. This is the
+          // longest synchronous call in the scan — the analysis itself — and the
+          // one the loading screen waits on. Return the same shape makeApiCall
+          // produces on a network error (statusCode -1 -> succeeded == false) so
+          // the caller's existing else branch stops the screen instead of
+          // spinning forever.
+          const Duration(seconds: 120),
+          onTimeout: () => ApiCallResponse(null, const <String, String>{}, -1),
+        );
   }
 
   static String? consumersummary(dynamic response) =>
@@ -851,24 +863,31 @@ class SendAppMessageCall {
   "form": "${escapeStringForJson(form)}",
   "email": "${escapeStringForJson(email)}"
 }''';
-    return ApiManager.instance.makeApiCall(
-      callName: 'sendAppMessage',
-      apiUrl: '${host}api/mirra/app-message',
-      callType: ApiCallType.POST,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ${token}',
-      },
-      params: {},
-      body: ffApiRequestBody,
-      bodyType: BodyType.JSON,
-      returnBody: true,
-      encodeBodyUtf8: false,
-      decodeUtf8: false,
-      cache: false,
-      isStreamingApi: false,
-      alwaysAllowBody: false,
-    );
+    return ApiManager.instance
+        .makeApiCall(
+          callName: 'sendAppMessage',
+          apiUrl: '${host}api/mirra/app-message',
+          callType: ApiCallType.POST,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ${token}',
+          },
+          params: {},
+          body: ffApiRequestBody,
+          bodyType: BodyType.JSON,
+          returnBody: true,
+          encodeBodyUtf8: false,
+          decodeUtf8: false,
+          cache: false,
+          isStreamingApi: false,
+          alwaysAllowBody: false,
+        )
+        .timeout(
+          // The server relays to Telegram with a 10s bound of its own; a
+          // socket stuck past that has nothing left to wait for.
+          const Duration(seconds: 15),
+          onTimeout: () => ApiCallResponse(null, const <String, String>{}, -1),
+        );
   }
 }
 
@@ -879,23 +898,32 @@ class SubscriptionSyncCall {
   }) async {
     host ??= FFDevEnvironmentValues().backendhost;
 
-    return ApiManager.instance.makeApiCall(
-      callName: 'subscriptionSync',
-      apiUrl: '${host}api/mirra/subscription/sync',
-      callType: ApiCallType.POST,
-      headers: {
-        'Authorization': 'Bearer ${token}',
-      },
-      params: {},
-      body: '{}',
-      bodyType: BodyType.JSON,
-      returnBody: true,
-      encodeBodyUtf8: false,
-      decodeUtf8: false,
-      cache: false,
-      isStreamingApi: false,
-      alwaysAllowBody: false,
-    );
+    return ApiManager.instance
+        .makeApiCall(
+          callName: 'subscriptionSync',
+          apiUrl: '${host}api/mirra/subscription/sync',
+          callType: ApiCallType.POST,
+          headers: {
+            'Authorization': 'Bearer ${token}',
+          },
+          params: {},
+          body: '{}',
+          bodyType: BodyType.JSON,
+          returnBody: true,
+          encodeBodyUtf8: false,
+          decodeUtf8: false,
+          cache: false,
+          isStreamingApi: false,
+          alwaysAllowBody: false,
+        )
+        .timeout(
+          // The server asks RevenueCat (15s bound) and writes one row. This
+          // call sits between a confirmed purchase and leaving the paywall,
+          // so a stuck socket here is a spinner the user cannot escape; the
+          // webhook remains the backstop for the premium row itself.
+          const Duration(seconds: 30),
+          onTimeout: () => ApiCallResponse(null, const <String, String>{}, -1),
+        );
   }
 
   static bool? isPremium(dynamic response) => castToType<bool>(getJsonField(
@@ -1017,24 +1045,34 @@ class ResearchAndAnalyzeCall {
   "image_id": ${imageId},
   "language_code": "${escapeStringForJson(languageCode)}"
 }''';
-    return ApiManager.instance.makeApiCall(
-      callName: 'research and analyze',
-      apiUrl: '${host}api/mirra/research-and-analyze',
-      callType: ApiCallType.POST,
-      headers: {
-        'Authorization': 'Bearer ${token}',
-        'Content-Type': 'application/json',
-      },
-      params: {},
-      body: ffApiRequestBody,
-      bodyType: BodyType.JSON,
-      returnBody: true,
-      encodeBodyUtf8: false,
-      decodeUtf8: false,
-      cache: false,
-      isStreamingApi: false,
-      alwaysAllowBody: false,
-    );
+    return ApiManager.instance
+        .makeApiCall(
+          callName: 'research and analyze',
+          apiUrl: '${host}api/mirra/research-and-analyze',
+          callType: ApiCallType.POST,
+          headers: {
+            'Authorization': 'Bearer ${token}',
+            'Content-Type': 'application/json',
+          },
+          params: {},
+          body: ffApiRequestBody,
+          bodyType: BodyType.JSON,
+          returnBody: true,
+          encodeBodyUtf8: false,
+          decodeUtf8: false,
+          cache: false,
+          isStreamingApi: false,
+          alwaysAllowBody: false,
+        )
+        .timeout(
+          // Not a long call despite the name: the server answers 202 as soon as
+          // it has written the analysis_jobs row and started the background
+          // thread, so the bound covers a few Supabase queries, not the research.
+          // Every call site fires this unawaited, so a stuck socket blocks no
+          // screen — the bound just stops it holding a connection.
+          const Duration(seconds: 30),
+          onTimeout: () => ApiCallResponse(null, const <String, String>{}, -1),
+        );
   }
 }
 
