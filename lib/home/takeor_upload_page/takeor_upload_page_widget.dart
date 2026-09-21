@@ -1081,6 +1081,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                     ),
                   ));
                 }
+                FFAppState().successfulScans = FFAppState().successfulScans + 1;
                 FFAppState().feedbackPendingScan = true;
                 if (!mounted) {
                   FFAppState().uploadedimageurl = '';
