@@ -15,20 +15,18 @@ class FeedbackService {
     final userId = currentUserUid;
     if (userId.isEmpty || state.feedbackUserId == userId) return;
     state.feedbackUserId = userId;
-    state.feedbackReviewSubmitted = false;
     state.feedbackLastPromptScans = 0;
   }
 
   /// Локально и без календаря, как у мягкого пейволла: показать, когда счётчик
-  /// удачных сканов дошёл до порога, на котором ещё не спрашивали. Сравнение
-  /// через «>=», а не «==»: если показ на пороге не случился (ушли с карточки
-  /// за три секунды), он не теряется, а ждёт следующего скана.
+  /// удачных сканов дошёл до порога, на котором ещё не спрашивали. Ответ не
+  /// запоминается: и после «да», и после «нет» следующий вопрос на следующем
+  /// пороге. Сравнение через «>=», а не «==»: если показ на пороге не случился
+  /// (ушли с карточки за три секунды), он не теряется, а ждёт следующего скана.
   static bool shouldShowPrompt(FFAppState state) {
     if (!Platform.isIOS) return false;
 
     _resetIfUserChanged(state);
-
-    if (state.feedbackReviewSubmitted) return false;
 
     return milestoneDue(
       lastPromptScans: state.feedbackLastPromptScans,

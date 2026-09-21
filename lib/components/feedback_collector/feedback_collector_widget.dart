@@ -142,7 +142,6 @@ class FeedbackCollectorWidget extends StatelessWidget {
                       onTap: () async {
                         HapticFeedback.mediumImpact();
                         unawaited(AnalyticsService.instance.trackPopupReviewsYes());
-                        FFAppState().feedbackReviewSubmitted = true;
                         final inAppReview = InAppReview.instance;
                         if (await inAppReview.isAvailable()) {
                           // requestReview may be silently ignored by iOS quotas.

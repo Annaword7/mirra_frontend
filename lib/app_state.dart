@@ -61,9 +61,6 @@ class FFAppState extends ChangeNotifier {
       _pendingBagSlot = prefs.getInt('ff_pendingBagSlot') ?? _pendingBagSlot;
     });
     _safeInit(() {
-      _feedbackReviewSubmitted = prefs.getBool('ff_feedbackReviewSubmitted') ?? _feedbackReviewSubmitted;
-    });
-    _safeInit(() {
       _feedbackLastPromptScans = prefs.getInt('ff_feedbackLastPromptScans') ?? _feedbackLastPromptScans;
     });
     _safeInit(() {
@@ -351,13 +348,6 @@ class FFAppState extends ChangeNotifier {
   // Feedback Collector
   bool feedbackPendingScan = false; // session-only, not persisted
 
-
-  bool _feedbackReviewSubmitted = false;
-  bool get feedbackReviewSubmitted => _feedbackReviewSubmitted;
-  set feedbackReviewSubmitted(bool value) {
-    _feedbackReviewSubmitted = value;
-    prefs.setBool('ff_feedbackReviewSubmitted', value);
-  }
 
   // Значение [successfulScans] на момент последнего показа просилки. Пороги
   // показов — kFeedbackScanMilestones в feedback_service.dart.
