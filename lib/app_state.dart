@@ -61,9 +61,6 @@ class FFAppState extends ChangeNotifier {
       _pendingBagSlot = prefs.getInt('ff_pendingBagSlot') ?? _pendingBagSlot;
     });
     _safeInit(() {
-      _feedbackCollectorEnabled = prefs.getBool('ff_feedbackCollectorEnabled') ?? _feedbackCollectorEnabled;
-    });
-    _safeInit(() {
       _feedbackReviewSubmitted = prefs.getBool('ff_feedbackReviewSubmitted') ?? _feedbackReviewSubmitted;
     });
     _safeInit(() {
@@ -360,12 +357,6 @@ class FFAppState extends ChangeNotifier {
   // Feedback Collector
   bool feedbackPendingScan = false; // session-only, not persisted
 
-  bool _feedbackCollectorEnabled = false;
-  bool get feedbackCollectorEnabled => _feedbackCollectorEnabled;
-  set feedbackCollectorEnabled(bool value) {
-    _feedbackCollectorEnabled = value;
-    prefs.setBool('ff_feedbackCollectorEnabled', value);
-  }
 
   bool _feedbackReviewSubmitted = false;
   bool get feedbackReviewSubmitted => _feedbackReviewSubmitted;

@@ -25,7 +25,6 @@ class FeedbackService {
   }
 
   static Future<bool> shouldShowPrompt(FFAppState state) async {
-    if (!state.feedbackCollectorEnabled) return false;
     if (!Platform.isIOS) return false;
 
     _resetIfUserChanged(state);

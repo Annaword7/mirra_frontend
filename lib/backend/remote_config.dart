@@ -14,14 +14,6 @@ Future<void> fetchRemoteConfig() async {
       for (final row in rows) row['key'] as String: row['value'] as String,
     };
 
-    if (map.containsKey('feedbackCollectorEnabled')) {
-      final val = map['feedbackCollectorEnabled']!.toLowerCase() == 'true';
-      debugPrint('[RemoteConfig] feedbackCollectorEnabled=$val (raw="${map['feedbackCollectorEnabled']}") ');
-      FFAppState().feedbackCollectorEnabled = val;
-    } else {
-      debugPrint('[RemoteConfig] feedbackCollectorEnabled key not found in app_config');
-    }
-
     if (map.containsKey('free_scan_limit')) {
       final val = int.tryParse(map['free_scan_limit']!);
       if (val != null && val > 0) FFAppState().freeScanLimit = val;
