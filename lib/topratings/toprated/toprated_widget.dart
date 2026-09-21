@@ -350,10 +350,7 @@ class _TopratedWidgetState extends State<TopratedWidget> {
                       onPressed: () {
                         unawaited(AnalyticsService.instance
                             .trackOverviewFilterAdd(
-                                filter: tempFacets.entries
-                                    .expand((e) =>
-                                        e.value.map((v) => '${e.key}:$v'))
-                                    .toList()));
+                                facets: tempFacets, sort: tempSort));
                         Navigator.of(ctx).pop(true);
                         _applyFilters(tempFacets, tempSort);
                       },
