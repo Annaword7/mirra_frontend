@@ -36,14 +36,13 @@
 Все условия должны выполняться одновременно:
 
 1. **iOS only** — на Android не показывается
-2. **Тот же пользователь** — при смене `currentUserUid` на устройстве все счётчики сбрасываются, новый человек получает просилку с нуля
+2. **Тот же пользователь** — при смене `currentUserUid` на устройстве счётчики сбрасываются, новый человек получает просилку с нуля
 3. **Отзыв ещё не оставлен** — `feedbackReviewSubmitted == false`, иначе не показывается никогда
-4. **Баннер не закрыт** — если закрыт (`feedbackBannerDismissed == true`), проверяется версия приложения: сменилась — флаг сбрасывается и просилка возвращается
-5. **Частота:**
-   - первый раз (`feedbackLastShownMs == 0`) → нужно **2 успешных скана**
-   - дальше → **14 дней** от последнего показа (`feedbackLastShownMs`)
+4. **Порог по сканам** — `kFeedbackScanMilestones = [2, 10, 30, 50]`. Показать, если есть порог `m`, для которого `feedbackLastPromptScans < m <= successfulScans`. Календаря нет: как и пейволл, просилка решает всё локально по счётчику.
 
-Порог именно 2, а не 1: первый разбор всегда забирает мягкий пейволл, так что второй скан — самая ранняя точка, где просилку вообще можно показать.
+Первый порог именно 2, а не 1: первый разбор всегда забирает мягкий пейволл, так что второй скан — самая ранняя точка, где просилку вообще можно показать. Дальше пороги растут с вовлечённостью, всего четыре показа за жизнь установки. Ответ «Нет» ничего не запоминает: следующий вопрос будет на следующем пороге.
+
+Сравнение через `<=`, а не `==`: если на пороге показ не случился, он не теряется и ждёт следующего скана.
 
 ---
 
@@ -53,11 +52,11 @@
 
 ```dart
 if (feedbackState.feedbackPendingScan &&
-    await FeedbackService.shouldShowPrompt(feedbackState)) {
+    FeedbackService.shouldShowPrompt(feedbackState)) {
   feedbackState.feedbackPendingScan = false;
-  await FeedbackService.recordShown(feedbackState);
   await Future.delayed(const Duration(seconds: 3));
   if (context.mounted) {
+    FeedbackService.recordShown(feedbackState);
     unawaited(AnalyticsService.instance.trackPopupReviewsShow());
     await showDialog(...FeedbackCollectorWidget());
   }
@@ -66,7 +65,7 @@ if (feedbackState.feedbackPendingScan &&
 
 Три секунды — чтобы человек успел увидеть разбор до вопроса.
 
-⚠️ `recordShown` вызывается **до** задержки, то есть 14-дневный кулдаун стартует, даже если за эти три секунды пользователь ушёл с карточки и окна не увидел. Событие `popup_reviews_show` при этом не отправляется — оно внутри проверки `context.mounted`, поэтому аналитика показов честная, а кулдаун — нет.
+`recordShown` вызывается **после** задержки, вместе с событием `popup_reviews_show`: порог засчитывается только при реальном показе. Если за три секунды пользователь ушёл с карточки, просилка вернётся на следующем скане.
 
 ---
 
@@ -89,7 +88,8 @@ if (feedbackState.feedbackPendingScan &&
   │                             │     больше никогда не показывается
   ├─────────────────────────────┤
   │  Нет, не очень              │   → NegativeFeedbackWidget (bottom sheet)
-  │                             │     feedbackBannerDismissed = true
+  │                             │     ничего не запоминается,
+  │                             │     следующий вопрос на следующем пороге
   │                             │     через текстовое поле → Telegram
   └─────────────────────────────┘
 ```
@@ -102,9 +102,7 @@ if (feedbackState.feedbackPendingScan &&
 |------|-----|-------------|---------------|----------|
 | `feedbackPendingScan` | `bool` | `false` | **нет, только сессия** | Был свежий успешный скан |
 | `feedbackReviewSubmitted` | `bool` | `false` | да | Нажал «Да» и увидел App Store диалог |
-| `feedbackBannerDismissed` | `bool` | `false` | да | Нажал «Нет» или закрыл диалог |
-| `feedbackLastShownVersion` | `String` | `''` | да | Версия приложения при последнем показе |
-| `feedbackLastShownMs` | `int` | `0` | да | Timestamp последнего показа (мс) |
+| `feedbackLastPromptScans` | `int` | `0` | да | Значение `successfulScans` на момент последнего показа |
 | `feedbackUserId` | `String` | `''` | да | Чьи это счётчики — для сброса при смене пользователя |
 | `successfulScans` | `int` | `0` | да | Счётчик успешных сканов, общий с другими фичами |
 

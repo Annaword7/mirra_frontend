@@ -1,59 +1,48 @@
 import 'dart:io';
-import 'package:package_info_plus/package_info_plus.dart';
 import '/app_state.dart';
 import '/auth/supabase_auth/auth_util.dart';
 
-class FeedbackService {
-  static Future<String> _appVersion() async {
-    try {
-      final info = await PackageInfo.fromPlatform();
-      return info.version;
-    } catch (_) {
-      return 'unknown';
-    }
-  }
+/// Номера удачных сканов, на которых показывается просилка. Первый порог —
+/// второй скан: первый разбор всегда забирает мягкий пейволл. Дальше пороги
+/// растут вместе с вовлечённостью: кому хватило на 50 разборов, тому есть что
+/// сказать. Четыре показа за жизнь установки — с запасом под лимит Apple на
+/// три запроса оценки в год.
+const List<int> kFeedbackScanMilestones = [2, 10, 30, 50];
 
+class FeedbackService {
   /// Resets per-user feedback fields when a different user is detected on this device.
   static void _resetIfUserChanged(FFAppState state) {
     final userId = currentUserUid;
     if (userId.isEmpty || state.feedbackUserId == userId) return;
     state.feedbackUserId = userId;
     state.feedbackReviewSubmitted = false;
-    state.feedbackBannerDismissed = false;
-    state.feedbackLastShownMs = 0;
-    state.feedbackLastShownVersion = '';
+    state.feedbackLastPromptScans = 0;
   }
 
-  static Future<bool> shouldShowPrompt(FFAppState state) async {
+  /// Локально и без календаря, как у мягкого пейволла: показать, когда счётчик
+  /// удачных сканов дошёл до порога, на котором ещё не спрашивали. Сравнение
+  /// через «>=», а не «==»: если показ на пороге не случился (ушли с карточки
+  /// за три секунды), он не теряется, а ждёт следующего скана.
+  static bool shouldShowPrompt(FFAppState state) {
     if (!Platform.isIOS) return false;
 
     _resetIfUserChanged(state);
 
     if (state.feedbackReviewSubmitted) return false;
 
-    if (state.feedbackBannerDismissed) {
-      final version = await _appVersion();
-      if (state.feedbackLastShownVersion == version) return false;
-      state.feedbackBannerDismissed = false;
-    }
-
-    // New user (never shown) → wait for the 2nd successful scan. The very
-    // first result is always taken by the soft paywall, which returns early
-    // and leaves the prompt pending, so the second scan is the earliest moment
-    // this can appear at all — waiting longer only loses ratings.
-    if (state.feedbackLastShownMs == 0) return state.successfulScans >= 2;
-
-    // Returning user → 14-day cooldown from last shown
-    final daysPassed =
-        (DateTime.now().millisecondsSinceEpoch - state.feedbackLastShownMs) /
-            (1000 * 60 * 60 * 24);
-
-    return daysPassed >= 14;
+    return milestoneDue(
+      lastPromptScans: state.feedbackLastPromptScans,
+      scans: state.successfulScans,
+    );
   }
 
-  /// ✅ ВАЖНО: state тоже передаётся, не создаётся новый
-  static Future<void> recordShown(FFAppState state) async {
-    state.feedbackLastShownMs = DateTime.now().millisecondsSinceEpoch;
-    state.feedbackLastShownVersion = await _appVersion();
+  /// Есть ли порог, пройденный после последнего показа. Вынесено из
+  /// [shouldShowPrompt], чтобы проверять таблицей без Supabase и prefs.
+  static bool milestoneDue({required int lastPromptScans, required int scans}) =>
+      kFeedbackScanMilestones.any((m) => m > lastPromptScans && m <= scans);
+
+  /// Зафиксировать показ: следующий раз — на следующем пороге.
+  static void recordShown(FFAppState state) {
+    state.feedbackLastPromptScans = state.successfulScans;
   }
 }
