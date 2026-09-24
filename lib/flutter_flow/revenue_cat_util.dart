@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import '/app_state.dart';
+import '/flutter_flow/analytics_service.dart';
 
 export 'package:purchases_flutter/purchases_flutter.dart'
     show Package, Offering;
@@ -11,6 +12,7 @@ export 'package:purchases_flutter/purchases_flutter.dart'
 Offerings? _offerings;
 CustomerInfo? _customerInfo;
 String? _loggedInUid;
+bool _loggedInAnonymous = false;
 bool _isConfigured = false;
 
 Offerings? get offerings => _offerings;
@@ -150,27 +152,52 @@ Future<bool?> isEntitled(String entitlementId) async {
 }
 
 // https://docs.revenuecat.com/docs/user-ids
-Future login(String? uid) async {
+Future login(String? uid, {bool anonymous = false}) async {
   if (!_isConfigured) {
     return;
   }
   // Skip when there is no identity change: same user re-login or already-anonymous logout.
-  if (uid == _loggedInUid) {
+  // Аноним, привязавший почту, сохраняет uuid, но перестаёт быть анонимом:
+  // это тоже смена идентичности, ему пора получить $amplitudeUserId.
+  if (uid == _loggedInUid && anonymous == _loggedInAnonymous) {
     return;
   }
   try {
     if (uid != null) {
-      customerInfo = (await Purchases.logIn(uid)).customerInfo;
+      if (uid != _loggedInUid) {
+        customerInfo = (await Purchases.logIn(uid)).customerInfo;
+      }
       // Anchor identity for webhooks (renewals can carry an anonymous app_user_id);
       // the backend resolves the user via this supabase_uid attribute.
       await Purchases.setAttributes({'supabase_uid': uid});
+      await _setAmplitudeIdentity(uid, anonymous: anonymous);
     } else {
       customerInfo = await Purchases.logOut();
     }
     _loggedInUid = uid;
+    _loggedInAnonymous = anonymous;
   } catch (e, s) {
     FirebaseCrashlytics.instance.recordError(e, s, fatal: false, reason: 'RevenueCat login/logout failed');
   }
+}
+
+/// Под каким пользователем Amplitude RevenueCat присылает свои события
+/// (покупка, продление, истечение). Без атрибутов он шлёт app_user_id как
+/// user_id, а для анонима это Supabase-uuid, которого в Amplitude нет: каждая
+/// анонимная покупка повисала бы отдельным пользователем. Если задан только
+/// $amplitudeDeviceId, RevenueCat шлёт только device_id, и событие ложится в
+/// анонимную историю устройства, не назначая ей user_id (иначе вход через
+/// Apple после покупки разрывал бы историю). Аккаунту ставим и
+/// $amplitudeUserId: событие уходит на того же пользователя, что и события
+/// приложения. Ключи зарезервированы SDK, отдельных сеттеров в плагине нет.
+Future<void> _setAmplitudeIdentity(String uid, {required bool anonymous}) async {
+  final identity = AnalyticsService.instance.deviceIdentity;
+  final attributes = <String, String>{
+    if (identity != null) r'$amplitudeDeviceId': identity,
+    if (!anonymous) r'$amplitudeUserId': uid,
+  };
+  if (attributes.isEmpty) return;
+  await Purchases.setAttributes(attributes);
 }
 
 // https://docs.revenuecat.com/docs/restoring-purchases

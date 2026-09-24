@@ -106,7 +106,11 @@ void main() async {
       // purchase carries no Supabase UUID and the webhook has no user to
       // resolve, which is how a paid subscription ends up owned by nobody.
       if (currentUserUid.isNotEmpty) {
-        unawaited(revenue_cat.login(currentUserUid));
+        unawaited(revenue_cat.login(
+          currentUserUid,
+          anonymous: currentUser is MiRRADevSupabaseUser &&
+              (currentUser as MiRRADevSupabaseUser).isAnonymous,
+        ));
       }
     }));
   });
@@ -189,7 +193,10 @@ class _MyAppState extends State<MyApp> {
           // Anonymous sessions count: the whole point of creating one up front
           // is that RevenueCat gets a Supabase UUID before any purchase can
           // happen.
-          unawaited(revenue_cat.login(user.uid));
+          unawaited(revenue_cat.login(
+            user.uid,
+            anonymous: user is MiRRADevSupabaseUser && user.isAnonymous,
+          ));
           NotificationService.instance.onUserLogin();
           FirebaseCrashlytics.instance.setUserIdentifier(user.uid ?? '');
           // Аккаунт получает user_id, аноним ходит без него: Amplitude склеит

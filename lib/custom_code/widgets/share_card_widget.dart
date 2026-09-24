@@ -15,7 +15,6 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
@@ -35,6 +34,12 @@ String _t(String key, String lang) =>
 
 // ── Widget ─────────────────────────────────────────────────────────────────────
 
+/// Share-карточка, которая начинается с открытия, а не со скора.
+///
+/// Люди делятся не приложениями, а открытиями (документ V, раздел 14): первым
+/// идёт факт «актив на N-м месте из M», под ним правило «место показывает,
+/// сколько внутри», и только потом — скор и оси.
+/// Бренд едет пассажиром.
 class ShareCardWidget extends StatefulWidget {
   const ShareCardWidget({
     super.key,
@@ -58,6 +63,12 @@ class ShareCardWidget extends StatefulWidget {
     this.ingredients = '',
     this.topIngredients = const [],
     this.issueIngredients = const [],
+    this.inciList = const [],
+    this.onePercentLinePos,
+    this.keyActiveName,
+    this.keyActivePosition,
+    this.keyActiveStatus,
+    this.promisedAllWorking = false,
   });
 
   final double width;
@@ -80,6 +91,16 @@ class ShareCardWidget extends StatefulWidget {
   final String ingredients;
   final List<String> topIngredients;
   final List<String> issueIngredients;
+
+  /// INCI по позициям (для счёта «из M») и линия 1 %.
+  final List<String> inciList;
+  final int? onePercentLinePos;
+
+  /// Герой открытия: актив, его позиция и статус дозы.
+  final String? keyActiveName;
+  final int? keyActivePosition;
+  final String? keyActiveStatus;
+  final bool promisedAllWorking;
 
   @override
   State<ShareCardWidget> createState() => _ShareCardWidgetState();
@@ -133,6 +154,16 @@ class _ShareCardWidgetState extends State<ShareCardWidget> {
     }
   }
 
+  _Discovery get _discovery => _Discovery(
+        lang: widget.lang,
+        inciList: widget.inciList,
+        onePercentLinePos: widget.onePercentLinePos,
+        keyActiveName: widget.keyActiveName,
+        keyActivePosition: widget.keyActivePosition,
+        keyActiveStatus: widget.keyActiveStatus,
+        promisedAllWorking: widget.promisedAllWorking,
+      );
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -154,9 +185,7 @@ class _ShareCardWidgetState extends State<ShareCardWidget> {
                     stabilityScore: widget.stabilityScore,
                     uxScore: widget.uxScore,
                     comedogenicityScore: widget.comedogenicityScore,
-                    ingredients: widget.ingredients,
-                    topIngredients: widget.topIngredients,
-                    issueIngredients: widget.issueIngredients,
+                    discovery: _discovery,
                   )
                 : _SquareCard(
                     productName: widget.productName,
@@ -169,9 +198,7 @@ class _ShareCardWidgetState extends State<ShareCardWidget> {
                     stabilityScore: widget.stabilityScore,
                     uxScore: widget.uxScore,
                     comedogenicityScore: widget.comedogenicityScore,
-                    ingredients: widget.ingredients,
-                    topIngredients: widget.topIngredients,
-                    issueIngredients: widget.issueIngredients,
+                    discovery: _discovery,
                   ),
           ),
         ),
@@ -215,6 +242,46 @@ class _ShareCardWidgetState extends State<ShareCardWidget> {
       ],
     );
   }
+}
+
+// ── Discovery: the fact the card leads with ───────────────────────────────────
+
+class _Discovery {
+  const _Discovery({
+    required this.lang,
+    required this.inciList,
+    required this.onePercentLinePos,
+    required this.keyActiveName,
+    required this.keyActivePosition,
+    required this.keyActiveStatus,
+    required this.promisedAllWorking,
+  });
+
+  final String lang;
+  final List<String> inciList;
+  final int? onePercentLinePos;
+  final String? keyActiveName;
+  final int? keyActivePosition;
+  final String? keyActiveStatus;
+  final bool promisedAllWorking;
+
+  /// Заголовок-факт. Пусто, если сказать нечего — тогда карточка начинается
+  /// с правила.
+  String get headline {
+    if (promisedAllWorking) return _t('discovery_ok', lang);
+    final name = keyActiveName;
+    final pos = keyActivePosition;
+    if (name != null && pos != null && inciList.isNotEmpty) {
+      return _t('discovery_at', lang)
+          .replaceAll('{active}', name)
+          .replaceAll('{pos}', '$pos')
+          .replaceAll('{total}', '${inciList.length}');
+    }
+    return '';
+  }
+
+  Color get accent =>
+      promisedAllWorking ? kStatusWorking : statusColor(keyActiveStatus);
 }
 
 // ── Axis labels ───────────────────────────────────────────────────────────────
@@ -280,65 +347,43 @@ Widget _miniBar(String label, double? value) {
   );
 }
 
-// ── Ingredient rich text ──────────────────────────────────────────────────────
+// ── Left column: photo ────────────────────────────────────────────────────────
 
-Widget _ingredientRichText(
-  String raw,
-  List<String> topIngredients,
-  List<String> issueIngredients,
-) {
-  const greenText = Color(0xFF1B5E20);
-  const greenBg = Color(0xFFE8F5E9);
-  const redText = Color(0xFFB71C1C);
-  const redBg = Color(0xFFFFEBEE);
-
-  final greenSet = topIngredients.map((s) => s.toLowerCase().trim()).toSet();
-  final redSet = issueIngredients.map((s) => s.toLowerCase().trim()).toSet();
-
-  final tokens =
-      raw.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
-  final spans = <InlineSpan>[];
-  for (var i = 0; i < tokens.length; i++) {
-    final token = tokens[i];
-    final key = token.toLowerCase();
-    final isGreen = greenSet.contains(key);
-    final isRed = redSet.contains(key);
-    if (isGreen) {
-      spans.add(TextSpan(
-        text: token,
-        style: const TextStyle(
-            color: greenText,
-            backgroundColor: greenBg,
-            fontWeight: FontWeight.w700),
-      ));
-    } else if (isRed) {
-      spans.add(TextSpan(
-        text: token,
-        style: const TextStyle(
-            color: redText,
-            backgroundColor: redBg,
-            fontWeight: FontWeight.w700),
-      ));
-    } else {
-      spans.add(TextSpan(text: token));
-    }
-    if (i < tokens.length - 1) spans.add(const TextSpan(text: ', '));
-  }
-
-  return AutoSizeText.rich(
-    TextSpan(children: spans),
-    style: const TextStyle(
-      color: Color(0x99000000),
-      fontSize: 12,
-      height: 1.5,
-      letterSpacing: 0.2,
-    ),
-    minFontSize: 5,
-    overflow: TextOverflow.clip,
+Widget _leftPanel({
+  required String imageUrl,
+  required bool badgeAtTop,
+}) {
+  const primary = Color(0xFF5C85D9);
+  return Stack(
+    fit: StackFit.expand,
+    children: [
+      Image.network(imageUrl, cacheWidth: 600, fit: BoxFit.cover),
+      Positioned(
+        left: 10,
+        top: badgeAtTop ? 16 : null,
+        bottom: badgeAtTop ? null : 10,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+          decoration: BoxDecoration(
+            color: primary.withOpacity(0.85),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: const Text(
+            'MiRRA',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 9,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 2,
+            ),
+          ),
+        ),
+      ),
+    ],
   );
 }
 
-// ── Shared right-panel ─────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────
 
 Widget _rightPanel({
   required String brandName,
@@ -350,9 +395,7 @@ Widget _rightPanel({
   required double? stabilityScore,
   required double? uxScore,
   required double? comedogenicityScore,
-  required String ingredients,
-  required List<String> topIngredients,
-  required List<String> issueIngredients,
+  required _Discovery discovery,
   required double nameFontSize,
   required double brandFontSize,
   required double badgeSize,
@@ -363,6 +406,7 @@ Widget _rightPanel({
   final sColor = semanticScoreColor(score);
   final grade = scoreGrade(score);
   const primary = Color(0xFF5C85D9);
+  final headline = discovery.headline;
 
   return Padding(
     padding: padding,
@@ -394,7 +438,44 @@ Widget _rightPanel({
           ),
         ),
         const SizedBox(height: 8),
-        // Score badge
+        // Открытие — первым и крупнее скора: это то, что пересказывают.
+        if (headline.isNotEmpty) ...[
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
+            decoration: BoxDecoration(
+              color: discovery.accent.withOpacity(0.10),
+              borderRadius: BorderRadius.circular(8),
+              border: Border(
+                left: BorderSide(color: discovery.accent, width: 3),
+              ),
+            ),
+            child: Text(
+              headline,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: nameFontSize - 1,
+                fontWeight: FontWeight.w700,
+                height: 1.2,
+              ),
+            ),
+          ),
+          const SizedBox(height: 4),
+        ],
+        Text(
+          _t('discovery_rule', lang),
+          maxLines: 2,
+          style: TextStyle(
+            color: Colors.black.withOpacity(0.55),
+            fontSize: brandFontSize,
+            fontStyle: FontStyle.italic,
+            height: 1.25,
+          ),
+        ),
+        const SizedBox(height: 8),
+        // Score badge — after the discovery, smaller than the headline.
         Row(
           children: [
             Container(
@@ -433,15 +514,7 @@ Widget _rightPanel({
         _miniBar(_axisLabel(lang, 'stability'), stabilityScore),
         _miniBar(_axisLabel(lang, 'experience'), uxScore),
         _miniBar(_axisLabel(lang, 'pore_safety'), comedogenicityScore),
-        const SizedBox(height: 6),
-        // Ingredients with highlights — fills remaining space
-        if (ingredients.isNotEmpty)
-          Expanded(
-            child: _ingredientRichText(
-                ingredients, topIngredients, issueIngredients),
-          )
-        else
-          const Spacer(),
+        const Spacer(),
         const SizedBox(height: 8),
         // Footer
         Text(
@@ -471,9 +544,7 @@ class _StoryCard extends StatelessWidget {
     required this.stabilityScore,
     required this.uxScore,
     required this.comedogenicityScore,
-    required this.ingredients,
-    required this.topIngredients,
-    required this.issueIngredients,
+    required this.discovery,
   });
 
   final String productName;
@@ -486,11 +557,8 @@ class _StoryCard extends StatelessWidget {
   final double? stabilityScore;
   final double? uxScore;
   final double? comedogenicityScore;
-  final String ingredients;
-  final List<String> topIngredients;
-  final List<String> issueIngredients;
+  final _Discovery discovery;
 
-  static const _primary = Color(0xFF5C85D9);
   static const _bg = Color(0xFFF5F7FF);
 
   @override
@@ -503,32 +571,9 @@ class _StoryCard extends StatelessWidget {
           // Left: image (38%)
           Expanded(
             flex: 38,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                Image.network(imageUrl, cacheWidth: 600, fit: BoxFit.cover),
-                Positioned(
-                  left: 10,
-                  top: 16,
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: _primary.withOpacity(0.85),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Text(
-                      'MiRRA',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 9,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 2,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+            child: _leftPanel(
+              imageUrl: imageUrl,
+              badgeAtTop: true,
             ),
           ),
           // Right: info (62%)
@@ -544,14 +589,12 @@ class _StoryCard extends StatelessWidget {
               stabilityScore: stabilityScore,
               uxScore: uxScore,
               comedogenicityScore: comedogenicityScore,
-              ingredients: ingredients,
-              topIngredients: topIngredients,
-              issueIngredients: issueIngredients,
+              discovery: discovery,
               nameFontSize: 17,
               brandFontSize: 11,
-              badgeSize: 48,
-              gradeFontSize: 22,
-              scoreFontSize: 16,
+              badgeSize: 40,
+              gradeFontSize: 18,
+              scoreFontSize: 14,
               padding: const EdgeInsets.fromLTRB(14, 20, 14, 16),
             ),
           ),
@@ -575,9 +618,7 @@ class _SquareCard extends StatelessWidget {
     required this.stabilityScore,
     required this.uxScore,
     required this.comedogenicityScore,
-    required this.ingredients,
-    required this.topIngredients,
-    required this.issueIngredients,
+    required this.discovery,
   });
 
   final String productName;
@@ -590,11 +631,8 @@ class _SquareCard extends StatelessWidget {
   final double? stabilityScore;
   final double? uxScore;
   final double? comedogenicityScore;
-  final String ingredients;
-  final List<String> topIngredients;
-  final List<String> issueIngredients;
+  final _Discovery discovery;
 
-  static const _primary = Color(0xFF5C85D9);
   static const _bg = Color(0xFFF5F7FF);
 
   @override
@@ -606,32 +644,9 @@ class _SquareCard extends StatelessWidget {
         children: [
           // Left: image (50%)
           Expanded(
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                Image.network(imageUrl, cacheWidth: 600, fit: BoxFit.cover),
-                Positioned(
-                  left: 10,
-                  bottom: 10,
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: _primary.withOpacity(0.85),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Text(
-                      'MiRRA',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 9,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 2,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+            child: _leftPanel(
+              imageUrl: imageUrl,
+              badgeAtTop: false,
             ),
           ),
           // Right: info (50%)
@@ -646,14 +661,12 @@ class _SquareCard extends StatelessWidget {
               stabilityScore: stabilityScore,
               uxScore: uxScore,
               comedogenicityScore: comedogenicityScore,
-              ingredients: ingredients,
-              topIngredients: topIngredients,
-              issueIngredients: issueIngredients,
+              discovery: discovery,
               nameFontSize: 14,
               brandFontSize: 10,
-              badgeSize: 40,
-              gradeFontSize: 18,
-              scoreFontSize: 14,
+              badgeSize: 32,
+              gradeFontSize: 14,
+              scoreFontSize: 12,
               padding: const EdgeInsets.fromLTRB(14, 16, 14, 14),
             ),
           ),

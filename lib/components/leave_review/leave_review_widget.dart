@@ -199,6 +199,7 @@ class _LeaveReviewWidgetState extends State<LeaveReviewWidget> {
                   token: currentJwtToken,
                   message: _model.folderTitleTextController.text,
                   email: currentUserEmail,
+                  form: 'leave a review',
                 );
 
                 // `true` отличает отправку от закрытия листа — по нему

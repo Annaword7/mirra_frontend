@@ -1086,7 +1086,12 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
           label: _t('obq_next'),
           onPressed: (_sensitive == null || _acneProne == null)
               ? null
-              : () => _go(_Step.goals),
+              : () {
+                  unawaited(AnalyticsService.instance
+                      .trackOnboardingSkinContinue(
+                          typeNew: _sensitive!, typeEruption: _acneProne!));
+                  _go(_Step.goals);
+                },
         ));
         break;
       case _Step.goals:

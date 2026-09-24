@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/design_system/components/confirm_dialog.dart';
 import 'package:flutter/material.dart';
@@ -40,7 +43,10 @@ class _MakepublicWidgetState extends State<MakepublicWidget> {
       title: loc.getText('553khwzz'),
       body: loc.getText('g7bez9em'),
       confirmLabel: loc.getText('dv0imp11'),
-      onConfirm: () => Navigator.pop(context),
+      onConfirm: () {
+        unawaited(AnalyticsService.instance.trackProductPublicCatalogOk());
+        Navigator.pop(context);
+      },
     );
   }
 }

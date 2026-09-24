@@ -256,6 +256,7 @@ class _NavbarWidgetState extends State<NavbarWidget>
                               label: FFLocalizations.of(context)
                                   .getText('cb_routine_title'),
                               routeName: RoutineWidget.routeName,
+                              track: AnalyticsService.instance.trackRoutineTap,
                             ),
                           ],
                         ),

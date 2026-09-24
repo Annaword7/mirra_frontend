@@ -269,12 +269,15 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
         // entitlement against RevenueCat itself, which is why it can be called
         // from the client at all: there is nothing here to forge.
         await SubscriptionSyncCall.call(token: currentJwtToken);
-        await SendAppMessageCall.call(
+        // Developer notification only. Nothing the user is waiting on, so it
+        // must not stand between the confirmed purchase and leaving the
+        // paywall: fire it and move on.
+        unawaited(SendAppMessageCall.call(
           token: currentJwtToken,
           email: currentUserEmail,
           form: telegramForm,
           message: telegramMessage,
-        );
+        ));
         // Leave the paywall. Without this the user pays, Apple confirms, and
         // the purchase screen just stays put with its spinner gone — which
         // reads as "charged me and gave me nothing" and invites a refund.

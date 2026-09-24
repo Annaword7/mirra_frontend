@@ -571,6 +571,64 @@ class FeedbackNEWBCNDCall {
           .toList();
 }
 
+/// «Спросить карточку»: вопрос о продукте, ответ только из сохранённого разбора.
+class ProductAskCall {
+  static Future<ApiCallResponse> call({
+    String? host,
+    required int imageId,
+    required String question,
+    String? lang,
+    String? skinType,
+    String? token,
+  }) async {
+    host ??= FFDevEnvironmentValues().backendhost;
+
+    final ffApiRequestBody = '''
+{
+  "question": "${escapeStringForJson(question)}",
+  "lang": "${escapeStringForJson(lang ?? '')}",
+  "skin_type": "${escapeStringForJson(skinType ?? '')}"
+}''';
+    return ApiManager.instance
+        .makeApiCall(
+          callName: 'product ask',
+          apiUrl: '${host}api/mirra/product/$imageId/ask',
+          callType: ApiCallType.POST,
+          headers: {
+            'Authorization': 'Bearer ${token}',
+            'Content-Type': 'application/json',
+          },
+          params: {},
+          body: ffApiRequestBody,
+          bodyType: BodyType.JSON,
+          returnBody: true,
+          encodeBodyUtf8: false,
+          decodeUtf8: false,
+          cache: false,
+          isStreamingApi: false,
+          alwaysAllowBody: false,
+        )
+        .timeout(
+          const Duration(seconds: 45),
+          onTimeout: () => ApiCallResponse(null, const <String, String>{}, -1),
+        );
+  }
+
+  static String? answer(dynamic response) => castToType<String>(getJsonField(
+        response,
+        r'''$.answer''',
+      ));
+  static List<String>? cited(dynamic response) => (getJsonField(
+        response,
+        r'''$.cited''',
+        true,
+      ) as List?)
+          ?.withoutNulls
+          .map((x) => castToType<String>(x))
+          .withoutNulls
+          .toList();
+}
+
 class GetimageNEWBCNDCall {
   static Future<ApiCallResponse> call({
     String? host,

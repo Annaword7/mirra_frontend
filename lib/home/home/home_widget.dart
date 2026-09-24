@@ -566,20 +566,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                             const SizedBox(height: 12.0),
                                           ],
                                           _model.usersanswer == null
-                                              ? Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: const [
-                                                    SkeletonLine(
-                                                        width: 210.0,
-                                                        height: 14.0),
-                                                    SizedBox(height: 10.0),
-                                                    SkeletonLine(
-                                                        width: double.infinity,
-                                                        height: 8.0,
-                                                        radius: 4.0),
-                                                  ],
-                                                )
+                                              ? const _HomeQuotaSkeleton()
                                               : _HomeQuotaBar(
                                                   isPro: appState.isprouser,
                                                   scansUsed:
@@ -953,6 +940,22 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
 
 // ── Scan quota bar shown below the scan card on the home screen ──────────────
 
+class _HomeQuotaSkeleton extends StatelessWidget {
+  const _HomeQuotaSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: const [
+        SkeletonLine(width: 210.0, height: 14.0),
+        SizedBox(height: 10.0),
+        SkeletonLine(width: double.infinity, height: 8.0, radius: 4.0),
+      ],
+    );
+  }
+}
+
 class _HomeQuotaBar extends StatelessWidget {
   const _HomeQuotaBar({
     required this.isPro,
@@ -962,10 +965,12 @@ class _HomeQuotaBar extends StatelessWidget {
 
   final bool isPro;
   final int scansUsed;
-  final int freeLimit;
+  // Null until the DB has answered — there is no client-side default.
+  final int? freeLimit;
 
   @override
   Widget build(BuildContext context) {
+    final freeLimit = this.freeLimit;
     if (isPro) {
       return Row(
         children: [
@@ -985,6 +990,8 @@ class _HomeQuotaBar extends StatelessWidget {
         ],
       );
     }
+
+    if (freeLimit == null) return const _HomeQuotaSkeleton();
 
     final remaining = (freeLimit - scansUsed).clamp(0, freeLimit);
     final progress = freeLimit > 0 ? scansUsed / freeLimit : 0.0;

@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/design_system/components/confirm_dialog.dart';
 import 'package:flutter/material.dart';
@@ -45,7 +48,10 @@ class _MakeprivateWidgetState extends State<MakeprivateWidget> {
       title: loc.getText('lfd7kbh4' /* Product hidden */),
       body: loc.getText('wpxs96fj'),
       confirmLabel: loc.getText('k0o8li8u' /* Ok */),
-      onConfirm: () => Navigator.pop(context),
+      onConfirm: () {
+        unawaited(AnalyticsService.instance.trackProductHiddenOk());
+        Navigator.pop(context);
+      },
     );
   }
 }

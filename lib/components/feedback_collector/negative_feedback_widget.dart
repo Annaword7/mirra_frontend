@@ -154,6 +154,7 @@ class _NegativeFeedbackWidgetState extends State<NegativeFeedbackWidget> {
                   token: currentJwtToken,
                   message: _commentController.text,
                   email: email,
+                  form: 'negative feedback',
                 );
                 if (context.mounted) Navigator.pop(context);
               },

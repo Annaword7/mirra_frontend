@@ -48,15 +48,54 @@ class _ShareproductWidgetState extends State<ShareproductWidget> {
         queryFn: (q) => q.eqOrNull('image_id', widget.imageid),
       ),
     ]);
+    final topRows = results[1] as List<ImageTopIngredientsRow>;
     return _ShareData(
       imageRow: (results[0] as List<ImagesRow>).firstOrNull,
-      topIngredients: (results[1] as List<ImageTopIngredientsRow>)
-          .map((r) => r.ingredientName.toLowerCase().trim())
-          .toList(),
+      topRows: topRows,
+      topIngredients:
+          topRows.map((r) => r.ingredientName.toLowerCase().trim()).toList(),
       issueIngredients: (results[2] as List<ImageIngredientIssuesRow>)
           .map((r) => r.ingredientName.toLowerCase().trim())
           .toList(),
     );
+  }
+
+  /// INCI по позициям: массив бэкенда, иначе split без разрыва «1,2-Hexanediol».
+  static List<String> _inciOf(ImagesRow? row) {
+    if (row == null) return const [];
+    if (row.saInciList.isNotEmpty) {
+      return row.saInciList
+          .map((s) => s.trim())
+          .where((s) => s.isNotEmpty)
+          .toList();
+    }
+    return (row.ingredients ?? '')
+        .split(RegExp(r',(?!\s*\d)|\n'))
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
+  }
+
+  /// Герой share-карточки: актив ниже рабочей дозы (сначала decorative, потом
+  /// borderline), иначе первый рабочий. Открытие важнее скора.
+  static ImageTopIngredientsRow? _keyActive(List<ImageTopIngredientsRow> rows) {
+    for (final status in const ['decorative', 'borderline', 'working']) {
+      for (final r in rows) {
+        if (r.status == status) return r;
+      }
+    }
+    return null;
+  }
+
+  static int? _positionOf(ImageTopIngredientsRow? ing, List<String> inci) {
+    if (ing == null) return null;
+    if (ing.inciPosition != null) return ing.inciPosition;
+    final name = ing.ingredientName.toLowerCase().trim();
+    for (var i = 0; i < inci.length; i++) {
+      final n = inci[i].toLowerCase();
+      if (n == name || n.contains(name) || name.contains(n)) return i + 1;
+    }
+    return null;
   }
 
   @override
@@ -96,6 +135,10 @@ class _ShareproductWidgetState extends State<ShareproductWidget> {
               }
               final data = snapshot.data!;
               final containerImagesRow = data.imageRow;
+              final inci = _inciOf(containerImagesRow);
+              final keyActive = _keyActive(data.topRows);
+              final withStatus =
+                  data.topRows.where((r) => r.status != null).toList();
 
               return Container(
                 width: MediaQuery.sizeOf(context).width * 1.0,
@@ -189,6 +232,16 @@ class _ShareproductWidgetState extends State<ShareproductWidget> {
                           lang: FFLocalizations.of(context).languageCode,
                           imageId: widget.imageid ?? 0,
                           bestForTags: containerImagesRow?.saBestForTags ?? const [],
+                          // Открытие вместо скора: колба этого продукта и
+                          // позиция ключевого актива (раздел 14 документа V).
+                          inciList: inci,
+                          onePercentLinePos:
+                              containerImagesRow?.saOnePercentLinePos,
+                          keyActiveName: keyActive?.ingredientName,
+                          keyActivePosition: _positionOf(keyActive, inci),
+                          keyActiveStatus: keyActive?.status,
+                          promisedAllWorking: withStatus.isNotEmpty &&
+                              withStatus.every((r) => r.status == 'working'),
                         ),
                       ),
                       ),
@@ -206,11 +259,13 @@ class _ShareproductWidgetState extends State<ShareproductWidget> {
 
 class _ShareData {
   final ImagesRow? imageRow;
+  final List<ImageTopIngredientsRow> topRows;
   final List<String> topIngredients;
   final List<String> issueIngredients;
 
   const _ShareData({
     required this.imageRow,
+    required this.topRows,
     required this.topIngredients,
     required this.issueIngredients,
   });

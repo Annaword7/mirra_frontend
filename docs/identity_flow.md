@@ -67,9 +67,12 @@ uuid. По нему анонима можно найти в базе; иначе
 ## Первый запуск
 
 1. `main.dart` вызывает `AnalyticsService.init()`. Сервис читает Keychain,
-   ничего не находит и создаёт UUID. Amplitude поднимается с
-   `deviceId = UUID` и без `user_id`. Тут же ставятся свойства
-   `install_source` и `app_env`.
+   ничего не находит и создаёт UUID. Amplitude поднимается без `user_id`, и
+   сервис ставит `deviceId = UUID` явным `setDeviceId`: через `Configuration`
+   его принимает только Android-плагин, iOS-плагин этот ключ не читает.
+   Автособытия SDK первого запуска (Application Installed, Start Session,
+   Application Opened) успевают уйти с id от SDK, всё остальное идёт уже с
+   UUID. Тут же ставятся свойства `install_source` и `app_env`.
 2. Supabase стартует без сессии. Auth-стрим отдаёт `null`, слушатель попадает в
    ветку «не вошёл» и вызывает `signInAnonymously()`. Supabase создаёт запись в
    `auth.users`; строка в `public.users` появляется триггером на стороне
@@ -87,13 +90,17 @@ uuid. По нему анонима можно найти в базе; иначе
 и вызывает `updateUser(email, password)`. Uuid остаётся тем же. Сканы,
 косметичка и анкета никуда не деваются. Auth-стрим приносит того же
 пользователя, но уже не анонима: `setUserId(uuid)`, и вся анонимная история
-устройства склеивается в аккаунт.
+устройства склеивается в аккаунт. Здесь же уходит `anon_converted` с
+`method = email`, уже с `user_id`.
 
 **Через Apple.** Нативный `signInWithIdToken` не умеет привязывать вход к
 анониму, поэтому Supabase создаёт нового пользователя с новым uuid и заменяет
 сессию. Дальше `_claimAnonScans(старый uuid)`: RPC переносит сканы, косметичку,
-режимы и анкету на новый uuid, шлёт `anon_converted` и вызывает
-`SubscriptionSyncCall`, чтобы RevenueCat отдал подписку по алиасу. В Amplitude
+режимы и анкету на новый uuid и вызывает `SubscriptionSyncCall`, чтобы
+RevenueCat отдал подписку по алиасу. `anon_converted` с `method = apple`
+уходит только если аккаунт создан этим входом (`created_at` совпадает с
+моментом входа): вход гостя в существующий Apple-аккаунт это возвращение, а
+не конверсия. В Amplitude
 `setUserId(новый uuid)`, и анонимная история склеивается в него так же, как по
 email: анонимного `user_id` на устройстве не было, а первый `user_id` забирает
 всё.

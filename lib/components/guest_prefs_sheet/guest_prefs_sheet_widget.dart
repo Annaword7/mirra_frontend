@@ -49,7 +49,6 @@ class _GuestPrefsSheetState extends State<GuestPrefsSheet> {
       AppStateNotifier.instance.updateNotifyOnAuthChange(false);
       final user = await authManager.signInAnonymously(context);
       if (user == null) return; // sign-in failed — stay on sheet, show error
-      unawaited(AnalyticsService.instance.trackAnonSessionStarted());
 
       setAppLanguage(context, _lang);
       await UsersTable().update(

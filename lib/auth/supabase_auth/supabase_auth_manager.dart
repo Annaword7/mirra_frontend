@@ -168,6 +168,7 @@ class SupabaseAuthManager extends AuthManager
       if (authUser != null) {
         currentUser = authUser;
         AppStateNotifier.instance.update(authUser);
+        await _trackAnonConverted(user!, method: 'email');
       }
       return authUser;
     } on AuthException catch (e) {
@@ -179,13 +180,29 @@ class SupabaseAuthManager extends AuthManager
     }
   }
 
+  /// Гость стал новым аккаунтом. Вход гостя в существующий аккаунт сюда не
+  /// попадает: это возвращение, а не конверсия, и считать его регистрацией
+  /// значило бы завышать долю анонимов, доходящих до аккаунта. `user_id`
+  /// ставится здесь же, до события: auth-стрим сделает то же самое, но позже,
+  /// и событие ушло бы без `user_id`, к прошлому аккаунту устройства.
+  Future<void> _trackAnonConverted(User user, {required String method}) async {
+    await AnalyticsService.instance.setSupabaseUid(user.id, anonymous: false);
+    unawaited(AnalyticsService.instance.trackAnonConverted(method: method));
+  }
+
+  /// Apple-вход не отличает «создал» от «вошёл»: signInWithIdToken возвращает
+  /// пользователя в обоих случаях. Новый узнаём по created_at: у только что
+  /// созданного он совпадает с моментом входа.
+  static bool _isFreshAccount(User user) {
+    final created = DateTime.tryParse(user.createdAt);
+    if (created == null) return false;
+    return DateTime.now().toUtc().difference(created.toUtc()).abs() <
+        const Duration(minutes: 2);
+  }
+
   /// Calls the Supabase RPC that reassigns scans owned by [anonUid] to the
   /// currently authenticated user. Non-fatal if the RPC doesn't exist yet.
   Future<void> _claimAnonScans(String anonUid) async {
-    // Reached only when a guest session has just become a real account, and
-    // from every sign-in path — so this is the one place anon→account
-    // conversion can be counted.
-    unawaited(AnalyticsService.instance.trackAnonConverted());
     try {
       await SupaFlow.client
           .rpc('claim_anonymous_scans', params: {'anon_uid': anonUid});
@@ -220,6 +237,10 @@ class SupabaseAuthManager extends AuthManager
 
     if (result != null && anonUid != null) {
       await _claimAnonScans(anonUid);
+      final user = result is MiRRADevSupabaseUser ? result.user : null;
+      if (user != null && _isFreshAccount(user)) {
+        await _trackAnonConverted(user, method: 'apple');
+      }
     }
 
     return result;
@@ -264,6 +285,10 @@ class SupabaseAuthManager extends AuthManager
       if (authUser != null) {
         currentUser = authUser;
         AppStateNotifier.instance.update(authUser);
+        // Единственное место, где гостевая сессия действительно создаётся:
+        // первый запуск, выход, удаление аккаунта. Раньше событие висело на
+        // «Продолжить» в листе быстрой настройки и почти никогда не уходило.
+        unawaited(AnalyticsService.instance.trackAnonSessionStarted());
       }
       return authUser;
     } on AuthException catch (e) {

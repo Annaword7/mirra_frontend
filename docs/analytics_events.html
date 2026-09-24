@@ -415,8 +415,8 @@ body {
     их нужно перенести в таблицу.</p>
 
   <div class="stats">
-    <div class="stat"><b>101</b><span>событие в коде</span></div>
-    <div class="stat stat-ok"><b>81 / 85</b><span>из таблицы отправляются</span></div>
+    <div class="stat"><b>108</b><span>событий в коде</span></div>
+    <div class="stat stat-ok"><b>87 / 91</b><span>из таблицы отправляются</span></div>
     <div class="stat stat-warn"><b>14</b><span>переименовано</span></div>
     <div class="stat stat-stop"><b>4</b><span>не отправляются</span></div>
   </div>
@@ -561,15 +561,17 @@ body {
     <section class="sec" id="setup">
       <h2>Ключ и дата-центр</h2>
       <p class="sec-note">Ключ лежит в <code>assets/environment_values/environment*.json</code> рядом
-        с <code>backendhost</code>. Заполнен только прод — события с дев-сборок в продукте не нужны.</p>
+        с <code>backendhost</code>. У dev и prod разные проекты Amplitude: тестовые прогоны не смешиваются
+        с живыми пользователями. В приложение попадает только API key, он умеет лишь отправлять события;
+        secret key для удаления живёт на бэкенде.</p>
       <div class="scroller">
         <table class="setup">
           <thead>
-            <tr><th>Сборка</th><th>Файл</th><th>Ключ</th></tr>
+            <tr><th>Сборка</th><th>Файл</th><th>Проект Amplitude</th></tr>
           </thead>
           <tbody>
-            <tr><td>prod</td><td><code>environment.json</code></td><td>заполнен</td></tr>
-            <tr><td>dev · <code>APP_ENV=dev</code></td><td><code>environment.dev.json</code></td><td>пусто — аналитика выключена</td></tr>
+            <tr><td>prod</td><td><code>environment.json</code></td><td>прод-проект, <code>e73d73d5…</code></td></tr>
+            <tr><td>dev · <code>APP_ENV=dev</code></td><td><code>environment.dev.json</code></td><td>дев-проект, <code>e231b8b6…</code></td></tr>
             <tr><td>local · <code>APP_ENV=local</code></td><td><code>environment.local.json</code></td><td>пусто — аналитика выключена</td></tr>
           </tbody>
         </table>
@@ -578,10 +580,10 @@ body {
         <p style="margin:0 0 10px"><strong>Дата-центр — европейский.</strong> В конфигурации SDK
           задан <code>serverZone: ServerZone.eu</code>. По умолчанию SDK шлёт в США, и события молча
           не долетают — без единой ошибки на клиенте.</p>
-        <p style="margin:0"><strong>Проверять нужно прод-сборкой.</strong> <code>APP_ENV</code> по
-          умолчанию <code>prod</code>, так что обычный Xcode Run — это прод с ключом. Дев-аналитики
-          нет вовсе; следите, чтобы в <code>Generated.xcconfig</code> не залежался дев-дефайн от
-          прошлой сборки.</p>
+        <p style="margin:0"><strong>Какое окружение у сборки.</strong> <code>APP_ENV</code> по
+          умолчанию <code>prod</code>, но <code>Generated.xcconfig</code> кэширует дефайн последней
+          сборки: после дев-сборки и Xcode Run будет dev. Задавайте <code>--dart-define=APP_ENV=…</code>
+          явно и проверяйте, в какой проект пришли события.</p>
       </div>
     </section>
 
@@ -641,6 +643,7 @@ body {
         <div class="ev"><span class="ev-name">onboarding_skin</span><span class="ev-props"><span class="prop">type_skin</span><span class="prop">via</span></span><span class="ev-where">Выбор типа кожи — и прямой, и через «определим вместе»</span></div>
         <div class="ev"><span class="ev-name">onboarding_skin_new</span><span class="ev-props"><span class="prop">type_new</span></span><span class="ev-where">Вопрос про чувствительность</span></div>
         <div class="ev"><span class="ev-name">onboarding_skin_eruption</span><span class="ev-props"><span class="prop">type_eruption</span></span><span class="ev-where">Вопрос про высыпания</span></div>
+        <div class="ev"><span class="ev-name">onboarding_skin_continue</span><span class="ev-props"><span class="prop">type_new</span><span class="prop">type_eruption</span></span><span class="ev-where">«Далее» на шаге «Как кожа себя ведёт?» — добавлено сверх таблицы</span></div>
         <div class="ev"><span class="ev-name">onboarding_important_continue</span><span class="ev-props"><span class="prop">type_important</span><span class="prop">goals_count</span></span><span class="ev-where">«Далее» на шаге целей</span></div>
         <div class="ev"><span class="ev-name">onboarding_no_goal</span><span class="dash">—</span><span class="ev-where">«Пока без конкретной цели»</span></div>
         <div class="ev"><span class="ev-name">onboarding_done</span><span class="ev-props"><span class="prop">skin_type</span><span class="prop">sensitive</span><span class="prop">acne_prone</span><span class="prop">goals_count</span></span><span class="ev-where">«Сохранить и сканировать» — анкета пройдена</span></div>
@@ -767,6 +770,11 @@ body {
         <div class="ev"><span class="ev-name">product_setting_add_bag</span><span class="dash">—</span><span class="ev-where">«В косметичку»</span></div>
         <div class="ev"><span class="ev-name">product_setting_share</span><span class="dash">—</span><span class="ev-where">«Поделиться»</span></div>
         <div class="ev"><span class="ev-name">product_setting_print</span><span class="dash">—</span><span class="ev-where">«Напечатать»</span></div>
+        <div class="ev"><span class="ev-name">product_hidden</span><span class="dash">—</span><span class="ev-where">«Скрыть» в меню; скан уходит из общего каталога</span></div>
+        <div class="ev"><span class="ev-name">product_hidden_ok</span><span class="dash">—</span><span class="ev-where">«Хорошо» в окне «Продукт скрыт»</span></div>
+        <div class="ev"><span class="ev-name">product_public_catalog</span><span class="dash">—</span><span class="ev-where">«Открыть» в меню; скан возвращается в каталог</span></div>
+        <div class="ev"><span class="ev-name">product_public_catalog_ok</span><span class="dash">—</span><span class="ev-where">«Хорошо» в окне «Продукт в общем каталоге»</span></div>
+        <div class="ev"><span class="ev-name">product_delete</span><span class="dash">—</span><span class="ev-where">«Удалить» в меню, до окна подтверждения</span></div>
       </div>
       <p class="sec-note" style="margin:18px 0 0">Имена в этой группе разнобойные —
         <code>product_settings_copy</code> и <code>product_setting_share</code>. Так в таблице,
@@ -799,6 +807,7 @@ body {
       <h2>Рутина</h2>
       <span class="path">pages/routine</span>
       <div class="events">
+        <div class="ev"><span class="ev-name">routine_tap</span><span class="dash">—</span><span class="ev-where">Вкладка в навбаре</span></div>
         <div class="ev"><span class="ev-name">routine_day</span><span class="ev-props"><span class="prop">day</span></span><span class="ev-where">Выбор дня недели, 1—7</span></div>
         <div class="ev"><span class="ev-name">routine_push</span><span class="ev-props"><span class="prop">state</span><span class="prop">time</span></span><span class="ev-where">Переключатель пуша: <code>on/off</code> и <code>am/pm</code></span></div>
         <div class="ev"><span class="ev-name">routine_product</span><span class="ev-props"><span class="prop">time</span></span><span class="ev-where">Тап по продукту — утро или вечер</span></div>
@@ -831,8 +840,8 @@ body {
         работает ли она.</p>
       <div class="events">
         <div class="ev"><span class="ev-name">purchase_restore</span><span class="ev-props"><span class="prop">result</span></span><span class="ev-where">«Восстановить покупки»: <code>restored</code>, <code>nothing_to_restore</code> или <code>error</code></span></div>
-        <div class="ev"><span class="ev-name">anon_session_started</span><span class="dash">—</span><span class="ev-where">Создана гостевая сессия</span></div>
-        <div class="ev"><span class="ev-name">anon_converted</span><span class="dash">—</span><span class="ev-where">Гость стал пользователем с аккаунтом</span></div>
+        <div class="ev"><span class="ev-name">anon_session_started</span><span class="dash">—</span><span class="ev-where">Создана гостевая сессия: первый запуск, после выхода, после удаления аккаунта</span></div>
+        <div class="ev"><span class="ev-name">anon_converted</span><span class="ev-props"><span class="prop">method</span></span><span class="ev-where">Гость стал новым аккаунтом (email / apple); вход гостя в существующий не считается</span></div>
         <div class="ev"><span class="ev-name">analysis_started</span><span class="ev-props"><span class="prop">source</span></span><span class="ev-where">Начало разбора — камера или галерея</span></div>
         <div class="ev"><span class="ev-name">analysis_completed</span><span class="ev-props"><span class="prop">image_id</span><span class="prop">score</span><span class="prop">product_type</span></span><span class="ev-where">Разбор дошёл до карточки</span></div>
         <div class="ev"><span class="ev-name">analysis_failed</span><span class="ev-props"><span class="prop">reason</span></span><span class="ev-where">Показ окна отказа; <code>reason</code>: <code>productNotFound</code>, <code>ingredientsNotFound</code>, <code>subscriptionSync</code>, <code>unsupported</code>, <code>generic</code></span></div>

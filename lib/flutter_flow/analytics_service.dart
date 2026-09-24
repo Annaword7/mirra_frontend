@@ -30,6 +30,15 @@ class AnalyticsService {
   /// переустановку, поэтому аноним после неё остаётся тем же пользователем.
   String? _identity;
 
+  /// Та же идентичность для чужих отправителей: RevenueCat шлёт свои события
+  /// в Amplitude сам и должен подписывать их тем же `device_id`.
+  String? get deviceIdentity => _identity;
+
+  /// Готовность к отправке: SDK поднят и на нём стоит наш `device_id`. Все
+  /// отправители ждут именно её, а не `isBuilt`, иначе первые события гонялись
+  /// бы с `setDeviceId` и уходили под id от SDK.
+  Future<bool> _ready = Future.value(false);
+
   /// Initialised from `main()` once the environment values are loaded.
   /// Без ключа (local-сборка, забытый ключ в environment.json) сервис остаётся
   /// выключенным и каждый вызов — no-op: приложение работает как обычно.
@@ -47,11 +56,14 @@ class AnalyticsService {
     } catch (e) {
       debugPrint('Amplitude: device identity unavailable: $e');
     }
-    _amplitude = Amplitude(Configuration(
+    final amplitude = Amplitude(Configuration(
       apiKey: apiKey,
       // Свой device_id вместо сгенерированного SDK: тот живёт в UserDefaults и
       // стирается с приложением, а этот лежит в Keychain. user_id придёт из
       // auth-стрима, когда станет ясно, аккаунт это или аноним.
+      // Отсюда его берёт только Android-плагин. iOS-плагин (4.7.1) этот ключ
+      // не читает, а у нативного AmplitudeSwift такого поля нет вовсе, так что
+      // на iOS id ставится явным setDeviceId в _applyDeviceIdentity.
       deviceId: _identity,
       // Проект живёт в европейском дата-центре. По умолчанию SDK шлёт в США, и
       // события просто не долетают — молча, без ошибки на клиенте.
@@ -67,7 +79,39 @@ class AnalyticsService {
         screenViews: true,
       ),
     ));
+    _amplitude = amplitude;
+    _ready = _applyDeviceIdentity(amplitude);
+    // Дожидаемся здесь, а не только в отправителях: наблюдатель экранов из
+    // плагина шлёт события в SDK напрямую, и первый экран после runApp иначе
+    // ушёл бы с id от SDK. Таймаут только на случай зависшей нативной
+    // инициализации: запуск приложения от аналитики зависеть не должен.
+    await _ready.timeout(const Duration(seconds: 2), onTimeout: () => false);
     unawaited(_identifyInstall());
+  }
+
+  /// Ставит Keychain-идентичность как `device_id`, когда нативная сторона
+  /// готова. Возвращает готовность SDK: false — события отправлять некуда.
+  ///
+  /// Автособытия самого SDK при старте (Application Installed, Start Session,
+  /// Application Opened) уходят раньше этого вызова и на первом запуске после
+  /// установки несут id от SDK. Дальше SDK хранит наш id сам, и следующие
+  /// запуски начинаются уже с него.
+  Future<bool> _applyDeviceIdentity(Amplitude amplitude) async {
+    try {
+      if (!await amplitude.isBuilt) return false;
+    } catch (e) {
+      debugPrint('Amplitude init failed: $e');
+      return false;
+    }
+    final identity = _identity;
+    if (identity == null) return true;
+    try {
+      await amplitude.setDeviceId(identity);
+    } catch (e) {
+      // Лучше события с id от SDK, чем никаких.
+      debugPrint('Amplitude setDeviceId failed: $e');
+    }
+    return true;
   }
 
   /// Откуда приехало приложение и на каком окружении собрано. Именно свойства
@@ -136,7 +180,7 @@ class AnalyticsService {
     final amplitude = _amplitude;
     if (amplitude == null) return;
     try {
-      if (!await amplitude.isBuilt) return;
+      if (!await _ready) return;
       final hasUid = uid != null && uid.isNotEmpty;
       await amplitude.setUserId(hasUid && !anonymous ? uid : null);
       final identify = Identify();
@@ -175,7 +219,7 @@ class AnalyticsService {
     if (amplitude == null) return;
     try {
       // Как и в _log: до готовности нативной стороны вызов теряется молча.
-      if (!await amplitude.isBuilt) return;
+      if (!await _ready) return;
       final identify = Identify();
       properties.forEach((key, value) {
         if (value != null) identify.set(key, value);
@@ -214,6 +258,19 @@ class AnalyticsService {
 
   Future<void> trackOnboardingSkinEruption({required bool typeEruption}) =>
       _log('onboarding_skin_eruption', {'type_eruption': typeEruption});
+
+  /// «Далее» на шаге «Как кожа себя ведёт?». Добавлено сверх таблицы
+  /// маркетинга: без него завершение второго шага воронки видно только
+  /// косвенно, по событиям третьего. Несёт оба ответа шага, как
+  /// `onboarding_important_continue` несёт цели.
+  Future<void> trackOnboardingSkinContinue({
+    required bool typeNew,
+    required bool typeEruption,
+  }) =>
+      _log('onboarding_skin_continue', {
+        'type_new': typeNew,
+        'type_eruption': typeEruption,
+      });
 
   Future<void> trackOnboardingImportantContinue({
     required List<String> typeImportant,
@@ -415,6 +472,21 @@ class AnalyticsService {
 
   Future<void> trackProductSettingClose() => _log('product_setting_close');
 
+  // Скрыть / открыть в общем каталоге и удалить. Скрытие и открытие срабатывают
+  // сразу по тапу в меню, окно после них — информационное; удаление сначала
+  // спрашивает, поэтому product_delete — это намерение, а не факт.
+
+  Future<void> trackProductHidden() => _log('product_hidden');
+
+  Future<void> trackProductHiddenOk() => _log('product_hidden_ok');
+
+  Future<void> trackProductPublicCatalog() => _log('product_public_catalog');
+
+  Future<void> trackProductPublicCatalogOk() =>
+      _log('product_public_catalog_ok');
+
+  Future<void> trackProductDelete() => _log('product_delete');
+
   // ── Cosmetic bag ──────────────────────────────────────────────────────────
 
   Future<void> trackBeautyBagTap() => _log('beauty_bag_tap');
@@ -437,6 +509,8 @@ class AnalyticsService {
   Future<void> trackBeautyBagAddCalendar() => _log('beauty_bag_add_calendar');
 
   // ── Routine ───────────────────────────────────────────────────────────────
+
+  Future<void> trackRoutineTap() => _log('routine_tap');
 
   Future<void> trackRoutineDay({required String day}) =>
       _log('routine_day', {'day': day});
@@ -475,9 +549,14 @@ class AnalyticsService {
 
   // ── Session ───────────────────────────────────────────────────────────────
 
+  /// Создана гостевая сессия: первый запуск, после выхода, после удаления
+  /// аккаунта. Шлётся из auth-менеджера при чеканке анонима, без `user_id`.
   Future<void> trackAnonSessionStarted() => _log('anon_session_started');
 
-  Future<void> trackAnonConverted() => _log('anon_converted');
+  /// Гость стал новым аккаунтом. [method] — `email` или `apple`. Вход гостя в
+  /// существующий аккаунт не считается: это возвращение, а не конверсия.
+  Future<void> trackAnonConverted({required String method}) =>
+      _log('anon_converted', {'method': method});
 
   // ── Analysis ──────────────────────────────────────────────────────────────
 
@@ -598,12 +677,12 @@ class AnalyticsService {
 
   /// Аналитика не должна ронять экран: нативный канал может ответить ошибкой
   /// (нет сети, SDK ещё не поднялся), и это не повод показывать пользователю
-  /// сбой. Ждём `isBuilt` — до инициализации нативная сторона события теряет.
+  /// сбой. Ждём `_ready` — до инициализации нативная сторона события теряет.
   Future<void> _log(String name, [Map<String, Object?>? parameters]) async {
     final amplitude = _amplitude;
     if (amplitude == null) return;
     try {
-      if (!await amplitude.isBuilt) return;
+      if (!await _ready) return;
       await amplitude.track(BaseEvent(
         name,
         eventProperties: parameters == null

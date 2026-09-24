@@ -42,9 +42,10 @@ class FFDevEnvironmentValues {
   String _backendhost = '';
   String get backendhost => _backendhost;
 
-  /// Amplitude write key. Заполнен только в prod: события с дев-сборок в
-  /// продукте не нужны, а пустой ключ выключает аналитику целиком — сервис
-  /// становится no-op, приложение работает как обычно.
+  /// Amplitude API key проекта своего окружения: у dev и prod разные проекты
+  /// Amplitude, чтобы тестовые прогоны не смешивались с живыми пользователями.
+  /// Пустой ключ выключает аналитику целиком — сервис становится no-op,
+  /// приложение работает как обычно (так у local).
   String _amplitudekey = '';
   String get amplitudekey => _amplitudekey;
 }

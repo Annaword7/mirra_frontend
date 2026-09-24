@@ -22,7 +22,7 @@ class FFAppState extends ChangeNotifier {
       _darkModeSet = prefs.getBool('ff_darkModeSet') ?? _darkModeSet;
     });
     _safeInit(() {
-      _freeScanLimit = prefs.getInt('ff_freeScanLimit') ?? _freeScanLimit;
+      _freeScanLimit = prefs.getInt('ff_freeScanLimit');
     });
     _safeInit(() {
       _showLinkTelegram = prefs.getBool('ff_showLinkTelegram') ?? _showLinkTelegram;
@@ -222,14 +222,19 @@ class FFAppState extends ChangeNotifier {
     prefs.setBool('ff_darkModeSet', value);
   }
 
-  // Free weekly scan limit. Source of truth is the app_config DB row
-  // ('free_scan_limit'), fetched once per session; persisted so the value
-  // survives offline / first paint before the DB read returns.
-  int _freeScanLimit = 10;
-  int get freeScanLimit => _freeScanLimit;
-  set freeScanLimit(int value) {
+  // Free lifetime scan limit. The only source is the DB: app_config row
+  // 'free_scan_limit' (read directly and via the /quota endpoint). The app
+  // carries no default of its own — null until the first read lands, then
+  // persisted so a later cold start paints the last known value.
+  int? _freeScanLimit;
+  int? get freeScanLimit => _freeScanLimit;
+  set freeScanLimit(int? value) {
     _freeScanLimit = value;
-    prefs.setInt('ff_freeScanLimit', value);
+    if (value == null) {
+      prefs.remove('ff_freeScanLimit');
+    } else {
+      prefs.setInt('ff_freeScanLimit', value);
+    }
   }
 
   // Whether to show the "Link Telegram" item in the profile menu.
