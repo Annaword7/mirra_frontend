@@ -159,11 +159,13 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
       if (!mounted) return;
       final feedbackState = context.read<FFAppState>();
       if (feedbackState.feedbackPendingScan &&
-          await FeedbackService.shouldShowPrompt(feedbackState)) {
+          FeedbackService.shouldShowPrompt(feedbackState)) {
         feedbackState.feedbackPendingScan = false;
-        await FeedbackService.recordShown(feedbackState);
         await Future.delayed(const Duration(seconds: 3));
         if (context.mounted) {
+          // Порог засчитывается только при реальном показе: если за три
+          // секунды ушли с карточки, просилка вернётся на следующем скане.
+          FeedbackService.recordShown(feedbackState);
           // Событие именно здесь, а не до задержки: за эти три секунды человек
           // успевает уйти с карточки, окно тогда не появляется — а событие
           // описано как «появилось окно» и завышало бы знаменатель для

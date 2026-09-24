@@ -5,26 +5,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:in_app_review/in_app_review.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'negative_feedback_widget.dart';
 
 class FeedbackCollectorWidget extends StatelessWidget {
   const FeedbackCollectorWidget({super.key});
-
-  Future<String> _appVersion() async {
-    try {
-      final info = await PackageInfo.fromPlatform();
-      return info.version;
-    } catch (_) {
-      return 'unknown';
-    }
-  }
-
-  Future<void> _dismiss(BuildContext context) async {
-    FFAppState().feedbackBannerDismissed = true;
-    FFAppState().feedbackLastShownVersion = await _appVersion();
-    if (context.mounted) Navigator.pop(context);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -158,8 +142,6 @@ class FeedbackCollectorWidget extends StatelessWidget {
                       onTap: () async {
                         HapticFeedback.mediumImpact();
                         unawaited(AnalyticsService.instance.trackPopupReviewsYes());
-                        FFAppState().feedbackReviewSubmitted = true;
-                        FFAppState().feedbackLastShownVersion = await _appVersion();
                         final inAppReview = InAppReview.instance;
                         if (await inAppReview.isAvailable()) {
                           // requestReview may be silently ignored by iOS quotas.
@@ -217,8 +199,6 @@ class FeedbackCollectorWidget extends StatelessWidget {
                     onPressed: () async {
                       HapticFeedback.lightImpact();
                       unawaited(AnalyticsService.instance.trackPopupReviewsNo());
-                      FFAppState().feedbackBannerDismissed = true;
-                      FFAppState().feedbackLastShownVersion = await _appVersion();
                       if (context.mounted) {
                         Navigator.pop(context);
                         await showModalBottomSheet(

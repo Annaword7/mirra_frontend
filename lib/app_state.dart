@@ -61,19 +61,7 @@ class FFAppState extends ChangeNotifier {
       _pendingBagSlot = prefs.getInt('ff_pendingBagSlot') ?? _pendingBagSlot;
     });
     _safeInit(() {
-      _feedbackCollectorEnabled = prefs.getBool('ff_feedbackCollectorEnabled') ?? _feedbackCollectorEnabled;
-    });
-    _safeInit(() {
-      _feedbackReviewSubmitted = prefs.getBool('ff_feedbackReviewSubmitted') ?? _feedbackReviewSubmitted;
-    });
-    _safeInit(() {
-      _feedbackBannerDismissed = prefs.getBool('ff_feedbackBannerDismissed') ?? _feedbackBannerDismissed;
-    });
-    _safeInit(() {
-      _feedbackLastShownVersion = prefs.getString('ff_feedbackLastShownVersion') ?? _feedbackLastShownVersion;
-    });
-    _safeInit(() {
-      _feedbackLastShownMs = prefs.getInt('ff_feedbackLastShownMs') ?? _feedbackLastShownMs;
+      _feedbackLastPromptScans = prefs.getInt('ff_feedbackLastPromptScans') ?? _feedbackLastPromptScans;
     });
     _safeInit(() {
       _feedbackUserId = prefs.getString('ff_feedbackUserId') ?? _feedbackUserId;
@@ -365,39 +353,14 @@ class FFAppState extends ChangeNotifier {
   // Feedback Collector
   bool feedbackPendingScan = false; // session-only, not persisted
 
-  bool _feedbackCollectorEnabled = false;
-  bool get feedbackCollectorEnabled => _feedbackCollectorEnabled;
-  set feedbackCollectorEnabled(bool value) {
-    _feedbackCollectorEnabled = value;
-    prefs.setBool('ff_feedbackCollectorEnabled', value);
-  }
 
-  bool _feedbackReviewSubmitted = false;
-  bool get feedbackReviewSubmitted => _feedbackReviewSubmitted;
-  set feedbackReviewSubmitted(bool value) {
-    _feedbackReviewSubmitted = value;
-    prefs.setBool('ff_feedbackReviewSubmitted', value);
-  }
-
-  bool _feedbackBannerDismissed = false;
-  bool get feedbackBannerDismissed => _feedbackBannerDismissed;
-  set feedbackBannerDismissed(bool value) {
-    _feedbackBannerDismissed = value;
-    prefs.setBool('ff_feedbackBannerDismissed', value);
-  }
-
-  String _feedbackLastShownVersion = '';
-  String get feedbackLastShownVersion => _feedbackLastShownVersion;
-  set feedbackLastShownVersion(String value) {
-    _feedbackLastShownVersion = value;
-    prefs.setString('ff_feedbackLastShownVersion', value);
-  }
-
-  int _feedbackLastShownMs = 0;
-  int get feedbackLastShownMs => _feedbackLastShownMs;
-  set feedbackLastShownMs(int value) {
-    _feedbackLastShownMs = value;
-    prefs.setInt('ff_feedbackLastShownMs', value);
+  // Значение [successfulScans] на момент последнего показа просилки. Пороги
+  // показов — kFeedbackScanMilestones в feedback_service.dart.
+  int _feedbackLastPromptScans = 0;
+  int get feedbackLastPromptScans => _feedbackLastPromptScans;
+  set feedbackLastPromptScans(int value) {
+    _feedbackLastPromptScans = value;
+    prefs.setInt('ff_feedbackLastPromptScans', value);
   }
 
   String _feedbackUserId = '';
