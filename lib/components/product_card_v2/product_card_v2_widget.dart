@@ -7,6 +7,7 @@ import 'package:percent_indicator/percent_indicator.dart';
 import '/auth/supabase_auth/auth_util.dart';
 import '/backend/api_requests/api_calls.dart';
 import '/backend/supabase/supabase.dart';
+import '/domain/client_card/client_card_service.dart';
 import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -14,34 +15,31 @@ import '/components/score_breakdown/score_breakdown_widget.dart';
 import '/design_system/components/app_button.dart';
 import '/design_system/components/mirra_bottom_sheet.dart';
 import '/design_system/components/selectable_row.dart';
-import '/design_system/components/settings_row.dart';
+import '/design_system/foundations/score_status.dart';
 import '/item_card/ingridients/ingridients_widget.dart';
 import '/paywall/show_paywall.dart';
 
-/// Product card v2: карточка, в которой вывод делает читатель.
+/// Карточка продукта v3: вердикт первым, но никогда без слов, и каждый факт
+/// один раз.
 ///
-/// Порядок блоков повторяет путь мысли человека, который только что
-/// отсканировал СВОЙ продукт (документ V, состояния S0–S6):
-///  1. правило: состав с подсветкой, подсказками по тапу и линией 1 % —
-///     «порядок показывает количество»
-///  2. чего ожидать: один список эффектов — обещания с упаковки, неозвученные
-///     плюсы (goal_support) и неозвученные минусы (замечания). Зелёный =
-///     позитивный и подкреплённый составом, красный = негативный или обещанный
-///     без подтверждения; тап раскрывает компоненты
-///  3. пауза: одна фраза, снимающая вину («дело в составе, не в вашей коже»)
-///  4. почему этому можно верить: честность разбора, нейтральность — и только
-///     здесь кольцо со скором, оси (свёрнуты) и «спросить карточку»
-///  5. кому подходит, кому нет: тип кожи, предупреждения с адресатами,
-///     беременность, SPF
-///  6. следующая баночка: сканировать ещё / на полку
-///  7. «разбор глубже»: доза против MEC для всех активов, информационные
-///     замечания, уверенность целиком и всё, что передали в [deepExtras]
+/// Порядок блоков повторяет вопросы человека, который только что отсканировал
+/// свой продукт (ТЗ «Карточка продукта v3», 01.10.2026):
+///  1. ответ: «для вашей кожи» с меткой подходит / с оговоркой / не подходит,
+///     абзац «что это за продукт на самом деле» (четвёртое предложение
+///     написано для кожи этого человека), цель из профиля, кольцо со скором
+///     состава. Профиль пуст: чипы «какая у вас кожа?» прямо здесь, ответ
+///     сразу пишется в users
+///  2. состав: один список INCI с подсветкой, линией 1 % и пометками в
+///     строках. Обещания с упаковки, статусы доз и замечания живут здесь
+///  3. цифры: оси свёрнуты, строка честности, строка нейтральности,
+///     «спросить о продукте»
+///  4. дальше: проверить следующий, на полку
+///  5. «разбор глубже» (Pro): дозы против порога для всех активов,
+///     замечания без адресата, уверенность целиком и [deepExtras]
 ///
-/// Ни один блок не говорит «продукт не работает»: только позиция, доза, порог.
-/// Слово «M!RRA» впервые звучит в блоке 4. Скор не поднимается выше него.
-///
-/// Тап по типу кожи — эфемерный просмотр: пересобирает вердикт локально и
-/// никогда не пишет в профиль (онбординг — единственный источник правды).
+/// Ни один блок не говорит «продукт не работает»: только позиция, доза,
+/// порог. Число никогда не стоит одно, только рядом с абзацем. Имя приложения
+/// впервые звучит в блоке «Цифры».
 class ProductCardV2Widget extends StatefulWidget {
   const ProductCardV2Widget({
     super.key,
@@ -52,10 +50,10 @@ class ProductCardV2Widget extends StatefulWidget {
     this.userSkinType,
     this.userIsSensitive = false,
     this.userIsAcneProne = false,
+    this.userSkinGoals = const [],
     this.isPro = false,
     this.pregnancyRelevant = false,
-    this.profileCta,
-    this.spfBlock,
+    this.spfLine,
     this.deepExtras = const [],
     this.onScanNext,
     this.onToggleBag,
@@ -68,13 +66,12 @@ class ProductCardV2Widget extends StatefulWidget {
   final List<ImageTopIngredientsRow> topIngredients;
   final List<ImageIngredientIssuesRow> ingredientIssues;
 
-  /// Skin type from the user's onboarding profile (null = cold start).
+  /// Профиль кожи из users: тип (dry / oily / combination / normal),
+  /// чувствительность, склонность к акне, цели. null = профиль пуст.
   final String? userSkinType;
-
-  /// Sensitivity / acne flags from onboarding — surface warnings addressed to
-  /// 'sensitive' / 'acne_prone' even when a different skin-type row is selected.
   final bool userIsSensitive;
   final bool userIsAcneProne;
+  final List<String> userSkinGoals;
 
   /// Whether the pro layer (full MEC table, confidence, deep extras) is visible
   /// and how many questions the card answers.
@@ -85,18 +82,14 @@ class ProductCardV2Widget extends StatefulWidget {
   /// предупреждение видно всем независимо от профиля: прятать риск нельзя.
   final bool pregnancyRelevant;
 
-  /// Приглашение заполнить профиль. Стоит в блоке «кому подходит»: вопрос
-  /// «а для какой кожи?» к этому моменту уже возник, и просьба уместна.
-  final Widget? profileCta;
+  /// SPF одной строкой под ответом: тип фильтров, широкий спектр, список.
+  final String? spfLine;
 
-  /// Блок SPF от хозяина экрана — тоже «для кого», живёт в блоке фита.
-  final Widget? spfBlock;
-
-  /// Блоки, уезжающие внутрь «Разбора глубже» (состав с подсветкой, экспертный
-  /// текст, «как использовать»). Хозяин экрана решает, что туда сложить.
+  /// Блоки, уезжающие внутрь «Разбора глубже» (экспертный текст, «как
+  /// использовать»). Хозяин экрана решает, что туда сложить.
   final List<Widget> deepExtras;
 
-  /// Действия блока «следующая баночка». null — блок не показывается.
+  /// Действия блока «дальше». null — блок не показывается.
   final VoidCallback? onScanNext;
   final Future<void> Function()? onToggleBag;
   final bool inBag;
@@ -107,15 +100,25 @@ class ProductCardV2Widget extends StatefulWidget {
 }
 
 class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
-  /// Ephemeral viewing context: starts from the profile, changed by taps.
-  /// Never persisted — a cosmetologist can flip through types per client.
-  String? _selectedSkinType;
+  /// Профиль кожи. Стартует из users, тап по чипу или строке в листе меняет
+  /// его здесь и тут же пишет в users: спрашиваем там, где нужен ответ, и
+  /// записываем один раз.
+  String? _skinType;
+  bool _sensitive = false;
+  bool _acneProne = false;
+
+  /// После первого тапа асинхронно подъехавший профиль не перебивает выбор.
+  bool _profileTouched = false;
+
   bool _proExpanded = false;
 
   /// Методика проверки на беременность раскрыта (по умолчанию — ссылкой).
   bool _pregHowExpanded = false;
 
-  /// «Спросить карточку»: один диалог на карточку, в памяти виджета.
+  /// Тап по кольцу прокручивает к блоку «Цифры».
+  final GlobalKey _numbersKey = GlobalKey();
+
+  /// «Спросить о продукте»: один диалог на карточку, в памяти виджета.
   final TextEditingController _askController = TextEditingController();
   String? _askAnswer;
   Set<String> _askCited = const {};
@@ -123,28 +126,32 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
   bool _askError = false;
   int _askCount = 0;
 
-  /// Set once the user taps a matrix row. After that, an async profile load
-  /// must not override their manual preview (onboarding stays the cold-start
-  /// default; taps are ephemeral and win locally).
-  bool _userTouchedMatrix = false;
-
   static const int _freeQuestions = 3;
+
+  /// Типы кожи, которые принимает профиль (как в анкете онбординга).
+  static const _profileTypes = ['dry', 'oily', 'combination', 'normal'];
 
   @override
   void initState() {
     super.initState();
-    _selectedSkinType = widget.userSkinType;
+    _adoptProfile();
   }
 
   @override
   void didUpdateWidget(covariant ProductCardV2Widget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Profile may arrive after the first build (loaded asynchronously on the
-    // page). Adopt it as the viewing context only until the user previews a
-    // type manually.
-    if (widget.userSkinType != oldWidget.userSkinType && !_userTouchedMatrix) {
-      _selectedSkinType = widget.userSkinType;
-    }
+    // Профиль грузится на экране асинхронно и может прийти после первого
+    // кадра. Берём его, пока человек не выбрал тип сам.
+    final changed = widget.userSkinType != oldWidget.userSkinType ||
+        widget.userIsSensitive != oldWidget.userIsSensitive ||
+        widget.userIsAcneProne != oldWidget.userIsAcneProne;
+    if (changed && !_profileTouched) _adoptProfile();
+  }
+
+  void _adoptProfile() {
+    _skinType = (widget.userSkinType ?? '').isEmpty ? null : widget.userSkinType;
+    _sensitive = widget.userIsSensitive;
+    _acneProne = widget.userIsAcneProne;
   }
 
   @override
@@ -165,18 +172,12 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
     return l.isEmpty ? claimKey : l;
   }
 
-  // ── Severity / fit palette (single light theme; the app has no dark mode) ──
-  static const Color _goodColor = Color(0xFF1B5E20); // green
-  static const Color _warnColor = Color(0xFFFFB300); // amber
-  static const Color _badColor = Color(0xFFD32F2F); // red
-
-  Color _fitColor(int score) {
-    if (score >= 75) return _goodColor;
-    if (score >= 60) return _warnColor;
-    return _badColor;
+  String _goalLabel(String goal) {
+    final l = _t('cb_goal_$goal');
+    return l.isEmpty ? goal : l;
   }
 
-  // ── Text style helpers for the new blocks ─────────────────────────────────
+  // ── Text style helpers ────────────────────────────────────────────────────
 
   TextStyle _section(FlutterFlowTheme t) => t.labelMedium.override(
         fontFamily: t.labelMediumFamily,
@@ -205,39 +206,16 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
         useGoogleFonts: !t.bodySmallIsCustom,
       );
 
-  Widget _sectionTitle(FlutterFlowTheme t, String text) => Padding(
-        padding: const EdgeInsetsDirectional.fromSTEB(16, 24, 16, 8),
-        child: Text(text, style: _section(t)),
-      );
-
   // ── Derived data ──────────────────────────────────────────────────────────
-
-  ImageSkinCompatibilityRow? get _selectedRow {
-    if (_selectedSkinType == null) return null;
-    for (final row in widget.skinCompatibility) {
-      if (row.skinType == _selectedSkinType) return row;
-    }
-    return null;
-  }
-
-  /// Warnings relevant to the selected skin type; all warnings on cold start.
-  List<ImageIngredientIssuesRow> get _visibleWarnings {
-    final issues = widget.ingredientIssues
-        .where((i) => i.relevantFor.isNotEmpty) // [] = informational (pro only)
-        .toList();
-    final type = _selectedSkinType;
-    if (type == null) return issues; // cold start — show all
-    return issues.where((i) {
-      final rf = i.relevantFor;
-      return rf.contains('all') ||
-          rf.contains(type) ||
-          (widget.userIsSensitive && rf.contains('sensitive')) ||
-          (widget.userIsAcneProne && rf.contains('acne_prone'));
-    }).toList();
-  }
 
   Map<String, dynamic> get _confidence {
     final raw = widget.image.saConfidence;
+    if (raw is Map) return Map<String, dynamic>.from(raw);
+    return const {};
+  }
+
+  Map<String, dynamic> get _scoringLog {
+    final raw = widget.image.saScoringLog;
     if (raw is Map) return Map<String, dynamic>.from(raw);
     return const {};
   }
@@ -251,6 +229,16 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
           .toList();
     }
     return const [];
+  }
+
+  Map<String, Map<String, dynamic>> get _goalSupport {
+    final raw = widget.image.saGoalSupport;
+    if (raw is! Map) return const {};
+    return {
+      for (final e in raw.entries)
+        if (e.value is Map)
+          '${e.key}': Map<String, dynamic>.from(e.value as Map),
+    };
   }
 
   /// INCI positions in order. Prefers the backend's pre-parsed array (which
@@ -270,6 +258,29 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
 
   int? get _linePos => widget.image.saOnePercentLinePos;
 
+  /// Как найдена линия (marker / structure). Лежит в sa_scoring_log у
+  /// разборов с октября 2026; у старых линия всегда по маркеру.
+  String? get _lineBasis {
+    final line = _scoringLog['one_percent_line'];
+    return line is Map ? line['basis'] as String? : null;
+  }
+
+  /// Распознано меньше 70 % состава: оценка приблизительная, в кольце
+  /// диапазон вместо точки.
+  bool get _incomplete {
+    final total = widget.image.saIngredientsTotal ?? 0;
+    final recognized = widget.image.saIngredientsRecognized ?? 0;
+    return total > 0 && recognized / total < 0.7;
+  }
+
+  List<int>? get _compositeRange {
+    final range = _confidence['composite_range'];
+    if (range is List && range.length == 2 && range.every((v) => v is num)) {
+      return [(range[0] as num).round(), (range[1] as num).round()];
+    }
+    return null;
+  }
+
   static bool _sameIngredient(String a, String b) {
     final x = a.toLowerCase().trim();
     final y = b.toLowerCase().trim();
@@ -278,7 +289,7 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
   }
 
   /// Позиция по имени в самом списке состава — та же, что видит человек в
-  /// блоке выше. Точное совпадение важнее частичного.
+  /// блоке ниже. Точное совпадение важнее частичного.
   int? _positionByName(String name) {
     final inci = _inciList;
     final key = name.toLowerCase().trim();
@@ -332,7 +343,8 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
           ),
       ];
 
-  /// Обещанный компонент ниже рабочей дозы — герой паузы и подсказки.
+  /// Обещанный компонент ниже рабочей дозы — с него начинается чтение списка
+  /// и он же герой подсказки «почему не считается».
   String? get _weakPromisedName {
     for (final status in const ['decorative', 'borderline']) {
       for (final row in _promiseRows) {
@@ -352,21 +364,134 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
     return null;
   }
 
+  // ── Профиль и персональный ответ ──────────────────────────────────────────
+
+  bool get _hasProfile => _skinType != null || _sensitive || _acneProne;
+
+  ImageSkinCompatibilityRow? _compatRow(String skinType) {
+    for (final row in widget.skinCompatibility) {
+      if (row.skinType == skinType) return row;
+    }
+    return null;
+  }
+
+  /// Персональный балл: худший из применимых строк (тип кожи,
+  /// чувствительность, акне). Честнее среднего: претензия к одной черте кожи
+  /// не растворяется в хорошей оценке для другой.
+  int? get _personalScore {
+    final scores = <int>[
+      for (final type in [
+        if (_skinType != null) _skinType!,
+        if (_sensitive) 'sensitive',
+        if (_acneProne) 'acne_prone',
+      ])
+        if (_compatRow(type) != null) _compatRow(type)!.compatibilityScore,
+    ];
+    if (scores.isEmpty) return null;
+    return scores.reduce(min);
+  }
+
+  /// Метка под строкой «для вашей кожи». Пороги из ТЗ: 60 и выше подходит,
+  /// 40–59 с оговоркой, ниже 40 не подходит.
+  ({String text, Color color})? get _fitLabel {
+    final score = _personalScore;
+    if (score == null) return null;
+    if (score >= 60) return (text: _t('cardv2_fit_good'), color: kScoreA);
+    if (score >= 40) return (text: _t('cardv2_fit_caveat'), color: kScoreD);
+    return (text: _t('cardv2_fit_bad'), color: kScoreF);
+  }
+
+  /// Вариант четвёртого предложения. Чувствительность важнее типа: претензии
+  /// абзаца чаще всего про неё.
+  String? get _personalKey =>
+      _sensitive ? 'sensitive' : (_acneProne ? 'acne_prone' : _skinType);
+
+  String get _profileLabel => [
+        if (_skinType != null) _skinTypeLabel(_skinType!),
+        if (_sensitive) _skinTypeLabel('sensitive'),
+        if (_acneProne) _skinTypeLabel('acne_prone'),
+      ].map((s) => s.toLowerCase()).join(', ');
+
+  /// Абзац «что это за продукт на самом деле». Предложения 1–3 общие,
+  /// четвёртое для кожи этого человека. У старых разборов без абзаца
+  /// остаётся короткое резюме.
+  String get _paragraph {
+    final general = widget.image.plainVerdictGeneral;
+    if (general.isEmpty) return widget.image.saQuickSummary ?? '';
+    final body = general.take(3).toList();
+    final key = _personalKey;
+    final fourth = (key == null ? null : widget.image.plainVerdictFor(key)) ??
+        (general.length > 3 ? general[3] : null);
+    if (fourth != null) body.add(fourth);
+    return body.join(' ');
+  }
+
+  /// Цель из профиля одной строкой: что её поддерживает и насколько.
+  String? get _goalLine {
+    final goal = widget.userSkinGoals.firstOrNull;
+    if (goal == null) return null;
+    final support = _goalSupport[goal];
+    final score = (support?['score'] as num?)?.round();
+    if (score == null) return null;
+    final label = _goalLabel(goal).toLowerCase();
+    final best = _parseEvidence(support!['evidence'])
+        .where((e) => e.status != 'decorative')
+        .firstOrNull;
+    final pos = best == null ? null : (_positionByName(best.name) ?? best.position);
+    if (best != null && pos != null) {
+      return _t('cardv2_goal_with')
+          .replaceAll('{goal}', label)
+          .replaceAll('{name}', best.name)
+          .replaceAll('{pos}', '$pos')
+          .replaceAll('{total}', '${_inciList.length}')
+          .replaceAll('{score}', '$score');
+    }
+    return _t('cardv2_goal_plain')
+        .replaceAll('{goal}', label)
+        .replaceAll('{score}', '$score');
+  }
+
+  Future<void> _saveSkinType(String type) async {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _profileTouched = true;
+      _skinType = type;
+    });
+    unawaited(AnalyticsService.instance.trackProductSkin(skinName: type));
+    try {
+      await ClientCardService.instance.updateAnamnesis(skinType: type);
+    } catch (e) {
+      debugPrint('card: skin type not saved: $e');
+    }
+  }
+
+  Future<void> _saveFlags({bool? sensitive, bool? acneProne}) async {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _profileTouched = true;
+      if (sensitive != null) _sensitive = sensitive;
+      if (acneProne != null) _acneProne = acneProne;
+    });
+    try {
+      await ClientCardService.instance
+          .updateAnamnesis(sensitive: sensitive, acneProne: acneProne);
+    } catch (e) {
+      debugPrint('card: skin flags not saved: $e');
+    }
+  }
+
   // ── Build ─────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
-    final pause = _buildPause(theme);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        _buildRule(theme),
-        _buildExpectations(theme),
-        if (pause != null) pause,
-        _buildTrustAndVerdict(theme),
-        _buildFitGroup(theme),
+        _buildAnswer(theme),
+        _buildWhy(theme),
+        _buildNumbers(theme),
         if (widget.onScanNext != null || widget.onToggleBag != null)
           _buildNextBottle(theme),
         if (widget.isPro) _buildProLayer(theme),
@@ -374,521 +499,570 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
     );
   }
 
-  // ── 1. Правило: состав с линией 1 % ───────────────────────────────────────
+  // ── 1. Ответ ──────────────────────────────────────────────────────────────
 
-  /// Один список вместо колбы и нумерации: тот же поток INCI с подсветкой,
-  /// но каждый ингредиент нажимается, обещанные активы помечены, первый из них
-  /// раскрыт сразу, а линия 1 % проведена прямо в списке.
-  Widget _buildRule(FlutterFlowTheme theme) {
+  Widget _buildAnswer(FlutterFlowTheme theme) {
+    final paragraph = _paragraph;
+    final goalLine = _goalLine;
+    final pregnancy = _buildPregnancy(theme);
+    final spf = widget.spfLine;
+
+    return Padding(
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 0),
+      child: Container(
+        key: const Key('cardv2_answer'),
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: theme.alternate,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              blurRadius: 12,
+              color: Colors.black.withOpacity(0.06),
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (_hasProfile) ...[
+              _buildProfileRow(theme),
+              const SizedBox(height: 12),
+            ],
+            if (paragraph.isNotEmpty)
+              Text(paragraph, style: _body(theme, size: 15).copyWith(height: 1.4)),
+            if (!_hasProfile) ...[
+              const SizedBox(height: 14),
+              _buildSkinChips(theme),
+            ],
+            if (goalLine != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: Text(goalLine, style: _small(theme)),
+              ),
+            if (pregnancy != null) pregnancy,
+            if (spf != null && spf.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(top: 1),
+                      child: Icon(Icons.wb_sunny_rounded,
+                          size: 16, color: Color(0xFF1565C0)),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(spf, style: _small(theme, color: theme.primaryText)),
+                    ),
+                  ],
+                ),
+              ),
+            const SizedBox(height: 16),
+            _buildRing(theme),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// «Для вашей кожи: сухая, чувствительная · изменить» и метка.
+  Widget _buildProfileRow(FlutterFlowTheme theme) {
+    final fit = _fitLabel;
+    final score = _personalScore;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Text.rich(
+                TextSpan(
+                  style: _small(theme),
+                  children: [
+                    TextSpan(text: '${_t('cardv2_for_your_skin')}: '),
+                    TextSpan(
+                      text: _profileLabel,
+                      style: TextStyle(
+                        color: theme.primaryText,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            InkWell(
+              onTap: _openProfileSheet,
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                child: Text(
+                  _t('cardv2_change'),
+                  style: _small(theme,
+                      color: theme.primary, weight: FontWeight.w600),
+                ),
+              ),
+            ),
+          ],
+        ),
+        if (fit != null) ...[
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: fit.color.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  fit.text,
+                  style: _small(theme, color: fit.color, weight: FontWeight.w700),
+                ),
+              ),
+              if (score != null) ...[
+                const SizedBox(width: 8),
+                Text(
+                  _t('cardv2_fit_score').replaceAll('{score}', '$score'),
+                  style: _small(theme),
+                ),
+              ],
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+
+  /// Профиль пуст: спрашиваем здесь, где нужен ответ.
+  Widget _buildSkinChips(FlutterFlowTheme theme) {
+    final chipLabel = _small(theme, color: theme.primaryText, weight: FontWeight.w600);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(_t('cardv2_skin_ask'), style: _section(theme)),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final type in _profileTypes)
+              ChoiceChip(
+                label: Text(_skinTypeLabel(type), style: chipLabel),
+                selected: _skinType == type,
+                showCheckmark: false,
+                backgroundColor: theme.surfaceMuted,
+                selectedColor: theme.primary.withOpacity(0.18),
+                side: BorderSide.none,
+                onSelected: (_) => _saveSkinType(type),
+              ),
+            FilterChip(
+              label: Text(_skinTypeLabel('sensitive'), style: chipLabel),
+              selected: _sensitive,
+              showCheckmark: false,
+              backgroundColor: theme.surfaceMuted,
+              selectedColor: theme.primary.withOpacity(0.18),
+              side: BorderSide.none,
+              onSelected: (v) => _saveFlags(sensitive: v),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  /// Лист «изменить»: типы кожи с баллами совместимости и два флага. Каждый
+  /// выбор пишется в профиль; тип закрывает лист, флаги остаются в нём.
+  Future<void> _openProfileSheet() async {
+    final theme = FlutterFlowTheme.of(context);
+    String? scoreOf(String type) {
+      final row = _compatRow(type);
+      return row == null ? null : '${row.compatibilityScore}';
+    }
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, setSheetState) => MirraBottomSheet(
+          surfaceColor: theme.alternate,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.sizeOf(sheetContext).height * 0.8,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _t('cardv2_score_for_type'),
+                    style: theme.headlineSmall.override(
+                      fontFamily: theme.headlineSmallFamily,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.0,
+                      useGoogleFonts: !theme.headlineSmallIsCustom,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  for (final type in _profileTypes) ...[
+                    SelectableRow(
+                      label: _skinTypeLabel(type),
+                      value: scoreOf(type),
+                      selected: _skinType == type,
+                      onTap: () {
+                        unawaited(_saveSkinType(type));
+                        Navigator.of(sheetContext).pop();
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                  const SizedBox(height: 4),
+                  SelectableRow(
+                    label: _skinTypeLabel('sensitive'),
+                    value: scoreOf('sensitive'),
+                    selected: _sensitive,
+                    onTap: () {
+                      unawaited(_saveFlags(sensitive: !_sensitive));
+                      setSheetState(() {});
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  SelectableRow(
+                    label: _skinTypeLabel('acne_prone'),
+                    value: scoreOf('acne_prone'),
+                    selected: _acneProne,
+                    onTap: () {
+                      unawaited(_saveFlags(acneProne: !_acneProne));
+                      setSheetState(() {});
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Кольцо со скором состава: одно число на всех, его можно сравнивать между
+  /// продуктами. Тап ведёт к осям. При неполном составе в кольце диапазон.
+  Widget _buildRing(FlutterFlowTheme theme) {
+    final score = widget.image.saCompositeScore?.round();
+    if (score == null) return const SizedBox.shrink();
+    final range = _compositeRange;
+    // Состав неполный: в кольце диапазон вместо точки.
+    final rangeText =
+        _incomplete && range != null ? '${range[0]}–${range[1]}' : null;
+    final color = semanticScoreColor(score);
+
+    return InkWell(
+      onTap: _scrollToNumbers,
+      borderRadius: BorderRadius.circular(16),
+      child: Row(
+        children: [
+          CircularPercentIndicator(
+            radius: 34,
+            lineWidth: 7,
+            percent: (score / 100.0).clamp(0.0, 1.0),
+            backgroundColor: color.withOpacity(0.12),
+            progressColor: color,
+            circularStrokeCap: CircularStrokeCap.round,
+            animation: true,
+            animateFromLastPercent: true,
+            center: Text(
+              rangeText ?? '$score',
+              style: theme.headlineSmall.override(
+                fontFamily: theme.headlineSmallFamily,
+                color: color,
+                fontSize: rangeText != null ? 13 : 22,
+                letterSpacing: 0.0,
+                fontWeight: FontWeight.w700,
+                useGoogleFonts: !theme.headlineSmallIsCustom,
+              ),
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(_t('cardv2_formula_score'),
+                    style: _body(theme, weight: FontWeight.w600)),
+                if (rangeText != null)
+                  Text(_t('cardv2_approx'), style: _small(theme)),
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(_t('score_axes_title'),
+                          style: _small(theme, color: theme.primary)),
+                    ),
+                    Icon(Icons.expand_more, size: 16, color: theme.primary),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _scrollToNumbers() {
+    final ctx = _numbersKey.currentContext;
+    if (ctx == null) return;
+    Scrollable.ensureVisible(
+      ctx,
+      duration: const Duration(milliseconds: 350),
+      curve: Curves.easeOut,
+      alignment: 0.05,
+    );
+  }
+
+  // ── Pregnancy ─────────────────────────────────────────────────────────────
+
+  List<Map<String, dynamic>> get _pregFlags {
+    final raw = widget.image.saPregnancyFlags;
+    if (raw is List) {
+      return raw
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
+    }
+    return const [];
+  }
+
+  String _pregClassLabel(String cls) {
+    const keys = {
+      'retinoid': 'preg_class_retinoid',
+      'hydroquinone': 'preg_class_hydroquinone',
+      'arbutin': 'preg_class_arbutin',
+      'bha': 'preg_class_bha',
+    };
+    final key = keys[cls];
+    return key != null ? _t(key) : cls;
+  }
+
+  /// Беременность одной строкой в ответе. Предупреждение видно всем: человек
+  /// мог не заполнить профиль, а ретиноид от этого никуда не делся. «Можно»
+  /// только тем, кто спрашивал. Методика под ссылкой, а не абзацем.
+  Widget? _buildPregnancy(FlutterFlowTheme theme) {
+    final safe = widget.image.saPregnancySafe;
+    if (safe == null) return null;
+    final flags = _pregFlags;
+    final ok = safe && flags.isEmpty;
+    if (ok && !widget.pregnancyRelevant) return null;
+    final accent = ok ? kScoreA : kScoreD;
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 1),
+                child: Icon(
+                  ok ? Icons.check_circle_rounded : Icons.warning_amber_rounded,
+                  size: 16,
+                  color: accent,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  flags.isEmpty
+                      ? (ok ? _t('preg_safe') : _t('preg_caution'))
+                      : '${_t('preg_caution')} ${_t('preg_contains')} '
+                          '${flags.map((f) => _pregClassLabel('${f['class']}')).join(', ')}',
+                  style: _small(theme,
+                      color: theme.primaryText, weight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(24, 2, 0, 0),
+            child: InkWell(
+              onTap: () => setState(() => _pregHowExpanded = !_pregHowExpanded),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 2),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(_t('preg_how_title'),
+                        style: _small(theme, weight: FontWeight.w600)),
+                    Icon(
+                      _pregHowExpanded ? Icons.expand_less : Icons.expand_more,
+                      size: 16,
+                      color: theme.secondaryText,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          if (_pregHowExpanded)
+            Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(24, 2, 0, 0),
+              child: Text(_t('preg_how_body'),
+                  style: _small(theme).copyWith(fontSize: 12)),
+            ),
+        ],
+      ),
+    );
+  }
+
+  // ── 2. Состав ─────────────────────────────────────────────────────────────
+
+  /// Один список INCI с пометками в строках. Раскрыт по умолчанию обещанный
+  /// компонент ниже дозы, если такой есть: с него начинается вовлечение.
+  /// Обещание без единого компонента — одной строкой под списком.
+  Widget _buildWhy(FlutterFlowTheme theme) {
     final inci = _inciList;
     if (inci.isEmpty) return const SizedBox.shrink();
 
     final promised = <String, String>{};
     String? firstPromised;
+    final unsupported = <String>[];
     for (final row in _promiseRows) {
+      if (row.evidence.isEmpty) {
+        unsupported.add(_claimLabel(row.claimKey));
+        continue;
+      }
       for (final e in row.evidence) {
         promised.putIfAbsent(
             e.name.toLowerCase().trim(), () => _claimLabel(row.claimKey));
         firstPromised ??= e.name;
       }
     }
-    // Раскрыт по умолчанию компонент ниже дозы, если такой есть: с него
-    // начинается вовлечение. Иначе — первый обещанный.
     final initial = _weakPromisedName ?? firstPromised;
 
     return Padding(
       padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 0),
-      child: IngridientsWidget(
-        inci: inci,
-        linePos: _linePos,
-        lineMarker: widget.image.saOnePercentLineMarker,
-        topIngredients: widget.topIngredients,
-        issues: widget.ingredientIssues,
-        promised: promised,
-        citedNames: _askCited,
-        initiallySelected: initial,
-      ),
-    );
-  }
-
-  // ── 2. Чего ожидать ──────────────────────────────────────────────
-
-  /// Обещание с упаковки → цель, которую движок считает в goal_support.
-  static const _claimToGoal = {
-    'hydration': 'hydration',
-    'barrier': 'barrier',
-    'anti_aging_lifting': 'anti_aging',
-    'brightening': 'pigmentation',
-    'pores': 'pores',
-    'acne': 'acne',
-  };
-
-  Map<String, Map<String, dynamic>> get _goalSupport {
-    final raw = widget.image.saGoalSupport;
-    if (raw is! Map) return const {};
-    return {
-      for (final e in raw.entries)
-        if (e.value is Map)
-          '${e.key}': Map<String, dynamic>.from(e.value as Map),
-    };
-  }
-
-  String _goalLabel(String goal) {
-    final l = _t('cb_goal_$goal');
-    return l.isEmpty ? goal : l;
-  }
-
-  /// Чего можно ждать сверх обещанного: цели, которые формула поддерживает
-  /// (goal_support ≥ 50), но упаковка о них молчит.
-  List<({String goal, int score, List<String> evidence})> get _unclaimedGoods {
-    final claimed = _claimAudit
-        .map((c) => _claimToGoal[c['claim']])
-        .whereType<String>()
-        .toSet();
-    final out = <({String goal, int score, List<String> evidence})>[];
-    for (final e in _goalSupport.entries) {
-      if (claimed.contains(e.key)) continue;
-      final score = (e.value['score'] as num?)?.round() ?? 0;
-      if (score < 50) continue;
-      final ev = _parseEvidence(e.value['evidence'])
-          .where((x) => x.status != 'decorative')
-          .map((x) => x.name)
-          .toList();
-      out.add((goal: e.key, score: score, evidence: ev));
-    }
-    out.sort((a, b) => b.score.compareTo(a.score));
-    return out;
-  }
-
-  /// Замечание движка → ощущение на коже, о котором упаковка не предупреждает.
-  static String? _effectOf(ImageIngredientIssuesRow issue) {
-    switch (issue.issueType) {
-      case 'comedogenic':
-        return 'breakouts';
-      case 'irritant':
-        // Спирты и жёсткие ПАВ адресованы сухой коже — это сухость; эфирные
-        // масла адресованы только чувствительной — это раздражение.
-        return issue.relevantFor.contains('dry') ? 'dryness' : 'irritation';
-      case 'fragrance':
-      case 'allergen':
-      case 'formaldehyde_releaser':
-        return 'irritation';
-      case 'controversial':
-        return 'controversial';
-      default:
-        return null; // informational (eco/regulatory) — не про кожу
-    }
-  }
-
-  static const _effectOrder = [
-    'breakouts',
-    'dryness',
-    'irritation',
-    'controversial',
-  ];
-
-  /// Чего не обещали, но видно по составу: замечания, сгруппированные по
-  /// эффекту, с компонентами-виновниками и адресатами.
-  List<({String effect, List<String> ingredients, Set<String> forWhom})>
-      get _unclaimedBads {
-    final groups = <String, ({List<String> ingredients, Set<String> forWhom})>{};
-    for (final issue in widget.ingredientIssues) {
-      if (issue.relevantFor.isEmpty) continue;
-      final effect = _effectOf(issue);
-      if (effect == null) continue;
-      final g = groups.putIfAbsent(
-          effect, () => (ingredients: <String>[], forWhom: <String>{}));
-      if (!g.ingredients.contains(issue.ingredientName)) {
-        g.ingredients.add(issue.ingredientName);
-      }
-      g.forWhom.addAll(issue.relevantFor);
-    }
-    return [
-      for (final k in _effectOrder)
-        if (groups.containsKey(k))
-          (
-            effect: k,
-            ingredients: groups[k]!.ingredients,
-            forWhom: groups[k]!.forWhom,
-          ),
-    ];
-  }
-
-  String _forWhomLabel(Set<String> types) => types.contains('all')
-      ? _t('cardv2_for_all')
-      : types.map(_skinTypeLabel).join(', ');
-
-  /// Раскрытые строки «чего ожидать» (ключ эффекта).
-  final Set<String> _expandedEffects = {};
-
-  /// Один список ожиданий. Правило цвета: позитивный и подкреплённый составом —
-  /// зелёный; негативный — красный; позитивный, но не подкреплённый (обещание
-  /// без компонента в дозе) — тоже красный. Тап раскрывает, какие компоненты
-  /// дают эффект, или что подтверждения в составе нет.
-  List<_Expectation> get _expectations {
-    final total = _inciList.length;
-    final linePos = _linePos;
-    final out = <_Expectation>[];
-
-    // Обещания с упаковки.
-    for (final row in _promiseRows) {
-      // Подкреплено — вердикт движка «supported» ИЛИ хотя бы один компонент
-      // в рабочей дозе: движок ставит «слабо» одиночному рабочему активу
-      // (35 баллов из порога 55), а для читателя рабочая доза и есть
-      // подтверждение. Объясняют рабочие компоненты; нет — показываем, что
-      // есть, вместе с его позицией и дозой.
-      final hasWorking = row.evidence.any((e) =>
-          (e.status ?? _activeByName(e.name)?.status) == 'working');
-      final backed = row.verdict == 'supported' || hasWorking;
-      final shown = backed
-          ? row.evidence.where((e) => e.status != 'decorative').toList()
-          : row.evidence;
-      final lines = <String>[_t('cardv2_expect_claimed')];
-      if (shown.isNotEmpty) {
-        lines.add(_t('cardv2_reality_thanks')
-            .replaceAll('{names}', shown.take(3).map((e) => e.name).join(', ')));
-        final best = shown.first;
-        final active = _activeByName(best.name);
-        final pos = _positionByName(best.name) ?? best.position;
-        final status = best.status ?? active?.status;
-        final where = <String>[
-          if (pos != null)
-            _t('cardv2_position_of')
-                .replaceAll('{pos}', '$pos')
-                .replaceAll('{total}', '$total'),
-          if (pos != null && linePos != null)
-            pos < linePos
-                ? _t('cardv2_layer_above')
-                : _t('cardv2_layer_below'),
-          if (active?.mec != null)
-            _t('cardv2_dose_needed').replaceAll('{mec}', '${active!.mec}'),
-          if (status != null) _t('cardv2_status_$status'),
-        ];
-        if (where.isNotEmpty) lines.add(where.join(' · '));
-        if (!backed) {
-          lines.add(status == 'decorative'
-              ? _t('cardv2_decorative_note')
-              : _t('cardv2_verdict_${row.verdict}'));
-        }
-      } else {
-        lines.add(_t('cardv2_expect_not_backed'));
-      }
-      out.add(_Expectation(
-        key: 'claim_${row.claimKey}',
-        title: _claimLabel(row.claimKey),
-        good: backed,
-        lines: lines,
-      ));
-    }
-
-    // Чего ещё можно ждать: формула умеет, упаковка молчит.
-    for (final g in _unclaimedGoods) {
-      out.add(_Expectation(
-        key: 'goal_${g.goal}',
-        title: _goalLabel(g.goal),
-        good: true,
-        lines: [
-          if (g.evidence.isNotEmpty)
-            _t('cardv2_reality_thanks')
-                .replaceAll('{names}', g.evidence.take(3).join(', ')),
-        ],
-      ));
-    }
-
-    // Чего не обещали, но видно по составу.
-    for (final b in _unclaimedBads) {
-      out.add(_Expectation(
-        key: 'bad_${b.effect}',
-        title: _t('cardv2_effect_${b.effect}'),
-        good: false,
-        lines: [
-          _t('cardv2_reality_because')
-              .replaceAll('{names}', b.ingredients.take(4).join(', ')),
-          '${_t('cardv2_matters_for')} ${_forWhomLabel(b.forWhom)}',
-        ],
-      ));
-    }
-    return out;
-  }
-
-  Widget _buildExpectations(FlutterFlowTheme theme) {
-    final items = _expectations;
-    if (items.isEmpty) return const SizedBox.shrink();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _sectionTitle(theme, _t('cardv2_expect_title')),
-        for (final e in items) _expectationRow(theme, e),
-      ],
-    );
-  }
-
-  Widget _expectationRow(FlutterFlowTheme theme, _Expectation e) {
-    final color = e.good ? _goodColor : _badColor;
-    final expanded = _expandedEffects.contains(e.key);
-    return InkWell(
-      onTap: () => setState(() {
-        if (!_expandedEffects.remove(e.key)) _expandedEffects.add(e.key);
-      }),
-      child: Padding(
-        padding: const EdgeInsetsDirectional.fromSTEB(16, 6, 16, 6),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (_incomplete)
             Padding(
-              padding: const EdgeInsets.only(top: 3),
-              child: Icon(
-                e.good
-                    ? Icons.check_circle_rounded
-                    : Icons.remove_circle_rounded,
-                size: 16,
-                color: color,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(e.title,
-                      style: _body(theme, weight: FontWeight.w600, color: color)),
-                  if (expanded)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 3),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          for (final l in e.lines)
-                            Text(l, style: _small(theme)),
-                        ],
-                      ),
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: kScoreD.withOpacity(0.10),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                child: Row(
+                  children: [
+                    const Icon(Icons.info_outline_rounded, size: 16, color: kScoreD),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(_t('cardv2_incomplete'),
+                          style: _small(theme, color: theme.primaryText)),
                     ),
-                ],
+                  ],
+                ),
               ),
             ),
-            Icon(
-              expanded ? Icons.expand_less : Icons.expand_more,
-              size: 18,
-              color: theme.secondaryText,
+          IngridientsWidget(
+            inci: inci,
+            linePos: _linePos,
+            lineMarker: widget.image.saOnePercentLineMarker,
+            lineBasis: _lineBasis,
+            topIngredients: widget.topIngredients,
+            issues: widget.ingredientIssues,
+            promised: promised,
+            citedNames: _askCited,
+            initiallySelected: initial,
+          ),
+          for (final claim in unsupported)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                _t('cardv2_claim_no_component').replaceAll('{claim}', claim),
+                style: _small(theme),
+              ),
             ),
-          ],
-        ),
+        ],
       ),
     );
   }
 
-  // ── 3. Пауза ──────────────────────────────────────────────────────────────
+  // ── 3. Цифры ──────────────────────────────────────────────────────────────
 
-  /// Одна фраза без карточки и без цифр. Вариант зависит от блока 2: есть
-  /// обещанный актив ниже дозы — снимаем вину; всё в дозе — направляем к фиту.
-  Widget? _buildPause(FlutterFlowTheme theme) {
-    final weak = _weakPromisedName;
-    final String text;
-    if (weak != null) {
-      text = _t('cardv2_pause_decorative').replaceAll('{active}', weak);
-    } else if (_claimAudit.isNotEmpty) {
-      text = _t('cardv2_pause_ok');
-    } else {
-      return null;
-    }
-    return Padding(
-      padding: const EdgeInsetsDirectional.fromSTEB(16, 24, 16, 4),
-      child: Container(
-        padding: const EdgeInsetsDirectional.fromSTEB(14, 0, 0, 0),
-        decoration: BoxDecoration(
-          border: Border(
-            left: BorderSide(color: theme.primary.withOpacity(0.5), width: 2),
-          ),
-        ),
-        child: Text(
-          text,
-          style: theme.bodyMedium.override(
-            fontFamily: theme.bodyMediumFamily,
-            fontSize: 15,
-            fontStyle: FontStyle.italic,
-            letterSpacing: 0.0,
-            useGoogleFonts: !theme.bodyMediumIsCustom,
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ── 4. Почему этому можно верить → вердикт → спросить ─────────────────────
-
-  Widget _buildTrustAndVerdict(FlutterFlowTheme theme) {
+  /// Оси свёрнуты, строка честности, строка нейтральности, «спросить».
+  /// Первое место, где в карточке звучит имя приложения.
+  Widget _buildNumbers(FlutterFlowTheme theme) {
     return Column(
+      key: _numbersKey,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _sectionTitle(theme, _t('cardv2_trust_title')),
+        ScoreBreakdownWidget(
+          scoringLog: widget.image.saScoringLog,
+          topIngredients: widget.topIngredients,
+          ingredientIssues: widget.ingredientIssues,
+        ),
         Padding(
-          padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 0),
+          padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildHonesty(theme),
               Padding(
-                padding: const EdgeInsets.only(top: 6),
+                padding: const EdgeInsets.only(top: 4),
                 child: Text(_t('cardv2_neutrality'), style: _small(theme)),
               ),
             ],
           ),
-        ),
-        _sectionTitle(theme, _t('cardv2_verdict_title')),
-        _buildVerdict(theme),
-        ScoreBreakdownWidget(
-          scoringLog: widget.image.saScoringLog,
-          topIngredients: widget.topIngredients,
-          ingredientIssues: widget.ingredientIssues,
         ),
         _buildAsk(theme),
       ],
     );
   }
 
-  /// Из чего посчитана оценка: доля разобранного состава, уверенность,
-  /// диапазон и первая причина. Полный список причин — в «Разборе глубже».
+  /// «Распознано 24 из 28 компонентов · уверенность высокая · диапазон 55–69».
+  /// Причины целиком — в «Разборе глубже».
   Widget _buildHonesty(FlutterFlowTheme theme) {
     final total = widget.image.saIngredientsTotal ?? 0;
     final recognized = widget.image.saIngredientsRecognized ?? 0;
     final conf = _confidence;
     final level = widget.image.saConfidenceLevel ?? '${conf['level'] ?? ''}';
-    final range = conf['composite_range'];
-    final reasons =
-        conf['reasons'] is List ? (conf['reasons'] as List) : const [];
+    final range = _compositeRange;
 
     final parts = <String>[
       if (total > 0)
-        _t('cardv2_based_on')
-            .replaceAll('{percent}', '${(recognized / total * 100).round()}'),
+        _t('cardv2_recognized_of')
+            .replaceAll('{n}', '$recognized')
+            .replaceAll('{m}', '$total'),
       if (level.isNotEmpty && _t('cardv2_conf_$level').isNotEmpty)
-        '${_t('cardv2_confidence_title')}: ${_t('cardv2_conf_$level')}',
-      if (range is List && range.length == 2)
+        '${_t('cardv2_confidence_title').toLowerCase()}: ${_t('cardv2_conf_$level')}',
+      if (range != null)
         _t('cardv2_range')
             .replaceAll('{lo}', '${range[0]}')
             .replaceAll('{hi}', '${range[1]}'),
     ];
-    if (parts.isEmpty && reasons.isEmpty) return const SizedBox.shrink();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (parts.isNotEmpty) Text(parts.join(' · '), style: _small(theme)),
-        if (reasons.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(top: 2),
-            child: Text('· ${reasons.first}', style: _small(theme)),
-          ),
-      ],
-    );
+    if (parts.isEmpty) return const SizedBox.shrink();
+    return Text(parts.join(' · '), style: _small(theme));
   }
 
-  Widget _buildVerdict(FlutterFlowTheme theme) {
-    final row = _selectedRow;
-    final verdictText = (row?.verdict?.isNotEmpty ?? false)
-        ? row!.verdict!
-        : (widget.image.saQuickSummary ?? '');
-    final fitScore = row?.compatibilityScore ??
-        (widget.image.saCompositeScore?.round() ?? 0);
-    // Подпись под кольцом называет тип кожи, для которого посчитано число.
-    final fitLabel =
-        row != null ? _skinTypeLabel(row.skinType) : _t('cardv2_formula');
-    final ringColor = _fitColor(fitScore);
-
-    return Padding(
-      padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 0),
-      child: Container(
-        decoration: BoxDecoration(
-          color: theme.alternate,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              blurRadius: 24,
-              color: ringColor.withOpacity(0.28),
-              offset: const Offset(0, 6),
-            ),
-            BoxShadow(
-              blurRadius: 8,
-              color: Colors.black.withOpacity(0.10),
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // Animated fit ring — re-animates to the new value on every matrix
-            // tap (personalized score), never written to the profile.
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: ringColor.withOpacity(0.35),
-                        blurRadius: 20,
-                        spreadRadius: 2,
-                      ),
-                    ],
-                  ),
-                  child: CircularPercentIndicator(
-                    radius: 40,
-                    lineWidth: 8,
-                    percent: (fitScore / 100.0).clamp(0.0, 1.0),
-                    backgroundColor: ringColor.withOpacity(0.12),
-                    progressColor: ringColor,
-                    circularStrokeCap: CircularStrokeCap.round,
-                    animation: true,
-                    animateFromLastPercent: true,
-                    center: Text(
-                      '$fitScore',
-                      style: theme.headlineSmall.override(
-                        fontFamily: theme.headlineSmallFamily,
-                        color: ringColor,
-                        fontSize: 24,
-                        letterSpacing: 0.0,
-                        fontWeight: FontWeight.w700,
-                        useGoogleFonts: !theme.headlineSmallIsCustom,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 6),
-                SizedBox(
-                  width: 92,
-                  child: Text(
-                    fitLabel,
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.labelSmall.override(
-                      fontFamily: theme.labelSmallFamily,
-                      color: theme.secondaryText,
-                      letterSpacing: 0.0,
-                      useGoogleFonts: !theme.labelSmallIsCustom,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Text(verdictText, style: _body(theme)),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ── Спросить карточку ─────────────────────────────────────────────────────
+  // ── Спросить о продукте ───────────────────────────────────────────────────
 
   List<String> get _askSuggestions {
     final weak = _weakPromisedName;
-    final skin = _selectedSkinType ?? widget.userSkinType ?? 'sensitive';
+    final skin = _personalKey ?? 'sensitive';
     return [
       _t('cardv2_ask_q_score'),
       if (weak != null)
@@ -995,7 +1169,7 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
             if (_askError) ...[
               const SizedBox(height: 8),
               Text(_t('cardv2_ask_error'),
-                  style: _small(theme, color: _badColor)),
+                  style: _small(theme, color: kScoreF)),
             ],
             if (!widget.isPro) ...[
               const SizedBox(height: 8),
@@ -1043,7 +1217,7 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
         imageId: imageId,
         question: question,
         lang: FFLocalizations.of(context).languageCode,
-        skinType: _selectedSkinType ?? widget.userSkinType,
+        skinType: _personalKey,
         token: currentJwtToken,
       );
       if (!mounted) return;
@@ -1072,334 +1246,7 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
     }
   }
 
-  // ── 5. Кому подходит, кому нет ────────────────────────────────────────────
-
-  Widget _buildFitGroup(FlutterFlowTheme theme) {
-    final warnings = _visibleWarnings;
-    final hasAnything = widget.skinCompatibility.isNotEmpty ||
-        widget.profileCta != null ||
-        warnings.isNotEmpty ||
-        widget.image.saPregnancySafe != null ||
-        widget.spfBlock != null;
-    if (!hasAnything) return const SizedBox.shrink();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _sectionTitle(theme, _t('cardv2_fit_title')),
-        _buildFit(theme),
-        if (widget.profileCta != null) widget.profileCta!,
-        if (warnings.isNotEmpty) _buildWarnings(theme),
-        _buildPregnancy(theme),
-        if (widget.spfBlock != null) widget.spfBlock!,
-      ],
-    );
-  }
-
-  // ── Skin type matrix (tappable, ephemeral) ───────────────────────────────
-
-  /// Тип кожи, для которого посчитана оценка: одна строка на карточке, выбор —
-  /// в листе. В листе видны баллы всех типов сразу — то самое сравнение, ради
-  /// которого раньше висела матрица на шесть строк.
-  ///
-  /// Выбор эфемерный: в профиль не пишется, косметолог так листает типы под
-  /// каждого клиента.
-  static const _skinTypeOrder = [
-    'dry',
-    'oily',
-    'normal',
-    'combination',
-    'sensitive',
-    'acne_prone',
-  ];
-
-  List<ImageSkinCompatibilityRow> get _orderedRows {
-    // Порядок постоянный, а не по убыванию балла: иначе свой тип приходилось
-    // бы искать заново на каждой карточке.
-    return [...widget.skinCompatibility]..sort((a, b) {
-        final ia = _skinTypeOrder.indexOf(a.skinType);
-        final ib = _skinTypeOrder.indexOf(b.skinType);
-        return (ia < 0 ? 99 : ia).compareTo(ib < 0 ? 99 : ib);
-      });
-  }
-
-  Widget _buildFit(FlutterFlowTheme theme) {
-    if (widget.skinCompatibility.isEmpty) return const SizedBox.shrink();
-    final row = _selectedRow;
-
-    return Padding(
-      padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 0),
-      child: SettingsRow(
-        icon: Icons.face_retouching_natural,
-        label: _t('cardv2_skin_type_row'),
-        trailingValue:
-            row != null ? _skinTypeLabel(row.skinType) : _t('cardv2_type_none'),
-        surfaceColor: theme.surfaceMuted,
-        onTap: _openSkinTypeSheet,
-      ),
-    );
-  }
-
-  Future<void> _openSkinTypeSheet() async {
-    final theme = FlutterFlowTheme.of(context);
-    final genericScore = widget.image.saCompositeScore?.round();
-
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (sheetContext) => StatefulBuilder(
-        builder: (sheetContext, setSheetState) => MirraBottomSheet(
-          surfaceColor: theme.alternate,
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.sizeOf(sheetContext).height * 0.8,
-            ),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _t('cardv2_score_for_type'),
-                    style: theme.headlineSmall.override(
-                      fontFamily: theme.headlineSmallFamily,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.0,
-                      useGoogleFonts: !theme.headlineSmallIsCustom,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  // Первой строкой — оценка формулы без учёта типа: так из
-                  // персонального расчёта есть дорога обратно.
-                  SelectableRow(
-                    label: _t('cardv2_type_none'),
-                    value: genericScore != null ? '$genericScore' : null,
-                    selected: _selectedSkinType == null,
-                    onTap: () =>
-                        _pickSkinType(sheetContext, setSheetState, null),
-                  ),
-                  for (final row in _orderedRows) ...[
-                    const SizedBox(height: 8),
-                    SelectableRow(
-                      label: _skinTypeLabel(row.skinType),
-                      value: '${row.compatibilityScore}',
-                      selected: row.skinType == _selectedSkinType,
-                      onTap: () => _pickSkinType(
-                          sheetContext, setSheetState, row.skinType),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _pickSkinType(
-      BuildContext sheetContext, StateSetter setSheetState, String? skinType) {
-    HapticFeedback.lightImpact();
-    // `all` — строка «для всех типов кожи», то есть сброс выбора.
-    unawaited(AnalyticsService.instance
-        .trackProductSkin(skinName: skinType ?? 'all'));
-    setState(() {
-      _userTouchedMatrix = true;
-      _selectedSkinType = skinType;
-    });
-    setSheetState(() {});
-    // Лист закрывается сам: смотреть в нём после выбора не на что, а кольцо
-    // за ним как раз переезжает на новое значение.
-    Navigator.of(sheetContext).pop();
-  }
-
-  // ── Pregnancy safety ──────────────────────────────────────────────────────
-
-  List<Map<String, dynamic>> get _pregFlags {
-    final raw = widget.image.saPregnancyFlags;
-    if (raw is List) {
-      return raw
-          .whereType<Map>()
-          .map((e) => Map<String, dynamic>.from(e))
-          .toList();
-    }
-    return const [];
-  }
-
-  String _pregClassLabel(String cls) {
-    const keys = {
-      'retinoid': 'preg_class_retinoid',
-      'hydroquinone': 'preg_class_hydroquinone',
-      'arbutin': 'preg_class_arbutin',
-      'bha': 'preg_class_bha',
-    };
-    final key = keys[cls];
-    return key != null ? _t(key) : cls;
-  }
-
-  /// Product-intrinsic pregnancy verdict (backend knowledge.pregnancy_verdict).
-  /// Only a limited set of contraindicated actives is screened — the always-on
-  /// methodology block (preg_how_body) states that explicitly, so the badge is
-  /// never read as a complete safety guarantee. Hidden until computed (null).
-  Widget _buildPregnancy(FlutterFlowTheme theme) {
-    final safe = widget.image.saPregnancySafe;
-    if (safe == null) return const SizedBox.shrink();
-    final flags = _pregFlags;
-    final ok = safe && flags.isEmpty;
-    // «Можно» показываем только тем, кто спрашивал: в профиле указана
-    // беременность или кормление. Предупреждение — всем, кто открыл карточку:
-    // человек мог не заполнить профиль, а ретиноид от этого никуда не делся.
-    if (ok && !widget.pregnancyRelevant) return const SizedBox.shrink();
-    final accent = ok ? _goodColor : _warnColor;
-
-    return Padding(
-      padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 16, 0),
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: accent.withOpacity(0.08),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: accent.withOpacity(0.30)),
-        ),
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(
-                  ok ? Icons.check_circle_rounded : Icons.warning_amber_rounded,
-                  size: 18,
-                  color: accent,
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    ok ? _t('preg_safe') : _t('preg_caution'),
-                    style: _body(theme, weight: FontWeight.w600),
-                  ),
-                ),
-              ],
-            ),
-            if (flags.isNotEmpty)
-              Padding(
-                padding: const EdgeInsetsDirectional.fromSTEB(28, 6, 0, 0),
-                child: Text(
-                  '${_t('preg_contains')} '
-                  '${flags.map((f) => _pregClassLabel('${f['class']}')).join(', ')}',
-                  style: _small(theme, color: theme.primaryText),
-                ),
-              ),
-            // Методика — под ссылкой, а не абзацем на девять строк. Она
-            // отзывала обратно только что выданный ответ: сначала «можно»,
-            // следом мелким шрифтом «но мы проверяем не всё».
-            Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(28, 8, 0, 0),
-              child: InkWell(
-                onTap: () =>
-                    setState(() => _pregHowExpanded = !_pregHowExpanded),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        _t('preg_how_title'),
-                        style: theme.labelSmall.override(
-                          fontFamily: theme.labelSmallFamily,
-                          color: theme.secondaryText,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.0,
-                          useGoogleFonts: !theme.labelSmallIsCustom,
-                        ),
-                      ),
-                      Icon(
-                        _pregHowExpanded
-                            ? Icons.expand_less
-                            : Icons.expand_more,
-                        size: 16,
-                        color: theme.secondaryText,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            if (_pregHowExpanded)
-              Padding(
-                padding: const EdgeInsetsDirectional.fromSTEB(28, 2, 0, 0),
-                child: Text(
-                  _t('preg_how_body'),
-                  style: theme.bodySmall.override(
-                    fontFamily: theme.bodySmallFamily,
-                    color: theme.secondaryText,
-                    fontSize: 12,
-                    letterSpacing: 0.0,
-                    useGoogleFonts: !theme.bodySmallIsCustom,
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ── Warnings with addressees ──────────────────────────────────────────────
-
-  Widget _buildWarnings(FlutterFlowTheme theme) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 8),
-          child: Text(_t('cardv2_watch_out'), style: _section(theme)),
-        ),
-        ..._visibleWarnings.map((issue) {
-          final addressees = issue.relevantFor.contains('all')
-              ? _t('cardv2_for_all')
-              : issue.relevantFor.map(_skinTypeLabel).join(', ');
-          // Safety warnings are never paywalled: the ingredient name and its
-          // addressees stay visible to everyone. Only the explanatory
-          // description is reserved for Pro.
-          final showDescription =
-              widget.isPro && (issue.description ?? '').isNotEmpty;
-          return Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(16, 4, 16, 4),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(
-                  Icons.warning_amber_rounded,
-                  size: 16,
-                  color: issue.severity == 'high' ? _badColor : _warnColor,
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${issue.ingredientName}'
-                        '${showDescription ? ' — ${issue.description}' : ''}',
-                        style: _body(theme),
-                      ),
-                      Text('${_t('cardv2_matters_for')} $addressees',
-                          style: _small(theme)),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          );
-        }),
-      ],
-    );
-  }
-
-  // ── 6. Следующая баночка ──────────────────────────────────────────────────
+  // ── 4. Дальше ─────────────────────────────────────────────────────────────
 
   Widget _buildNextBottle(FlutterFlowTheme theme) {
     final count = widget.bagCount;
@@ -1461,15 +1308,16 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
     );
   }
 
-  // ── 7. Pro layer: full MEC table, informational issues, confidence ───────
+  // ── 5. Разбор глубже (Pro) ────────────────────────────────────────────────
 
   Widget _buildProLayer(FlutterFlowTheme theme) {
     final conf = _confidence;
+    final range = _compositeRange;
     final mecRows = widget.topIngredients
         .where((i) => i.status != null || i.mec != null)
         .toList();
-    // Issues with no addressees are informational (not skin-type warnings) —
-    // surfaced here in the pro layer rather than in the warnings block.
+    // Замечания без адресата — информационные (эко, регуляторика), не
+    // предупреждения о коже: им место здесь.
     final infoIssues =
         widget.ingredientIssues.where((i) => i.relevantFor.isEmpty).toList();
 
@@ -1493,7 +1341,6 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
           ),
         ),
         if (_proExpanded) ...[
-          // Evidence vs MEC
           if (mecRows.isNotEmpty) ...[
             Padding(
               padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 4),
@@ -1526,8 +1373,6 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
               );
             }),
           ],
-          // Informational issues (no addressees) — same look as warnings but
-          // with an info icon instead of the warning triangle.
           if (infoIssues.isNotEmpty) ...[
             Padding(
               padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 4),
@@ -1548,7 +1393,7 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
                     Expanded(
                       child: Text(
                         '${issue.ingredientName}'
-                        '${(issue.description ?? '').isNotEmpty ? ' — ${issue.description}' : ''}',
+                        '${(issue.description ?? '').isNotEmpty ? ': ${issue.description}' : ''}',
                         style: _body(theme),
                       ),
                     ),
@@ -1557,7 +1402,7 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
               );
             }),
           ],
-          // Honest confidence, in full (the short form sits above the verdict).
+          // Уверенность целиком (короткая форма стоит в «Цифрах»).
           if (conf.isNotEmpty)
             Padding(
               padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 0),
@@ -1576,13 +1421,8 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
                       '${_t('cardv2_conf_${conf['level'] ?? 'medium'}')}',
                       style: _body(theme, size: 13, weight: FontWeight.w600),
                     ),
-                    if (conf['composite_range'] is List &&
-                        (conf['composite_range'] as List).length == 2)
-                      Text(
-                        '${(conf['composite_range'] as List)[0]} – '
-                        '${(conf['composite_range'] as List)[1]}',
-                        style: _small(theme),
-                      ),
+                    if (range != null)
+                      Text('${range[0]}–${range[1]}', style: _small(theme)),
                     if (conf['reasons'] is List)
                       ...((conf['reasons'] as List)
                           .map((r) => Text('· $r', style: _small(theme)))),
@@ -1590,8 +1430,7 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
                 ),
               ),
             ),
-          // Блоки экрана, которым место в подробностях: состав с подсветкой,
-          // экспертный текст, «как использовать». Их читают единицы, а в
+          // Экспертный текст и «как использовать»: их читают единицы, а в
           // основном потоке они занимали больше тысячи пикселей.
           ...widget.deepExtras,
         ],
@@ -1629,21 +1468,4 @@ class _PromiseRow {
   final String claimKey;
   final String verdict;
   final List<_Evidence> evidence;
-}
-
-/// Строка списка «чего ожидать».
-class _Expectation {
-  const _Expectation({
-    required this.key,
-    required this.title,
-    required this.good,
-    required this.lines,
-  });
-
-  final String key;
-  final String title;
-
-  /// Зелёный (позитивный и подкреплённый) или красный (всё остальное).
-  final bool good;
-  final List<String> lines;
 }

@@ -69,6 +69,7 @@ class ShareCardWidget extends StatefulWidget {
     this.keyActivePosition,
     this.keyActiveStatus,
     this.promisedAllWorking = false,
+    this.leadSentence,
   });
 
   final double width;
@@ -101,6 +102,10 @@ class ShareCardWidget extends StatefulWidget {
   final int? keyActivePosition;
   final String? keyActiveStatus;
   final bool promisedAllWorking;
+
+  /// Первое предложение абзаца «что это за продукт на самом деле»: формат и
+  /// механизм. Открывает карточку, когда факта об активе нет.
+  final String? leadSentence;
 
   @override
   State<ShareCardWidget> createState() => _ShareCardWidgetState();
@@ -168,6 +173,7 @@ class _ShareCardWidgetState extends State<ShareCardWidget> {
         keyActivePosition: widget.keyActivePosition,
         keyActiveStatus: widget.keyActiveStatus,
         promisedAllWorking: widget.promisedAllWorking,
+        leadSentence: widget.leadSentence,
       );
 
   @override
@@ -261,6 +267,7 @@ class _Discovery {
     required this.keyActivePosition,
     required this.keyActiveStatus,
     required this.promisedAllWorking,
+    this.leadSentence,
   });
 
   final String lang;
@@ -270,9 +277,10 @@ class _Discovery {
   final int? keyActivePosition;
   final String? keyActiveStatus;
   final bool promisedAllWorking;
+  final String? leadSentence;
 
-  /// Заголовок-факт. Пусто, если сказать нечего — тогда карточка начинается
-  /// с правила.
+  /// Заголовок-факт: позиция ключевого актива, иначе первое предложение
+  /// абзаца. Пусто, если сказать нечего, тогда карточка начинается с правила.
   String get headline {
     if (promisedAllWorking) return _t('discovery_ok', lang);
     final name = keyActiveName;
@@ -283,7 +291,7 @@ class _Discovery {
           .replaceAll('{pos}', '$pos')
           .replaceAll('{total}', '${inciList.length}');
     }
-    return '';
+    return leadSentence ?? '';
   }
 
   Color get accent =>
@@ -503,13 +511,26 @@ Widget _rightPanel({
               ),
             ),
             const SizedBox(width: 8),
-            Text(
-              '${score.toStringAsFixed(0)}/100',
-              style: TextStyle(
-                color: sColor,
-                fontSize: scoreFontSize,
-                fontWeight: FontWeight.w700,
-              ),
+            // Число только с подписью: голый скор читался как приговор.
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${score.toStringAsFixed(0)}/100',
+                  style: TextStyle(
+                    color: sColor,
+                    fontSize: scoreFontSize,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                Text(
+                  _t('score_label', lang),
+                  style: TextStyle(
+                    color: Colors.black.withOpacity(0.45),
+                    fontSize: brandFontSize - 1,
+                  ),
+                ),
+              ],
             ),
           ],
         ),

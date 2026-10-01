@@ -244,6 +244,8 @@ class _ShareproductWidgetState extends State<ShareproductWidget> {
                             keyActiveStatus: keyActive?.status,
                             promisedAllWorking: withStatus.isNotEmpty &&
                                 withStatus.every((r) => r.status == 'working'),
+                            leadSentence: containerImagesRow
+                                ?.plainVerdictGeneral.firstOrNull,
                           ),
                         ),
                         ),

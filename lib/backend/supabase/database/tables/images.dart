@@ -174,6 +174,34 @@ class ImagesRow extends SupabaseDataRow {
   set saInciList(List<String>? value) =>
       setListField<String>('sa_inci_list', value);
 
+  /// Абзац «что это за продукт на самом деле»: {general: [до четырёх
+  /// предложений], by_skin_type: {dry, oily, …: четвёртое предложение для этой
+  /// кожи}}. Пусто у разборов до октября 2026.
+  dynamic get saPlainVerdict => getField<dynamic>('sa_plain_verdict');
+  set saPlainVerdict(dynamic value) =>
+      setField<dynamic>('sa_plain_verdict', value);
+
+  /// Общие предложения абзаца в порядке чтения.
+  List<String> get plainVerdictGeneral {
+    final raw = saPlainVerdict;
+    final general = raw is Map ? raw['general'] : null;
+    if (general is! List) return const [];
+    return general
+        .whereType<String>()
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
+  }
+
+  /// Четвёртое предложение абзаца, написанное для этого типа кожи.
+  String? plainVerdictFor(String skinType) {
+    final raw = saPlainVerdict;
+    final byType = raw is Map ? raw['by_skin_type'] : null;
+    final text = byType is Map ? byType[skinType] : null;
+    if (text is! String || text.trim().isEmpty) return null;
+    return text.trim();
+  }
+
   String? get productCategory => getField<String>('product_category');
   set productCategory(String? value) =>
       setField<String>('product_category', value);

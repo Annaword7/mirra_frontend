@@ -17,7 +17,6 @@ import '/design_system/components/screen_loader.dart';
 import '/design_system/components/constrained_content.dart';
 import '/item_card/deleteitem/deleteitem_widget.dart';
 import '/components/product_card_v2/product_card_v2_widget.dart';
-import '/components/profile_summary_card.dart';
 import '/components/score_breakdown/score_breakdown_widget.dart';
 import '/item_card/markasspam/markasspam_widget.dart';
 import '/topratings/copyitem/copyitem_widget.dart';
@@ -95,7 +94,8 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
           _model.userSkinType = u?.skinType;
           _model.userIsSensitive =
               (u?.skinSensitivity ?? false) || u?.skinType == 'sensitive';
-          _model.userIsAcneProne = u?.skinType == 'acne_prone' ||
+          _model.userIsAcneProne = (u?.acneProne ?? false) ||
+              u?.skinType == 'acne_prone' ||
               (u?.skinGoals.contains('acne') ?? false);
         } catch (_) {
           // Columns may not exist before the v2 migration — cold start.
@@ -372,6 +372,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
     final theme = FlutterFlowTheme.of(context);
     final row = _model.imageraw?.firstOrNull;
     final photos = _productPhotos();
+    final subtitle = row?.plainVerdictGeneral.firstOrNull;
     // Кнопка «назад» плавает поверх шапки (extendBodyBehindAppBar), под неё
     // оставлен верхний отступ.
     final topInset = MediaQuery.paddingOf(context).top;
@@ -419,6 +420,17 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
                       style: white(22.0, weight: FontWeight.w700)
                           .copyWith(height: 1.2),
                     ),
+                    // Подзаголовок без оценки: первое предложение абзаца
+                    // ответа, формат и механизм. У старых разборов его нет.
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 6.0),
+                      Text(
+                        subtitle,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: white(14.0).copyWith(height: 1.3),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -477,145 +489,30 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
     );
   }
 
-  /// SPF: тип фильтров, широкий спектр, список. Живёт в блоке «кому
-  /// подходит» внутри карточки — это тоже «для кого».
-  Widget _buildSpf(BuildContext context) {
-    return Builder(builder: (context) {
-      final raw = _model.imageraw?.firstOrNull;
-      if (raw == null || !raw.saHasSpf) {
-        return const SizedBox.shrink();
-      }
-      final log = raw.saScoringLog;
-      final spfInfo =
-          (log is Map) ? log['spf_info'] as Map? : null;
-      final filterType =
-          spfInfo?['filter_type'] as String? ?? '';
-      final broadSpectrum =
-          spfInfo?['broad_spectrum'] == true;
-      final filters = (spfInfo?['filters'] as List?)
-              ?.map((f) => f['name'] as String? ?? '')
-              .where((n) => n.isNotEmpty)
-              .toList() ??
-          [];
-
-      String filterTypeLabel() {
-        final loc = FFLocalizations.of(context);
-        if (filterType == 'mineral')
-          return loc.getText('ic2_filter_mineral');
-        if (filterType == 'chemical')
-          return loc.getText('ic2_filter_chemical');
-        return loc.getText('ic2_filter_combined');
-      }
-
-      return Padding(
-        padding: const EdgeInsetsDirectional.fromSTEB(
-            16.0, 16.0, 16.0, 0.0),
-        child: Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFFE8F4FD),
-            borderRadius: BorderRadius.circular(20.0),
-            boxShadow: const [
-              BoxShadow(
-                blurRadius: 8.0,
-                color: Color(0x1A000000),
-                offset: Offset(0.0, 2.0),
-              ),
-            ],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: 16.0, vertical: 16.0),
-            child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
-              children: [
-                // Header row: badge + title
-                Row(
-                  children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1565C0),
-                        borderRadius:
-                            BorderRadius.circular(8),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 5),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.wb_sunny_rounded,
-                              size: 14,
-                              color: Colors.white),
-                          SizedBox(width: 5),
-                          Text(
-                            'SPF',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      FFLocalizations.of(context)
-                          .getText('ic2_uv_protection'),
-                      style: FlutterFlowTheme.of(context)
-                          .bodyMedium
-                          .override(
-                            fontFamily:
-                                FlutterFlowTheme.of(
-                                        context)
-                                    .bodyMediumFamily,
-                            fontSize: 16.0,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.0,
-                            useGoogleFonts:
-                                !FlutterFlowTheme.of(
-                                        context)
-                                    .bodyMediumIsCustom,
-                          ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                // Legend rows
-                _SpfLegendRow(
-                  icon: Icons.science_rounded,
-                  label: FFLocalizations.of(context)
-                      .getText('ic2_filter_type'),
-                  value: filterTypeLabel(),
-                ),
-                const SizedBox(height: 6),
-                _SpfLegendRow(
-                  icon: broadSpectrum
-                      ? Icons.check_circle_rounded
-                      : Icons.radio_button_unchecked,
-                  iconColor: broadSpectrum
-                      ? const Color(0xFF2E7D32)
-                      : null,
-                  label: FFLocalizations.of(context)
-                      .getText('ic2_broad_spectrum'),
-                  value: '',
-                ),
-                if (filters.isNotEmpty) ...[
-                  const SizedBox(height: 6),
-                  _SpfLegendRow(
-                    icon: Icons.list_rounded,
-                    label: FFLocalizations.of(context)
-                        .getText('ic2_filters'),
-                    value: filters.join(', '),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
-      );
-    });
+  /// SPF одной строкой под ответом: тип фильтров, широкий спектр, список.
+  String? _spfLine(BuildContext context) {
+    final raw = _model.imageraw?.firstOrNull;
+    if (raw == null || !raw.saHasSpf) return null;
+    final log = raw.saScoringLog;
+    final spfInfo = (log is Map) ? log['spf_info'] as Map? : null;
+    final filterType = spfInfo?['filter_type'] as String? ?? '';
+    final broadSpectrum = spfInfo?['broad_spectrum'] == true;
+    final filters = (spfInfo?['filters'] as List?)
+            ?.map((f) => f['name'] as String? ?? '')
+            .where((n) => n.isNotEmpty)
+            .toList() ??
+        [];
+    final loc = FFLocalizations.of(context);
+    final typeLabel = filterType == 'mineral'
+        ? loc.getText('ic2_filter_mineral')
+        : filterType == 'chemical'
+            ? loc.getText('ic2_filter_chemical')
+            : loc.getText('ic2_filter_combined');
+    return [
+      'SPF · $typeLabel',
+      if (broadSpectrum) loc.getText('ic2_broad_spectrum'),
+      if (filters.isNotEmpty) filters.join(', '),
+    ].join(' · ');
   }
 
   /// «Как использовать» — сказанный вывод, ему место в «Разборе глубже»,
@@ -1212,43 +1109,16 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
                               userSkinType: _model.userSkinType,
                               userIsSensitive: _model.userIsSensitive,
                               userIsAcneProne: _model.userIsAcneProne,
+                              userSkinGoals:
+                                  _model.profileRow?.skinGoals ?? const [],
                               isPro: true,
                               pregnancyRelevant:
                                   _model.profileRow?.pregnancyStatus ==
                                       ClientCardService.pregnantOrNursing,
-                              // Профиль не заполнен — вердикт посчитан по всем
-                              // типам кожи. Предлагаем это исправить сразу под
-                              // ним, а не до него: сначала ответ, потом анкета.
-                              profileCta: (_model.userSkinType ?? '').isEmpty
-                                  ? Padding(
-                                      padding:
-                                          const EdgeInsetsDirectional.fromSTEB(
-                                              16, 12, 16, 0),
-                                      child: ProfileSummaryCard(
-                                        profileRow: _model.profileRow,
-                                        // Вместе с imageid: по одному имени
-                                        // маршрута анкета вернула бы на
-                                        // карточку без товара.
-                                        returnTo: widget.imageid == null
-                                            ? null
-                                            : context.namedLocation(
-                                                Itemcard2Widget.routeName,
-                                                queryParameters: {
-                                                  'imageid': serializeParam(
-                                                      widget.imageid,
-                                                      ParamType.int)!,
-                                                },
-                                              ),
-                                      ),
-                                    )
-                                  : null,
-                              // SPF — в блок «кому подходит» внутри карточки.
-                              spfBlock: (_model.imageraw?.firstOrNull?.saHasSpf ??
-                                      false)
-                                  ? _buildSpf(context)
-                                  : null,
-                              // Состав, экспертный текст и «как использовать» —
-                              // под «разбор глубже»: их читают единицы, а в
+                              // SPF одной строкой под ответом.
+                              spfLine: _spfLine(context),
+                              // Экспертный текст и «как использовать» — под
+                              // «разбор глубже»: их читают единицы, а в
                               // основном потоке это сказанные выводы.
                               deepExtras: [
                                 _buildExpertAnalysis(context),
@@ -1880,50 +1750,6 @@ class _FlaskPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_FlaskPainter old) => old.t != t;
-}
-
-class _SpfLegendRow extends StatelessWidget {
-  const _SpfLegendRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-    this.iconColor,
-  });
-
-  final IconData icon;
-  final String label;
-  final String value;
-  final Color? iconColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon,
-            size: 16,
-            color: iconColor ?? FlutterFlowTheme.of(context).secondaryText),
-        const SizedBox(width: 8),
-        Expanded(
-          child: RichText(
-            text: TextSpan(
-              style: FlutterFlowTheme.of(context).bodySmall.copyWith(
-                    fontSize: 13,
-                    color: FlutterFlowTheme.of(context).primaryText,
-                  ),
-              children: [
-                TextSpan(
-                  text: '$label',
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
-                if (value.isNotEmpty) TextSpan(text: ':  $value'),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 }
 
 /// Full-bleed фото продукта: одно фото, слайдер (если фото больше одного) или

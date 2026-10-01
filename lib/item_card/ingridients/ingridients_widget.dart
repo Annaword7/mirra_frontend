@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
@@ -10,22 +8,29 @@ import '/flutter_flow/flutter_flow_util.dart';
 
 /// Состав продукта как один информативный список.
 ///
-/// Тот же поток «Aqua, Glycerin, …» с подсветкой, что и раньше, но:
-///  - каждый ингредиент нажимается — под блоком раскрывается подсказка, что это
-///    (описание из разбора, из замечаний или из справочника ингредиентов);
-///  - активы, стоящие за обещанием с упаковки, помечены «✦», и первый из них
-///    раскрыт по умолчанию — с него начинается чтение;
-///  - в списке проведена линия 1 %: дальше вклад утилитарный, не уходовый;
-///  - ингредиенты, которые процитировал ответ «спросить карточку», подсвечены.
+/// Тот же поток «Aqua, Glycerin, …» с подсветкой, что и раньше, но каждый
+/// факт о компоненте живёт в его строке, а не в отдельном блоке:
+///  - зелёный фон: актив в рабочей дозе; серый: актив ниже рабочей дозы или
+///    без данных о пороге; красный: компонент с замечанием;
+///  - «✦» перед названием: компонент стоит за обещанием с упаковки;
+///  - тап по ингредиенту раскрывает подсказку под списком: позиция, выше или
+///    ниже линии, оценка дозы против порога, статус словами, описание;
+///  - линия 1 % проведена прямо в списке и подписана по тому, как найдена:
+///    по маркеру («таких не бывает больше 1 %») или по концу базы формулы;
+///  - ингредиенты, которые процитировал ответ «спросить о продукте»,
+///    подчёркнуты.
 ///
-/// Правило «порядок = количество» не объясняется словами: линия и позиция в
-/// подсказке показывают его на своём продукте.
+/// Иконок статуса нет: цвет и слова в подсказке говорят то же самое, а знак
+/// «?» в кружке читался как загадка. Правило «порядок = количество» не
+/// объясняется словами: линия и позиция в подсказке показывают его на своём
+/// продукте.
 class IngridientsWidget extends StatefulWidget {
   const IngridientsWidget({
     super.key,
     required this.inci,
     this.linePos,
     this.lineMarker,
+    this.lineBasis,
     this.topIngredients = const [],
     this.issues = const [],
     this.promised = const {},
@@ -37,13 +42,17 @@ class IngridientsWidget extends StatefulWidget {
   final List<String> inci;
   final int? linePos;
   final String? lineMarker;
+
+  /// Как найдена линия: 'marker' (консервант, загуститель) или 'structure'
+  /// (конец базы формулы). null у старых разборов, там линия всегда по маркеру.
+  final String? lineBasis;
   final List<ImageTopIngredientsRow> topIngredients;
   final List<ImageIngredientIssuesRow> issues;
 
   /// Имя актива (в нижнем регистре) → подпись обещания, за которым он стоит.
   final Map<String, String> promised;
 
-  /// Имена, процитированные в ответе «спросить карточку».
+  /// Имена, процитированные в ответе «спросить о продукте».
   final Set<String> citedNames;
 
   /// Ингредиент, раскрытый при первом показе (обычно первый обещанный).
@@ -79,8 +88,8 @@ class _IngridientsWidgetState extends State<IngridientsWidget> {
   @override
   void didUpdateWidget(covariant IngridientsWidget old) {
     super.didUpdateWidget(old);
-    // Ответ «спросить карточку» назвал ингредиенты — открываем первый из них:
-    // так ответ и список читаются вместе.
+    // Ответ «спросить о продукте» назвал ингредиенты — открываем первый из
+    // них: так ответ и список читаются вместе.
     if (widget.citedNames != old.citedNames && widget.citedNames.isNotEmpty) {
       for (final name in widget.citedNames) {
         final i = _indexOf(name);
@@ -153,6 +162,33 @@ class _IngridientsWidgetState extends State<IngridientsWidget> {
 
   bool _belowLine(int index) =>
       widget.linePos != null && index + 1 >= widget.linePos!;
+
+  /// Зелёный только у актива в рабочей (или пограничной) дозе. Без статуса
+  /// порог неизвестен, и обещать дозу нечем: серый.
+  static bool _inDose(ImageTopIngredientsRow active) =>
+      active.status == 'working' || active.status == 'borderline';
+
+  /// Замечание → ощущение на коже. Спирты и жёсткие ПАВ адресованы сухой
+  /// коже, это сухость; эфирные масла адресованы чувствительной, это
+  /// раздражение. Замечания без адресата (эко, регуляторика) не про кожу.
+  static String? _effectKey(ImageIngredientIssuesRow issue) {
+    switch (issue.issueType) {
+      case 'comedogenic':
+        return 'cardv2_effect_breakouts';
+      case 'irritant':
+        return issue.relevantFor.contains('dry')
+            ? 'cardv2_effect_dryness'
+            : 'cardv2_effect_irritation';
+      case 'fragrance':
+      case 'allergen':
+      case 'formaldehyde_releaser':
+        return 'cardv2_effect_irritation';
+      case 'controversial':
+        return 'cardv2_effect_controversial';
+      default:
+        return null;
+    }
+  }
 
   void _select(int index) {
     setState(() => _selectedIndex = _selectedIndex == index ? null : index);
@@ -262,6 +298,7 @@ class _IngridientsWidgetState extends State<IngridientsWidget> {
             Text(_t('cardv2_rule_no_line'), style: _small(theme)),
           ],
           const SizedBox(height: 12),
+          // Легенда одна на всю карточку, здесь, под списком.
           Wrap(
             spacing: 12,
             runSpacing: 6,
@@ -271,6 +308,10 @@ class _IngridientsWidgetState extends State<IngridientsWidget> {
                   color: _greenBg,
                   textColor: _greenText,
                   label: _t('inci_legend_active')),
+              _LegendDot(
+                  color: _greyBg,
+                  textColor: kStatusDecorative,
+                  label: _t('inci_legend_below')),
               _LegendDot(
                   color: _redBg,
                   textColor: _redText,
@@ -319,9 +360,9 @@ class _IngridientsWidgetState extends State<IngridientsWidget> {
         fg = _redText;
         weight = FontWeight.w700;
       } else if (active != null) {
-        final decorative = active.status == 'decorative';
-        bg = decorative ? _greyBg : _greenBg;
-        fg = decorative ? kStatusDecorative : _greenText;
+        final inDose = _inDose(active);
+        bg = inDose ? _greenBg : _greyBg;
+        fg = inDose ? _greenText : kStatusDecorative;
         weight = FontWeight.w700;
       }
       if (cited) fg = _cited;
@@ -348,11 +389,15 @@ class _IngridientsWidgetState extends State<IngridientsWidget> {
     return spans;
   }
 
+  /// Линия 1 % с подписью, откуда она взялась. По маркеру: консерванта или
+  /// загустителя не бывает больше 1 %. По структуре: здесь кончается база
+  /// формулы, и у старых разборов без признака линия всегда по маркеру.
   Widget _lineDivider(FlutterFlowTheme theme) {
-    final marker = widget.lineMarker;
-    final label = marker != null && marker.isNotEmpty
-        ? '${_t('cardv2_one_percent_line')} · $marker'
-        : _t('cardv2_one_percent_line');
+    final marker = (widget.lineMarker ?? '').trim();
+    final byStructure = widget.lineBasis == 'structure' || marker.isEmpty;
+    final caption = byStructure
+        ? _t('inci_line_structure_caption')
+        : _t('inci_line_marker_caption').replaceAll('{marker}', marker);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -362,7 +407,7 @@ class _IngridientsWidgetState extends State<IngridientsWidget> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child: Text(
-                label,
+                _t('cardv2_one_percent_line'),
                 style: _small(theme, color: theme.primaryText)
                     .copyWith(fontWeight: FontWeight.w600),
               ),
@@ -371,7 +416,7 @@ class _IngridientsWidgetState extends State<IngridientsWidget> {
           ],
         ),
         const SizedBox(height: 4),
-        Text(_t('inci_line_caption'), style: _small(theme)),
+        Text(caption, style: _small(theme)),
       ],
     );
   }
@@ -395,8 +440,10 @@ class _IngridientsWidgetState extends State<IngridientsWidget> {
       if (active?.estimatedConcentration?.isNotEmpty == true &&
           active!.status != 'decorative')
         '~${active.estimatedConcentration}',
-      if (active?.mec != null)
-        _t('cardv2_dose_needed').replaceAll('{mec}', '${active!.mec}'),
+      if (active != null)
+        active.mec != null
+            ? _t('cardv2_dose_needed').replaceAll('{mec}', '${active.mec}')
+            : _t('inci_threshold_unknown'),
       if (active?.status != null) _t('cardv2_status_${active!.status}'),
     ];
 
@@ -416,8 +463,19 @@ class _IngridientsWidgetState extends State<IngridientsWidget> {
     final accent = issue != null
         ? _redText
         : active != null
-            ? statusColor(active.status)
+            ? (_inDose(active) ? _greenText : kStatusDecorative)
             : theme.secondaryText;
+
+    final effectKey = issue == null ? null : _effectKey(issue);
+    final addressees = issue == null || issue.relevantFor.isEmpty
+        ? null
+        : issue.relevantFor.contains('all')
+            ? _t('cardv2_for_all')
+            : issue.relevantFor.map(_skinLabel).join(', ');
+    final issueLine = [
+      if (effectKey != null) _t(effectKey),
+      if (addressees != null) '${_t('cardv2_matters_for')} $addressees',
+    ].join(' · ');
 
     return Padding(
       padding: const EdgeInsets.only(top: 10),
@@ -435,17 +493,6 @@ class _IngridientsWidgetState extends State<IngridientsWidget> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (active != null || issue != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 2, right: 6),
-                    child: Icon(
-                      issue != null
-                          ? Icons.warning_amber_rounded
-                          : statusIcon(active!.status),
-                      size: 16,
-                      color: accent,
-                    ),
-                  ),
                 Expanded(
                   child: Text(
                     token,
@@ -483,14 +530,10 @@ class _IngridientsWidgetState extends State<IngridientsWidget> {
                 padding: const EdgeInsets.only(top: 4),
                 child: Text(_t('cardv2_decorative_note'), style: _small(theme)),
               ),
-            if (issue != null && issue.relevantFor.isNotEmpty)
+            if (issueLine.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 4),
-                child: Text(
-                  '${_t('cardv2_matters_for')} '
-                  '${issue.relevantFor.contains('all') ? _t('cardv2_for_all') : issue.relevantFor.map(_skinLabel).join(', ')}',
-                  style: _small(theme, color: _redText),
-                ),
+                child: Text(issueLine, style: _small(theme, color: _redText)),
               ),
             const SizedBox(height: 6),
             if (loading)
