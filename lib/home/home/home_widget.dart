@@ -32,10 +32,10 @@ export 'home_model.dart';
 // Maps chip key → product_type values it covers (including legacy backend values).
 const Map<String, List<String>> _kHomeCategoryTypes = {
   'serum': ['serum'],
-  'toner': ['toner'],
-  'moisturizer': ['moisturizer', 'treatment'],
-  'mask': ['mask'],
-  'cleanser': ['cleanser', 'exfoliant'],
+  'toner': ['toner', 'pads', 'mist'],
+  'moisturizer': ['moisturizer', 'treatment', 'spot_treatment', 'oil'],
+  'mask': ['mask', 'sleeping_mask'],
+  'cleanser': ['cleanser', 'exfoliant', 'makeup_remover'],
   'sunscreen': ['sunscreen'],
   'eye_cream': ['eye_cream', 'eye_care'],
   'lip_balm': ['balm', 'lip_balm'],

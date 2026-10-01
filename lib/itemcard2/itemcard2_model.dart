@@ -15,12 +15,6 @@ class Itemcard2Model extends FlutterFlowModel<Itemcard2Widget> {
 
   // Stores action output result for [Backend Call - Query Rows] action in itemcard2 widget.
   List<ImagesRow>? imageraw;
-  // Stores action output result for [Backend Call - Query Rows] action in itemcard2 widget.
-  List<ImageSkinCompatibilityRow>? skinCompabilityRaw;
-  // Stores action output result for [Backend Call - Query Rows] action in itemcard2 widget.
-  List<ImageTopIngredientsRow>? topIngredientsRaw;
-  // Stores action output result for [Backend Call - Query Rows] action in itemcard2 widget.
-  List<ImageIngredientIssuesRow>? ingredientIssuesRaw;
   // Stores action output result for [Backend Call - Query Rows] action in Row widget.
   List<AlbumRow>? albums;
   // Skin type from the user's onboarding profile (null = cold start).

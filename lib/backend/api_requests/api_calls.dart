@@ -393,11 +393,15 @@ class ScientificanalysisNEWBCNDCall {
   }) async {
     host ??= FFDevEnvironmentValues().backendhost;
 
+    // card_version=3: бэкенд собирает карточку sa_card одним текстовым
+    // вызовом вместо шести текстов старого разбора; для уже разобранного
+    // скана без карточки достраивает её.
     final ffApiRequestBody = '''
 {
   "image_id": "${escapeStringForJson(imageId)}",
   "user_id": "${escapeStringForJson(userId)}",
-  "language_code": "${escapeStringForJson(languageCode)}"
+  "language_code": "${escapeStringForJson(languageCode)}",
+  "card_version": 3
 }''';
     return ApiManager.instance
         .makeApiCall(
@@ -563,64 +567,6 @@ class FeedbackNEWBCNDCall {
   static List<String>? avoidif(dynamic response) => (getJsonField(
         response,
         r'''$.analysis.avoid_if''',
-        true,
-      ) as List?)
-          ?.withoutNulls
-          .map((x) => castToType<String>(x))
-          .withoutNulls
-          .toList();
-}
-
-/// «Спросить карточку»: вопрос о продукте, ответ только из сохранённого разбора.
-class ProductAskCall {
-  static Future<ApiCallResponse> call({
-    String? host,
-    required int imageId,
-    required String question,
-    String? lang,
-    String? skinType,
-    String? token,
-  }) async {
-    host ??= FFDevEnvironmentValues().backendhost;
-
-    final ffApiRequestBody = '''
-{
-  "question": "${escapeStringForJson(question)}",
-  "lang": "${escapeStringForJson(lang ?? '')}",
-  "skin_type": "${escapeStringForJson(skinType ?? '')}"
-}''';
-    return ApiManager.instance
-        .makeApiCall(
-          callName: 'product ask',
-          apiUrl: '${host}api/mirra/product/$imageId/ask',
-          callType: ApiCallType.POST,
-          headers: {
-            'Authorization': 'Bearer ${token}',
-            'Content-Type': 'application/json',
-          },
-          params: {},
-          body: ffApiRequestBody,
-          bodyType: BodyType.JSON,
-          returnBody: true,
-          encodeBodyUtf8: false,
-          decodeUtf8: false,
-          cache: false,
-          isStreamingApi: false,
-          alwaysAllowBody: false,
-        )
-        .timeout(
-          const Duration(seconds: 45),
-          onTimeout: () => ApiCallResponse(null, const <String, String>{}, -1),
-        );
-  }
-
-  static String? answer(dynamic response) => castToType<String>(getJsonField(
-        response,
-        r'''$.answer''',
-      ));
-  static List<String>? cited(dynamic response) => (getJsonField(
-        response,
-        r'''$.cited''',
         true,
       ) as List?)
           ?.withoutNulls
@@ -1098,10 +1044,13 @@ class ResearchAndAnalyzeCall {
   }) async {
     host ??= FFDevEnvironmentValues().backendhost;
 
+    // card_version=3: фоновый разбор тоже собирает карточку sa_card, иначе
+    // после ожидания скан придёт без неё и карточка попросит её ещё раз.
     final ffApiRequestBody = '''
 {
   "image_id": ${imageId},
-  "language_code": "${escapeStringForJson(languageCode)}"
+  "language_code": "${escapeStringForJson(languageCode)}",
+  "card_version": 3
 }''';
     return ApiManager.instance
         .makeApiCall(

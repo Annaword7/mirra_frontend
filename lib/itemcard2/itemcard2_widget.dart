@@ -3,7 +3,6 @@ import 'dart:math' show sin, pi;
 import '/auth/supabase_auth/auth_util.dart';
 import '/components/feedback_collector/feedback_collector_widget.dart';
 import '/components/feedback_collector/feedback_service.dart';
-import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import '/flutter_flow/analytics_service.dart';
 import '/backend/api_requests/api_calls.dart';
 import '/backend/supabase/supabase.dart';
@@ -16,9 +15,10 @@ import '/design_system/components/app_button.dart';
 import '/design_system/components/screen_loader.dart';
 import '/design_system/components/constrained_content.dart';
 import '/item_card/deleteitem/deleteitem_widget.dart';
-import '/components/product_card_v2/product_card_v2_widget.dart';
-import '/components/profile_summary_card.dart';
-import '/components/score_breakdown/score_breakdown_widget.dart';
+import '/components/product_card_v3/card_data.dart';
+import '/components/product_card_v3/card_tokens.dart';
+import '/components/product_card_v3/product_card_v3_widget.dart';
+import '/design_system/components/mirra_bottom_sheet.dart';
 import '/item_card/markasspam/markasspam_widget.dart';
 import '/topratings/copyitem/copyitem_widget.dart';
 import '/topratings/makeprivate/makeprivate_widget.dart';
@@ -28,7 +28,6 @@ import '/paywall/show_paywall.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_blurhash/flutter_blurhash.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:octo_image/octo_image.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -66,9 +65,6 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
   /// чужого продукта всегда false: в набор попадает его копия с другим id, и
   /// связать её с исходной карточкой нельзя.
   bool _inBag = false;
-
-  /// Сколько продуктов уже на полке — подпись под кнопкой «на полку».
-  int? _bagCount;
 
   @override
   void initState() {
@@ -108,18 +104,10 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
       // analysis now — ingredients have likely been researched since the
       // 202 was returned during the original scan.
       if (!mounted) return;
-      if (_model.imageraw?.firstOrNull?.saCompositeScore == null &&
+      if (_needsAnalysis(_model.imageraw?.firstOrNull) &&
           widget.imageid != null) {
-        final retry = await ScientificanalysisNEWBCNDCall.call(
-          imageId: widget.imageid?.toString(),
-          userId: currentUserUid,
-          languageCode: FFLocalizations.of(context).languageCode,
-          token: currentJwtToken,
-        );
-        if ((retry?.succeeded ?? false) && (retry?.statusCode ?? 0) == 200) {
-          await _loadAnalysis();
-          if (mounted) safeSetState(() {});
-        } else {
+        final ready = await _requestAnalysis();
+        if (!ready && mounted) {
           // Analysis still pending (202) — poll Supabase until score appears.
           _startPendingPolling();
         }
@@ -196,15 +184,31 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
     _model.imageraw = await ImagesTable().queryRows(
       queryFn: (q) => q.eqOrNull('id', widget.imageid),
     );
-    _model.skinCompabilityRaw = await ImageSkinCompatibilityTable().queryRows(
-      queryFn: (q) => q.eqOrNull('image_id', widget.imageid),
+  }
+
+  /// Карточке нужны оценка и объект sa_card. Старый разбор без карточки
+  /// досчитывается бэкендом по запросу с card_version=3.
+  bool _needsAnalysis(ImagesRow? row) =>
+      row == null ||
+      row.saCompositeScore == null ||
+      ProductCard.parse(row.saCard) == null;
+
+  /// Просим бэкенд досчитать разбор или только карточку. true, если после
+  /// ответа карточка на месте.
+  Future<bool> _requestAnalysis() async {
+    final retry = await ScientificanalysisNEWBCNDCall.call(
+      imageId: widget.imageid?.toString(),
+      userId: currentUserUid,
+      languageCode: FFLocalizations.of(context).languageCode,
+      token: currentJwtToken,
     );
-    _model.topIngredientsRaw = await ImageTopIngredientsTable().queryRows(
-      queryFn: (q) => q.eqOrNull('image_id', widget.imageid),
-    );
-    _model.ingredientIssuesRaw = await ImageIngredientIssuesTable().queryRows(
-      queryFn: (q) => q.eqOrNull('image_id', widget.imageid),
-    );
+    if (!mounted) return false;
+    if ((retry?.succeeded ?? false) && (retry?.statusCode ?? 0) == 200) {
+      await _loadAnalysis();
+      if (mounted) safeSetState(() {});
+      return !_needsAnalysis(_model.imageraw?.firstOrNull);
+    }
+    return false;
   }
 
   void _startPendingPolling() {
@@ -221,6 +225,9 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
       if ((rows.firstOrNull?.saCompositeScore ?? 0) > 0) {
         _pendingPollingTimer?.cancel();
         await _loadAnalysis();
+        if (!mounted) return;
+        // Фоновый разбор мог пройти без карточки: достраиваем одним вызовом.
+        if (_needsAnalysis(_model.imageraw?.firstOrNull)) await _requestAnalysis();
         if (mounted) safeSetState(() {});
       }
     });
@@ -233,7 +240,6 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
       if (!mounted) return;
       safeSetState(() {
         _inBag = bag.any((i) => i.imageId == widget.imageid);
-        _bagCount = bag.length;
       });
     } catch (e) {
       debugPrint('card: bag state unavailable: $e');
@@ -365,101 +371,6 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
     return out;
   }
 
-  /// Шапка: бренд и название сверху, фото — кружком справа, как аватар в
-  /// профиле. Тап по кружку открывает фото во весь размер (слайдер, если их
-  /// несколько). Обещания упаковки живут не здесь, а в блоке «что обещают».
-  Widget _buildHero(BuildContext context) {
-    final theme = FlutterFlowTheme.of(context);
-    final row = _model.imageraw?.firstOrNull;
-    final photos = _productPhotos();
-    // Кнопка «назад» плавает поверх шапки (extendBodyBehindAppBar), под неё
-    // оставлен верхний отступ.
-    final topInset = MediaQuery.paddingOf(context).top;
-
-    TextStyle white(double size, {FontWeight? weight}) =>
-        theme.bodyMedium.override(
-          fontFamily: theme.bodyMediumFamily,
-          color: theme.alternate,
-          fontSize: size,
-          fontWeight: weight,
-          letterSpacing: 0.0,
-          useGoogleFonts: !theme.bodyMediumIsCustom,
-        );
-
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [theme.primary, const Color(0xFFA7B6CC)],
-          stops: const [0.0, 1.0],
-          begin: const AlignmentDirectional(0.0, -1.0),
-          end: const AlignmentDirectional(0, 1.0),
-        ),
-      ),
-      padding: EdgeInsetsDirectional.fromSTEB(16.0, topInset + 52.0, 16.0, 20.0),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SelectableText(
-                      valueOrDefault<String>(row?.brand, '-'),
-                      style: white(14.0),
-                    ),
-                    const SizedBox(height: 6.0),
-                    SelectableText(
-                      valueOrDefault<String>(row?.productName, '-'),
-                      style: white(22.0, weight: FontWeight.w700)
-                          .copyWith(height: 1.2),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 14.0),
-              GestureDetector(
-                onTap: photos.isEmpty ? null : () => _openPhotos(context, photos),
-                child: Container(
-                  width: 72.0,
-                  height: 72.0,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: const Color(0x40FFFFFF),
-                    border: Border.all(color: const Color(0xCCFFFFFF), width: 2.0),
-                    boxShadow: const [
-                      BoxShadow(
-                        blurRadius: 10.0,
-                        color: Color(0x33000000),
-                        offset: Offset(0.0, 3.0),
-                      ),
-                    ],
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: photos.isEmpty
-                      ? Icon(Icons.spa_rounded,
-                          color: theme.alternate.withOpacity(0.9), size: 30.0)
-                      : Image.network(
-                          photos.first,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Icon(Icons.spa_rounded,
-                              color: theme.alternate.withOpacity(0.9),
-                              size: 30.0),
-                        ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
   Future<void> _openPhotos(BuildContext context, List<String> photos) {
     return showModalBottomSheet<void>(
       context: context,
@@ -477,320 +388,269 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
     );
   }
 
-  /// SPF: тип фильтров, широкий спектр, список. Живёт в блоке «кому
-  /// подходит» внутри карточки — это тоже «для кого».
-  Widget _buildSpf(BuildContext context) {
-    return Builder(builder: (context) {
-      final raw = _model.imageraw?.firstOrNull;
-      if (raw == null || !raw.saHasSpf) {
-        return const SizedBox.shrink();
-      }
-      final log = raw.saScoringLog;
-      final spfInfo =
-          (log is Map) ? log['spf_info'] as Map? : null;
-      final filterType =
-          spfInfo?['filter_type'] as String? ?? '';
-      final broadSpectrum =
-          spfInfo?['broad_spectrum'] == true;
-      final filters = (spfInfo?['filters'] as List?)
-              ?.map((f) => f['name'] as String? ?? '')
-              .where((n) => n.isNotEmpty)
-              .toList() ??
-          [];
+  // ── Меню «⋯» ─────────────────────────────────────────────────────────────
 
-      String filterTypeLabel() {
-        final loc = FFLocalizations.of(context);
-        if (filterType == 'mineral')
-          return loc.getText('ic2_filter_mineral');
-        if (filterType == 'chemical')
-          return loc.getText('ic2_filter_chemical');
-        return loc.getText('ic2_filter_combined');
-      }
+  String _t(String key) => FFLocalizations.of(context).getText(key);
 
-      return Padding(
-        padding: const EdgeInsetsDirectional.fromSTEB(
-            16.0, 16.0, 16.0, 0.0),
-        child: Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFFE8F4FD),
-            borderRadius: BorderRadius.circular(20.0),
-            boxShadow: const [
-              BoxShadow(
-                blurRadius: 8.0,
-                color: Color(0x1A000000),
-                offset: Offset(0.0, 2.0),
-              ),
-            ],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: 16.0, vertical: 16.0),
-            child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
-              children: [
-                // Header row: badge + title
-                Row(
-                  children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1565C0),
-                        borderRadius:
-                            BorderRadius.circular(8),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 5),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.wb_sunny_rounded,
-                              size: 14,
-                              color: Colors.white),
-                          SizedBox(width: 5),
-                          Text(
-                            'SPF',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      FFLocalizations.of(context)
-                          .getText('ic2_uv_protection'),
-                      style: FlutterFlowTheme.of(context)
-                          .bodyMedium
-                          .override(
-                            fontFamily:
-                                FlutterFlowTheme.of(
-                                        context)
-                                    .bodyMediumFamily,
-                            fontSize: 16.0,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.0,
-                            useGoogleFonts:
-                                !FlutterFlowTheme.of(
-                                        context)
-                                    .bodyMediumIsCustom,
-                          ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                // Legend rows
-                _SpfLegendRow(
-                  icon: Icons.science_rounded,
-                  label: FFLocalizations.of(context)
-                      .getText('ic2_filter_type'),
-                  value: filterTypeLabel(),
-                ),
-                const SizedBox(height: 6),
-                _SpfLegendRow(
-                  icon: broadSpectrum
-                      ? Icons.check_circle_rounded
-                      : Icons.radio_button_unchecked,
-                  iconColor: broadSpectrum
-                      ? const Color(0xFF2E7D32)
-                      : null,
-                  label: FFLocalizations.of(context)
-                      .getText('ic2_broad_spectrum'),
-                  value: '',
-                ),
-                if (filters.isNotEmpty) ...[
-                  const SizedBox(height: 6),
-                  _SpfLegendRow(
-                    icon: Icons.list_rounded,
-                    label: FFLocalizations.of(context)
-                        .getText('ic2_filters'),
-                    value: filters.join(', '),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
-      );
-    });
+  Future<void> _shareLink() async {
+    unawaited(AnalyticsService.instance.trackProductSettingShare());
+    unawaited(AnalyticsService.instance
+        .trackShareLinkTapped(imageId: widget.imageid ?? 0));
+    await Future.delayed(const Duration(milliseconds: 300));
+    if (!mounted) return;
+    final size = MediaQuery.of(context).size;
+    await Share.share(
+      'https://mirra.up.railway.app/product/${widget.imageid}',
+      sharePositionOrigin:
+          Rect.fromLTWH(size.width / 2, size.height / 2, 1, 1),
+    );
   }
 
-  /// «Как использовать» — сказанный вывод, ему место в «Разборе глубже»,
-  /// а не раньше собственных выводов читателя.
-  Widget _buildHowTo(BuildContext context) {
-    return Padding(
-      padding: EdgeInsetsDirectional.fromSTEB(
-          16.0, 16.0, 16.0, 0.0),
-      child: Container(
-        decoration: BoxDecoration(
-          color: const Color(0xFFF5F8FF),
-          borderRadius: BorderRadius.circular(24.0),
-          border: Border(
-            left: BorderSide(
-              color: FlutterFlowTheme.of(context).primary,
-              width: 4.0,
+  void _openSocialCard() {
+    unawaited(AnalyticsService.instance.trackProductSettingPrint());
+    context.pushNamed(
+      ShareproductWidget.routeName,
+      queryParameters: {
+        'imageid': serializeParam(widget.imageid, ParamType.int),
+      }.withoutNulls,
+    );
+  }
+
+  Future<void> _toggleFavourite(ImagesRow row) async {
+    final next = !(row.favourite ?? false);
+    await ImagesTable().update(
+      data: {'favourite': next},
+      matchingRows: (rows) => rows.eqOrNull('id', widget.imageid),
+    );
+    unawaited(next
+        ? AnalyticsService.instance.trackFavouriteAdded(imageId: widget.imageid ?? 0)
+        : AnalyticsService.instance.trackFavouriteRemoved(imageId: widget.imageid ?? 0));
+    if (!mounted) return;
+    safeSetState(() {});
+    _toast(_t(next ? 'fab_favourite_added' : 'fab_favourite_removed'));
+  }
+
+  /// Скрытие — отказ от публикации своего скана в общем каталоге, а не
+  /// привилегия: доступно всем владельцам скана, включая гостя.
+  Future<void> _toggleHidden(ImagesRow row) async {
+    final hide = !(row.hided ?? false);
+    unawaited(hide
+        ? AnalyticsService.instance.trackProductHidden()
+        : AnalyticsService.instance.trackProductPublicCatalog());
+    await ImagesTable().update(
+      data: {'hided': hide},
+      matchingRows: (rows) => rows.eqOrNull('id', widget.imageid),
+    );
+    if (!mounted) return;
+    safeSetState(() {});
+    await showModalBottomSheet(
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      enableDrag: false,
+      context: context,
+      builder: (context) => hide
+          ? Padding(
+              padding: MediaQuery.viewInsetsOf(context),
+              child: MakeprivateWidget(imageid: widget.imageid!),
+            )
+          : const MakepublicWidget(),
+    ).then((value) => safeSetState(() {}));
+  }
+
+  Future<void> _reportSpam() async {
+    unawaited(AnalyticsService.instance.trackProductSettingsSpam());
+    final confirmed = await showModalBottomSheet<bool>(
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      enableDrag: false,
+      context: context,
+      builder: (context) => Padding(
+        padding: MediaQuery.viewInsetsOf(context),
+        child: MarkasspamWidget(imageid: widget.imageid!),
+      ),
+    );
+    if (confirmed == true && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(_t('spam_hidden_toast'),
+            style: const TextStyle(color: Colors.white)),
+        backgroundColor: FlutterFlowTheme.of(context).primaryText,
+        duration: const Duration(seconds: 3),
+        behavior: SnackBarBehavior.floating,
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+      ));
+      context.safePop();
+    }
+  }
+
+  Future<void> _copyProduct() async {
+    unawaited(AnalyticsService.instance.trackProductSettingsCopy());
+    if (currentUserUid.isEmpty || currentUserIsAnonymous) {
+      await showModalBottomSheet(
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        enableDrag: true,
+        context: context,
+        builder: (context) => _LoginRequiredSheet(),
+      );
+      return;
+    }
+    if (!mounted) return;
+    await showModalBottomSheet(
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      enableDrag: false,
+      context: context,
+      builder: (context) => Padding(
+        padding: MediaQuery.viewInsetsOf(context),
+        child: CopyitemWidget(imageid: widget.imageid!),
+      ),
+    ).then((value) => safeSetState(() {}));
+  }
+
+  Future<void> _deleteProduct() async {
+    unawaited(AnalyticsService.instance.trackProductDelete());
+    await showModalBottomSheet(
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      enableDrag: false,
+      context: context,
+      builder: (context) => Padding(
+        padding: MediaQuery.viewInsetsOf(context),
+        child: DeleteitemWidget(imageid: widget.imageid!),
+      ),
+    ).then((value) => safeSetState(() {}));
+  }
+
+  /// Действия с карточкой вместо плавающей кнопки: картинка для соцсетей,
+  /// ссылка, затем действия владельца или гостя, удаление отдельно внизу.
+  Future<void> _openMenu(ImagesRow row) async {
+    unawaited(AnalyticsService.instance.trackProductSettings());
+    final theme = FlutterFlowTheme.of(context);
+    final isOwner = row.user == currentUserUid;
+
+    Widget item({
+      required IconData icon,
+      required String title,
+      String? subtitle,
+      Color? iconBg,
+      Color? iconColor,
+      required Future<void> Function() onTap,
+    }) =>
+        Builder(
+          builder: (sheetContext) => InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () {
+              Navigator.of(sheetContext).pop();
+              unawaited(onTap());
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              child: Row(
+                children: [
+                  Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      color: iconBg ?? CardTokens.surfaceMuted,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(icon, size: 18, color: iconColor ?? theme.primaryText),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(title,
+                            style: cardText(theme, size: 15, weight: FontWeight.w500)),
+                        if (subtitle != null)
+                          Text(subtitle,
+                              style: cardText(theme, size: 12, color: theme.secondaryText)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          boxShadow: const [
-            BoxShadow(
-              blurRadius: 8.0,
-              color: Color(0x14000000),
-              offset: Offset(0.0, 2.0),
-            ),
-          ],
-        ),
+        );
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => MirraBottomSheet(
+        surfaceColor: theme.alternate,
+        padding: const EdgeInsets.fromLTRB(14, 8, 14, 24),
         child: Column(
-          mainAxisSize: MainAxisSize.max,
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Padding(
-              padding: EdgeInsetsDirectional.fromSTEB(
-                  12.0, 16.0, 16.0, 16.0),
-              child: Row(
-                mainAxisSize: MainAxisSize.max,
-                children: [
-                  Icon(
-                    Icons.lightbulb_circle,
-                    color: FlutterFlowTheme.of(context)
-                        .primary,
-                    size: 30.0,
-                  ),
-                  Text(
-                    FFLocalizations.of(context).getText(
-                      'sdd57mig' /* How to use */,
-                    ),
-                    style: FlutterFlowTheme.of(context)
-                        .bodyMedium
-                        .override(
-                          fontFamily:
-                              FlutterFlowTheme.of(context)
-                                  .bodyMediumFamily,
-                          fontSize: 18.0,
-                          letterSpacing: 0.0,
-                          fontWeight: FontWeight.w700,
-                          useGoogleFonts:
-                              !FlutterFlowTheme.of(
-                                      context)
-                                  .bodyMediumIsCustom,
-                        ),
-                  ),
-                ].divide(SizedBox(width: 12.0)),
-              ),
+            item(
+              icon: Icons.photo_outlined,
+              iconColor: theme.primaryVariant,
+              title: _t('card_menu_social'),
+              subtitle: _t('card_menu_social_sub'),
+              onTap: () async => _openSocialCard(),
             ),
-            Padding(
-              padding: EdgeInsetsDirectional.fromSTEB(
-                  12.0, 0.0, 16.0, 16.0),
-              child: Text(
-                valueOrDefault<String>(
-                  _model
-                      .imageraw?.firstOrNull?.saHowToUse,
-                  '-',
-                ),
-                style: FlutterFlowTheme.of(context)
-                    .bodyMedium
-                    .override(
-                      fontFamily:
-                          FlutterFlowTheme.of(context)
-                              .bodyMediumFamily,
-                      letterSpacing: 0.0,
-                      useGoogleFonts:
-                          !FlutterFlowTheme.of(context)
-                              .bodyMediumIsCustom,
-                    ),
-              ),
+            item(
+              icon: Icons.ios_share_rounded,
+              title: _t('card_menu_share_link'),
+              onTap: _shareLink,
             ),
+            Divider(height: 9, color: theme.divider, indent: 10, endIndent: 10),
+            if (isOwner) ...[
+              item(
+                icon: (row.favourite ?? false) ? Icons.favorite : Icons.favorite_border,
+                title: _t((row.favourite ?? false)
+                    ? 'fab_remove_favourite'
+                    : 'fab_add_favourite'),
+                onTap: () => _toggleFavourite(row),
+              ),
+              item(
+                icon: (row.hided ?? false)
+                    ? Icons.visibility_outlined
+                    : Icons.visibility_off_outlined,
+                title: _t((row.hided ?? false) ? 'fab_show' : 'fab_hide'),
+                onTap: () => _toggleHidden(row),
+              ),
+            ] else ...[
+              item(
+                icon: Icons.copy_all_outlined,
+                title: _t('fab_copy'),
+                onTap: _copyProduct,
+              ),
+              item(
+                icon: Icons.block,
+                title: _t('fab_spam'),
+                onTap: _reportSpam,
+              ),
+            ],
+            if (isOwner) ...[
+              Divider(height: 9, color: theme.divider, indent: 10, endIndent: 10),
+              item(
+                icon: Icons.delete_outline,
+                iconBg: theme.errorBg,
+                iconColor: theme.error,
+                title: _t('card_menu_delete'),
+                onTap: _deleteProduct,
+              ),
+            ],
           ],
         ),
       ),
     );
   }
 
-  /// Экспертный разбор: 9–20 строк сплошного текста, тоже в подробности.
-  Widget _buildExpertAnalysis(BuildContext context) {
-    return Builder(builder: (context) {
-      final expert = _model.imageraw?.firstOrNull?.saExpertAnalysis;
-      if (expert == null || expert.trim().isEmpty) {
-        return const SizedBox.shrink();
-      }
-      return Padding(
-        padding: EdgeInsetsDirectional.fromSTEB(16.0, 16.0, 16.0, 0.0),
-        child: Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFFF5F8FF),
-            borderRadius: BorderRadius.circular(24.0),
-            border: Border(
-              left: BorderSide(
-                color: FlutterFlowTheme.of(context).primary,
-                width: 4.0,
-              ),
-            ),
-            boxShadow: const [
-              BoxShadow(
-                blurRadius: 8.0,
-                color: Color(0x14000000),
-                offset: Offset(0.0, 2.0),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.max,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(12.0, 16.0, 16.0, 16.0),
-                child: Row(
-                  mainAxisSize: MainAxisSize.max,
-                  children: [
-                    FaIcon(
-                      FontAwesomeIcons.fire,
-                      color: FlutterFlowTheme.of(context).primary,
-                      size: 30.0,
-                    ),
-                    Text(
-                      FFLocalizations.of(context).getText(
-                        'cox122eb' /* Expert Analysis */,
-                      ),
-                      style: FlutterFlowTheme.of(context).bodyMedium.override(
-                            fontFamily:
-                                FlutterFlowTheme.of(context).bodyMediumFamily,
-                            fontSize: 18.0,
-                            letterSpacing: 0.0,
-                            fontWeight: FontWeight.w700,
-                            useGoogleFonts: !FlutterFlowTheme.of(context)
-                                .bodyMediumIsCustom,
-                          ),
-                    ),
-                  ].divide(SizedBox(width: 12.0)),
-                ),
-              ),
-              Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(12.0, 0.0, 16.0, 16.0),
-                child: Text(
-                  expert,
-                  style: FlutterFlowTheme.of(context).bodyMedium.override(
-                        fontFamily:
-                            FlutterFlowTheme.of(context).bodyMediumFamily,
-                        letterSpacing: 0.0,
-                        useGoogleFonts:
-                            !FlutterFlowTheme.of(context).bodyMediumIsCustom,
-                      ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    });
-  }
+  // ── Экран ─────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
     // Подписка на FFAppState без локальной переменной: карточку надо
     // перестраивать после покупки PRO и изменений в косметичке.
     context.watch<FFAppState>();
+    final theme = FlutterFlowTheme.of(context);
 
     return FutureBuilder<List<ImagesRow>>(
       future: ImagesTable().querySingleRow(
@@ -802,62 +662,51 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Scaffold(
-            backgroundColor: FlutterFlowTheme.of(context).alternate,
+            backgroundColor: theme.alternate,
             body: Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.error_outline,
-                      color: FlutterFlowTheme.of(context).error, size: 48),
+                  Icon(Icons.error_outline, color: theme.error, size: 48),
                   const SizedBox(height: 16),
                   TextButton(
                     onPressed: () => safeSetState(() {}),
-                    child:
-                        Text(FFLocalizations.of(context).getText('care_retry')),
+                    child: Text(_t('care_retry')),
                   ),
                 ],
               ),
             ),
           );
         }
-        // Customize what your widget looks like when it's loading.
         if (!snapshot.hasData) {
           return Scaffold(
-            backgroundColor: FlutterFlowTheme.of(context).alternate,
-            body: Center(
-              child: SizedBox(
-                width: 50.0,
-                height: 50.0,
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    FlutterFlowTheme.of(context).primary,
-                  ),
-                ),
-              ),
-            ),
+            backgroundColor: theme.alternate,
+            body: const Center(child: ScreenLoader()),
           );
         }
-        List<ImagesRow> itemcard2ImagesRowList = snapshot.data!;
-
-        final itemcard2ImagesRow = itemcard2ImagesRowList.isNotEmpty
-            ? itemcard2ImagesRowList.first
-            : null;
-
+        final itemcard2ImagesRow = snapshot.data!.firstOrNull;
         if (itemcard2ImagesRow == null) {
           return Scaffold(
-            backgroundColor: FlutterFlowTheme.of(context).alternate,
+            backgroundColor: theme.alternate,
             body: Center(
               child: Padding(
                 padding: const EdgeInsets.all(24.0),
                 child: Text(
-                  FFLocalizations.of(context).getText('item_not_found'),
+                  _t('item_not_found'),
                   textAlign: TextAlign.center,
-                  style: FlutterFlowTheme.of(context).bodyMedium,
+                  style: theme.bodyMedium,
                 ),
               ),
             ),
           );
         }
+
+        // Строка из модели свежее: она перечитывается после доразбора.
+        final row = _model.imageraw?.firstOrNull ?? itemcard2ImagesRow;
+        final card = ProductCard.parse(row.saCard);
+        final photos = _productPhotos();
+        final pregnant = _model.profileRow?.pregnancyStatus ==
+            ClientCardService.pregnantOrNursing;
 
         return GestureDetector(
           onTap: () {
@@ -866,425 +715,69 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
           },
           child: Scaffold(
             key: scaffoldKey,
-            backgroundColor: FlutterFlowTheme.of(context).alternate,
-            extendBodyBehindAppBar: true,
-            floatingActionButtonLocation: currentUserIsAnonymous
-                ? const _EndFloatAboveBanner()
-                : FloatingActionButtonLocation.endFloat,
-            floatingActionButton: SpeedDial(
-              icon: Icons.tune,
-              activeIcon: Icons.close,
-              onOpen: () => unawaited(
-                  AnalyticsService.instance.trackProductSettings()),
-              onClose: () => unawaited(
-                  AnalyticsService.instance.trackProductSettingClose()),
-              backgroundColor: FlutterFlowTheme.of(context).primary,
-              foregroundColor: Colors.white,
-              activeBackgroundColor: FlutterFlowTheme.of(context).primary,
-              overlayOpacity: 0.3,
-              overlayColor: Colors.black,
-              spacing: 8,
-              spaceBetweenChildren: 4,
-              elevation: 4,
-              children: [
-                // Print label
-                SpeedDialChild(
-                  child: const Icon(Icons.local_print_shop_outlined),
-                  backgroundColor: FlutterFlowTheme.of(context).primary,
-                  foregroundColor: Colors.white,
-                  label: FFLocalizations.of(context).getText('fab_print'),
-                  labelStyle: FlutterFlowTheme.of(context).bodyMedium,
-                  onTap: () {
-                    unawaited(AnalyticsService.instance
-                        .trackProductSettingPrint());
-                    context.pushNamed(
-                      ShareproductWidget.routeName,
-                      queryParameters: {
-                        'imageid':
-                            serializeParam(widget.imageid, ParamType.int),
-                      }.withoutNulls,
-                    );
-                  },
-                ),
-                // Share link
-                SpeedDialChild(
-                  child: const Icon(Icons.ios_share_rounded),
-                  backgroundColor: FlutterFlowTheme.of(context).primary,
-                  foregroundColor: Colors.white,
-                  label: FFLocalizations.of(context).getText('fab_share'),
-                  labelStyle: FlutterFlowTheme.of(context).bodyMedium,
-                  onTap: () async {
-                    unawaited(AnalyticsService.instance
-                        .trackProductSettingShare());
-                    unawaited(AnalyticsService.instance
-                        .trackShareLinkTapped(imageId: widget.imageid ?? 0));
-                    await Future.delayed(const Duration(milliseconds: 300));
-                    final size = MediaQuery.of(context).size;
-                    await Share.share(
-                      'https://mirra.up.railway.app/product/${widget.imageid}',
-                      sharePositionOrigin:
-                          Rect.fromLTWH(size.width / 2, size.height / 2, 1, 1),
-                    );
-                  },
-                ),
-                // Add to cosmetic bag (copies the product first, then adds
-                // the copy to the bag — заменяет прежнее «В коллекцию»).
-                SpeedDialChild(
-                  child: Icon(_inBag ? Icons.spa_outlined : Icons.spa_rounded),
-                  backgroundColor: FlutterFlowTheme.of(context).primary,
-                  foregroundColor: Colors.white,
-                  label: FFLocalizations.of(context).getText(
-                      _inBag ? 'cb_remove_from_bag' : 'cb_add_choice_title'),
-                  labelStyle: FlutterFlowTheme.of(context).bodyMedium,
-                  onTap: () {
-                    unawaited(AnalyticsService.instance
-                        .trackProductSettingAddBag());
-                    unawaited(_inBag
-                        ? _removeFromBag()
-                        : _addToBag(
-                            itemcard2ImagesRow.user == currentUserUid));
-                  },
-                ),
-                // Add to favourite (owner, not yet favourited)
-                SpeedDialChild(
-                  visible: !(itemcard2ImagesRow.favourite ?? false) &&
-                      itemcard2ImagesRow.user == currentUserUid,
-                  child: const Icon(Icons.favorite_border),
-                  backgroundColor: FlutterFlowTheme.of(context).primary,
-                  foregroundColor: Colors.white,
-                  label:
-                      FFLocalizations.of(context).getText('fab_add_favourite'),
-                  labelStyle: FlutterFlowTheme.of(context).bodyMedium,
-                  onTap: () async {
-                    await ImagesTable().update(
-                      data: {'favourite': true},
-                      matchingRows: (rows) =>
-                          rows.eqOrNull('id', widget.imageid),
-                    );
-                    unawaited(AnalyticsService.instance
-                        .trackFavouriteAdded(imageId: widget.imageid ?? 0));
-                    safeSetState(() {});
-                    if (!context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content: Text(
-                        FFLocalizations.of(context)
-                            .getText('fab_favourite_added'),
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                      backgroundColor: FlutterFlowTheme.of(context).primary,
-                      duration: const Duration(seconds: 2),
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12.0)),
-                    ));
-                  },
-                ),
-                // Remove from favourite (owner, already favourited)
-                SpeedDialChild(
-                  visible: (itemcard2ImagesRow.favourite ?? false) &&
-                      itemcard2ImagesRow.user == currentUserUid,
-                  child: const Icon(Icons.favorite),
-                  backgroundColor: FlutterFlowTheme.of(context).primary,
-                  foregroundColor: Colors.white,
-                  label: FFLocalizations.of(context)
-                      .getText('fab_remove_favourite'),
-                  labelStyle: FlutterFlowTheme.of(context).bodyMedium,
-                  onTap: () async {
-                    await ImagesTable().update(
-                      data: {'favourite': false},
-                      matchingRows: (rows) =>
-                          rows.eqOrNull('id', widget.imageid),
-                    );
-                    unawaited(AnalyticsService.instance
-                        .trackFavouriteRemoved(imageId: widget.imageid ?? 0));
-                    safeSetState(() {});
-                    if (!context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content: Text(
-                        FFLocalizations.of(context)
-                            .getText('fab_favourite_removed'),
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                      backgroundColor: FlutterFlowTheme.of(context).primary,
-                      duration: const Duration(seconds: 2),
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12.0)),
-                    ));
-                  },
-                ),
-                // Hide from public (owner, not yet hidden)
-                SpeedDialChild(
-                  visible: !(itemcard2ImagesRow.hided ?? false) &&
-                      itemcard2ImagesRow.user == currentUserUid,
-                  child: FaIcon(FontAwesomeIcons.eyeSlash),
-                  backgroundColor: FlutterFlowTheme.of(context).primary,
-                  foregroundColor: Colors.white,
-                  label: FFLocalizations.of(context).getText('fab_hide'),
-                  labelStyle: FlutterFlowTheme.of(context).bodyMedium,
-                  // Скрытие — отказ от публикации своего скана в общем
-                  // каталоге, а не привилегия: за подписку такое не продают.
-                  // Доступно всем владельцам скана, включая гостя.
-                  onTap: () async {
-                    unawaited(AnalyticsService.instance.trackProductHidden());
-                    await ImagesTable().update(
-                      data: {'hided': true},
-                      matchingRows: (rows) =>
-                          rows.eqOrNull('id', widget.imageid),
-                    );
-                    if (!context.mounted) return;
-                    await showModalBottomSheet(
-                      isScrollControlled: true,
-                      backgroundColor: Colors.transparent,
-                      enableDrag: false,
-                      context: context,
-                      builder: (context) => Padding(
-                        padding: MediaQuery.viewInsetsOf(context),
-                        child: MakeprivateWidget(imageid: widget.imageid!),
-                      ),
-                    ).then((value) => safeSetState(() {}));
-                  },
-                ),
-                // Make public (owner, currently hidden)
-                SpeedDialChild(
-                  visible: (itemcard2ImagesRow.hided ?? false) &&
-                      itemcard2ImagesRow.user == currentUserUid,
-                  child: FaIcon(FontAwesomeIcons.eye),
-                  backgroundColor: FlutterFlowTheme.of(context).primary,
-                  foregroundColor: Colors.white,
-                  label: FFLocalizations.of(context).getText('fab_show'),
-                  labelStyle: FlutterFlowTheme.of(context).bodyMedium,
-                  onTap: () async {
-                    unawaited(
-                        AnalyticsService.instance.trackProductPublicCatalog());
-                    await ImagesTable().update(
-                      data: {'hided': false},
-                      matchingRows: (rows) =>
-                          rows.eqOrNull('id', widget.imageid),
-                    );
-                    safeSetState(() {});
-                    if (!context.mounted) return;
-                    await showModalBottomSheet(
-                      isScrollControlled: true,
-                      backgroundColor: Colors.transparent,
-                      enableDrag: false,
-                      context: context,
-                      builder: (context) => const MakepublicWidget(),
-                    ).then((value) => safeSetState(() {}));
-                  },
-                ),
-                // Mark as spam (not owner)
-                SpeedDialChild(
-                  visible: itemcard2ImagesRow.user != currentUserUid,
-                  child: const Icon(Icons.block),
-                  backgroundColor: FlutterFlowTheme.of(context).primary,
-                  foregroundColor: Colors.white,
-                  label: FFLocalizations.of(context).getText('fab_spam'),
-                  labelStyle: FlutterFlowTheme.of(context).bodyMedium,
-                  onTap: () async {
-                    unawaited(AnalyticsService.instance
-                        .trackProductSettingsSpam());
-                    final confirmed = await showModalBottomSheet<bool>(
-                      isScrollControlled: true,
-                      backgroundColor: Colors.transparent,
-                      enableDrag: false,
-                      context: context,
-                      builder: (context) => Padding(
-                        padding: MediaQuery.viewInsetsOf(context),
-                        child: MarkasspamWidget(imageid: widget.imageid!),
-                      ),
-                    );
-                    if (confirmed == true && context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: Text(
-                          FFLocalizations.of(context)
-                              .getText('spam_hidden_toast'),
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                        backgroundColor:
-                            FlutterFlowTheme.of(context).primaryText,
-                        duration: const Duration(seconds: 3),
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12.0)),
-                      ));
-                      context.safePop();
-                    }
-                  },
-                ),
-                // Copy product (not owner)
-                SpeedDialChild(
-                  visible: itemcard2ImagesRow.user != currentUserUid,
-                  child: const Icon(Icons.copy_all),
-                  backgroundColor: FlutterFlowTheme.of(context).primary,
-                  foregroundColor: Colors.white,
-                  label: FFLocalizations.of(context).getText('fab_copy'),
-                  labelStyle: FlutterFlowTheme.of(context).bodyMedium,
-                  onTap: () async {
-                    unawaited(AnalyticsService.instance
-                        .trackProductSettingsCopy());
-                    if (currentUserUid.isEmpty || currentUserIsAnonymous) {
-                      await showModalBottomSheet(
-                        isScrollControlled: true,
-                        backgroundColor: Colors.transparent,
-                        enableDrag: true,
-                        context: context,
-                        builder: (context) => _LoginRequiredSheet(),
-                      );
-                      return;
-                    }
-                    if (!context.mounted) return;
-                    await showModalBottomSheet(
-                      isScrollControlled: true,
-                      backgroundColor: Colors.transparent,
-                      enableDrag: false,
-                      context: context,
-                      builder: (context) => Padding(
-                        padding: MediaQuery.viewInsetsOf(context),
-                        child: CopyitemWidget(imageid: widget.imageid!),
-                      ),
-                    ).then((value) => safeSetState(() {}));
-                  },
-                ),
-                // Delete (owner)
-                SpeedDialChild(
-                  visible: itemcard2ImagesRow.user == currentUserUid,
-                  child: const Icon(Icons.delete_outline),
-                  backgroundColor: FlutterFlowTheme.of(context).primary,
-                  foregroundColor: Colors.white,
-                  label: FFLocalizations.of(context).getText('fab_delete'),
-                  labelStyle: FlutterFlowTheme.of(context).bodyMedium,
-                  onTap: () async {
-                    unawaited(AnalyticsService.instance.trackProductDelete());
-                    await showModalBottomSheet(
-                      isScrollControlled: true,
-                      backgroundColor: Colors.transparent,
-                      enableDrag: false,
-                      context: context,
-                      builder: (context) => Padding(
-                        padding: MediaQuery.viewInsetsOf(context),
-                        child: DeleteitemWidget(imageid: widget.imageid!),
-                      ),
-                    ).then((value) => safeSetState(() {}));
-                  },
+            backgroundColor: theme.alternate,
+            appBar: AppBar(
+              backgroundColor: theme.alternate,
+              surfaceTintColor: Colors.transparent,
+              elevation: 0,
+              scrolledUnderElevation: 0,
+              centerTitle: true,
+              leading: IconButton(
+                icon: Icon(Icons.arrow_back_ios_new, size: 20, color: theme.primaryText),
+                onPressed: () => context.safePop(),
+              ),
+              title: Text(_t('card_title'),
+                  style: cardText(theme, size: 15, weight: FontWeight.w600)),
+              actions: [
+                IconButton(
+                  icon: Icon(Icons.more_horiz, color: theme.primaryText),
+                  onPressed: () => _openMenu(row),
                 ),
               ],
             ),
             body: Stack(
-              // Без expand Stack ужимается по высоте скролла, а тот — по
-              // контенту. На «разбор ещё идёт» контента меньше экрана, и
-              // приклеенный к низу баннер «Сохранить в историю» всплывал на
-              // середину.
               fit: StackFit.expand,
               children: [
                 if (!_model.loading)
                   SingleChildScrollView(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildHero(context),
-                        // На iPad разбор прижат к верху и ограничен по ширине,
-                        // шапка остаётся во всю ширину экрана.
-                        ConstrainedContent(
-                          child: SizedBox(
-                            width: double.infinity,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                        if (_model.imageraw?.firstOrNull?.saCompositeScore ==
-                            null)
-                          _buildPendingPlaceholder(context)
-                        else ...[
-                          // ── Разбор: вердикт, беременность, свой фит, риски,
-                          // активы, обещания и «разбор глубже». Порядок и
-                          // сворачивание — внутри ProductCardV2Widget.
-                          if (_model.imageraw?.firstOrNull != null)
-                            ProductCardV2Widget(
-                              image: _model.imageraw!.first,
-                              skinCompatibility:
-                                  _model.skinCompabilityRaw ?? const [],
-                              topIngredients:
-                                  _model.topIngredientsRaw ?? const [],
-                              ingredientIssues:
-                                  _model.ingredientIssuesRaw ?? const [],
-                              userSkinType: _model.userSkinType,
-                              userIsSensitive: _model.userIsSensitive,
-                              userIsAcneProne: _model.userIsAcneProne,
-                              isPro: true,
-                              pregnancyRelevant:
-                                  _model.profileRow?.pregnancyStatus ==
-                                      ClientCardService.pregnantOrNursing,
-                              // Профиль не заполнен — вердикт посчитан по всем
-                              // типам кожи. Предлагаем это исправить сразу под
-                              // ним, а не до него: сначала ответ, потом анкета.
-                              profileCta: (_model.userSkinType ?? '').isEmpty
-                                  ? Padding(
-                                      padding:
-                                          const EdgeInsetsDirectional.fromSTEB(
-                                              16, 12, 16, 0),
-                                      child: ProfileSummaryCard(
-                                        profileRow: _model.profileRow,
-                                        // Вместе с imageid: по одному имени
-                                        // маршрута анкета вернула бы на
-                                        // карточку без товара.
-                                        returnTo: widget.imageid == null
-                                            ? null
-                                            : context.namedLocation(
-                                                Itemcard2Widget.routeName,
-                                                queryParameters: {
-                                                  'imageid': serializeParam(
-                                                      widget.imageid,
-                                                      ParamType.int)!,
-                                                },
-                                              ),
-                                      ),
-                                    )
-                                  : null,
-                              // SPF — в блок «кому подходит» внутри карточки.
-                              spfBlock: (_model.imageraw?.firstOrNull?.saHasSpf ??
-                                      false)
-                                  ? _buildSpf(context)
-                                  : null,
-                              // Состав, экспертный текст и «как использовать» —
-                              // под «разбор глубже»: их читают единицы, а в
-                              // основном потоке это сказанные выводы.
-                              deepExtras: [
-                                _buildExpertAnalysis(context),
-                                _buildHowTo(context),
-                              ],
-                              // «Следующая баночка»: скан и полка прямо с
-                              // карточки, а не только «назад».
-                              onScanNext: () => context
-                                  .pushNamed(TakeorUploadPageWidget.routeName),
+                    child: ConstrainedContent(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          if (card == null || row.saCompositeScore == null)
+                            _buildPendingPlaceholder(context)
+                          else
+                            ProductCardV3Widget(
+                              card: card,
+                              brand: row.brand ?? '',
+                              productName: row.productName ?? '',
+                              photoUrl: photos.firstOrNull,
+                              onOpenPhotos: () => _openPhotos(context, photos),
+                              profileSkinType: _model.userSkinType,
+                              profileSensitive: _model.userIsSensitive,
+                              profileAcneProne: _model.userIsAcneProne,
+                              pregnant: pregnant,
+                              inBag: _inBag,
                               onToggleBag: () => _inBag
                                   ? _removeFromBag()
-                                  : _addToBag(_model.imageraw!.first.user ==
-                                      currentUserUid),
-                              inBag: _inBag,
-                              bagCount: _bagCount,
+                                  : _addToBag(row.user == currentUserUid),
+                              onScanMore: () =>
+                                  context.pushNamed(TakeorUploadPageWidget.routeName),
+                              onEditProfile: () =>
+                                  context.pushNamed(ProfileWidget.routeName),
                             ),
-                          // Trailing bottom spacer so the last block (e.g. "How
-                          // to use" for pro users) is fully visible; extra height
-                          // for the anonymous sticky save-banner.
-                          SizedBox(
-                              height: currentUserIsAnonymous ? 80.0 : 40.0),
-                        ], // end of analysis sections
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
+                          // Запас под липкий баннер «сохранить в историю» у гостя.
+                          SizedBox(height: currentUserIsAnonymous ? 72.0 : 16.0),
+                        ],
+                      ),
                     ),
                   ),
-                // Пока карточка догружается — белое полотно и общий
-                // спиннер. Было #CBDDFE во весь экран: синяя вспышка на
-                // каждом переходе к продукту.
+                // Пока карточка догружается — белое полотно и общий спиннер.
                 if (_model.loading)
                   Positioned.fill(
                     child: ColoredBox(
-                      color: FlutterFlowTheme.of(context).alternate,
+                      color: theme.alternate,
                       child: const ScreenLoader(),
                     ),
                   ),
@@ -1295,32 +788,6 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
                     right: 0,
                     child: _AnonSaveBanner(),
                   ),
-                // Fixed back button — top-left corner
-                Positioned(
-                  top: 0,
-                  left: 0,
-                  child: SafeArea(
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: GestureDetector(
-                        onTap: () => context.safePop(),
-                        child: Container(
-                          width: 44,
-                          height: 44,
-                          decoration: const BoxDecoration(
-                            color: Color(0x2B5C85D9),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.arrow_back_ios_new,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
@@ -1328,25 +795,6 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
       },
     );
   }
-}
-
-/// Height of [_AnonSaveBanner] above the bottom safe area: 14 padding + 22 row
-/// + 14 padding. The banner adds the safe inset itself, and so does the FAB
-/// location below, so only this part has to be accounted for twice.
-const double _kAnonSaveBannerHeight = 50.0;
-
-/// endFloat, lifted clear of the sticky save banner.
-///
-/// The banner is painted inside the body Stack while the FAB is laid out by the
-/// Scaffold, so nothing makes them aware of each other: at the default position
-/// the settings button sits on top of the banner and covers its text.
-class _EndFloatAboveBanner extends StandardFabLocation
-    with FabEndOffsetX, FabFloatOffsetY {
-  const _EndFloatAboveBanner();
-
-  @override
-  double getOffsetY(ScaffoldPrelayoutGeometry geometry, double adjustment) =>
-      super.getOffsetY(geometry, adjustment) - _kAnonSaveBannerHeight - 8.0;
 }
 
 class _AnonSaveBanner extends StatelessWidget {
@@ -1880,50 +1328,6 @@ class _FlaskPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_FlaskPainter old) => old.t != t;
-}
-
-class _SpfLegendRow extends StatelessWidget {
-  const _SpfLegendRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-    this.iconColor,
-  });
-
-  final IconData icon;
-  final String label;
-  final String value;
-  final Color? iconColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon,
-            size: 16,
-            color: iconColor ?? FlutterFlowTheme.of(context).secondaryText),
-        const SizedBox(width: 8),
-        Expanded(
-          child: RichText(
-            text: TextSpan(
-              style: FlutterFlowTheme.of(context).bodySmall.copyWith(
-                    fontSize: 13,
-                    color: FlutterFlowTheme.of(context).primaryText,
-                  ),
-              children: [
-                TextSpan(
-                  text: '$label',
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
-                if (value.isNotEmpty) TextSpan(text: ':  $value'),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 }
 
 /// Full-bleed фото продукта: одно фото, слайдер (если фото больше одного) или

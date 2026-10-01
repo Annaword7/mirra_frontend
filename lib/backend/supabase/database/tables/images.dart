@@ -174,6 +174,12 @@ class ImagesRow extends SupabaseDataRow {
   set saInciList(List<String>? value) =>
       setListField<String>('sa_inci_list', value);
 
+  /// Карточка продукта v3: один объект, который собирает бэкенд
+  /// (docs/card_v3_contract.md в mirra_backend-main). Пусто у разборов
+  /// до октября 2026, пока их не пересчитали.
+  dynamic get saCard => getField<dynamic>('sa_card');
+  set saCard(dynamic value) => setField<dynamic>('sa_card', value);
+
   String? get productCategory => getField<String>('product_category');
   set productCategory(String? value) =>
       setField<String>('product_category', value);
