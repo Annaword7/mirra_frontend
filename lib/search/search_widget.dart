@@ -4,6 +4,7 @@ import '/backend/supabase/database/tables/users.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/design_system/components/app_button.dart';
+import '/design_system/components/constrained_content.dart';
 import '/index.dart';
 import '/design_system/components/product_tile.dart';
 import 'search_model.dart';
@@ -292,26 +293,28 @@ class _SearchWidgetState extends State<SearchWidget> {
               ),
           ],
         ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildPhraseInput(theme, lang),
-              const SizedBox(height: 20),
-              _buildSortRow(theme, lang),
-              const SizedBox(height: 16),
-              ..._kFacetGroups.map((g) => _buildFacetGroup(
-                    g['name'] as String,
-                    (g['values'] as List).cast<String>(),
-                    theme,
-                    lang,
-                  )),
-              const SizedBox(height: 24),
-              _buildSearchButton(theme, lang),
-              const SizedBox(height: 24),
-              if (_model.hasSearched) _buildResults(theme, lang),
-            ],
+        body: ConstrainedContent(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildPhraseInput(theme, lang),
+                const SizedBox(height: 20),
+                _buildSortRow(theme, lang),
+                const SizedBox(height: 16),
+                ..._kFacetGroups.map((g) => _buildFacetGroup(
+                      g['name'] as String,
+                      (g['values'] as List).cast<String>(),
+                      theme,
+                      lang,
+                    )),
+                const SizedBox(height: 24),
+                _buildSearchButton(theme, lang),
+                const SizedBox(height: 24),
+                if (_model.hasSearched) _buildResults(theme, lang),
+              ],
+            ),
           ),
         ),
       ),

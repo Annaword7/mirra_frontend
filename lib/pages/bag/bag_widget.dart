@@ -1,4 +1,5 @@
 import '/design_system/components/screen_loader.dart';
+import '/design_system/components/constrained_content.dart';
 import 'dart:async';
 import '/auth/supabase_auth/auth_util.dart';
 import '/backend/supabase/database/database.dart';
@@ -14,7 +15,7 @@ import '/domain/products/product_photo.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/plural.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/paywall/paywallpage/paywallpage_widget.dart';
+import '/paywall/show_paywall.dart';
 import '/pages/care_review/care_review_widget.dart';
 import '/domain/client_card/client_card_service.dart';
 import 'package:flutter/material.dart';
@@ -167,7 +168,7 @@ class _BagWidgetState extends State<BagWidget> {
     HapticFeedback.lightImpact();
     unawaited(
         AnalyticsService.instance.trackPremiumTap(from: trigger));
-    context.pushNamed(PaywallpageWidget.routeName);
+    unawaited(showPaywall(context, from: trigger));
   }
 
   Future<void> _addFlow() async {
@@ -429,49 +430,51 @@ class _BagWidgetState extends State<BagWidget> {
       bottomNavigationBar: const NavbarWidget(activePage: 3),
       body: _loading
           ? const ScreenLoader(hasAppBar: true, hasBottomNavBar: true)
-          : ListView(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 130),
-              children: [
-                // «Твой профиль»: саммари онбординга, тап → квиз (изменить).
-                ProfileSummaryCard(
-                    profileRow: _profile, returnTo: BagWidget.routePath),
-                Text(
-                  _t('bag_subtitle'),
-                  style: const TextStyle(color: Colors.black54, fontSize: 13.5),
-                ),
-                const SizedBox(height: 16),
-                _compatCard(theme),
-                _pregnancySummary(theme),
-                GridView.count(
-                  crossAxisCount: 3,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  mainAxisSpacing: 12,
-                  crossAxisSpacing: 12,
-                  // Слот вытянут так, чтобы область под фото была 3:4
-                  // (kThumbAspect) с учётом подписи снизу: снимки продуктов
-                  // вертикальные, в квадрате от них оставался средний обрезок.
-                  childAspectRatio: 0.63,
-                  children: [
-                    for (var i = 0; i < _slotCount; i++)
-                      i < filled
-                          ? _FilledSlot(
-                              image: _images[_items[i].imageId],
-                              onRemove: () => _remove(_items[i].imageId!),
-                              overLimit: _overLimit(i),
-                              onLockedTap: () =>
-                                  _openPaywall(trigger: 'bag_over_limit'),
-                              lockedHint: _t('cb_slot_over_limit'),
-                            )
-                          : _EmptySlot(
-                              primary: theme.primary,
-                              locked: !FFAppState().isprouser &&
-                                  i >= kFreeBagSlots,
-                              onTap: _addFlow,
-                            ),
-                  ],
-                ),
-              ],
+          : ConstrainedContent(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 130),
+                children: [
+                  // «Твой профиль»: саммари онбординга, тап → квиз (изменить).
+                  ProfileSummaryCard(
+                      profileRow: _profile, returnTo: BagWidget.routePath),
+                  Text(
+                    _t('bag_subtitle'),
+                    style: const TextStyle(color: Colors.black54, fontSize: 13.5),
+                  ),
+                  const SizedBox(height: 16),
+                  _compatCard(theme),
+                  _pregnancySummary(theme),
+                  GridView.count(
+                    crossAxisCount: 3,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 12,
+                    // Слот вытянут так, чтобы область под фото была 3:4
+                    // (kThumbAspect) с учётом подписи снизу: снимки продуктов
+                    // вертикальные, в квадрате от них оставался средний обрезок.
+                    childAspectRatio: 0.63,
+                    children: [
+                      for (var i = 0; i < _slotCount; i++)
+                        i < filled
+                            ? _FilledSlot(
+                                image: _images[_items[i].imageId],
+                                onRemove: () => _remove(_items[i].imageId!),
+                                overLimit: _overLimit(i),
+                                onLockedTap: () =>
+                                    _openPaywall(trigger: 'bag_over_limit'),
+                                lockedHint: _t('cb_slot_over_limit'),
+                              )
+                            : _EmptySlot(
+                                primary: theme.primary,
+                                locked: !FFAppState().isprouser &&
+                                    i >= kFreeBagSlots,
+                                onTap: _addFlow,
+                              ),
+                    ],
+                  ),
+                ],
+              ),
             ),
     );
   }

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import '/design_system/foundations/layout.dart';
 import '/design_system/components/screen_loader.dart';
+import '/design_system/components/constrained_content.dart';
 import '/backend/supabase/database/database.dart';
 import '/design_system/components/app_button.dart';
 import '/design_system/components/product_thumb.dart';
@@ -744,52 +745,54 @@ class _CareReviewWidgetState extends State<CareReviewWidget> {
           ? const ScreenLoader(hasAppBar: true)
           : _error != null
               ? _ErrorState(message: _error!, onRetry: _compose)
-              : Column(
-                  children: [
-                    Expanded(
-                      child: ListView(
-                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-                        children: [
-                          // Беременность спрашиваем по месту: правило про
-                          // ретиноиды применяет составитель режима, и здесь
-                          // же видно, что оно сделало с назначениями.
-                          if (_card != null && _card!.pregnancyStatus == null)
-                            _framesNudge(theme),
-                          _scoreCard(theme),
-                          _warningsBlock(),
-                          _sessionBlock('am', theme),
-                          _sessionBlock('pm', theme),
-                          _gapsBlock(),
-                          _adviceBlock(theme),
-                          _goalsBlock(),
-                          if (_queued.isNotEmpty) ...[
-                            Text(
-                              _t('care_queue_title'),
-                              style: const TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 17,
+              : ConstrainedContent(
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: ListView(
+                          padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+                          children: [
+                            // Беременность спрашиваем по месту: правило про
+                            // ретиноиды применяет составитель режима, и здесь
+                            // же видно, что оно сделало с назначениями.
+                            if (_card != null && _card!.pregnancyStatus == null)
+                              _framesNudge(theme),
+                            _scoreCard(theme),
+                            _warningsBlock(),
+                            _sessionBlock('am', theme),
+                            _sessionBlock('pm', theme),
+                            _gapsBlock(),
+                            _adviceBlock(theme),
+                            _goalsBlock(),
+                            if (_queued.isNotEmpty) ...[
+                              Text(
+                                _t('care_queue_title'),
+                                style: const TextStyle(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 17,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              _t('care_queue_sub'),
-                              style: const TextStyle(
-                                  color: Colors.black54, fontSize: 13),
-                            ),
-                            const SizedBox(height: 10),
-                            ..._queued.map((p) => _QueuedCard(
-                                  prescription: p,
-                                  image: _images[p['image_id']],
-                                  reason:
-                                      _reasonLabel(p['status_reason'] as String?),
-                                )),
+                              const SizedBox(height: 4),
+                              Text(
+                                _t('care_queue_sub'),
+                                style: const TextStyle(
+                                    color: Colors.black54, fontSize: 13),
+                              ),
+                              const SizedBox(height: 10),
+                              ..._queued.map((p) => _QueuedCard(
+                                    prescription: p,
+                                    image: _images[p['image_id']],
+                                    reason:
+                                        _reasonLabel(p['status_reason'] as String?),
+                                  )),
+                            ],
+                            const SizedBox(height: 90),
                           ],
-                          const SizedBox(height: 90),
-                        ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
       bottomNavigationBar: _loading || _error != null
           ? null

@@ -28,6 +28,10 @@ class FFAppState extends ChangeNotifier {
       _showLinkTelegram = prefs.getBool('ff_showLinkTelegram') ?? _showLinkTelegram;
     });
     _safeInit(() {
+      _rcPaywallEnabled =
+          prefs.getBool('ff_rcPaywallEnabled') ?? _rcPaywallEnabled;
+    });
+    _safeInit(() {
       _onboardingDone = prefs.getBool('ff_onboardingDone') ?? _onboardingDone;
     });
     _safeInit(() {
@@ -232,6 +236,17 @@ class FFAppState extends ChangeNotifier {
   set showLinkTelegram(bool value) {
     _showLinkTelegram = value;
     prefs.setBool('ff_showLinkTelegram', value);
+  }
+
+  // Whether the paywall built in RevenueCat is shown instead of our own screen.
+  // Source of truth is app_config ('rc_paywall_enabled'), default false: the
+  // experiment is switched on from the row, and switched back off the same way
+  // without waiting on an App Store review.
+  bool _rcPaywallEnabled = false;
+  bool get rcPaywallEnabled => _rcPaywallEnabled;
+  set rcPaywallEnabled(bool value) {
+    _rcPaywallEnabled = value;
+    prefs.setBool('ff_rcPaywallEnabled', value);
   }
 
   String _uploadedimageurl = '';

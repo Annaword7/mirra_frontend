@@ -1,4 +1,5 @@
 import '/design_system/components/screen_loader.dart';
+import '/design_system/foundations/layout.dart';
 import '/app_state.dart';
 import '/auth/supabase_auth/auth_util.dart';
 import '/backend/api_requests/api_calls.dart';
@@ -17,6 +18,7 @@ import '/design_system/components/skeleton_line.dart';
 import '/design_system/components/product_tile.dart';
 import 'dart:async';
 import '/index.dart';
+import '/paywall/show_paywall.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
@@ -493,9 +495,6 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                     snapshot.data ?? _model.loadedImages!;
 
                 return Container(
-                  constraints: BoxConstraints(
-                    maxWidth: 600.0,
-                  ),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     border: Border.all(
@@ -558,9 +557,8 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                                     .instance
                                                     .trackPremiumTap(
                                                         from: 'home'));
-                                                context.pushNamed(
-                                                    PaywallpageWidget
-                                                        .routeName);
+                                                unawaited(showPaywall(context,
+                                                    from: 'home'));
                                               },
                                             ),
                                             const SizedBox(height: 12.0),
@@ -840,7 +838,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                               }
 
                               return SliverMasonryGrid.count(
-                                crossAxisCount: 2,
+                                crossAxisCount: gridColumns(context),
                                 crossAxisSpacing: 10.0,
                                 mainAxisSpacing: 10.0,
                                 childCount: staggeredViewImagesRowList.length,

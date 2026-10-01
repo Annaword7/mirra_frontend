@@ -21,6 +21,7 @@ import 'flutter_flow/internationalization.dart';
 import 'flutter_flow/revenue_cat_util.dart' as revenue_cat;
 import 'flutter_flow/notification_service.dart';
 import 'backend/remote_config.dart';
+import 'design_system/foundations/layout.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -97,6 +98,7 @@ void main() async {
       "",
       debugLogEnabled: true,
       loadDataAfterLaunch: true,
+      preferredUILocale: FFLocalizations.getStoredLocale()?.languageCode,
     )
         .then((_) {
       // configure() lands after the auth stream has already fired, and
@@ -290,6 +292,9 @@ class _MyAppState extends State<MyApp> {
   void setLocale(String language) {
     safeSetState(() => _locale = createLocale(language));
     FFLocalizations.storeLocale(language);
+    // Пейволы RevenueCat — нативные экраны мимо FFLocalizations: язык им
+    // задаётся отдельно, иначе они остались бы на языке системы.
+    unawaited(revenue_cat.setPreferredUILocale(language));
   }
 
   void setThemeMode(ThemeMode mode) => safeSetState(() {
@@ -328,6 +333,11 @@ class _MyAppState extends State<MyApp> {
             }
             return Color(4284253657);
           }),
+        ),
+        // На iPad шторки стоят колонкой по центру, а не во всю ширину
+        // экрана; на телефоне предел не достигается.
+        bottomSheetTheme: const BottomSheetThemeData(
+          constraints: BoxConstraints(maxWidth: kContentMaxWidth),
         ),
         useMaterial3: false,
       ),

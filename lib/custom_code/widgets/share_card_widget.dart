@@ -136,6 +136,12 @@ class _ShareCardWidgetState extends State<ShareCardWidget> {
         final position = box.localToGlobal(Offset.zero);
         shareOrigin = position & box.size;
       }
+      // На iPad шторка шаринга — поповер, и без точки привязки share_plus
+      // бросает исключение; если кнопка не нашлась, якорим в центре окна.
+      if (shareOrigin == null && mounted) {
+        final size = MediaQuery.sizeOf(context);
+        shareOrigin = Rect.fromLTWH(size.width / 2, size.height / 2, 1, 1);
+      }
 
       await Share.shareXFiles(
         [XFile.fromData(bytes, name: 'mirra_card.png', mimeType: 'image/png')],

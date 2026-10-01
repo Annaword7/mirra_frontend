@@ -193,72 +193,76 @@ class _NavbarWidgetState extends State<NavbarWidget>
             child: Padding(
               padding:
                   const EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 28.0),
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(30.0),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.10),
-                      blurRadius: 24.0,
-                      offset: const Offset(0.0, 8.0),
-                    ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(30.0),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 18.0, sigmaY: 18.0),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: glassFill,
-                        borderRadius: BorderRadius.circular(30.0),
-                        border: Border.all(color: glassBorder, width: 1.0),
+              // На iPad пилюля не растягивается во всю ширину экрана.
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: kContentMaxWidth),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(30.0),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.10),
+                        blurRadius: 24.0,
+                        offset: const Offset(0.0, 8.0),
                       ),
-                      child: Padding(
-                        padding: const EdgeInsetsDirectional.fromSTEB(
-                            8.0, 0.0, 8.0, 0.0),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.max,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            _buildTab(
-                              pageId: 2,
-                              iconData: Icons.home_outlined,
-                              activeIconData: Icons.home_rounded,
-                              label: FFLocalizations.of(context)
-                                  .getText('kndykt66' /* Home */),
-                              routeName: HomeWidget.routeName,
-                              track: AnalyticsService.instance.trackHomeTap,
-                            ),
-                            _buildTab(
-                              pageId: 1,
-                              iconData: Icons.search_rounded,
-                              label: FFLocalizations.of(context)
-                                  .getText('f0lv5sbb' /* Explore */),
-                              routeName: TopratedWidget.routeName,
-                              track: AnalyticsService.instance.trackOverviewTap,
-                            ),
-                            const Expanded(child: SizedBox(height: 40.0)),
-                            _buildTab(
-                              pageId: 3,
-                              iconData: Icons.spa_outlined,
-                              activeIconData: Icons.spa_rounded,
-                              label: FFLocalizations.of(context)
-                                  .getText('cb_bag_title'),
-                              routeName: BagWidget.routeName,
-                              track:
-                                  AnalyticsService.instance.trackBeautyBagTap,
-                            ),
-                            _buildTab(
-                              pageId: 4,
-                              iconData: Icons.calendar_today_outlined,
-                              activeIconData: Icons.calendar_month_rounded,
-                              label: FFLocalizations.of(context)
-                                  .getText('cb_routine_title'),
-                              routeName: RoutineWidget.routeName,
-                              track: AnalyticsService.instance.trackRoutineTap,
-                            ),
-                          ],
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(30.0),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 18.0, sigmaY: 18.0),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: glassFill,
+                          borderRadius: BorderRadius.circular(30.0),
+                          border: Border.all(color: glassBorder, width: 1.0),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsetsDirectional.fromSTEB(
+                              8.0, 0.0, 8.0, 0.0),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.max,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              _buildTab(
+                                pageId: 2,
+                                iconData: Icons.home_outlined,
+                                activeIconData: Icons.home_rounded,
+                                label: FFLocalizations.of(context)
+                                    .getText('kndykt66' /* Home */),
+                                routeName: HomeWidget.routeName,
+                                track: AnalyticsService.instance.trackHomeTap,
+                              ),
+                              _buildTab(
+                                pageId: 1,
+                                iconData: Icons.search_rounded,
+                                label: FFLocalizations.of(context)
+                                    .getText('f0lv5sbb' /* Explore */),
+                                routeName: TopratedWidget.routeName,
+                                track: AnalyticsService.instance.trackOverviewTap,
+                              ),
+                              const Expanded(child: SizedBox(height: 40.0)),
+                              _buildTab(
+                                pageId: 3,
+                                iconData: Icons.spa_outlined,
+                                activeIconData: Icons.spa_rounded,
+                                label: FFLocalizations.of(context)
+                                    .getText('cb_bag_title'),
+                                routeName: BagWidget.routeName,
+                                track:
+                                    AnalyticsService.instance.trackBeautyBagTap,
+                              ),
+                              _buildTab(
+                                pageId: 4,
+                                iconData: Icons.calendar_today_outlined,
+                                activeIconData: Icons.calendar_month_rounded,
+                                label: FFLocalizations.of(context)
+                                    .getText('cb_routine_title'),
+                                routeName: RoutineWidget.routeName,
+                                track: AnalyticsService.instance.trackRoutineTap,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),

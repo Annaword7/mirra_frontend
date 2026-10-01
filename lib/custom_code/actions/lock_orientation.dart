@@ -14,6 +14,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 Future lockOrientation() async {
+  // На iOS ориентации раздаёт AppDelegate: iPhone — портрет, iPad — все
+  // четыре (iPadOS 26 перестала уважать блокировку и требует поворота).
+  // Вызов отсюда пересилил бы его и запер бы iPad в портрете.
+  if (isiOS) return;
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 }
 // Set your action name, define your arguments and return parameter,

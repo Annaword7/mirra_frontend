@@ -1,6 +1,6 @@
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/index.dart';
+import '/paywall/show_paywall.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -50,7 +50,7 @@ class _UpgradeWidgetState extends State<UpgradeWidget> {
         onTap: () async {
           HapticFeedback.lightImpact();
 
-          context.pushNamed(PaywallpageWidget.routeName);
+          await showPaywall(context, from: 'upgrade_banner');
         },
         child: Container(
           height: 55.0,

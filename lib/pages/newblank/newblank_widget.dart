@@ -4,6 +4,7 @@ import '/flutter_flow/flutter_flow_theme.dart';
 
 import '/flutter_flow/flutter_flow_util.dart';
 import '/design_system/components/app_button.dart';
+import '/design_system/components/constrained_content.dart';
 
 import '/flutter_flow/nav/nav.dart';
 import '/index.dart';
@@ -87,125 +88,128 @@ class _NewblankWidgetState extends State<NewblankWidget> {
         backgroundColor: Colors.white,
         body: SafeArea(
           top: true,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 28.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const Spacer(flex: 2),
+          child: ConstrainedContent(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 28.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const Spacer(flex: 2),
 
-                // ── Icon ──
+                  // ── Icon ──
 
-                _HeroIcon().animate().fadeIn(duration: 500.ms).scale(
-                      begin: const Offset(0.85, 0.85),
-                      end: const Offset(1, 1),
-                      duration: 500.ms,
-                      curve: Curves.easeOut,
-                    ),
-
-                const SizedBox(height: 36),
-
-                // ── Headline ──
-
-                Text(
-                  FFLocalizations.of(context).getText('nb_check_30s'),
-                  textAlign: TextAlign.center,
-                  style: FlutterFlowTheme.of(context).displaySmall.override(
-                        fontFamily:
-                            FlutterFlowTheme.of(context).displaySmallFamily,
-                        color: Colors.black,
-                        fontSize: 24.0,
-                        letterSpacing: 0.0,
-                        fontWeight: FontWeight.w700,
-                        lineHeight: 1.2,
-                        useGoogleFonts:
-                            !FlutterFlowTheme.of(context).displaySmallIsCustom,
+                  _HeroIcon().animate().fadeIn(duration: 500.ms).scale(
+                        begin: const Offset(0.85, 0.85),
+                        end: const Offset(1, 1),
+                        duration: 500.ms,
+                        curve: Curves.easeOut,
                       ),
-                )
-                    .animate()
-                    .fadeIn(delay: 150.ms, duration: 500.ms)
-                    .slideY(begin: 0.15, end: 0, duration: 500.ms),
 
-                const SizedBox(height: 16),
+                  const SizedBox(height: 36),
 
-                // ── Subtitle ──
+                  // ── Headline ──
 
-                Text(
-                  FFLocalizations.of(context).getText('nb_subtitle'),
-                  textAlign: TextAlign.center,
-                  style: FlutterFlowTheme.of(context).bodyLarge.override(
-                        fontFamily:
-                            FlutterFlowTheme.of(context).bodyLargeFamily,
-                        fontSize: 16.0,
-                        color: Colors.black,
-                        letterSpacing: 0.0,
-                        fontWeight: FontWeight.normal,
-                        lineHeight: 1.55,
-                        useGoogleFonts:
-                            !FlutterFlowTheme.of(context).bodyLargeIsCustom,
-                      ),
-                )
-                    .animate()
-                    .fadeIn(delay: 250.ms, duration: 500.ms)
-                    .slideY(begin: 0.15, end: 0, duration: 500.ms),
-
-                const Spacer(flex: 3),
-
-                // ── Primary CTA ──
-
-                AppButton(
-                  label: FFLocalizations.of(context).getText('nb_try_free'),
-                  trailingIcon: Icons.arrow_forward_rounded,
-                  onPressed: () {
-                    _tryAnonymously();
-                  },
-                )
-                    .animate()
-                    .fadeIn(delay: 350.ms, duration: 400.ms)
-                    .slideY(begin: 0.2, end: 0, duration: 400.ms),
-
-                const SizedBox(height: 16),
-
-                // ── Secondary link ──
-
-                GestureDetector(
-                  onTap: () {
-                    HapticFeedback.lightImpact();
-
-                    // Use appNavigatorKey so navigation works even if this
-                    // widget's context was replaced after anonymous sign-in.
-                    final navCtx = appNavigatorKey.currentContext;
-                    if (navCtx == null) return;
-                    navCtx.goNamed(
-                      LogInPageWidget.routeName,
-                      extra: <String, dynamic>{
-                        '__transition_info__': TransitionInfo(
-                          hasTransition: true,
-                          transitionType: PageTransitionType.fade,
+                  Text(
+                    FFLocalizations.of(context).getText('nb_check_30s'),
+                    textAlign: TextAlign.center,
+                    style: FlutterFlowTheme.of(context).displaySmall.override(
+                          fontFamily:
+                              FlutterFlowTheme.of(context).displaySmallFamily,
+                          color: Colors.black,
+                          fontSize: 24.0,
+                          letterSpacing: 0.0,
+                          fontWeight: FontWeight.w700,
+                          lineHeight: 1.2,
+                          useGoogleFonts: !FlutterFlowTheme.of(context)
+                              .displaySmallIsCustom,
                         ),
-                      },
-                    );
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 6),
-                    child: Text(
-                      FFLocalizations.of(context).getText('nb_signin_register'),
-                      style: FlutterFlowTheme.of(context).bodyMedium.override(
-                            fontFamily:
-                                FlutterFlowTheme.of(context).bodyMediumFamily,
-                            fontSize: 16.0,
-                            color: FlutterFlowTheme.of(context).primary,
-                            letterSpacing: 0,
-                            fontWeight: FontWeight.w600,
-                            useGoogleFonts: !FlutterFlowTheme.of(context)
-                                .bodyMediumIsCustom,
-                          ),
-                    ),
-                  ),
-                ).animate().fadeIn(delay: 450.ms, duration: 400.ms),
+                  )
+                      .animate()
+                      .fadeIn(delay: 150.ms, duration: 500.ms)
+                      .slideY(begin: 0.15, end: 0, duration: 500.ms),
 
-                const SizedBox(height: 32),
-              ],
+                  const SizedBox(height: 16),
+
+                  // ── Subtitle ──
+
+                  Text(
+                    FFLocalizations.of(context).getText('nb_subtitle'),
+                    textAlign: TextAlign.center,
+                    style: FlutterFlowTheme.of(context).bodyLarge.override(
+                          fontFamily:
+                              FlutterFlowTheme.of(context).bodyLargeFamily,
+                          fontSize: 16.0,
+                          color: Colors.black,
+                          letterSpacing: 0.0,
+                          fontWeight: FontWeight.normal,
+                          lineHeight: 1.55,
+                          useGoogleFonts:
+                              !FlutterFlowTheme.of(context).bodyLargeIsCustom,
+                        ),
+                  )
+                      .animate()
+                      .fadeIn(delay: 250.ms, duration: 500.ms)
+                      .slideY(begin: 0.15, end: 0, duration: 500.ms),
+
+                  const Spacer(flex: 3),
+
+                  // ── Primary CTA ──
+
+                  AppButton(
+                    label: FFLocalizations.of(context).getText('nb_try_free'),
+                    trailingIcon: Icons.arrow_forward_rounded,
+                    onPressed: () {
+                      _tryAnonymously();
+                    },
+                  )
+                      .animate()
+                      .fadeIn(delay: 350.ms, duration: 400.ms)
+                      .slideY(begin: 0.2, end: 0, duration: 400.ms),
+
+                  const SizedBox(height: 16),
+
+                  // ── Secondary link ──
+
+                  GestureDetector(
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+
+                      // Use appNavigatorKey so navigation works even if this
+                      // widget's context was replaced after anonymous sign-in.
+                      final navCtx = appNavigatorKey.currentContext;
+                      if (navCtx == null) return;
+                      navCtx.goNamed(
+                        LogInPageWidget.routeName,
+                        extra: <String, dynamic>{
+                          '__transition_info__': TransitionInfo(
+                            hasTransition: true,
+                            transitionType: PageTransitionType.fade,
+                          ),
+                        },
+                      );
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: Text(
+                        FFLocalizations.of(context)
+                            .getText('nb_signin_register'),
+                        style: FlutterFlowTheme.of(context).bodyMedium.override(
+                              fontFamily:
+                                  FlutterFlowTheme.of(context).bodyMediumFamily,
+                              fontSize: 16.0,
+                              color: FlutterFlowTheme.of(context).primary,
+                              letterSpacing: 0,
+                              fontWeight: FontWeight.w600,
+                              useGoogleFonts: !FlutterFlowTheme.of(context)
+                                  .bodyMediumIsCustom,
+                            ),
+                      ),
+                    ),
+                  ).animate().fadeIn(delay: 450.ms, duration: 400.ms),
+
+                  const SizedBox(height: 32),
+                ],
+              ),
             ),
           ),
         ),

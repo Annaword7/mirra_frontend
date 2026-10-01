@@ -12,6 +12,7 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/design_system/components/app_button.dart';
 import '/design_system/components/product_tile.dart';
+import '/design_system/foundations/layout.dart';
 import '/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -689,7 +690,7 @@ class _TopratedWidgetState extends State<TopratedWidget> {
                                         physics: const NeverScrollableScrollPhysics(),
                                         gridDelegate:
                                             SliverSimpleGridDelegateWithFixedCrossAxisCount(
-                                          crossAxisCount: 2,
+                                          crossAxisCount: gridColumns(context),
                                         ),
                                         crossAxisSpacing: 10.0,
                                         mainAxisSpacing: 10.0,
@@ -750,7 +751,7 @@ class _TopratedWidgetState extends State<TopratedWidget> {
                                     padding: EdgeInsets.zero,
                                     gridDelegate:
                                         SliverSimpleGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: 2,
+                                      crossAxisCount: gridColumns(context),
                                     ),
                                     crossAxisSpacing: 10.0,
                                     mainAxisSpacing: 10.0,

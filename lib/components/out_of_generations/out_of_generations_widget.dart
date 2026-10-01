@@ -6,6 +6,7 @@ import '/flutter_flow/flutter_flow_util.dart';
 import '/design_system/components/app_button.dart';
 import '/design_system/components/mirra_bottom_sheet.dart';
 import '/index.dart';
+import '/paywall/show_paywall.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
@@ -140,7 +141,8 @@ class _OutOfGenerationsWidgetState extends State<OutOfGenerationsWidget>
                         .trackPremiumTap(
                             from: 'out_of_generations'));
 
-                    context.pushNamed(PaywallpageWidget.routeName);
+                    unawaited(
+                        showPaywall(context, from: 'out_of_generations'));
 
                     Navigator.pop(context);
                   },

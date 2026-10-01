@@ -14,6 +14,7 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/design_system/components/app_button.dart';
 import '/design_system/components/screen_loader.dart';
+import '/design_system/components/constrained_content.dart';
 import '/item_card/deleteitem/deleteitem_widget.dart';
 import '/item_card/ingridients/ingridients_widget.dart';
 import '/components/product_card_v2/product_card_v2_widget.dart';
@@ -24,6 +25,7 @@ import '/topratings/copyitem/copyitem_widget.dart';
 import '/topratings/makeprivate/makeprivate_widget.dart';
 import '/topratings/makepublic/makepublic_widget.dart';
 import '/index.dart';
+import '/paywall/show_paywall.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_blurhash/flutter_blurhash.dart';
@@ -33,6 +35,12 @@ import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'itemcard2_model.dart';
 export 'itemcard2_model.dart';
+
+/// После какого по счёту удачного разбора предлагать подписку на карточке
+/// результата. Совпадает с бесплатной квотой (app_config.free_scan_limit = 5):
+/// пятый разбор — последний бесплатный, и карточка с его результатом — последний
+/// момент продать до того, как упрёмся в стену на шестом.
+const int _kSoftPaywallAfterScans = 5;
 
 class Itemcard2Widget extends StatefulWidget {
   const Itemcard2Widget({
@@ -115,15 +123,15 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
         }
       }
 
-      // First result ever: offer the subscription once, dismissibly. This is
-      // the only moment where the product has already proved itself and
-      // nothing has been asked for yet — the quota wall comes much later, and
-      // most users never reach it. Own scans only: a shared link opened by a
-      // stranger is not a moment to sell.
+      // Карточка последнего бесплатного разбора: предлагаем подписку один раз,
+      // мягко. К этому моменту продукт показал себя пять раз, а квота как раз
+      // кончилась — следующий тап по камере упрётся в стену. Свои разборы
+      // только: чужая ссылка, открытая посторонним, — не повод продавать.
       if (!mounted) return;
       final softState = context.read<FFAppState>();
       if (!softState.softPaywallShown &&
           !softState.isprouser &&
+          softState.successfulScans >= _kSoftPaywallAfterScans &&
           _model.imageraw?.firstOrNull?.user == currentUserUid) {
         softState.softPaywallShown = true;
         // Long enough to read the verdict and scroll the card a little before
@@ -131,24 +139,10 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
         await Future.delayed(const Duration(seconds: 5));
         if (!context.mounted) return;
         unawaited(AnalyticsService.instance
-            .trackUpgradePromptShown(trigger: 'first_result'));
-        // A sheet, not the full-screen route: this is the soft ask, the card
-        // stays visible behind it and a swipe down dismisses it. The paywall
-        // widget itself is unchanged, so the purchase flow and its analytics
-        // live in one place instead of being reimplemented for the sheet.
-        await showModalBottomSheet<void>(
-          context: context,
-          isScrollControlled: true,
-          backgroundColor: Colors.transparent,
-          builder: (_) => FractionallySizedBox(
-            heightFactor: 0.92,
-            child: ClipRRect(
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(24)),
-              child: const PaywallpageWidget(),
-            ),
-          ),
-        );
+            .trackUpgradePromptShown(trigger: 'fifth_result'));
+        // Мягкая подача листом: карточка остаётся видна за ним, свайп вниз
+        // закрывает.
+        await showPaywall(context, from: 'fifth_result', asSheet: true);
         // The feedback prompt below would stack a second modal on top of the
         // paywall. It keeps its pending flag and gets the next scan instead.
         return;
@@ -286,7 +280,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
       if (!context.mounted) return;
       unawaited(AnalyticsService.instance
           .trackPremiumTap(from: 'bag_add_from_card'));
-      context.pushNamed(PaywallpageWidget.routeName);
+      unawaited(showPaywall(context, from: 'bag_add_from_card'));
       return;
     }
     int? targetId = widget.imageid;
@@ -1030,290 +1024,304 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
                             ),
                           ],
                         ),
-                        if (_model.imageraw?.firstOrNull?.saCompositeScore ==
-                            null)
-                          _buildPendingPlaceholder(context)
-                        else ...[
-                          // ── Разбор: вердикт, беременность, свой фит, риски,
-                          // активы, обещания и «разбор глубже». Порядок и
-                          // сворачивание — внутри ProductCardV2Widget.
-                          if (_model.imageraw?.firstOrNull != null)
-                            ProductCardV2Widget(
-                              image: _model.imageraw!.first,
-                              skinCompatibility:
-                                  _model.skinCompabilityRaw ?? const [],
-                              topIngredients:
-                                  _model.topIngredientsRaw ?? const [],
-                              ingredientIssues:
-                                  _model.ingredientIssuesRaw ?? const [],
-                              userSkinType: _model.userSkinType,
-                              userIsSensitive: _model.userIsSensitive,
-                              userIsAcneProne: _model.userIsAcneProne,
-                              isPro: true,
-                              pregnancyRelevant:
-                                  _model.profileRow?.pregnancyStatus ==
-                                      ClientCardService.pregnantOrNursing,
-                              // Профиль не заполнен — вердикт посчитан по всем
-                              // типам кожи. Предлагаем это исправить сразу под
-                              // ним, а не до него: сначала ответ, потом анкета.
-                              profileCta: (_model.userSkinType ?? '').isEmpty
-                                  ? Padding(
-                                      padding:
-                                          const EdgeInsetsDirectional.fromSTEB(
-                                              16, 12, 16, 0),
-                                      child: ProfileSummaryCard(
-                                        profileRow: _model.profileRow,
-                                        // Вместе с imageid: по одному имени
-                                        // маршрута анкета вернула бы на
-                                        // карточку без товара.
-                                        returnTo: widget.imageid == null
-                                            ? null
-                                            : context.namedLocation(
-                                                Itemcard2Widget.routeName,
-                                                queryParameters: {
-                                                  'imageid': serializeParam(
-                                                      widget.imageid,
-                                                      ParamType.int)!,
-                                                },
+                        // Секции разбора стоят колонкой не шире
+                        // kContentMaxWidth; шапка выше (фото и название)
+                        // остаётся во всю ширину iPad.
+                        ConstrainedContent(
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (_model.imageraw?.firstOrNull?.saCompositeScore ==
+                                    null)
+                                  _buildPendingPlaceholder(context)
+                                else ...[
+                                  // ── Разбор: вердикт, беременность, свой фит, риски,
+                                  // активы, обещания и «разбор глубже». Порядок и
+                                  // сворачивание — внутри ProductCardV2Widget.
+                                  if (_model.imageraw?.firstOrNull != null)
+                                    ProductCardV2Widget(
+                                      image: _model.imageraw!.first,
+                                      skinCompatibility:
+                                          _model.skinCompabilityRaw ?? const [],
+                                      topIngredients:
+                                          _model.topIngredientsRaw ?? const [],
+                                      ingredientIssues:
+                                          _model.ingredientIssuesRaw ?? const [],
+                                      userSkinType: _model.userSkinType,
+                                      userIsSensitive: _model.userIsSensitive,
+                                      userIsAcneProne: _model.userIsAcneProne,
+                                      isPro: true,
+                                      pregnancyRelevant:
+                                          _model.profileRow?.pregnancyStatus ==
+                                              ClientCardService.pregnantOrNursing,
+                                      // Профиль не заполнен — вердикт посчитан по всем
+                                      // типам кожи. Предлагаем это исправить сразу под
+                                      // ним, а не до него: сначала ответ, потом анкета.
+                                      profileCta: (_model.userSkinType ?? '').isEmpty
+                                          ? Padding(
+                                              padding:
+                                                  const EdgeInsetsDirectional.fromSTEB(
+                                                      16, 12, 16, 0),
+                                              child: ProfileSummaryCard(
+                                                profileRow: _model.profileRow,
+                                                // Вместе с imageid: по одному имени
+                                                // маршрута анкета вернула бы на
+                                                // карточку без товара.
+                                                returnTo: widget.imageid == null
+                                                    ? null
+                                                    : context.namedLocation(
+                                                        Itemcard2Widget.routeName,
+                                                        queryParameters: {
+                                                          'imageid': serializeParam(
+                                                              widget.imageid,
+                                                              ParamType.int)!,
+                                                        },
+                                                      ),
                                               ),
-                                      ),
-                                    )
-                                  : null,
-                              // Состав, радар и экспертный текст — под «разбор
-                              // глубже»: 1265 px, которые читают единицы.
-                              deepExtras: [
-                                _buildIngredients(context),
-                                _buildExpertAnalysis(context),
-                              ],
-                            ),
-                          // ── SPF block (all users, only when product contains UV filters) ──
-                          Builder(builder: (context) {
-                            final raw = _model.imageraw?.firstOrNull;
-                            if (raw == null || !raw.saHasSpf) {
-                              return const SizedBox.shrink();
-                            }
-                            final log = raw.saScoringLog;
-                            final spfInfo =
-                                (log is Map) ? log['spf_info'] as Map? : null;
-                            final filterType =
-                                spfInfo?['filter_type'] as String? ?? '';
-                            final broadSpectrum =
-                                spfInfo?['broad_spectrum'] == true;
-                            final filters = (spfInfo?['filters'] as List?)
-                                    ?.map((f) => f['name'] as String? ?? '')
-                                    .where((n) => n.isNotEmpty)
-                                    .toList() ??
-                                [];
-
-                            String filterTypeLabel() {
-                              final loc = FFLocalizations.of(context);
-                              if (filterType == 'mineral')
-                                return loc.getText('ic2_filter_mineral');
-                              if (filterType == 'chemical')
-                                return loc.getText('ic2_filter_chemical');
-                              return loc.getText('ic2_filter_combined');
-                            }
-
-                            return Padding(
-                              padding: const EdgeInsetsDirectional.fromSTEB(
-                                  16.0, 16.0, 16.0, 0.0),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFE8F4FD),
-                                  borderRadius: BorderRadius.circular(20.0),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                      blurRadius: 8.0,
-                                      color: Color(0x1A000000),
-                                      offset: Offset(0.0, 2.0),
+                                            )
+                                          : null,
+                                      // Состав, радар и экспертный текст — под «разбор
+                                      // глубже»: 1265 px, которые читают единицы.
+                                      deepExtras: [
+                                        _buildIngredients(context),
+                                        _buildExpertAnalysis(context),
+                                      ],
                                     ),
-                                  ],
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 16.0, vertical: 16.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      // Header row: badge + title
-                                      Row(
-                                        children: [
-                                          Container(
-                                            decoration: BoxDecoration(
-                                              color: const Color(0xFF1565C0),
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
+                                  // ── SPF block (all users, only when product contains UV filters) ──
+                                  Builder(builder: (context) {
+                                    final raw = _model.imageraw?.firstOrNull;
+                                    if (raw == null || !raw.saHasSpf) {
+                                      return const SizedBox.shrink();
+                                    }
+                                    final log = raw.saScoringLog;
+                                    final spfInfo =
+                                        (log is Map) ? log['spf_info'] as Map? : null;
+                                    final filterType =
+                                        spfInfo?['filter_type'] as String? ?? '';
+                                    final broadSpectrum =
+                                        spfInfo?['broad_spectrum'] == true;
+                                    final filters = (spfInfo?['filters'] as List?)
+                                            ?.map((f) => f['name'] as String? ?? '')
+                                            .where((n) => n.isNotEmpty)
+                                            .toList() ??
+                                        [];
+        
+                                    String filterTypeLabel() {
+                                      final loc = FFLocalizations.of(context);
+                                      if (filterType == 'mineral')
+                                        return loc.getText('ic2_filter_mineral');
+                                      if (filterType == 'chemical')
+                                        return loc.getText('ic2_filter_chemical');
+                                      return loc.getText('ic2_filter_combined');
+                                    }
+        
+                                    return Padding(
+                                      padding: const EdgeInsetsDirectional.fromSTEB(
+                                          16.0, 16.0, 16.0, 0.0),
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFE8F4FD),
+                                          borderRadius: BorderRadius.circular(20.0),
+                                          boxShadow: const [
+                                            BoxShadow(
+                                              blurRadius: 8.0,
+                                              color: Color(0x1A000000),
+                                              offset: Offset(0.0, 2.0),
                                             ),
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 10, vertical: 5),
-                                            child: const Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Icon(Icons.wb_sunny_rounded,
-                                                    size: 14,
-                                                    color: Colors.white),
-                                                SizedBox(width: 5),
-                                                Text(
-                                                  'SPF',
-                                                  style: TextStyle(
-                                                    fontSize: 13,
-                                                    fontWeight: FontWeight.w700,
-                                                    color: Colors.white,
-                                                    letterSpacing: 0.5,
+                                          ],
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 16.0, vertical: 16.0),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              // Header row: badge + title
+                                              Row(
+                                                children: [
+                                                  Container(
+                                                    decoration: BoxDecoration(
+                                                      color: const Color(0xFF1565C0),
+                                                      borderRadius:
+                                                          BorderRadius.circular(8),
+                                                    ),
+                                                    padding: const EdgeInsets.symmetric(
+                                                        horizontal: 10, vertical: 5),
+                                                    child: const Row(
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      children: [
+                                                        Icon(Icons.wb_sunny_rounded,
+                                                            size: 14,
+                                                            color: Colors.white),
+                                                        SizedBox(width: 5),
+                                                        Text(
+                                                          'SPF',
+                                                          style: TextStyle(
+                                                            fontSize: 13,
+                                                            fontWeight: FontWeight.w700,
+                                                            color: Colors.white,
+                                                            letterSpacing: 0.5,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
                                                   ),
+                                                  const SizedBox(width: 12),
+                                                  Text(
+                                                    FFLocalizations.of(context)
+                                                        .getText('ic2_uv_protection'),
+                                                    style: FlutterFlowTheme.of(context)
+                                                        .bodyMedium
+                                                        .override(
+                                                          fontFamily:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMediumFamily,
+                                                          fontSize: 16.0,
+                                                          fontWeight: FontWeight.w700,
+                                                          letterSpacing: 0.0,
+                                                          useGoogleFonts:
+                                                              !FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .bodyMediumIsCustom,
+                                                        ),
+                                                  ),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 12),
+                                              // Legend rows
+                                              _SpfLegendRow(
+                                                icon: Icons.science_rounded,
+                                                label: FFLocalizations.of(context)
+                                                    .getText('ic2_filter_type'),
+                                                value: filterTypeLabel(),
+                                              ),
+                                              const SizedBox(height: 6),
+                                              _SpfLegendRow(
+                                                icon: broadSpectrum
+                                                    ? Icons.check_circle_rounded
+                                                    : Icons.radio_button_unchecked,
+                                                iconColor: broadSpectrum
+                                                    ? const Color(0xFF2E7D32)
+                                                    : null,
+                                                label: FFLocalizations.of(context)
+                                                    .getText('ic2_broad_spectrum'),
+                                                value: '',
+                                              ),
+                                              if (filters.isNotEmpty) ...[
+                                                const SizedBox(height: 6),
+                                                _SpfLegendRow(
+                                                  icon: Icons.list_rounded,
+                                                  label: FFLocalizations.of(context)
+                                                      .getText('ic2_filters'),
+                                                  value: filters.join(', '),
                                                 ),
                                               ],
-                                            ),
+                                            ],
                                           ),
-                                          const SizedBox(width: 12),
-                                          Text(
-                                            FFLocalizations.of(context)
-                                                .getText('ic2_uv_protection'),
-                                            style: FlutterFlowTheme.of(context)
-                                                .bodyMedium
-                                                .override(
-                                                  fontFamily:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMediumFamily,
-                                                  fontSize: 16.0,
-                                                  fontWeight: FontWeight.w700,
-                                                  letterSpacing: 0.0,
-                                                  useGoogleFonts:
-                                                      !FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMediumIsCustom,
-                                                ),
+                                        ),
+                                      ),
+                                    );
+                                  }),
+                                  Padding(
+                                    padding: EdgeInsetsDirectional.fromSTEB(
+                                        16.0, 16.0, 16.0, 0.0),
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFF5F8FF),
+                                        borderRadius: BorderRadius.circular(24.0),
+                                        border: Border(
+                                          left: BorderSide(
+                                            color: FlutterFlowTheme.of(context).primary,
+                                            width: 4.0,
+                                          ),
+                                        ),
+                                        boxShadow: const [
+                                          BoxShadow(
+                                            blurRadius: 8.0,
+                                            color: Color(0x14000000),
+                                            offset: Offset(0.0, 2.0),
                                           ),
                                         ],
                                       ),
-                                      const SizedBox(height: 12),
-                                      // Legend rows
-                                      _SpfLegendRow(
-                                        icon: Icons.science_rounded,
-                                        label: FFLocalizations.of(context)
-                                            .getText('ic2_filter_type'),
-                                        value: filterTypeLabel(),
-                                      ),
-                                      const SizedBox(height: 6),
-                                      _SpfLegendRow(
-                                        icon: broadSpectrum
-                                            ? Icons.check_circle_rounded
-                                            : Icons.radio_button_unchecked,
-                                        iconColor: broadSpectrum
-                                            ? const Color(0xFF2E7D32)
-                                            : null,
-                                        label: FFLocalizations.of(context)
-                                            .getText('ic2_broad_spectrum'),
-                                        value: '',
-                                      ),
-                                      if (filters.isNotEmpty) ...[
-                                        const SizedBox(height: 6),
-                                        _SpfLegendRow(
-                                          icon: Icons.list_rounded,
-                                          label: FFLocalizations.of(context)
-                                              .getText('ic2_filters'),
-                                          value: filters.join(', '),
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            );
-                          }),
-                          Padding(
-                            padding: EdgeInsetsDirectional.fromSTEB(
-                                16.0, 16.0, 16.0, 0.0),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF5F8FF),
-                                borderRadius: BorderRadius.circular(24.0),
-                                border: Border(
-                                  left: BorderSide(
-                                    color: FlutterFlowTheme.of(context).primary,
-                                    width: 4.0,
-                                  ),
-                                ),
-                                boxShadow: const [
-                                  BoxShadow(
-                                    blurRadius: 8.0,
-                                    color: Color(0x14000000),
-                                    offset: Offset(0.0, 2.0),
-                                  ),
-                                ],
-                              ),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.max,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Padding(
-                                    padding: EdgeInsetsDirectional.fromSTEB(
-                                        12.0, 16.0, 16.0, 16.0),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.max,
-                                      children: [
-                                        Icon(
-                                          Icons.lightbulb_circle,
-                                          color: FlutterFlowTheme.of(context)
-                                              .primary,
-                                          size: 30.0,
-                                        ),
-                                        Text(
-                                          FFLocalizations.of(context).getText(
-                                            'sdd57mig' /* How to use */,
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.max,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Padding(
+                                            padding: EdgeInsetsDirectional.fromSTEB(
+                                                12.0, 16.0, 16.0, 16.0),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.max,
+                                              children: [
+                                                Icon(
+                                                  Icons.lightbulb_circle,
+                                                  color: FlutterFlowTheme.of(context)
+                                                      .primary,
+                                                  size: 30.0,
+                                                ),
+                                                Text(
+                                                  FFLocalizations.of(context).getText(
+                                                    'sdd57mig' /* How to use */,
+                                                  ),
+                                                  style: FlutterFlowTheme.of(context)
+                                                      .bodyMedium
+                                                      .override(
+                                                        fontFamily:
+                                                            FlutterFlowTheme.of(context)
+                                                                .bodyMediumFamily,
+                                                        fontSize: 18.0,
+                                                        letterSpacing: 0.0,
+                                                        fontWeight: FontWeight.w700,
+                                                        useGoogleFonts:
+                                                            !FlutterFlowTheme.of(
+                                                                    context)
+                                                                .bodyMediumIsCustom,
+                                                      ),
+                                                ),
+                                              ].divide(SizedBox(width: 12.0)),
+                                            ),
                                           ),
-                                          style: FlutterFlowTheme.of(context)
-                                              .bodyMedium
-                                              .override(
-                                                fontFamily:
-                                                    FlutterFlowTheme.of(context)
-                                                        .bodyMediumFamily,
-                                                fontSize: 18.0,
-                                                letterSpacing: 0.0,
-                                                fontWeight: FontWeight.w700,
-                                                useGoogleFonts:
-                                                    !FlutterFlowTheme.of(
-                                                            context)
-                                                        .bodyMediumIsCustom,
+                                          Padding(
+                                            padding: EdgeInsetsDirectional.fromSTEB(
+                                                12.0, 0.0, 16.0, 16.0),
+                                            child: Text(
+                                              valueOrDefault<String>(
+                                                _model
+                                                    .imageraw?.firstOrNull?.saHowToUse,
+                                                '-',
                                               ),
-                                        ),
-                                      ].divide(SizedBox(width: 12.0)),
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: EdgeInsetsDirectional.fromSTEB(
-                                        12.0, 0.0, 16.0, 16.0),
-                                    child: Text(
-                                      valueOrDefault<String>(
-                                        _model
-                                            .imageraw?.firstOrNull?.saHowToUse,
-                                        '-',
-                                      ),
-                                      style: FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .override(
-                                            fontFamily:
-                                                FlutterFlowTheme.of(context)
-                                                    .bodyMediumFamily,
-                                            letterSpacing: 0.0,
-                                            useGoogleFonts:
-                                                !FlutterFlowTheme.of(context)
-                                                    .bodyMediumIsCustom,
+                                              style: FlutterFlowTheme.of(context)
+                                                  .bodyMedium
+                                                  .override(
+                                                    fontFamily:
+                                                        FlutterFlowTheme.of(context)
+                                                            .bodyMediumFamily,
+                                                    letterSpacing: 0.0,
+                                                    useGoogleFonts:
+                                                        !FlutterFlowTheme.of(context)
+                                                            .bodyMediumIsCustom,
+                                                  ),
+                                            ),
                                           ),
+                                        ],
+                                      ),
                                     ),
                                   ),
-                                ],
-                              ),
+                                  // Trailing bottom spacer so the last block (e.g. "How
+                                  // to use" for pro users) is fully visible; extra height
+                                  // for the anonymous sticky save-banner.
+                                  SizedBox(
+                                      height: currentUserIsAnonymous ? 80.0 : 40.0),
+                                ], // end of analysis sections
+                              ],
                             ),
                           ),
-                          // Trailing bottom spacer so the last block (e.g. "How
-                          // to use" for pro users) is fully visible; extra height
-                          // for the anonymous sticky save-banner.
-                          SizedBox(
-                              height: currentUserIsAnonymous ? 80.0 : 40.0),
-                        ], // end of analysis sections
+                        ),
                       ],
                     ),
                   ),

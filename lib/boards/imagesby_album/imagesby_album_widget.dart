@@ -5,6 +5,7 @@ import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/design_system/components/product_tile.dart';
+import '/design_system/foundations/layout.dart';
 import '/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
@@ -206,9 +207,6 @@ class _ImagesbyAlbumWidgetState extends State<ImagesbyAlbumWidget> {
               child: Container(
                 width: MediaQuery.sizeOf(context).width * 1.0,
                 height: MediaQuery.sizeOf(context).height * 1.0,
-                constraints: BoxConstraints(
-                  maxWidth: 600.0,
-                ),
                 decoration: BoxDecoration(),
                 child: Padding(
                   padding: EdgeInsets.all(16.0),
@@ -267,7 +265,7 @@ class _ImagesbyAlbumWidgetState extends State<ImagesbyAlbumWidget> {
                       return MasonryGridView.builder(
                         gridDelegate:
                             SliverSimpleGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
+                          crossAxisCount: gridColumns(context),
                         ),
                         crossAxisSpacing: 10.0,
                         mainAxisSpacing: 10.0,

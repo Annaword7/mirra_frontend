@@ -2,6 +2,7 @@ import 'dart:async';
 
 import '/design_system/foundations/image_thumb.dart';
 import '/design_system/components/screen_loader.dart';
+import '/design_system/components/constrained_content.dart';
 import '/backend/supabase/database/database.dart';
 import '/components/navbar/navbar_widget.dart';
 import '/design_system/components/app_button.dart';
@@ -267,55 +268,57 @@ class _RoutineWidgetState extends State<RoutineWidget> {
                     if (mounted) _load();
                   },
                 )
-              : Column(
-                  children: [
-                    _DaySelector(
-                      labels: _weekdayLabels,
-                      selected: _selectedDay,
-                      onSelect: (d) {
-                        unawaited(AnalyticsService.instance
-                            .trackRoutineDay(day: '$d'));
-                        setState(() => _selectedDay = d);
-                      },
-                      primary: theme.primary,
-                    ),
-                    Expanded(
-                      child: ListView(
-                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 130),
-                        children: [
-                          _Section(
-                            title: _t('cb_sec_am'),
-                            icon: Icons.wb_sunny_rounded,
-                            imageIds: _sectionItems('am'),
-                            images: _images,
-                            prescriptionOf: _prescriptionByImage,
-                            primary: theme.primary,
-                            pushOn: app.carePushAm,
-                            pushLabel: _t('care_push_toggle'),
-                            onTogglePush: (v) => _togglePush('am', v),
-                            onTapItem: (id) => _openSheet(id, 'am'),
-                            emptyText: _t('cb_routine_day_empty'),
-                            freqTemplate: _t('care_freq_week'),
-                          ),
-                          const SizedBox(height: 20),
-                          _Section(
-                            title: _t('cb_sec_pm'),
-                            icon: Icons.nightlight_round,
-                            imageIds: _sectionItems('pm'),
-                            images: _images,
-                            prescriptionOf: _prescriptionByImage,
-                            primary: theme.primary,
-                            pushOn: app.carePushPm,
-                            pushLabel: _t('care_push_toggle'),
-                            onTogglePush: (v) => _togglePush('pm', v),
-                            onTapItem: (id) => _openSheet(id, 'pm'),
-                            emptyText: _t('cb_routine_day_empty'),
-                            freqTemplate: _t('care_freq_week'),
-                          ),
-                        ],
+              : ConstrainedContent(
+                  child: Column(
+                    children: [
+                      _DaySelector(
+                        labels: _weekdayLabels,
+                        selected: _selectedDay,
+                        onSelect: (d) {
+                          unawaited(AnalyticsService.instance
+                              .trackRoutineDay(day: '$d'));
+                          setState(() => _selectedDay = d);
+                        },
+                        primary: theme.primary,
                       ),
-                    ),
-                  ],
+                      Expanded(
+                        child: ListView(
+                          padding: const EdgeInsets.fromLTRB(20, 8, 20, 130),
+                          children: [
+                            _Section(
+                              title: _t('cb_sec_am'),
+                              icon: Icons.wb_sunny_rounded,
+                              imageIds: _sectionItems('am'),
+                              images: _images,
+                              prescriptionOf: _prescriptionByImage,
+                              primary: theme.primary,
+                              pushOn: app.carePushAm,
+                              pushLabel: _t('care_push_toggle'),
+                              onTogglePush: (v) => _togglePush('am', v),
+                              onTapItem: (id) => _openSheet(id, 'am'),
+                              emptyText: _t('cb_routine_day_empty'),
+                              freqTemplate: _t('care_freq_week'),
+                            ),
+                            const SizedBox(height: 20),
+                            _Section(
+                              title: _t('cb_sec_pm'),
+                              icon: Icons.nightlight_round,
+                              imageIds: _sectionItems('pm'),
+                              images: _images,
+                              prescriptionOf: _prescriptionByImage,
+                              primary: theme.primary,
+                              pushOn: app.carePushPm,
+                              pushLabel: _t('care_push_toggle'),
+                              onTogglePush: (v) => _togglePush('pm', v),
+                              onTapItem: (id) => _openSheet(id, 'pm'),
+                              emptyText: _t('cb_routine_day_empty'),
+                              freqTemplate: _t('care_freq_week'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
     );
   }

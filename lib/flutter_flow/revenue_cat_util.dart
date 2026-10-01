@@ -27,6 +27,7 @@ Future initialize(
   String webKey = '',
   bool debugLogEnabled = false,
   bool loadDataAfterLaunch = false,
+  String? preferredUILocale,
 }) async {
   try {
     // Set log level before configuration
@@ -53,6 +54,12 @@ Future initialize(
       print("RevenueCat is not supported on this platform.");
       return;
     }
+
+    // Пейволы RevenueCat рисуются нативно и по умолчанию берут язык системы, а
+    // язык приложения выбирается у нас. Без этого человек с русским
+    // интерфейсом на англоязычном телефоне увидел бы английский пейвол.
+    // null — язык в приложении не выбирали, тогда системный и есть верный.
+    configuration.preferredUILocaleOverride = preferredUILocale;
 
     await Purchases.configure(configuration);
     _isConfigured = true;
@@ -102,6 +109,20 @@ Future<bool> purchasePackage(String package) async {
       FirebaseCrashlytics.instance.recordError(e, s, fatal: false, reason: 'purchasePackage failed');
     }
     return false;
+  }
+}
+
+/// Язык пейволов RevenueCat после смены языка в приложении. Сбрасывает кэш
+/// офферингов: SDK перезапрашивает шаблоны с переводами на новый язык.
+Future<void> setPreferredUILocale(String? locale) async {
+  if (!_isConfigured) {
+    return;
+  }
+  try {
+    await Purchases.overridePreferredUILocale(locale);
+  } on Exception catch (e, s) {
+    FirebaseCrashlytics.instance.recordError(e, s,
+        fatal: false, reason: 'overridePreferredUILocale failed');
   }
 }
 

@@ -6,6 +6,7 @@ import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/design_system/components/app_text_field.dart';
 import '/design_system/components/app_button.dart';
+import '/design_system/components/constrained_content.dart';
 import 'dart:async';
 import '/index.dart';
 import 'package:flutter/material.dart';
@@ -461,23 +462,25 @@ class _LogInPageWidgetState extends State<LogInPageWidget>
           ),
           body: SafeArea(
             top: true,
-            child: Column(
-              children: [
-                Expanded(
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: [
-                      _authForm(isRegister: false),
-                      _authForm(isRegister: true),
-                    ],
+            child: ConstrainedContent(
+              child: Column(
+                children: [
+                  Expanded(
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        _authForm(isRegister: false),
+                        _authForm(isRegister: true),
+                      ],
+                    ),
                   ),
-                ),
-                Padding(
-                  padding: EdgeInsets.fromLTRB(theme.space.s24, theme.space.s8,
-                      theme.space.s24, theme.space.s12),
-                  child: _termsFooter(),
-                ),
-              ],
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(theme.space.s24, theme.space.s8,
+                        theme.space.s24, theme.space.s12),
+                    child: _termsFooter(),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

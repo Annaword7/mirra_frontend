@@ -18,6 +18,11 @@ Future<void> fetchRemoteConfig() async {
       final val = int.tryParse(map['free_scan_limit']!);
       if (val != null && val > 0) FFAppState().freeScanLimit = val;
     }
+
+    if (map.containsKey('rc_paywall_enabled')) {
+      final val = map['rc_paywall_enabled']!.trim().toLowerCase();
+      FFAppState().rcPaywallEnabled = val == 'true' || val == '1';
+    }
   } catch (e) {
     debugPrint('[RemoteConfig] ❌ fetch failed: $e');
   }

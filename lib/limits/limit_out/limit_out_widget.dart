@@ -4,6 +4,7 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/design_system/components/app_button.dart';
 import '/index.dart';
+import '/paywall/show_paywall.dart';
 import 'package:flutter/material.dart';
 import 'limit_out_model.dart';
 export 'limit_out_model.dart';
@@ -129,7 +130,7 @@ class _LimitOutWidgetState extends State<LimitOutWidget> {
                         unawaited(AnalyticsService.instance
                             .trackPremiumTap(from: 'scan_limit'));
                         Navigator.pop(context);
-                        context.pushNamed(PaywallpageWidget.routeName);
+                        unawaited(showPaywall(context, from: 'scan_limit'));
                       },
                     ),
                 ],

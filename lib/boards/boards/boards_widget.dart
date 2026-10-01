@@ -10,6 +10,7 @@ import '/components/new_album/new_album_widget.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/design_system/components/app_button.dart';
+import '/design_system/foundations/layout.dart';
 import '/index.dart';
 import 'package:flutter/material.dart';
 import 'boards_model.dart';
@@ -186,7 +187,7 @@ class _BoardsWidgetState extends State<BoardsWidget> {
                               padding: EdgeInsets.zero,
                               gridDelegate:
                                   SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
+                                crossAxisCount: gridColumns(context),
                                 crossAxisSpacing: 12.0,
                                 mainAxisSpacing: 12.0,
                                 childAspectRatio: 0.87,

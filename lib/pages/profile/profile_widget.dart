@@ -10,9 +10,11 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/design_system/components/app_button.dart';
 import '/design_system/components/settings_row.dart';
+import '/design_system/components/constrained_content.dart';
 import '/flutter_flow/revenue_cat_util.dart' as revenue_cat;
 import '/environment_values.dart';
 import '/index.dart';
+import '/paywall/show_paywall.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
@@ -113,416 +115,418 @@ class _ProfileWidgetState extends State<ProfileWidget> {
             backgroundColor: FlutterFlowTheme.of(context).alternate,
             body: Stack(
               children: [
-                Padding(
-                  padding: EdgeInsetsDirectional.fromSTEB(0.0, 64.0, 0.0, 0.0),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        if (FFDevEnvironmentValues.isNonProd)
-                          Padding(
-                            padding: EdgeInsetsDirectional.fromSTEB(
-                                0.0, 0.0, 0.0, 12.0),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8.0, vertical: 3.0),
+                ConstrainedContent(
+                  child: Padding(
+                    padding: EdgeInsetsDirectional.fromSTEB(0.0, 64.0, 0.0, 0.0),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.max,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          if (FFDevEnvironmentValues.isNonProd)
+                            Padding(
+                              padding: EdgeInsetsDirectional.fromSTEB(
+                                  0.0, 0.0, 0.0, 12.0),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8.0, vertical: 3.0),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xCCFF6B00),
+                                  borderRadius: BorderRadius.circular(6.0),
+                                ),
+                                child: Text(
+                                  FFDevEnvironmentValues.envLabel,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12.0,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          if (currentUserIsAnonymous)
+                            _AnonHeader(context)
+                          else ...[
+                            Container(
+                              width: 120.0,
+                              height: 120.0,
                               decoration: BoxDecoration(
-                                color: const Color(0xCCFF6B00),
-                                borderRadius: BorderRadius.circular(6.0),
-                              ),
-                              child: Text(
-                                FFDevEnvironmentValues.envLabel,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12.0,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
-                            ),
-                          ),
-                        if (currentUserIsAnonymous)
-                          _AnonHeader(context)
-                        else ...[
-                          Container(
-                            width: 120.0,
-                            height: 120.0,
-                            decoration: BoxDecoration(
-                              color: FlutterFlowTheme.of(context).alternate,
-                              shape: BoxShape.circle,
-                              border: Border.all(
                                 color: FlutterFlowTheme.of(context).alternate,
-                              ),
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(240.0),
-                              child: Image.network(
-                                valueOrDefault<String>(
-                                  profileUsersRow?.profileImage,
-                                  'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: FlutterFlowTheme.of(context).alternate,
                                 ),
-                                // Аватар — снимок с камеры произвольного
-                                // размера, а рисуется в кружке 120pt. Без
-                                // предела он распаковывается целиком: 12 Мп
-                                // это ~48 МБ на одну картинку.
-                                cacheWidth: 360,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(240.0),
+                                child: Image.network(
+                                  valueOrDefault<String>(
+                                    profileUsersRow?.profileImage,
+                                    'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
+                                  ),
+                                  // Аватар — снимок с камеры произвольного
+                                  // размера, а рисуется в кружке 120pt. Без
+                                  // предела он распаковывается целиком: 12 Мп
+                                  // это ~48 МБ на одну картинку.
+                                  cacheWidth: 360,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                                ),
                               ),
                             ),
-                          ),
+                            Padding(
+                              padding: EdgeInsetsDirectional.fromSTEB(
+                                  0.0, 12.0, 0.0, 0.0),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.max,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    valueOrDefault<String>(
+                                      '${profileUsersRow?.firstName ?? ''} ${profileUsersRow?.lastName ?? ''}'.trim(),
+                                      '-',
+                                    ),
+                                    style: FlutterFlowTheme.of(context)
+                                        .headlineMedium
+                                        .override(
+                                          fontFamily: FlutterFlowTheme.of(context)
+                                              .headlineMediumFamily,
+                                          letterSpacing: 0.0,
+                                          useGoogleFonts:
+                                              !FlutterFlowTheme.of(context)
+                                                  .headlineMediumIsCustom,
+                                        ),
+                                  ),
+                                  Text(
+                                    valueOrDefault<String>(
+                                      currentUserEmail,
+                                      'email@example.com',
+                                    ),
+                                    style: FlutterFlowTheme.of(context)
+                                        .bodyMedium
+                                        .override(
+                                          fontFamily: FlutterFlowTheme.of(context)
+                                              .bodyMediumFamily,
+                                          letterSpacing: 0.0,
+                                          useGoogleFonts:
+                                              !FlutterFlowTheme.of(context)
+                                                  .bodyMediumIsCustom,
+                                        ),
+                                  ),
+                                ].divide(SizedBox(height: 8.0)),
+                              ),
+                            ),
+                          ],
                           Padding(
                             padding: EdgeInsetsDirectional.fromSTEB(
-                                0.0, 12.0, 0.0, 0.0),
+                                16.0, 24.0, 16.0, 0.0),
                             child: Column(
                               mainAxisSize: MainAxisSize.max,
-                              crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                Text(
-                                  valueOrDefault<String>(
-                                    '${profileUsersRow?.firstName ?? ''} ${profileUsersRow?.lastName ?? ''}'.trim(),
-                                    '-',
+                                if (!FFAppState().isprouser)
+                                  SettingsRow(
+                                    icon: Icons.workspace_premium,
+                                    label: FFLocalizations.of(context)
+                                        .getText('1g4dikoz' /* Try premium */),
+                                    onTap: () {
+                                      unawaited(AnalyticsService.instance
+                                          .trackPremiumTap(
+                                              from: 'profile_try_premium'));
+                                      unawaited(showPaywall(context,
+                                          from: 'profile_try_premium'));
+                                    },
                                   ),
-                                  style: FlutterFlowTheme.of(context)
-                                      .headlineMedium
-                                      .override(
-                                        fontFamily: FlutterFlowTheme.of(context)
-                                            .headlineMediumFamily,
-                                        letterSpacing: 0.0,
-                                        useGoogleFonts:
-                                            !FlutterFlowTheme.of(context)
-                                                .headlineMediumIsCustom,
-                                      ),
-                                ),
-                                Text(
-                                  valueOrDefault<String>(
-                                    currentUserEmail,
-                                    'email@example.com',
+                                if (!currentUserIsAnonymous)
+                                  SettingsRow(
+                                    icon: Icons.edit_outlined,
+                                    label: FFLocalizations.of(context)
+                                        .getText('45rliy0n' /* Edit Profile */),
+                                    onTap: () {
+                                      unawaited(AnalyticsService.instance
+                                          .trackProfileEdit(from: 'profile'));
+                                      context.pushNamed(
+                                          EditProfileWidget.routeName);
+                                    },
                                   ),
-                                  style: FlutterFlowTheme.of(context)
-                                      .bodyMedium
-                                      .override(
-                                        fontFamily: FlutterFlowTheme.of(context)
-                                            .bodyMediumFamily,
-                                        letterSpacing: 0.0,
-                                        useGoogleFonts:
-                                            !FlutterFlowTheme.of(context)
-                                                .bodyMediumIsCustom,
-                                      ),
-                                ),
-                              ].divide(SizedBox(height: 8.0)),
-                            ),
-                          ),
-                        ],
-                        Padding(
-                          padding: EdgeInsetsDirectional.fromSTEB(
-                              16.0, 24.0, 16.0, 0.0),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.max,
-                            children: [
-                              if (!FFAppState().isprouser)
+                                if (!currentUserIsAnonymous &&
+                                    FFAppState().showLinkTelegram)
+                                  SettingsRow(
+                                    icon: Icons.send_rounded,
+                                    label: FFLocalizations.of(context)
+                                        .getText('cm_link_telegram'),
+                                    onTap: () {
+                                      unawaited(AnalyticsService.instance
+                                          .trackLinkTelegram());
+                                      showModalBottomSheet<bool>(
+                                        context: context,
+                                        isScrollControlled: true,
+                                        backgroundColor: Colors.transparent,
+                                        builder: (_) => const LinkTelegramSheet(),
+                                      ).then((linked) {
+                                        // `true` отдаёт только кнопка
+                                        // «Привязать» внутри листа.
+                                        if (linked != true) {
+                                          unawaited(AnalyticsService.instance
+                                              .trackLinkTelegramSwipe());
+                                        }
+                                      });
+                                    },
+                                  ),
+                                if (!isWeb)
+                                  Builder(
+                                    builder: (context) => SettingsRow(
+                                      icon: Icons.share_outlined,
+                                      label: FFLocalizations.of(context)
+                                          .getText('0nawsp0z' /* Share */),
+                                      onTap: () {
+                                        unawaited(AnalyticsService.instance
+                                            .trackShareTap());
+                                        Share.share(
+                                          'https://apps.apple.com/us/app/m-rra-know-your-beauty/id6745415201',
+                                          sharePositionOrigin:
+                                              getWidgetBoundingBox(context),
+                                        );
+                                      },
+                                    ),
+                                  ),
                                 SettingsRow(
-                                  icon: Icons.workspace_premium,
+                                  icon: Icons.textsms_outlined,
                                   label: FFLocalizations.of(context)
-                                      .getText('1g4dikoz' /* Try premium */),
+                                      .getText('yyo7sp77' /* Leave a Review */),
                                   onTap: () {
                                     unawaited(AnalyticsService.instance
-                                        .trackPremiumTap(
-                                            from: 'profile_try_premium'));
-                                    context.pushNamed(
-                                        PaywallpageWidget.routeName);
-                                  },
-                                ),
-                              if (!currentUserIsAnonymous)
-                                SettingsRow(
-                                  icon: Icons.edit_outlined,
-                                  label: FFLocalizations.of(context)
-                                      .getText('45rliy0n' /* Edit Profile */),
-                                  onTap: () {
-                                    unawaited(AnalyticsService.instance
-                                        .trackProfileEdit(from: 'profile'));
-                                    context.pushNamed(
-                                        EditProfileWidget.routeName);
-                                  },
-                                ),
-                              if (!currentUserIsAnonymous &&
-                                  FFAppState().showLinkTelegram)
-                                SettingsRow(
-                                  icon: Icons.send_rounded,
-                                  label: FFLocalizations.of(context)
-                                      .getText('cm_link_telegram'),
-                                  onTap: () {
-                                    unawaited(AnalyticsService.instance
-                                        .trackLinkTelegram());
+                                        .trackFeedbackTap());
                                     showModalBottomSheet<bool>(
-                                      context: context,
                                       isScrollControlled: true,
                                       backgroundColor: Colors.transparent,
-                                      builder: (_) => const LinkTelegramSheet(),
-                                    ).then((linked) {
-                                      // `true` отдаёт только кнопка
-                                      // «Привязать» внутри листа.
-                                      if (linked != true) {
+                                      enableDrag: false,
+                                      context: context,
+                                      builder: (context) => GestureDetector(
+                                        onTap: () {
+                                          FocusScope.of(context).unfocus();
+                                          FocusManager.instance.primaryFocus
+                                              ?.unfocus();
+                                        },
+                                        child: Padding(
+                                          padding:
+                                              MediaQuery.viewInsetsOf(context),
+                                          child: LeaveReviewWidget(),
+                                        ),
+                                      ),
+                                    ).then((sent) {
+                                      // Лист закрыли, не отправив отзыв. Тянуть
+                                      // его нельзя (enableDrag: false), закрытие
+                                      // идёт тапом по затемнению — событие в
+                                      // разметке всё равно называется swipe.
+                                      if (sent != true) {
                                         unawaited(AnalyticsService.instance
-                                            .trackLinkTelegramSwipe());
+                                            .trackFeedbackSwipe());
                                       }
+                                      safeSetState(() {});
                                     });
                                   },
                                 ),
-                              if (!isWeb)
-                                Builder(
-                                  builder: (context) => SettingsRow(
-                                    icon: Icons.share_outlined,
-                                    label: FFLocalizations.of(context)
-                                        .getText('0nawsp0z' /* Share */),
-                                    onTap: () {
-                                      unawaited(AnalyticsService.instance
-                                          .trackShareTap());
-                                      Share.share(
-                                        'https://apps.apple.com/us/app/m-rra-know-your-beauty/id6745415201',
-                                        sharePositionOrigin:
-                                            getWidgetBoundingBox(context),
-                                      );
-                                    },
-                                  ),
+                                SettingsRow(
+                                  icon: Icons.face_retouching_natural,
+                                  label: FFLocalizations.of(context)
+                                      .getText('prof_skin_profile'),
+                                  onTap: () {
+                                    unawaited(AnalyticsService.instance
+                                        .trackSkinProfile());
+                                    context.pushNamed(
+                                        OnboardingQuizWidget.routeName);
+                                  },
                                 ),
-                              SettingsRow(
-                                icon: Icons.textsms_outlined,
+                                SettingsRow(
+                                  icon: Icons.language_sharp,
+                                  label: FFLocalizations.of(context)
+                                      .getText('su4nz9dy' /* App language */),
+                                  onTap: () =>
+                                      context.pushNamed(LangsWidget.routeName),
+                                ),
+                                SettingsRow(
+                                  icon: Icons.flag_circle_outlined,
+                                  label: FFLocalizations.of(context)
+                                      .getText('gcl2zbxg' /* Your Region */),
+                                  onTap: () =>
+                                      context.pushNamed(CountriesWidget.routeName),
+                                ),
+                              ].divide(SizedBox(height: 12.0)),
+                            ),
+                          ),
+                          if (currentUserIsAnonymous) ...[
+                            // ── Анонимный: войти или зарегистрироваться ──
+                            Padding(
+                              padding: EdgeInsetsDirectional.fromSTEB(
+                                  16.0, 27.0, 16.0, 0.0),
+                              child: AppButton(
                                 label: FFLocalizations.of(context)
-                                    .getText('yyo7sp77' /* Leave a Review */),
-                                onTap: () {
+                                    .getText('cm_create_account'),
+                                onPressed: () {
+                                  HapticFeedback.lightImpact();
                                   unawaited(AnalyticsService.instance
-                                      .trackFeedbackTap());
-                                  showModalBottomSheet<bool>(
-                                    isScrollControlled: true,
-                                    backgroundColor: Colors.transparent,
-                                    enableDrag: false,
-                                    context: context,
-                                    builder: (context) => GestureDetector(
-                                      onTap: () {
-                                        FocusScope.of(context).unfocus();
-                                        FocusManager.instance.primaryFocus
-                                            ?.unfocus();
-                                      },
-                                      child: Padding(
-                                        padding:
-                                            MediaQuery.viewInsetsOf(context),
-                                        child: LeaveReviewWidget(),
-                                      ),
-                                    ),
-                                  ).then((sent) {
-                                    // Лист закрыли, не отправив отзыв. Тянуть
-                                    // его нельзя (enableDrag: false), закрытие
-                                    // идёт тапом по затемнению — событие в
-                                    // разметке всё равно называется swipe.
-                                    if (sent != true) {
-                                      unawaited(AnalyticsService.instance
-                                          .trackFeedbackSwipe());
-                                    }
-                                    safeSetState(() {});
-                                  });
-                                },
-                              ),
-                              SettingsRow(
-                                icon: Icons.face_retouching_natural,
-                                label: FFLocalizations.of(context)
-                                    .getText('prof_skin_profile'),
-                                onTap: () {
-                                  unawaited(AnalyticsService.instance
-                                      .trackSkinProfile());
+                                      .trackCreateAccount(from: 'profile'));
                                   context.pushNamed(
-                                      OnboardingQuizWidget.routeName);
+                                    LogInPageWidget.routeName,
+                                    queryParameters: {
+                                      'tab': serializeParam(
+                                          'register', ParamType.String),
+                                    }.withoutNulls,
+                                    extra: <String, dynamic>{
+                                      '__transition_info__': TransitionInfo(
+                                        hasTransition: true,
+                                        transitionType: PageTransitionType.fade,
+                                      ),
+                                    },
+                                  );
                                 },
                               ),
-                              SettingsRow(
-                                icon: Icons.language_sharp,
-                                label: FFLocalizations.of(context)
-                                    .getText('su4nz9dy' /* App language */),
-                                onTap: () =>
-                                    context.pushNamed(LangsWidget.routeName),
-                              ),
-                              SettingsRow(
-                                icon: Icons.flag_circle_outlined,
-                                label: FFLocalizations.of(context)
-                                    .getText('gcl2zbxg' /* Your Region */),
-                                onTap: () =>
-                                    context.pushNamed(CountriesWidget.routeName),
-                              ),
-                            ].divide(SizedBox(height: 12.0)),
-                          ),
-                        ),
-                        if (currentUserIsAnonymous) ...[
-                          // ── Анонимный: войти или зарегистрироваться ──
-                          Padding(
-                            padding: EdgeInsetsDirectional.fromSTEB(
-                                16.0, 27.0, 16.0, 0.0),
-                            child: AppButton(
-                              label: FFLocalizations.of(context)
-                                  .getText('cm_create_account'),
-                              onPressed: () {
-                                HapticFeedback.lightImpact();
-                                unawaited(AnalyticsService.instance
-                                    .trackCreateAccount(from: 'profile'));
-                                context.pushNamed(
-                                  LogInPageWidget.routeName,
-                                  queryParameters: {
-                                    'tab': serializeParam(
-                                        'register', ParamType.String),
-                                  }.withoutNulls,
-                                  extra: <String, dynamic>{
-                                    '__transition_info__': TransitionInfo(
-                                      hasTransition: true,
-                                      transitionType: PageTransitionType.fade,
-                                    ),
-                                  },
-                                );
-                              },
                             ),
-                          ),
-                          Padding(
-                            padding: EdgeInsetsDirectional.fromSTEB(
-                                16.0, 12.0, 16.0, 0.0),
-                            child: AppButton(
-                              label: FFLocalizations.of(context)
-                                  .getText('prof_sign_in'),
-                              variant: AppButtonVariant.secondary,
-                              onPressed: () {
-                                HapticFeedback.lightImpact();
-                                unawaited(
-                                    AnalyticsService.instance.trackLogIn());
-                                context.pushNamed(
-                                  LogInPageWidget.routeName,
-                                  extra: <String, dynamic>{
-                                    '__transition_info__': TransitionInfo(
-                                      hasTransition: true,
-                                      transitionType: PageTransitionType.fade,
-                                    ),
-                                  },
-                                );
-                              },
-                            ),
-                          ),
-                          // Кнопки «Завершить сессию» у гостя нет намеренно.
-                          // Выходить ему не из чего, а нажатие уничтожало
-                          // единственный экземпляр его личности: анонимная
-                          // сессия невосстановима, вместе с ней терялись
-                          // разборы и доступ к уже оплаченной подписке —
-                          // вернуть её можно было только через Restore, о
-                          // котором никто не догадывается. Заодно уходил
-                          // сброс бесплатной квоты в один тап.
-                          // Гостю остаются «Создать аккаунт» и «Войти» выше.
-                          //
-                          // В non-prod она нужна: без неё пройти путь нового
-                          // пользователя можно только через регистрацию и
-                          // удаление аккаунта. В прод-сборку не попадает.
-                          if (FFDevEnvironmentValues.isNonProd)
                             Padding(
                               padding: EdgeInsetsDirectional.fromSTEB(
                                   16.0, 12.0, 16.0, 0.0),
                               child: AppButton(
-                                label: 'Reset guest session (dev)',
-                                variant: AppButtonVariant.text,
-                                size: AppButtonSize.sm,
+                                label: FFLocalizations.of(context)
+                                    .getText('prof_sign_in'),
+                                variant: AppButtonVariant.secondary,
+                                onPressed: () {
+                                  HapticFeedback.lightImpact();
+                                  unawaited(
+                                      AnalyticsService.instance.trackLogIn());
+                                  context.pushNamed(
+                                    LogInPageWidget.routeName,
+                                    extra: <String, dynamic>{
+                                      '__transition_info__': TransitionInfo(
+                                        hasTransition: true,
+                                        transitionType: PageTransitionType.fade,
+                                      ),
+                                    },
+                                  );
+                                },
+                              ),
+                            ),
+                            // Кнопки «Завершить сессию» у гостя нет намеренно.
+                            // Выходить ему не из чего, а нажатие уничтожало
+                            // единственный экземпляр его личности: анонимная
+                            // сессия невосстановима, вместе с ней терялись
+                            // разборы и доступ к уже оплаченной подписке —
+                            // вернуть её можно было только через Restore, о
+                            // котором никто не догадывается. Заодно уходил
+                            // сброс бесплатной квоты в один тап.
+                            // Гостю остаются «Создать аккаунт» и «Войти» выше.
+                            //
+                            // В non-prod она нужна: без неё пройти путь нового
+                            // пользователя можно только через регистрацию и
+                            // удаление аккаунта. В прод-сборку не попадает.
+                            if (FFDevEnvironmentValues.isNonProd)
+                              Padding(
+                                padding: EdgeInsetsDirectional.fromSTEB(
+                                    16.0, 12.0, 16.0, 0.0),
+                                child: AppButton(
+                                  label: 'Reset guest session (dev)',
+                                  variant: AppButtonVariant.text,
+                                  size: AppButtonSize.sm,
+                                  onPressed: () async {
+                                    HapticFeedback.lightImpact();
+                                    FFAppState().isprouser = false;
+                                    FFAppState().onboardingDone = false;
+                                    FFAppState().analysesused = 0;
+                                    // Буфер анкеты живёт в prefs и переживал
+                                    // смену личности: ответы прошлого человека
+                                    // (тип кожи, беременность, цели) дописались
+                                    // бы в строку следующего на первом же входе
+                                    // на Главную.
+                                    FFAppState().clearOnboardingBuffer();
+                                    FFAppState().softPaywallShown = false;
+                                    FFAppState().successfulScans = 0;
+                                    FFAppState().saveProPromptShown = false;
+                                    final prefs =
+                                        await SharedPreferences.getInstance();
+                                    await prefs.remove('hint_upload_seen');
+                                    await prefs.remove('pro_preview_used');
+                                    await revenue_cat.login(null);
+                                    GoRouter.of(context).prepareAuthEvent();
+                                    await authManager.signOut();
+                                    GoRouter.of(context).clearRedirectLocation();
+                                    context.go('/');
+                                  },
+                                ),
+                              ),
+                          ] else ...[
+                            // ── Авторизованный: выйти + удалить ──
+                            Padding(
+                              padding: EdgeInsetsDirectional.fromSTEB(
+                                  16.0, 27.0, 16.0, 0.0),
+                              child: AppButton(
+                                label: FFLocalizations.of(context).getText(
+                                  '01vkpjw3' /* Log out */,
+                                ),
+                                variant: AppButtonVariant.secondary,
                                 onPressed: () async {
                                   HapticFeedback.lightImpact();
+                                  unawaited(AnalyticsService.instance
+                                      .trackAccountExit());
                                   FFAppState().isprouser = false;
                                   FFAppState().onboardingDone = false;
                                   FFAppState().analysesused = 0;
-                                  // Буфер анкеты живёт в prefs и переживал
-                                  // смену личности: ответы прошлого человека
-                                  // (тип кожи, беременность, цели) дописались
-                                  // бы в строку следующего на первом же входе
-                                  // на Главную.
+                                  // Ответы анкеты не должны пережить выход: см.
+                                  // тот же сброс в «Reset guest session».
                                   FFAppState().clearOnboardingBuffer();
+                                  // Ending a session is specified to look
+                                  // like a first install, and these two
+                                  // are what make the first run different:
+                                  // the one-time offer and the review
+                                  // prompt's scan count.
                                   FFAppState().softPaywallShown = false;
                                   FFAppState().successfulScans = 0;
                                   FFAppState().saveProPromptShown = false;
-                                  final prefs =
-                                      await SharedPreferences.getInstance();
+                                  final prefs = await SharedPreferences.getInstance();
                                   await prefs.remove('hint_upload_seen');
                                   await prefs.remove('pro_preview_used');
                                   await revenue_cat.login(null);
                                   GoRouter.of(context).prepareAuthEvent();
                                   await authManager.signOut();
                                   GoRouter.of(context).clearRedirectLocation();
+                                  // See the guest branch above: '/' resolves to
+                                  // the scan page for the fresh guest session
+                                  // that replaces the account being left.
                                   context.go('/');
                                 },
                               ),
                             ),
-                        ] else ...[
-                          // ── Авторизованный: выйти + удалить ──
-                          Padding(
-                            padding: EdgeInsetsDirectional.fromSTEB(
-                                16.0, 27.0, 16.0, 0.0),
-                            child: AppButton(
-                              label: FFLocalizations.of(context).getText(
-                                '01vkpjw3' /* Log out */,
+                            Padding(
+                              padding: EdgeInsetsDirectional.fromSTEB(
+                                  16.0, 12.0, 16.0, 0.0),
+                              child: AppButton(
+                                label: FFLocalizations.of(context).getText(
+                                  'hm5mygux' /* Delete account */,
+                                ),
+                                variant: AppButtonVariant.text,
+                                size: AppButtonSize.sm,
+                                onPressed: () async {
+                                  HapticFeedback.lightImpact();
+                                  unawaited(AnalyticsService.instance
+                                      .trackAccountDelete());
+                                  await showModalBottomSheet(
+                                    isScrollControlled: true,
+                                    backgroundColor: Colors.transparent,
+                                    enableDrag: false,
+                                    context: context,
+                                    builder: (context) => Padding(
+                                      padding: MediaQuery.viewInsetsOf(context),
+                                      child: DeleteConfirmationWidget(),
+                                    ),
+                                  ).then((value) => safeSetState(() {}));
+                                },
                               ),
-                              variant: AppButtonVariant.secondary,
-                              onPressed: () async {
-                                HapticFeedback.lightImpact();
-                                unawaited(AnalyticsService.instance
-                                    .trackAccountExit());
-                                FFAppState().isprouser = false;
-                                FFAppState().onboardingDone = false;
-                                FFAppState().analysesused = 0;
-                                // Ответы анкеты не должны пережить выход: см.
-                                // тот же сброс в «Reset guest session».
-                                FFAppState().clearOnboardingBuffer();
-                                // Ending a session is specified to look
-                                // like a first install, and these two
-                                // are what make the first run different:
-                                // the one-time offer and the review
-                                // prompt's scan count.
-                                FFAppState().softPaywallShown = false;
-                                FFAppState().successfulScans = 0;
-                                FFAppState().saveProPromptShown = false;
-                                final prefs = await SharedPreferences.getInstance();
-                                await prefs.remove('hint_upload_seen');
-                                await prefs.remove('pro_preview_used');
-                                await revenue_cat.login(null);
-                                GoRouter.of(context).prepareAuthEvent();
-                                await authManager.signOut();
-                                GoRouter.of(context).clearRedirectLocation();
-                                // See the guest branch above: '/' resolves to
-                                // the scan page for the fresh guest session
-                                // that replaces the account being left.
-                                context.go('/');
-                              },
                             ),
-                          ),
-                          Padding(
-                            padding: EdgeInsetsDirectional.fromSTEB(
-                                16.0, 12.0, 16.0, 0.0),
-                            child: AppButton(
-                              label: FFLocalizations.of(context).getText(
-                                'hm5mygux' /* Delete account */,
-                              ),
-                              variant: AppButtonVariant.text,
-                              size: AppButtonSize.sm,
-                              onPressed: () async {
-                                HapticFeedback.lightImpact();
-                                unawaited(AnalyticsService.instance
-                                    .trackAccountDelete());
-                                await showModalBottomSheet(
-                                  isScrollControlled: true,
-                                  backgroundColor: Colors.transparent,
-                                  enableDrag: false,
-                                  context: context,
-                                  builder: (context) => Padding(
-                                    padding: MediaQuery.viewInsetsOf(context),
-                                    child: DeleteConfirmationWidget(),
-                                  ),
-                                ).then((value) => safeSetState(() {}));
-                              },
-                            ),
-                          ),
-                        ],
-                      ].whereType<Widget>().toList()
-                          .addToStart(SizedBox(height: 24.0))
-                          .addToEnd(SizedBox(height: 140.0)),
+                          ],
+                        ].whereType<Widget>().toList()
+                            .addToStart(SizedBox(height: 24.0))
+                            .addToEnd(SizedBox(height: 140.0)),
+                      ),
                     ),
                   ),
                 ),

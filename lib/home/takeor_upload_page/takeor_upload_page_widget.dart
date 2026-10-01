@@ -12,10 +12,13 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/design_system/components/app_button.dart';
+import '/design_system/components/constrained_content.dart';
+import '/design_system/foundations/layout.dart';
 import '/flutter_flow/upload_data.dart';
 import '/limits/limit_out/limit_out_widget.dart';
 import '/components/error_popup/error_popup_widget.dart';
 import '/components/guest_prefs_sheet/guest_prefs_sheet_widget.dart';
+import '/paywall/show_paywall.dart';
 import 'dart:ui';
 import '/index.dart';
 import 'package:flutter/material.dart';
@@ -74,6 +77,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
           _model.useranalyspage?.firstOrNull?.countryId,
         ),
       );
+      unawaited(_refreshQuota());
     });
 
     animationsMap.addAll({
@@ -97,6 +101,61 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
     _loadHintState();
   }
 
+  /// Счётчик израсходованной квоты живёт только в памяти, а гость заходит сразу
+  /// сюда, минуя Главную с её обновлением: после перезапуска приложения он
+  /// выглядел бы как нулевой, и гейт ниже пропустил бы разбор сверх лимита.
+  /// Главная делает то же самое для своей шкалы — см. HomeWidget._refreshQuota.
+  Future<void> _refreshQuota() async {
+    try {
+      final resp = await GetScanQuotaCall.call(token: currentJwtToken);
+      if (!mounted || !resp.succeeded) return;
+      final body = resp.jsonBody;
+      final unlimited = GetScanQuotaCall.isUnlimited(body);
+      if (unlimited != null) FFAppState().isprouser = unlimited;
+      final used = GetScanQuotaCall.quotaUsed(body);
+      final limit = GetScanQuotaCall.quotaLimit(body);
+      // У премиума квотные поля приходят пустыми, поэтому обнуляем явно: иначе
+      // тут осталось бы значение, набранное до покупки.
+      if (unlimited ?? false) {
+        FFAppState().analysesused = 0;
+      } else if (used != null) {
+        FFAppState().analysesused = used;
+      }
+      if (limit != null && limit > 0) FFAppState().freeScanLimit = limit;
+    } catch (e) {
+      debugPrint('scanner: quota refresh failed: $e');
+    }
+  }
+
+  /// Разбор удался. [analysesused] — зеркало серверной квоты, и его надо
+  /// двигать здесь же: между разборами человек не обязан заходить на Главную,
+  /// где счётчик обновляется с сервера, а гейт на кнопках читает именно его.
+  void _recordSuccessfulScan() {
+    final app = FFAppState();
+    app.successfulScans = app.successfulScans + 1;
+    app.analysesused = app.analysesused + 1;
+    app.feedbackPendingScan = true;
+  }
+
+  /// Бесплатные разборы кончились — пейвол открывается по тапу на камеру или
+  /// галерею, до выбора фото. Раньше стена приходила только ответом сервера,
+  /// то есть после загрузки снимка в Storage: человек выбирал фото, ждал и
+  /// упирался в лимит.
+  ///
+  /// Сервер остаётся истиной в последней инстанции: 429 на
+  /// /extract-product-info ниже по-прежнему показывает шторку лимита, если
+  /// локальный счётчик успел отстать.
+  Future<bool> _blockedByQuota(String source) async {
+    final app = FFAppState();
+    final limit = app.freeScanLimit;
+    if (app.isprouser || limit == null || app.analysesused < limit) {
+      return false;
+    }
+    unawaited(AnalyticsService.instance.trackPremiumTap(from: 'scan_limit_$source'));
+    await showPaywall(context, from: 'scan_limit_$source');
+    return true;
+  }
+
   Future<void> _showPendingResearchDialog(BuildContext context) async {
     String t(String key) => FFLocalizations.of(context).getText('tu_$key');
     final theme = FlutterFlowTheme.of(context);
@@ -107,65 +166,69 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
       builder: (ctx) => Dialog(
         backgroundColor: Colors.transparent,
         insetPadding: const EdgeInsets.all(24.0),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20.0),
-            boxShadow: const [
-              BoxShadow(
-                blurRadius: 24.0,
-                color: Color(0x1A000000),
-                offset: Offset(0.0, 8.0),
-              ),
-            ],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(24.0, 28.0, 24.0, 24.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 56.0,
-                  height: 56.0,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFE3F2FD),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.hourglass_top_rounded,
-                    color: Color(0xFF1565C0),
-                    size: 28.0,
-                  ),
-                ),
-                const SizedBox(height: 16.0),
-                Text(
-                  t('title'),
-                  textAlign: TextAlign.center,
-                  style: theme.headlineSmall.override(
-                    fontFamily: theme.headlineSmallFamily,
-                    fontSize: 18.0,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.0,
-                    useGoogleFonts: !theme.headlineSmallIsCustom,
-                  ),
-                ),
-                const SizedBox(height: 8.0),
-                Text(
-                  t('body'),
-                  textAlign: TextAlign.center,
-                  style: theme.bodyMedium.override(
-                    fontFamily: theme.bodyMediumFamily,
-                    color: theme.secondaryText,
-                    letterSpacing: 0.0,
-                    useGoogleFonts: !theme.bodyMediumIsCustom,
-                  ),
-                ),
-                const SizedBox(height: 24.0),
-                AppButton(
-                  label: t('button'),
-                  onPressed: () => Navigator.pop(ctx),
+        // На iPad диалог не растягивается во весь экран.
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: kDialogMaxWidth),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20.0),
+              boxShadow: const [
+                BoxShadow(
+                  blurRadius: 24.0,
+                  color: Color(0x1A000000),
+                  offset: Offset(0.0, 8.0),
                 ),
               ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(24.0, 28.0, 24.0, 24.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 56.0,
+                    height: 56.0,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFE3F2FD),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.hourglass_top_rounded,
+                      color: Color(0xFF1565C0),
+                      size: 28.0,
+                    ),
+                  ),
+                  const SizedBox(height: 16.0),
+                  Text(
+                    t('title'),
+                    textAlign: TextAlign.center,
+                    style: theme.headlineSmall.override(
+                      fontFamily: theme.headlineSmallFamily,
+                      fontSize: 18.0,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.0,
+                      useGoogleFonts: !theme.headlineSmallIsCustom,
+                    ),
+                  ),
+                  const SizedBox(height: 8.0),
+                  Text(
+                    t('body'),
+                    textAlign: TextAlign.center,
+                    style: theme.bodyMedium.override(
+                      fontFamily: theme.bodyMediumFamily,
+                      color: theme.secondaryText,
+                      letterSpacing: 0.0,
+                      useGoogleFonts: !theme.bodyMediumIsCustom,
+                    ),
+                  ),
+                  const SizedBox(height: 24.0),
+                  AppButton(
+                    label: t('button'),
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -353,8 +416,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
               ),
             ));
           }
-          FFAppState().successfulScans = FFAppState().successfulScans + 1;
-          FFAppState().feedbackPendingScan = true;
+          _recordSuccessfulScan();
           if (!mounted) {
             FFAppState().uploadedimageurl = '';
             FFAppState().analysisloading = false;
@@ -761,8 +823,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
           analysisResult.jsonBody,
         ),
       ));
-      FFAppState().successfulScans = FFAppState().successfulScans + 1;
-      FFAppState().feedbackPendingScan = true;
+      _recordSuccessfulScan();
       if (!mounted) {
         FFAppState().uploadedimageurl = '';
         FFAppState().analysisloading = false;
@@ -827,9 +888,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
       icon: Icons.camera_alt,
       onPressed: () async {
         unawaited(AnalyticsService.instance.trackScanPhotoTake());
-        // No local quota gate: the server refuses over-quota scans with a 429
-        // on /extract-product-info, which is the single source of truth for
-        // both the limit and the reset date.
+        if (await _blockedByQuota('camera')) return;
         var _shouldSetState = false;
         _shouldSetState = true;
         await _ensureCountrySet();
@@ -1081,8 +1140,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                     ),
                   ));
                 }
-                FFAppState().successfulScans = FFAppState().successfulScans + 1;
-                FFAppState().feedbackPendingScan = true;
+                _recordSuccessfulScan();
                 if (!mounted) {
                   FFAppState().uploadedimageurl = '';
                   FFAppState().analysisloading = false;
@@ -1333,7 +1391,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
         debugPrint('[gallery] tap: '
             'host=${FFDevEnvironmentValues().backendhost} '
             'tokenEmpty=${currentJwtToken.isEmpty}');
-        // No local quota gate — see _buildCameraButton.
+        if (await _blockedByQuota('gallery')) return;
         var _shouldSetState = false;
         _shouldSetState = true;
         await _ensureCountrySet();
@@ -1463,26 +1521,29 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                 // Hand-tuned thumb-reach offset above the navbar (see the
                 // kNavBarHeight note in design_system/foundations/layout.dart).
                 bottom: 100.0 + MediaQuery.of(context).padding.bottom,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _HintCard(
-                      expanded: _hintExpanded,
-                      onToggle: () {
-                        final opening = !_hintExpanded;
-                        unawaited(opening
-                            ? AnalyticsService.instance
-                                .trackScanPhotoTipsOpen()
-                            : AnalyticsService.instance
-                                .trackScanPhotoTipsClose());
-                        setState(() => _hintExpanded = opening);
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    _buildCameraButton(context),
-                    const SizedBox(height: 12),
-                    _buildGalleryButton(context),
-                  ],
+                // На iPad кнопки не растягиваются во всю ширину экрана.
+                child: ConstrainedContent(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _HintCard(
+                        expanded: _hintExpanded,
+                        onToggle: () {
+                          final opening = !_hintExpanded;
+                          unawaited(opening
+                              ? AnalyticsService.instance
+                                  .trackScanPhotoTipsOpen()
+                              : AnalyticsService.instance
+                                  .trackScanPhotoTipsClose());
+                          setState(() => _hintExpanded = opening);
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      _buildCameraButton(context),
+                      const SizedBox(height: 12),
+                      _buildGalleryButton(context),
+                    ],
+                  ),
                 ),
               ),
 

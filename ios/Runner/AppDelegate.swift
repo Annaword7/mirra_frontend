@@ -191,6 +191,15 @@ class MirraSharePlugin: NSObject, FlutterPlugin {
     completionHandler([])
   }
 
+  // iPhone — только портрет (раньше это делал lockOrientation во Flutter);
+  // iPad — все четыре: iPadOS 26 объявила UIRequiresFullScreen устаревшим,
+  // перестала уважать блокировку ориентации и требует поддержки поворота,
+  // поэтому раскладки сделаны адаптивными по ширине окна.
+  override func application(_ application: UIApplication,
+                            supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
+    UIDevice.current.userInterfaceIdiom == .pad ? .all : .portrait
+  }
+
   func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
     print("[FCM] Token: \(fcmToken ?? "nil")")
   }

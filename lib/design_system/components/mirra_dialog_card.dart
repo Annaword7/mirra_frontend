@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
+import '/design_system/foundations/layout.dart';
 
 /// A circular tinted icon badge for [MirraDialogCard] (Design Review Initiative
 /// 6): a 56×56 circle filled with a light tint of [color], with the icon in
@@ -73,30 +74,34 @@ class MirraDialogCard extends StatelessWidget {
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: insetPadding,
-      child: Container(
-        decoration: BoxDecoration(
-          color: surfaceColor ?? theme.alternate,
-          borderRadius: BorderRadius.circular(20.0),
-          boxShadow: const [
-            BoxShadow(
-              blurRadius: 24.0,
-              color: Color(0x1A000000),
-              offset: Offset(0.0, 8.0),
-            ),
-          ],
-        ),
-        child: Padding(
-          padding: padding,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: crossAxisAlignment,
-            children: [
-              if (icon != null) ...[
-                MirraDialogIcon(icon: icon!, color: iconColor ?? theme.primary),
-                const SizedBox(height: 16.0),
-              ],
-              ...children,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: kDialogMaxWidth),
+        child: Container(
+          decoration: BoxDecoration(
+            color: surfaceColor ?? theme.alternate,
+            borderRadius: BorderRadius.circular(20.0),
+            boxShadow: const [
+              BoxShadow(
+                blurRadius: 24.0,
+                color: Color(0x1A000000),
+                offset: Offset(0.0, 8.0),
+              ),
             ],
+          ),
+          child: Padding(
+            padding: padding,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: crossAxisAlignment,
+              children: [
+                if (icon != null) ...[
+                  MirraDialogIcon(
+                      icon: icon!, color: iconColor ?? theme.primary),
+                  const SizedBox(height: 16.0),
+                ],
+                ...children,
+              ],
+            ),
           ),
         ),
       ),

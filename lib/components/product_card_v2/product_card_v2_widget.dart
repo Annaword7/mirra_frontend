@@ -14,6 +14,7 @@ import '/design_system/components/selectable_row.dart';
 import '/design_system/components/settings_row.dart';
 import '/design_system/foundations/score_status.dart';
 import '/index.dart';
+import '/paywall/show_paywall.dart';
 
 /// Product card v2: answer-first layout.
 ///
@@ -554,7 +555,8 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
               onTap: () {
                 unawaited(AnalyticsService.instance.trackPremiumTap(
                     from: 'card_hidden_ingredients'));
-                context.pushNamed(PaywallpageWidget.routeName);
+                unawaited(
+                    showPaywall(context, from: 'card_hidden_ingredients'));
               },
               child: Text(
                 '+$hiddenCount ${_t('cardv2_more_in_pro')}',

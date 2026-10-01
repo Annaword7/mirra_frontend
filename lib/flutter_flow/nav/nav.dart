@@ -207,7 +207,9 @@ GoRouter createRouter(AppStateNotifier appStateNotifier, [Widget? entryPage]) =>
         FFRoute(
           name: PaywallpageWidget.routeName,
           path: PaywallpageWidget.routePath,
-          builder: (context, params) => PaywallpageWidget(),
+          builder: (context, params) => PaywallpageWidget(
+            from: params.getParam('from', ParamType.String) ?? 'unknown',
+          ),
         ),
         FFRoute(
           name: LangsWidget.routeName,

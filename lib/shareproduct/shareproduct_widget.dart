@@ -3,6 +3,7 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/custom_code/widgets/index.dart' as custom_widgets;
 import '/domain/products/product_photo.dart';
+import '/design_system/components/constrained_content.dart';
 import 'package:flutter/material.dart';
 import 'shareproduct_model.dart';
 export 'shareproduct_model.dart';
@@ -140,112 +141,114 @@ class _ShareproductWidgetState extends State<ShareproductWidget> {
               final withStatus =
                   data.topRows.where((r) => r.status != null).toList();
 
-              return Container(
-                width: MediaQuery.sizeOf(context).width * 1.0,
-                height: MediaQuery.sizeOf(context).height * 1.0,
-                decoration: BoxDecoration(
-                  color: FlutterFlowTheme.of(context).alternate,
-                  borderRadius: BorderRadius.circular(0.0),
-                ),
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.max,
-                    children: [
-                      Padding(
-                        padding:
-                            EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 0.0, 0.0),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.max,
-                          children: [
-                            InkWell(
-                              splashColor: Colors.transparent,
-                              focusColor: Colors.transparent,
-                              hoverColor: Colors.transparent,
-                              highlightColor: Colors.transparent,
-                              onTap: () async {
-                                context.safePop();
-                              },
-                              child: SizedBox(
-                                width: 44.0,
-                                height: 44.0,
-                                child: Align(
-                                  alignment: AlignmentDirectional.centerStart,
-                                  child: Icon(
-                                    Icons.arrow_back,
-                                    color:
-                                        FlutterFlowTheme.of(context).primaryText,
-                                    size: 24.0,
+              return ConstrainedContent(
+                child: Container(
+                  width: MediaQuery.sizeOf(context).width * 1.0,
+                  height: MediaQuery.sizeOf(context).height * 1.0,
+                  decoration: BoxDecoration(
+                    color: FlutterFlowTheme.of(context).alternate,
+                    borderRadius: BorderRadius.circular(0.0),
+                  ),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        Padding(
+                          padding:
+                              EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 0.0, 0.0),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.max,
+                            children: [
+                              InkWell(
+                                splashColor: Colors.transparent,
+                                focusColor: Colors.transparent,
+                                hoverColor: Colors.transparent,
+                                highlightColor: Colors.transparent,
+                                onTap: () async {
+                                  context.safePop();
+                                },
+                                child: SizedBox(
+                                  width: 44.0,
+                                  height: 44.0,
+                                  child: Align(
+                                    alignment: AlignmentDirectional.centerStart,
+                                    child: Icon(
+                                      Icons.arrow_back,
+                                      color:
+                                          FlutterFlowTheme.of(context).primaryText,
+                                      size: 24.0,
+                                    ),
                                   ),
                                 ),
                               ),
+                            ],
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20.0),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.12),
+                                blurRadius: 16,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          clipBehavior: Clip.antiAlias,
+                          child: custom_widgets.ShareCardWidget(
+                            width: MediaQuery.sizeOf(context).width * 1.0,
+                            height: MediaQuery.sizeOf(context).height * 1.0,
+                            productName: valueOrDefault<String>(
+                              containerImagesRow?.productName,
+                              'None',
                             ),
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20.0),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.12),
-                              blurRadius: 16,
-                              offset: const Offset(0, 4),
+                            brandName: valueOrDefault<String>(
+                              containerImagesRow?.brand,
+                              'No Brand',
                             ),
-                          ],
+                            imageUrl: valueOrDefault<String>(
+                              containerImagesRow?.displayPhotoUrl,
+                              'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png',
+                            ),
+                            score: valueOrDefault<double>(
+                              containerImagesRow?.saCompositeScore,
+                              0.00,
+                            ),
+                            safetyScore: containerImagesRow?.saSafetyScore ?? 0.0,
+                            efficacyScore: containerImagesRow?.saEfficacyScore ?? 0.0,
+                            stabilityScore: containerImagesRow?.saStabilityScore,
+                            uxScore: containerImagesRow?.saUxScore,
+                            comedogenicityScore: containerImagesRow?.saComedogenicityScore,
+                            ingredients: containerImagesRow?.ingredients ?? '',
+                            topIngredients: data.topIngredients,
+                            issueIngredients: data.issueIngredients,
+                            isStory: false,
+                            tags: containerImagesRow?.skinTypeTags ?? const [],
+                            verdict: valueOrDefault<String>(
+                              containerImagesRow?.saRatingText,
+                              '',
+                            ),
+                            lang: FFLocalizations.of(context).languageCode,
+                            imageId: widget.imageid ?? 0,
+                            bestForTags: containerImagesRow?.saBestForTags ?? const [],
+                            // Открытие вместо скора: колба этого продукта и
+                            // позиция ключевого актива (раздел 14 документа V).
+                            inciList: inci,
+                            onePercentLinePos:
+                                containerImagesRow?.saOnePercentLinePos,
+                            keyActiveName: keyActive?.ingredientName,
+                            keyActivePosition: _positionOf(keyActive, inci),
+                            keyActiveStatus: keyActive?.status,
+                            promisedAllWorking: withStatus.isNotEmpty &&
+                                withStatus.every((r) => r.status == 'working'),
+                          ),
                         ),
-                        clipBehavior: Clip.antiAlias,
-                        child: custom_widgets.ShareCardWidget(
-                          width: MediaQuery.sizeOf(context).width * 1.0,
-                          height: MediaQuery.sizeOf(context).height * 1.0,
-                          productName: valueOrDefault<String>(
-                            containerImagesRow?.productName,
-                            'None',
-                          ),
-                          brandName: valueOrDefault<String>(
-                            containerImagesRow?.brand,
-                            'No Brand',
-                          ),
-                          imageUrl: valueOrDefault<String>(
-                            containerImagesRow?.displayPhotoUrl,
-                            'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png',
-                          ),
-                          score: valueOrDefault<double>(
-                            containerImagesRow?.saCompositeScore,
-                            0.00,
-                          ),
-                          safetyScore: containerImagesRow?.saSafetyScore ?? 0.0,
-                          efficacyScore: containerImagesRow?.saEfficacyScore ?? 0.0,
-                          stabilityScore: containerImagesRow?.saStabilityScore,
-                          uxScore: containerImagesRow?.saUxScore,
-                          comedogenicityScore: containerImagesRow?.saComedogenicityScore,
-                          ingredients: containerImagesRow?.ingredients ?? '',
-                          topIngredients: data.topIngredients,
-                          issueIngredients: data.issueIngredients,
-                          isStory: false,
-                          tags: containerImagesRow?.skinTypeTags ?? const [],
-                          verdict: valueOrDefault<String>(
-                            containerImagesRow?.saRatingText,
-                            '',
-                          ),
-                          lang: FFLocalizations.of(context).languageCode,
-                          imageId: widget.imageid ?? 0,
-                          bestForTags: containerImagesRow?.saBestForTags ?? const [],
-                          // Открытие вместо скора: колба этого продукта и
-                          // позиция ключевого актива (раздел 14 документа V).
-                          inciList: inci,
-                          onePercentLinePos:
-                              containerImagesRow?.saOnePercentLinePos,
-                          keyActiveName: keyActive?.ingredientName,
-                          keyActivePosition: _positionOf(keyActive, inci),
-                          keyActiveStatus: keyActive?.status,
-                          promisedAllWorking: withStatus.isNotEmpty &&
-                              withStatus.every((r) => r.status == 'working'),
                         ),
-                      ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               );

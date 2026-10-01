@@ -1,6 +1,7 @@
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/design_system/components/skeleton_grid.dart';
+import '/design_system/foundations/layout.dart';
 import 'package:flutter/material.dart';
 import 'album_list_loading_component_model.dart';
 export 'album_list_loading_component_model.dart';
@@ -38,11 +39,12 @@ class _AlbumListLoadingComponentWidgetState
 
   @override
   Widget build(BuildContext context) {
-    // 8 album-cover cards in a 2-column grid; each card is a 2×2 skeleton mosaic.
+    // 8 album-cover cards in a grid (2 columns on phones, more on tablets —
+    // same as the boards grid); each card is a 2×2 skeleton mosaic.
     return GridView.builder(
       padding: EdgeInsets.zero,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: gridColumns(context),
         crossAxisSpacing: 12.0,
         mainAxisSpacing: 12.0,
         childAspectRatio: 1.0,

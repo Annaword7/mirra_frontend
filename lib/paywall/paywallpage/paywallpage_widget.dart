@@ -2,9 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 import '/auth/supabase_auth/auth_util.dart';
 import '/backend/api_requests/api_calls.dart';
-import '/components/confetti_overlay.dart';
 import '/components/premium_features_list/premium_features_list_widget.dart';
-import '/components/save_subscription_sheet.dart';
 import '/custom_code/widgets/index.dart' as custom_widgets;
 import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -17,14 +15,23 @@ import '/design_system/components/app_button.dart';
 import '/design_system/components/plan_card.dart';
 import '/design_system/components/pro_pill.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
+import '../show_paywall.dart';
 import 'paywallpage_model.dart';
 export 'paywallpage_model.dart';
 
 class PaywallpageWidget extends StatefulWidget {
-  const PaywallpageWidget({super.key});
+  const PaywallpageWidget({super.key, this.from = 'unknown', this.asSheet = false});
+
+  /// Вход в подписку, теми же значениями, что у `premium_tap`. Нужен, чтобы
+  /// отказ на пейволе можно было разложить по входам, а не только сосчитать.
+  final String from;
+
+  /// Пейвол показан листом снизу (его смахивают), а не полным экраном (с него
+  /// уходят системной «назад»). Различает два способа уйти, которые иначе
+  /// неотличимы: ни тот, ни другой не проходит через наш код.
+  final bool asSheet;
 
   static String routeName = 'Paywallpage';
   static String routePath = '/paywallpage';
@@ -39,6 +46,20 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
   bool _offeringsLoading = false;
+
+  /// Засечка для `seconds_on_screen`.
+  final DateTime _shownAt = DateTime.now();
+
+  /// Чем кончился показ. Смахивание и системная «назад» мимо нашего кода
+  /// проходят целиком, поэтому значение по умолчанию — способ уйти, доступный
+  /// в этой подаче, а крестик и оплата его перебивают.
+  late String _exit = widget.asSheet ? 'swipe' : 'back';
+
+  /// Оплаченный пейвол закрывается тем же `_dismiss()`, что и брошенный
+  /// (см. ниже, вызов после успешной покупки). Без этого флага каждая продажа
+  /// прилетала бы в Amplitude как отказ и портила ровно ту метрику, ради
+  /// которой событие заводится.
+  bool _purchased = false;
 
   @override
   void initState() {
@@ -73,6 +94,17 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
 
   @override
   void dispose() {
+    // Единственная точка отправки: крестик, смахивание, тап мимо листа и
+    // системная «назад» сходятся здесь, и событие гарантированно уходит ровно
+    // один раз. Вешать его на обработчики по отдельности нельзя — у двух путей
+    // из трёх обработчика попросту нет.
+    if (!_purchased) {
+      unawaited(AnalyticsService.instance.trackPaywallDismissed(
+        method: _exit,
+        from: widget.from,
+        secondsOnScreen: DateTime.now().difference(_shownAt).inSeconds,
+      ));
+    }
     _model.dispose();
 
     super.dispose();
@@ -159,70 +191,6 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
     }
   }
 
-  /// A guest who has just paid holds the subscription through an anonymous
-  /// session that exists only on this device — losing it means losing access,
-  /// recoverable in practice only by a "restore purchases" tap nobody thinks to
-  /// make. Offer an account once, after the charge, never as a condition of it.
-  ///
-  /// Runs after the paywall is dismissed and off the widget's own context: this
-  /// State is being torn down, and the two sheets would otherwise stack.
-  Future<void> _offerToSaveSubscription() async {
-    if (!currentUserIsAnonymous) return;
-    final app = FFAppState();
-    if (app.saveProPromptShown) return;
-    app.saveProPromptShown = true;
-
-    // Let the paywall finish leaving before the next sheet arrives.
-    await Future.delayed(const Duration(milliseconds: 350));
-    var ctx = appNavigatorKey.currentContext;
-    if (ctx == null) return;
-
-    final theme = FlutterFlowTheme.of(ctx);
-    unawaited(HapticFeedback.heavyImpact());
-
-    final wantsAccount = await showModalBottomSheet<bool>(
-      context: ctx,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      // Full-height stack so the confetti falls across the screen behind the
-      // sheet. Nothing here absorbs touches outside the sheet itself, so a tap
-      // above it still reaches the barrier and dismisses.
-      builder: (_) => Stack(
-        children: [
-          Positioned.fill(
-            child: IgnorePointer(
-              child: ConfettiOverlay(
-                colors: [
-                  theme.primary,
-                  theme.secondary,
-                  theme.tertiary,
-                  const Color(0xFFFFC93C),
-                  const Color(0xFFFF7BA9),
-                ],
-              ),
-            ),
-          ),
-          const Align(
-            alignment: Alignment.bottomCenter,
-            child: SaveSubscriptionSheet(),
-          ),
-        ],
-      ),
-    );
-    if (wantsAccount != true) return;
-
-    ctx = appNavigatorKey.currentContext;
-    // createAccountWithEmail links the address to this anonymous account and
-    // keeps the uuid; the Apple path mints a new one, and the sync call in
-    // _claimAnonScans is what carries the subscription across.
-    ctx?.pushNamed(
-      LogInPageWidget.routeName,
-      queryParameters: {
-        'tab': serializeParam('register', ParamType.String),
-      }.withoutNulls,
-    );
-  }
-
   // Single RevenueCat purchase flow for both plans (was copy-pasted per card).
   Future<void> _purchasePlan({
     required bool isMonth,
@@ -281,8 +249,9 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
         // Leave the paywall. Without this the user pays, Apple confirms, and
         // the purchase screen just stays put with its spinner gone — which
         // reads as "charged me and gave me nothing" and invites a refund.
+        _purchased = true;
         if (mounted) _dismiss();
-        await _offerToSaveSubscription();
+        await offerToSaveSubscription();
         return;
       }
     }
@@ -370,7 +339,10 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                                 // 44 — минимальный тап-таргет (Initiative 3.3).
                                 constraints: const BoxConstraints(
                                     minWidth: 44.0, minHeight: 44.0),
-                                onPressed: _dismiss,
+                                onPressed: () {
+                                  _exit = 'close';
+                                  _dismiss();
+                                },
                               ),
                               ProPill(label: t.getText('7n2kv1iq')),
                               // Балансир крестика: пилюля остаётся по центру.

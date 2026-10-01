@@ -2,11 +2,13 @@ import '/auth/supabase_auth/auth_util.dart';
 import '/backend/supabase/supabase.dart';
 import '/design_system/components/app_button.dart';
 import '/design_system/components/confirm_dialog.dart';
+import '/design_system/components/constrained_content.dart';
 import '/domain/care_planning/care_planning_service.dart';
 import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/index.dart';
+import '/paywall/show_paywall.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -213,11 +215,27 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
       // Skipped: no profile, app runs in "all skin types" mode.
       app.clearOnboardingBuffer();
     }
+    // Анкету открывают и из Профиля — там это правка, а не знакомство, и
+    // продавать на выходе нечего. Флаг ещё не поднят, поэтому первый проход
+    // отличается от повторного именно здесь.
+    final firstRun = !app.onboardingDone;
     app.onboardingDone = true;
     if (!mounted) return;
     // Мостик один для всех выходов: и «Сохранить и сканировать», и «Пропустить»
     // ведут к сканеру — это то, ради чего приложение открывают.
     context.go(dest ?? widget.returnTo ?? TakeorUploadPageWidget.routePath);
+    if (!firstRun) return;
+    // Пейвол показывается уже поверх сканера, а не отсюда: context.go сносит
+    // анкету вместе с её контекстом, и лист закрылся бы вместе с ней.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final ctx = appNavigatorKey.currentContext;
+      if (ctx == null) return;
+      // Анкету прошли и пропустили — разные люди: первые уже вложились в
+      // продукт, вторым он пока ничего не доказал. Конверсия у них своя.
+      final from = save ? 'onboarding_done' : 'onboarding_skipped';
+      unawaited(AnalyticsService.instance.trackUpgradePromptShown(trigger: from));
+      unawaited(showPaywall(ctx, from: from));
+    });
   }
 
   /// ✕ в шапке. Правка профиля (анкету уже проходили) — просто выход без
@@ -294,33 +312,35 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
       key: scaffoldKey,
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(theme),
-            Expanded(
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 220),
-                switchInCurve: Curves.easeOutCubic,
-                switchOutCurve: Curves.easeInCubic,
-                transitionBuilder: (child, anim) => FadeTransition(
-                  opacity: anim,
-                  child: SlideTransition(
-                    position: Tween<Offset>(
-                      begin: Offset(_forward ? 0.05 : -0.05, 0),
-                      end: Offset.zero,
-                    ).animate(anim),
-                    child: child,
+        child: ConstrainedContent(
+          child: Column(
+            children: [
+              _buildHeader(theme),
+              Expanded(
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 220),
+                  switchInCurve: Curves.easeOutCubic,
+                  switchOutCurve: Curves.easeInCubic,
+                  transitionBuilder: (child, anim) => FadeTransition(
+                    opacity: anim,
+                    child: SlideTransition(
+                      position: Tween<Offset>(
+                        begin: Offset(_forward ? 0.05 : -0.05, 0),
+                        end: Offset.zero,
+                      ).animate(anim),
+                      child: child,
+                    ),
+                  ),
+                  child: SingleChildScrollView(
+                    key: ValueKey(_step),
+                    padding: _contentPad,
+                    child: _buildStep(theme),
                   ),
                 ),
-                child: SingleChildScrollView(
-                  key: ValueKey(_step),
-                  padding: _contentPad,
-                  child: _buildStep(theme),
-                ),
               ),
-            ),
-            _buildFooter(theme),
-          ],
+              _buildFooter(theme),
+            ],
+          ),
         ),
       ),
     );
