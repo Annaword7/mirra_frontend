@@ -16,7 +16,6 @@ import '/design_system/components/app_button.dart';
 import '/design_system/components/screen_loader.dart';
 import '/design_system/components/constrained_content.dart';
 import '/item_card/deleteitem/deleteitem_widget.dart';
-import '/item_card/ingridients/ingridients_widget.dart';
 import '/components/product_card_v2/product_card_v2_widget.dart';
 import '/components/profile_summary_card.dart';
 import '/components/score_breakdown/score_breakdown_widget.dart';
@@ -67,6 +66,9 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
   /// чужого продукта всегда false: в набор попадает его копия с другим id, и
   /// связать её с исходной карточкой нельзя.
   bool _inBag = false;
+
+  /// Сколько продуктов уже на полке — подпись под кнопкой «на полку».
+  int? _bagCount;
 
   @override
   void initState() {
@@ -229,7 +231,10 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
     try {
       final bag = await CosmeticBagService.instance.items();
       if (!mounted) return;
-      safeSetState(() => _inBag = bag.any((i) => i.imageId == widget.imageid));
+      safeSetState(() {
+        _inBag = bag.any((i) => i.imageId == widget.imageid);
+        _bagCount = bag.length;
+      });
     } catch (e) {
       debugPrint('card: bag state unavailable: $e');
     }
@@ -360,27 +365,344 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
     return out;
   }
 
-  /// Полный состав INCI. Живёт внутри «Разбора глубже»: сплошная латиница
-  /// на пол-экрана — то, что читают единицы, и то, что напечатано на банке.
-  Widget _buildIngredients(BuildContext context) {
-    return Padding(
-      padding: EdgeInsetsDirectional.fromSTEB(16.0, 16.0, 16.0, 0.0),
-      child: wrapWithModel(
-        model: _model.ingridientsModel,
-        updateCallback: () => safeSetState(() {}),
-        child: IngridientsWidget(
-          ingridients: valueOrDefault<String>(
-            _model.imageraw?.firstOrNull?.ingredients,
-            '-',
+  /// Шапка: бренд и название сверху, фото — кружком справа, как аватар в
+  /// профиле. Тап по кружку открывает фото во весь размер (слайдер, если их
+  /// несколько). Обещания упаковки живут не здесь, а в блоке «что обещают».
+  Widget _buildHero(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+    final row = _model.imageraw?.firstOrNull;
+    final photos = _productPhotos();
+    // Кнопка «назад» плавает поверх шапки (extendBodyBehindAppBar), под неё
+    // оставлен верхний отступ.
+    final topInset = MediaQuery.paddingOf(context).top;
+
+    TextStyle white(double size, {FontWeight? weight}) =>
+        theme.bodyMedium.override(
+          fontFamily: theme.bodyMediumFamily,
+          color: theme.alternate,
+          fontSize: size,
+          fontWeight: weight,
+          letterSpacing: 0.0,
+          useGoogleFonts: !theme.bodyMediumIsCustom,
+        );
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [theme.primary, const Color(0xFFA7B6CC)],
+          stops: const [0.0, 1.0],
+          begin: const AlignmentDirectional(0.0, -1.0),
+          end: const AlignmentDirectional(0, 1.0),
+        ),
+      ),
+      padding: EdgeInsetsDirectional.fromSTEB(16.0, topInset + 52.0, 16.0, 20.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SelectableText(
+                      valueOrDefault<String>(row?.brand, '-'),
+                      style: white(14.0),
+                    ),
+                    const SizedBox(height: 6.0),
+                    SelectableText(
+                      valueOrDefault<String>(row?.productName, '-'),
+                      style: white(22.0, weight: FontWeight.w700)
+                          .copyWith(height: 1.2),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 14.0),
+              GestureDetector(
+                onTap: photos.isEmpty ? null : () => _openPhotos(context, photos),
+                child: Container(
+                  width: 72.0,
+                  height: 72.0,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: const Color(0x40FFFFFF),
+                    border: Border.all(color: const Color(0xCCFFFFFF), width: 2.0),
+                    boxShadow: const [
+                      BoxShadow(
+                        blurRadius: 10.0,
+                        color: Color(0x33000000),
+                        offset: Offset(0.0, 3.0),
+                      ),
+                    ],
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: photos.isEmpty
+                      ? Icon(Icons.spa_rounded,
+                          color: theme.alternate.withOpacity(0.9), size: 30.0)
+                      : Image.network(
+                          photos.first,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Icon(Icons.spa_rounded,
+                              color: theme.alternate.withOpacity(0.9),
+                              size: 30.0),
+                        ),
+                ),
+              ),
+            ],
           ),
-          topIngredients: _model.topIngredientsRaw
-                  ?.map((r) => r.ingredientName.toLowerCase().trim())
-                  .toList() ??
-              const [],
-          issueIngredients: _model.ingredientIssuesRaw
-                  ?.map((r) => r.ingredientName.toLowerCase().trim())
-                  .toList() ??
-              const [],
+        ],
+      ),
+    );
+  }
+
+  Future<void> _openPhotos(BuildContext context, List<String> photos) {
+    return showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Padding(
+        padding: const EdgeInsets.fromLTRB(12.0, 0.0, 12.0, 24.0),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24.0),
+          child: SizedBox(
+            height: 380.0,
+            child: _ProductPhotos(photos: photos, height: 380.0),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// SPF: тип фильтров, широкий спектр, список. Живёт в блоке «кому
+  /// подходит» внутри карточки — это тоже «для кого».
+  Widget _buildSpf(BuildContext context) {
+    return Builder(builder: (context) {
+      final raw = _model.imageraw?.firstOrNull;
+      if (raw == null || !raw.saHasSpf) {
+        return const SizedBox.shrink();
+      }
+      final log = raw.saScoringLog;
+      final spfInfo =
+          (log is Map) ? log['spf_info'] as Map? : null;
+      final filterType =
+          spfInfo?['filter_type'] as String? ?? '';
+      final broadSpectrum =
+          spfInfo?['broad_spectrum'] == true;
+      final filters = (spfInfo?['filters'] as List?)
+              ?.map((f) => f['name'] as String? ?? '')
+              .where((n) => n.isNotEmpty)
+              .toList() ??
+          [];
+
+      String filterTypeLabel() {
+        final loc = FFLocalizations.of(context);
+        if (filterType == 'mineral')
+          return loc.getText('ic2_filter_mineral');
+        if (filterType == 'chemical')
+          return loc.getText('ic2_filter_chemical');
+        return loc.getText('ic2_filter_combined');
+      }
+
+      return Padding(
+        padding: const EdgeInsetsDirectional.fromSTEB(
+            16.0, 16.0, 16.0, 0.0),
+        child: Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFFE8F4FD),
+            borderRadius: BorderRadius.circular(20.0),
+            boxShadow: const [
+              BoxShadow(
+                blurRadius: 8.0,
+                color: Color(0x1A000000),
+                offset: Offset(0.0, 2.0),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+                horizontal: 16.0, vertical: 16.0),
+            child: Column(
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
+              children: [
+                // Header row: badge + title
+                Row(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1565C0),
+                        borderRadius:
+                            BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 5),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.wb_sunny_rounded,
+                              size: 14,
+                              color: Colors.white),
+                          SizedBox(width: 5),
+                          Text(
+                            'SPF',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      FFLocalizations.of(context)
+                          .getText('ic2_uv_protection'),
+                      style: FlutterFlowTheme.of(context)
+                          .bodyMedium
+                          .override(
+                            fontFamily:
+                                FlutterFlowTheme.of(
+                                        context)
+                                    .bodyMediumFamily,
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.0,
+                            useGoogleFonts:
+                                !FlutterFlowTheme.of(
+                                        context)
+                                    .bodyMediumIsCustom,
+                          ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                // Legend rows
+                _SpfLegendRow(
+                  icon: Icons.science_rounded,
+                  label: FFLocalizations.of(context)
+                      .getText('ic2_filter_type'),
+                  value: filterTypeLabel(),
+                ),
+                const SizedBox(height: 6),
+                _SpfLegendRow(
+                  icon: broadSpectrum
+                      ? Icons.check_circle_rounded
+                      : Icons.radio_button_unchecked,
+                  iconColor: broadSpectrum
+                      ? const Color(0xFF2E7D32)
+                      : null,
+                  label: FFLocalizations.of(context)
+                      .getText('ic2_broad_spectrum'),
+                  value: '',
+                ),
+                if (filters.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  _SpfLegendRow(
+                    icon: Icons.list_rounded,
+                    label: FFLocalizations.of(context)
+                        .getText('ic2_filters'),
+                    value: filters.join(', '),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      );
+    });
+  }
+
+  /// «Как использовать» — сказанный вывод, ему место в «Разборе глубже»,
+  /// а не раньше собственных выводов читателя.
+  Widget _buildHowTo(BuildContext context) {
+    return Padding(
+      padding: EdgeInsetsDirectional.fromSTEB(
+          16.0, 16.0, 16.0, 0.0),
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFFF5F8FF),
+          borderRadius: BorderRadius.circular(24.0),
+          border: Border(
+            left: BorderSide(
+              color: FlutterFlowTheme.of(context).primary,
+              width: 4.0,
+            ),
+          ),
+          boxShadow: const [
+            BoxShadow(
+              blurRadius: 8.0,
+              color: Color(0x14000000),
+              offset: Offset(0.0, 2.0),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsetsDirectional.fromSTEB(
+                  12.0, 16.0, 16.0, 16.0),
+              child: Row(
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  Icon(
+                    Icons.lightbulb_circle,
+                    color: FlutterFlowTheme.of(context)
+                        .primary,
+                    size: 30.0,
+                  ),
+                  Text(
+                    FFLocalizations.of(context).getText(
+                      'sdd57mig' /* How to use */,
+                    ),
+                    style: FlutterFlowTheme.of(context)
+                        .bodyMedium
+                        .override(
+                          fontFamily:
+                              FlutterFlowTheme.of(context)
+                                  .bodyMediumFamily,
+                          fontSize: 18.0,
+                          letterSpacing: 0.0,
+                          fontWeight: FontWeight.w700,
+                          useGoogleFonts:
+                              !FlutterFlowTheme.of(
+                                      context)
+                                  .bodyMediumIsCustom,
+                        ),
+                  ),
+                ].divide(SizedBox(width: 12.0)),
+              ),
+            ),
+            Padding(
+              padding: EdgeInsetsDirectional.fromSTEB(
+                  12.0, 0.0, 16.0, 16.0),
+              child: Text(
+                valueOrDefault<String>(
+                  _model
+                      .imageraw?.firstOrNull?.saHowToUse,
+                  '-',
+                ),
+                style: FlutterFlowTheme.of(context)
+                    .bodyMedium
+                    .override(
+                      fontFamily:
+                          FlutterFlowTheme.of(context)
+                              .bodyMediumFamily,
+                      letterSpacing: 0.0,
+                      useGoogleFonts:
+                          !FlutterFlowTheme.of(context)
+                              .bodyMediumIsCustom,
+                    ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -546,7 +868,9 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
             key: scaffoldKey,
             backgroundColor: FlutterFlowTheme.of(context).alternate,
             extendBodyBehindAppBar: true,
-            floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+            floatingActionButtonLocation: currentUserIsAnonymous
+                ? const _EndFloatAboveBanner()
+                : FloatingActionButtonLocation.endFloat,
             floatingActionButton: SpeedDial(
               icon: Icons.tune,
               activeIcon: Icons.close,
@@ -702,6 +1026,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
                   // каталоге, а не привилегия: за подписку такое не продают.
                   // Доступно всем владельцам скана, включая гостя.
                   onTap: () async {
+                    unawaited(AnalyticsService.instance.trackProductHidden());
                     await ImagesTable().update(
                       data: {'hided': true},
                       matchingRows: (rows) =>
@@ -730,6 +1055,8 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
                   label: FFLocalizations.of(context).getText('fab_show'),
                   labelStyle: FlutterFlowTheme.of(context).bodyMedium,
                   onTap: () async {
+                    unawaited(
+                        AnalyticsService.instance.trackProductPublicCatalog());
                     await ImagesTable().update(
                       data: {'hided': false},
                       matchingRows: (rows) =>
@@ -828,6 +1155,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
                   label: FFLocalizations.of(context).getText('fab_delete'),
                   labelStyle: FlutterFlowTheme.of(context).bodyMedium,
                   onTap: () async {
+                    unawaited(AnalyticsService.instance.trackProductDelete());
                     await showModalBottomSheet(
                       isScrollControlled: true,
                       backgroundColor: Colors.transparent,
@@ -843,6 +1171,11 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
               ],
             ),
             body: Stack(
+              // Без expand Stack ужимается по высоте скролла, а тот — по
+              // контенту. На «разбор ещё идёт» контента меньше экрана, и
+              // приклеенный к низу баннер «Сохранить в историю» всплывал на
+              // середину.
+              fit: StackFit.expand,
               children: [
                 if (!_model.loading)
                   SingleChildScrollView(
@@ -850,183 +1183,9 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Stack(
-                          children: [
-                            Container(
-                              width: MediaQuery.sizeOf(context).width,
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    FlutterFlowTheme.of(context).primary,
-                                    Color(0xFFA7B6CC)
-                                  ],
-                                  stops: [0.0, 1.0],
-                                  begin: AlignmentDirectional(0.0, -1.0),
-                                  end: AlignmentDirectional(0, 1.0),
-                                ),
-                              ),
-                              child: Padding(
-                                padding: EdgeInsetsDirectional.fromSTEB(
-                                    0.0, 0.0, 0.0, 16.0),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.max,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    // Full-bleed фото: каталожное (публичное) +
-                                    // скан владельца (приватный, только для
-                                    // своего продукта). Слайдер, если фото больше
-                                    // одного; иначе одно фото или заплатка.
-                                    // 240, а не полэкрана: банка обычно в руках
-                                    // у того, кто её сканирует, и фото здесь
-                                    // опознаёт товар, а не продаёт его. Это
-                                    // ~180 отвоёванных пикселей, на которые
-                                    // поднимается вердикт.
-                                    _ProductPhotos(
-                                      photos: _productPhotos(),
-                                      height: 240.0,
-                                    ),
-                                    Padding(
-                                      padding: EdgeInsets.all(16.0),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.max,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Flexible(
-                                            child: Column(
-                                              mainAxisSize: MainAxisSize.min,
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                SelectableText(
-                                                  valueOrDefault<String>(
-                                                    _model.imageraw?.firstOrNull
-                                                        ?.brand,
-                                                    '-',
-                                                  ),
-                                                  style: FlutterFlowTheme.of(
-                                                          context)
-                                                      .bodyMedium
-                                                      .override(
-                                                        fontFamily:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .bodyMediumFamily,
-                                                        color:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .alternate,
-                                                        fontSize: 16.0,
-                                                        letterSpacing: 0.0,
-                                                        useGoogleFonts:
-                                                            !FlutterFlowTheme
-                                                                    .of(context)
-                                                                .bodyMediumIsCustom,
-                                                      ),
-                                                ),
-                                                SelectableText(
-                                                  valueOrDefault<String>(
-                                                    _model.imageraw?.firstOrNull
-                                                        ?.productName,
-                                                    '-',
-                                                  ),
-                                                  style: FlutterFlowTheme.of(
-                                                          context)
-                                                      .bodyMedium
-                                                      .override(
-                                                        fontFamily:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .bodyMediumFamily,
-                                                        color:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .alternate,
-                                                        fontSize: 20.0,
-                                                        letterSpacing: 0.0,
-                                                        fontWeight:
-                                                            FontWeight.w700,
-                                                        useGoogleFonts:
-                                                            !FlutterFlowTheme
-                                                                    .of(context)
-                                                                .bodyMediumIsCustom,
-                                                      ),
-                                                ),
-                                              ].divide(SizedBox(height: 10.0)),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      width: double.infinity,
-                                      child: Padding(
-                                        padding: EdgeInsetsDirectional.fromSTEB(
-                                            16.0, 0.0, 16.0, 20.0),
-                                        child: Builder(
-                                          builder: (context) {
-                                            final bestfor = _model.imageraw
-                                                    ?.firstOrNull?.saBestForTags
-                                                    .toList() ??
-                                                [];
-
-                                            return Wrap(
-                                              spacing: 8.0,
-                                              runSpacing: 8.0,
-                                              alignment: WrapAlignment.start,
-                                              children: bestfor
-                                                  .map((tag) => Container(
-                                                        decoration:
-                                                            BoxDecoration(
-                                                          color:
-                                                              Color(0x62FFFFFF),
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(
-                                                                      24.0),
-                                                        ),
-                                                        padding: EdgeInsets
-                                                            .symmetric(
-                                                                horizontal:
-                                                                    12.0,
-                                                                vertical: 8.0),
-                                                        child: Text(
-                                                          tag,
-                                                          maxLines: 1,
-                                                          style: FlutterFlowTheme
-                                                                  .of(context)
-                                                              .bodyMedium
-                                                              .override(
-                                                                fontFamily: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMediumFamily,
-                                                                color: FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .alternate,
-                                                                letterSpacing:
-                                                                    0.0,
-                                                                useGoogleFonts:
-                                                                    !FlutterFlowTheme.of(
-                                                                            context)
-                                                                        .bodyMediumIsCustom,
-                                                              ),
-                                                        ),
-                                                      ))
-                                                  .toList(),
-                                            );
-                                          },
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        // Секции разбора стоят колонкой не шире
-                        // kContentMaxWidth; шапка выше (фото и название)
-                        // остаётся во всю ширину iPad.
+                        _buildHero(context),
+                        // На iPad разбор прижат к верху и ограничен по ширине,
+                        // шапка остаётся во всю ширину экрана.
                         ConstrainedContent(
                           child: SizedBox(
                             width: double.infinity,
@@ -1034,290 +1193,84 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
                               mainAxisSize: MainAxisSize.min,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                if (_model.imageraw?.firstOrNull?.saCompositeScore ==
-                                    null)
-                                  _buildPendingPlaceholder(context)
-                                else ...[
-                                  // ── Разбор: вердикт, беременность, свой фит, риски,
-                                  // активы, обещания и «разбор глубже». Порядок и
-                                  // сворачивание — внутри ProductCardV2Widget.
-                                  if (_model.imageraw?.firstOrNull != null)
-                                    ProductCardV2Widget(
-                                      image: _model.imageraw!.first,
-                                      skinCompatibility:
-                                          _model.skinCompabilityRaw ?? const [],
-                                      topIngredients:
-                                          _model.topIngredientsRaw ?? const [],
-                                      ingredientIssues:
-                                          _model.ingredientIssuesRaw ?? const [],
-                                      userSkinType: _model.userSkinType,
-                                      userIsSensitive: _model.userIsSensitive,
-                                      userIsAcneProne: _model.userIsAcneProne,
-                                      isPro: true,
-                                      pregnancyRelevant:
-                                          _model.profileRow?.pregnancyStatus ==
-                                              ClientCardService.pregnantOrNursing,
-                                      // Профиль не заполнен — вердикт посчитан по всем
-                                      // типам кожи. Предлагаем это исправить сразу под
-                                      // ним, а не до него: сначала ответ, потом анкета.
-                                      profileCta: (_model.userSkinType ?? '').isEmpty
-                                          ? Padding(
-                                              padding:
-                                                  const EdgeInsetsDirectional.fromSTEB(
-                                                      16, 12, 16, 0),
-                                              child: ProfileSummaryCard(
-                                                profileRow: _model.profileRow,
-                                                // Вместе с imageid: по одному имени
-                                                // маршрута анкета вернула бы на
-                                                // карточку без товара.
-                                                returnTo: widget.imageid == null
-                                                    ? null
-                                                    : context.namedLocation(
-                                                        Itemcard2Widget.routeName,
-                                                        queryParameters: {
-                                                          'imageid': serializeParam(
-                                                              widget.imageid,
-                                                              ParamType.int)!,
-                                                        },
-                                                      ),
+                        if (_model.imageraw?.firstOrNull?.saCompositeScore ==
+                            null)
+                          _buildPendingPlaceholder(context)
+                        else ...[
+                          // ── Разбор: вердикт, беременность, свой фит, риски,
+                          // активы, обещания и «разбор глубже». Порядок и
+                          // сворачивание — внутри ProductCardV2Widget.
+                          if (_model.imageraw?.firstOrNull != null)
+                            ProductCardV2Widget(
+                              image: _model.imageraw!.first,
+                              skinCompatibility:
+                                  _model.skinCompabilityRaw ?? const [],
+                              topIngredients:
+                                  _model.topIngredientsRaw ?? const [],
+                              ingredientIssues:
+                                  _model.ingredientIssuesRaw ?? const [],
+                              userSkinType: _model.userSkinType,
+                              userIsSensitive: _model.userIsSensitive,
+                              userIsAcneProne: _model.userIsAcneProne,
+                              isPro: true,
+                              pregnancyRelevant:
+                                  _model.profileRow?.pregnancyStatus ==
+                                      ClientCardService.pregnantOrNursing,
+                              // Профиль не заполнен — вердикт посчитан по всем
+                              // типам кожи. Предлагаем это исправить сразу под
+                              // ним, а не до него: сначала ответ, потом анкета.
+                              profileCta: (_model.userSkinType ?? '').isEmpty
+                                  ? Padding(
+                                      padding:
+                                          const EdgeInsetsDirectional.fromSTEB(
+                                              16, 12, 16, 0),
+                                      child: ProfileSummaryCard(
+                                        profileRow: _model.profileRow,
+                                        // Вместе с imageid: по одному имени
+                                        // маршрута анкета вернула бы на
+                                        // карточку без товара.
+                                        returnTo: widget.imageid == null
+                                            ? null
+                                            : context.namedLocation(
+                                                Itemcard2Widget.routeName,
+                                                queryParameters: {
+                                                  'imageid': serializeParam(
+                                                      widget.imageid,
+                                                      ParamType.int)!,
+                                                },
                                               ),
-                                            )
-                                          : null,
-                                      // Состав, радар и экспертный текст — под «разбор
-                                      // глубже»: 1265 px, которые читают единицы.
-                                      deepExtras: [
-                                        _buildIngredients(context),
-                                        _buildExpertAnalysis(context),
-                                      ],
-                                    ),
-                                  // ── SPF block (all users, only when product contains UV filters) ──
-                                  Builder(builder: (context) {
-                                    final raw = _model.imageraw?.firstOrNull;
-                                    if (raw == null || !raw.saHasSpf) {
-                                      return const SizedBox.shrink();
-                                    }
-                                    final log = raw.saScoringLog;
-                                    final spfInfo =
-                                        (log is Map) ? log['spf_info'] as Map? : null;
-                                    final filterType =
-                                        spfInfo?['filter_type'] as String? ?? '';
-                                    final broadSpectrum =
-                                        spfInfo?['broad_spectrum'] == true;
-                                    final filters = (spfInfo?['filters'] as List?)
-                                            ?.map((f) => f['name'] as String? ?? '')
-                                            .where((n) => n.isNotEmpty)
-                                            .toList() ??
-                                        [];
-        
-                                    String filterTypeLabel() {
-                                      final loc = FFLocalizations.of(context);
-                                      if (filterType == 'mineral')
-                                        return loc.getText('ic2_filter_mineral');
-                                      if (filterType == 'chemical')
-                                        return loc.getText('ic2_filter_chemical');
-                                      return loc.getText('ic2_filter_combined');
-                                    }
-        
-                                    return Padding(
-                                      padding: const EdgeInsetsDirectional.fromSTEB(
-                                          16.0, 16.0, 16.0, 0.0),
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFFE8F4FD),
-                                          borderRadius: BorderRadius.circular(20.0),
-                                          boxShadow: const [
-                                            BoxShadow(
-                                              blurRadius: 8.0,
-                                              color: Color(0x1A000000),
-                                              offset: Offset(0.0, 2.0),
-                                            ),
-                                          ],
-                                        ),
-                                        child: Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 16.0, vertical: 16.0),
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              // Header row: badge + title
-                                              Row(
-                                                children: [
-                                                  Container(
-                                                    decoration: BoxDecoration(
-                                                      color: const Color(0xFF1565C0),
-                                                      borderRadius:
-                                                          BorderRadius.circular(8),
-                                                    ),
-                                                    padding: const EdgeInsets.symmetric(
-                                                        horizontal: 10, vertical: 5),
-                                                    child: const Row(
-                                                      mainAxisSize: MainAxisSize.min,
-                                                      children: [
-                                                        Icon(Icons.wb_sunny_rounded,
-                                                            size: 14,
-                                                            color: Colors.white),
-                                                        SizedBox(width: 5),
-                                                        Text(
-                                                          'SPF',
-                                                          style: TextStyle(
-                                                            fontSize: 13,
-                                                            fontWeight: FontWeight.w700,
-                                                            color: Colors.white,
-                                                            letterSpacing: 0.5,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  const SizedBox(width: 12),
-                                                  Text(
-                                                    FFLocalizations.of(context)
-                                                        .getText('ic2_uv_protection'),
-                                                    style: FlutterFlowTheme.of(context)
-                                                        .bodyMedium
-                                                        .override(
-                                                          fontFamily:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMediumFamily,
-                                                          fontSize: 16.0,
-                                                          fontWeight: FontWeight.w700,
-                                                          letterSpacing: 0.0,
-                                                          useGoogleFonts:
-                                                              !FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMediumIsCustom,
-                                                        ),
-                                                  ),
-                                                ],
-                                              ),
-                                              const SizedBox(height: 12),
-                                              // Legend rows
-                                              _SpfLegendRow(
-                                                icon: Icons.science_rounded,
-                                                label: FFLocalizations.of(context)
-                                                    .getText('ic2_filter_type'),
-                                                value: filterTypeLabel(),
-                                              ),
-                                              const SizedBox(height: 6),
-                                              _SpfLegendRow(
-                                                icon: broadSpectrum
-                                                    ? Icons.check_circle_rounded
-                                                    : Icons.radio_button_unchecked,
-                                                iconColor: broadSpectrum
-                                                    ? const Color(0xFF2E7D32)
-                                                    : null,
-                                                label: FFLocalizations.of(context)
-                                                    .getText('ic2_broad_spectrum'),
-                                                value: '',
-                                              ),
-                                              if (filters.isNotEmpty) ...[
-                                                const SizedBox(height: 6),
-                                                _SpfLegendRow(
-                                                  icon: Icons.list_rounded,
-                                                  label: FFLocalizations.of(context)
-                                                      .getText('ic2_filters'),
-                                                  value: filters.join(', '),
-                                                ),
-                                              ],
-                                            ],
-                                          ),
-                                        ),
                                       ),
-                                    );
-                                  }),
-                                  Padding(
-                                    padding: EdgeInsetsDirectional.fromSTEB(
-                                        16.0, 16.0, 16.0, 0.0),
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFFF5F8FF),
-                                        borderRadius: BorderRadius.circular(24.0),
-                                        border: Border(
-                                          left: BorderSide(
-                                            color: FlutterFlowTheme.of(context).primary,
-                                            width: 4.0,
-                                          ),
-                                        ),
-                                        boxShadow: const [
-                                          BoxShadow(
-                                            blurRadius: 8.0,
-                                            color: Color(0x14000000),
-                                            offset: Offset(0.0, 2.0),
-                                          ),
-                                        ],
-                                      ),
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.max,
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Padding(
-                                            padding: EdgeInsetsDirectional.fromSTEB(
-                                                12.0, 16.0, 16.0, 16.0),
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.max,
-                                              children: [
-                                                Icon(
-                                                  Icons.lightbulb_circle,
-                                                  color: FlutterFlowTheme.of(context)
-                                                      .primary,
-                                                  size: 30.0,
-                                                ),
-                                                Text(
-                                                  FFLocalizations.of(context).getText(
-                                                    'sdd57mig' /* How to use */,
-                                                  ),
-                                                  style: FlutterFlowTheme.of(context)
-                                                      .bodyMedium
-                                                      .override(
-                                                        fontFamily:
-                                                            FlutterFlowTheme.of(context)
-                                                                .bodyMediumFamily,
-                                                        fontSize: 18.0,
-                                                        letterSpacing: 0.0,
-                                                        fontWeight: FontWeight.w700,
-                                                        useGoogleFonts:
-                                                            !FlutterFlowTheme.of(
-                                                                    context)
-                                                                .bodyMediumIsCustom,
-                                                      ),
-                                                ),
-                                              ].divide(SizedBox(width: 12.0)),
-                                            ),
-                                          ),
-                                          Padding(
-                                            padding: EdgeInsetsDirectional.fromSTEB(
-                                                12.0, 0.0, 16.0, 16.0),
-                                            child: Text(
-                                              valueOrDefault<String>(
-                                                _model
-                                                    .imageraw?.firstOrNull?.saHowToUse,
-                                                '-',
-                                              ),
-                                              style: FlutterFlowTheme.of(context)
-                                                  .bodyMedium
-                                                  .override(
-                                                    fontFamily:
-                                                        FlutterFlowTheme.of(context)
-                                                            .bodyMediumFamily,
-                                                    letterSpacing: 0.0,
-                                                    useGoogleFonts:
-                                                        !FlutterFlowTheme.of(context)
-                                                            .bodyMediumIsCustom,
-                                                  ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                  // Trailing bottom spacer so the last block (e.g. "How
-                                  // to use" for pro users) is fully visible; extra height
-                                  // for the anonymous sticky save-banner.
-                                  SizedBox(
-                                      height: currentUserIsAnonymous ? 80.0 : 40.0),
-                                ], // end of analysis sections
+                                    )
+                                  : null,
+                              // SPF — в блок «кому подходит» внутри карточки.
+                              spfBlock: (_model.imageraw?.firstOrNull?.saHasSpf ??
+                                      false)
+                                  ? _buildSpf(context)
+                                  : null,
+                              // Состав, экспертный текст и «как использовать» —
+                              // под «разбор глубже»: их читают единицы, а в
+                              // основном потоке это сказанные выводы.
+                              deepExtras: [
+                                _buildExpertAnalysis(context),
+                                _buildHowTo(context),
+                              ],
+                              // «Следующая баночка»: скан и полка прямо с
+                              // карточки, а не только «назад».
+                              onScanNext: () => context
+                                  .pushNamed(TakeorUploadPageWidget.routeName),
+                              onToggleBag: () => _inBag
+                                  ? _removeFromBag()
+                                  : _addToBag(_model.imageraw!.first.user ==
+                                      currentUserUid),
+                              inBag: _inBag,
+                              bagCount: _bagCount,
+                            ),
+                          // Trailing bottom spacer so the last block (e.g. "How
+                          // to use" for pro users) is fully visible; extra height
+                          // for the anonymous sticky save-banner.
+                          SizedBox(
+                              height: currentUserIsAnonymous ? 80.0 : 40.0),
+                        ], // end of analysis sections
                               ],
                             ),
                           ),
@@ -1375,6 +1328,25 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
       },
     );
   }
+}
+
+/// Height of [_AnonSaveBanner] above the bottom safe area: 14 padding + 22 row
+/// + 14 padding. The banner adds the safe inset itself, and so does the FAB
+/// location below, so only this part has to be accounted for twice.
+const double _kAnonSaveBannerHeight = 50.0;
+
+/// endFloat, lifted clear of the sticky save banner.
+///
+/// The banner is painted inside the body Stack while the FAB is laid out by the
+/// Scaffold, so nothing makes them aware of each other: at the default position
+/// the settings button sits on top of the banner and covers its text.
+class _EndFloatAboveBanner extends StandardFabLocation
+    with FabEndOffsetX, FabFloatOffsetY {
+  const _EndFloatAboveBanner();
+
+  @override
+  double getOffsetY(ScaffoldPrelayoutGeometry geometry, double adjustment) =>
+      super.getOffsetY(geometry, adjustment) - _kAnonSaveBannerHeight - 8.0;
 }
 
 class _AnonSaveBanner extends StatelessWidget {

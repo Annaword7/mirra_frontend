@@ -4,37 +4,44 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 
+import '/auth/supabase_auth/auth_util.dart';
+import '/backend/api_requests/api_calls.dart';
 import '/backend/supabase/supabase.dart';
 import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/components/score_breakdown/score_breakdown_widget.dart';
+import '/design_system/components/app_button.dart';
 import '/design_system/components/mirra_bottom_sheet.dart';
 import '/design_system/components/selectable_row.dart';
 import '/design_system/components/settings_row.dart';
-import '/design_system/foundations/score_status.dart';
-import '/index.dart';
+import '/item_card/ingridients/ingridients_widget.dart';
 import '/paywall/show_paywall.dart';
 
-/// Product card v2: answer-first layout.
+/// Product card v2: карточка, в которой вывод делает читатель.
 ///
-/// The card leads with a verdict ("is this right for me?"), backed by the
-/// skin-type fit matrix. Tapping a matrix row is an EPHEMERAL preview —
-/// it re-composes the verdict locally and never writes to the profile
-/// (onboarding is the single source of truth). All data is profile-independent
-/// and comes from the stored analysis; no network calls happen on tap.
+/// Порядок блоков повторяет путь мысли человека, который только что
+/// отсканировал СВОЙ продукт (документ V, состояния S0–S6):
+///  1. правило: состав с подсветкой, подсказками по тапу и линией 1 % —
+///     «порядок показывает количество»
+///  2. чего ожидать: один список эффектов — обещания с упаковки, неозвученные
+///     плюсы (goal_support) и неозвученные минусы (замечания). Зелёный =
+///     позитивный и подкреплённый составом, красный = негативный или обещанный
+///     без подтверждения; тап раскрывает компоненты
+///  3. пауза: одна фраза, снимающая вину («дело в составе, не в вашей коже»)
+///  4. почему этому можно верить: честность разбора, нейтральность — и только
+///     здесь кольцо со скором, оси (свёрнуты) и «спросить карточку»
+///  5. кому подходит, кому нет: тип кожи, предупреждения с адресатами,
+///     беременность, SPF
+///  6. следующая баночка: сканировать ещё / на полку
+///  7. «разбор глубже»: доза против MEC для всех активов, информационные
+///     замечания, уверенность целиком и всё, что передали в [deepExtras]
 ///
-/// Порядок блоков — по порядку вопросов, которые задаёт человек:
-///  - вердикт + число фита, под ним строка честности (сколько состава разобрано
-///    и какова уверенность разбора)
-///  - беременность: предупреждение всем, спокойный ответ — только тем, у кого
-///    это указано в профиле
-///  - совместимость: своя строка, остальные типы кожи — по кнопке «сравнить»
-///  - что может пойти не так (warnings с адресатами)
-///  - что реально работает: активы со светофором дозировок
-///  - обещания с упаковки: счёт «подтверждено N из M», разбор по тапу
-///  - «разбор глубже»: состав по номерам, доза против MEC, уверенность и
-///    всё, что передали в [deepExtras]
+/// Ни один блок не говорит «продукт не работает»: только позиция, доза, порог.
+/// Слово «M!RRA» впервые звучит в блоке 4. Скор не поднимается выше него.
+///
+/// Тап по типу кожи — эфемерный просмотр: пересобирает вердикт локально и
+/// никогда не пишет в профиль (онбординг — единственный источник правды).
 class ProductCardV2Widget extends StatefulWidget {
   const ProductCardV2Widget({
     super.key,
@@ -48,7 +55,12 @@ class ProductCardV2Widget extends StatefulWidget {
     this.isPro = false,
     this.pregnancyRelevant = false,
     this.profileCta,
+    this.spfBlock,
     this.deepExtras = const [],
+    this.onScanNext,
+    this.onToggleBag,
+    this.inBag = false,
+    this.bagCount,
   });
 
   final ImagesRow image;
@@ -64,7 +76,8 @@ class ProductCardV2Widget extends StatefulWidget {
   final bool userIsSensitive;
   final bool userIsAcneProne;
 
-  /// Whether the pro layer (1% line, evidence vs MEC, confidence) is visible.
+  /// Whether the pro layer (full MEC table, confidence, deep extras) is visible
+  /// and how many questions the card answers.
   final bool isPro;
 
   /// В профиле указана беременность или кормление. Спокойный вердикт («можно»)
@@ -72,13 +85,22 @@ class ProductCardV2Widget extends StatefulWidget {
   /// предупреждение видно всем независимо от профиля: прятать риск нельзя.
   final bool pregnancyRelevant;
 
-  /// Приглашение заполнить профиль. Стоит ПОД вердиктом, а не над ним: сначала
-  /// ответ, потом просьба поработать.
+  /// Приглашение заполнить профиль. Стоит в блоке «кому подходит»: вопрос
+  /// «а для какой кожи?» к этому моменту уже возник, и просьба уместна.
   final Widget? profileCta;
 
-  /// Блоки, уезжающие внутрь «Разбора глубже» (состав, радар, экспертный
-  /// текст). Хозяин экрана решает, что туда сложить.
+  /// Блок SPF от хозяина экрана — тоже «для кого», живёт в блоке фита.
+  final Widget? spfBlock;
+
+  /// Блоки, уезжающие внутрь «Разбора глубже» (состав с подсветкой, экспертный
+  /// текст, «как использовать»). Хозяин экрана решает, что туда сложить.
   final List<Widget> deepExtras;
+
+  /// Действия блока «следующая баночка». null — блок не показывается.
+  final VoidCallback? onScanNext;
+  final Future<void> Function()? onToggleBag;
+  final bool inBag;
+  final int? bagCount;
 
   @override
   State<ProductCardV2Widget> createState() => _ProductCardV2WidgetState();
@@ -90,16 +112,23 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
   String? _selectedSkinType;
   bool _proExpanded = false;
 
-  /// Разбор обещаний с упаковки раскрыт (по умолчанию виден только счёт).
-  bool _claimsExpanded = false;
-
   /// Методика проверки на беременность раскрыта (по умолчанию — ссылкой).
   bool _pregHowExpanded = false;
+
+  /// «Спросить карточку»: один диалог на карточку, в памяти виджета.
+  final TextEditingController _askController = TextEditingController();
+  String? _askAnswer;
+  Set<String> _askCited = const {};
+  bool _askLoading = false;
+  bool _askError = false;
+  int _askCount = 0;
 
   /// Set once the user taps a matrix row. After that, an async profile load
   /// must not override their manual preview (onboarding stays the cold-start
   /// default; taps are ephemeral and win locally).
   bool _userTouchedMatrix = false;
+
+  static const int _freeQuestions = 3;
 
   @override
   void initState() {
@@ -118,11 +147,22 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
     }
   }
 
+  @override
+  void dispose() {
+    _askController.dispose();
+    super.dispose();
+  }
+
   String _t(String key) => FFLocalizations.of(context).getText(key);
 
   String _skinTypeLabel(String skinType) {
     final label = _t('skin_$skinType');
     return label.isEmpty ? skinType : label;
+  }
+
+  String _claimLabel(String claimKey) {
+    final l = _t('cardv2_claim_$claimKey');
+    return l.isEmpty ? claimKey : l;
   }
 
   // ── Severity / fit palette (single light theme; the app has no dark mode) ──
@@ -135,8 +175,42 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
     if (score >= 60) return _warnColor;
     return _badColor;
   }
-  // Ingredient status colors come from statusColor() in the score_status
-  // foundation (working green / borderline amber / decorative & unknown grey).
+
+  // ── Text style helpers for the new blocks ─────────────────────────────────
+
+  TextStyle _section(FlutterFlowTheme t) => t.labelMedium.override(
+        fontFamily: t.labelMediumFamily,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.0,
+        useGoogleFonts: !t.labelMediumIsCustom,
+      );
+
+  TextStyle _body(FlutterFlowTheme t,
+          {double size = 14, FontWeight? weight, Color? color}) =>
+      t.bodyMedium.override(
+        fontFamily: t.bodyMediumFamily,
+        fontSize: size,
+        fontWeight: weight,
+        color: color,
+        letterSpacing: 0.0,
+        useGoogleFonts: !t.bodyMediumIsCustom,
+      );
+
+  TextStyle _small(FlutterFlowTheme t, {Color? color, FontWeight? weight}) =>
+      t.bodySmall.override(
+        fontFamily: t.bodySmallFamily,
+        color: color ?? t.secondaryText,
+        fontWeight: weight,
+        letterSpacing: 0.0,
+        useGoogleFonts: !t.bodySmallIsCustom,
+      );
+
+  Widget _sectionTitle(FlutterFlowTheme t, String text) => Padding(
+        padding: const EdgeInsetsDirectional.fromSTEB(16, 24, 16, 8),
+        child: Text(text, style: _section(t)),
+      );
+
+  // ── Derived data ──────────────────────────────────────────────────────────
 
   ImageSkinCompatibilityRow? get _selectedRow {
     if (_selectedSkinType == null) return null;
@@ -162,35 +236,552 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
     }).toList();
   }
 
+  Map<String, dynamic> get _confidence {
+    final raw = widget.image.saConfidence;
+    if (raw is Map) return Map<String, dynamic>.from(raw);
+    return const {};
+  }
+
+  List<Map<String, dynamic>> get _claimAudit {
+    final raw = widget.image.saClaimAudit;
+    if (raw is List) {
+      return raw
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
+    }
+    return const [];
+  }
+
+  /// INCI positions in order. Prefers the backend's pre-parsed array (which
+  /// keeps multi-part names like "1,2-Hexanediol" intact); falls back to a
+  /// client split that does NOT break on the comma inside "1,2-…"/"2,3-…".
+  List<String> get _inciList {
+    final stored = widget.image.saInciList;
+    if (stored.isNotEmpty) {
+      return stored.map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+    }
+    return (widget.image.ingredients ?? '')
+        .split(RegExp(r',(?!\s*\d)|\n'))
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
+  }
+
+  int? get _linePos => widget.image.saOnePercentLinePos;
+
+  static bool _sameIngredient(String a, String b) {
+    final x = a.toLowerCase().trim();
+    final y = b.toLowerCase().trim();
+    if (x.isEmpty || y.isEmpty) return false;
+    return x == y || x.contains(y) || y.contains(x);
+  }
+
+  /// Позиция по имени в самом списке состава — та же, что видит человек в
+  /// блоке выше. Точное совпадение важнее частичного.
+  int? _positionByName(String name) {
+    final inci = _inciList;
+    final key = name.toLowerCase().trim();
+    for (var i = 0; i < inci.length; i++) {
+      if (inci[i].toLowerCase().trim() == key) return i + 1;
+    }
+    for (var i = 0; i < inci.length; i++) {
+      if (_sameIngredient(inci[i], name)) return i + 1;
+    }
+    return null;
+  }
+
+  ImageTopIngredientsRow? _activeByName(String name) {
+    for (final ing in widget.topIngredients) {
+      if (_sameIngredient(ing.ingredientName, name)) return ing;
+    }
+    return null;
+  }
+
+  /// evidence из claim audit / goal support: объекты {ingredient, position,
+  /// status}; старые анализы могли хранить просто строки.
+  static List<_Evidence> _parseEvidence(dynamic raw) {
+    if (raw is! List) return const [];
+    final out = <_Evidence>[];
+    for (final e in raw) {
+      if (e is String && e.trim().isNotEmpty) {
+        out.add(_Evidence(name: e.trim()));
+      } else if (e is Map) {
+        final n = e['ingredient'] ?? e['name'];
+        if (n is String && n.trim().isNotEmpty) {
+          out.add(_Evidence(
+            name: n.trim(),
+            position: (e['position'] as num?)?.toInt(),
+            status: e['status'] as String?,
+          ));
+        }
+      }
+    }
+    // Рабочие — первыми: именно они объясняют эффект.
+    out.sort((a, b) => a.rank.compareTo(b.rank));
+    return out;
+  }
+
+  /// Обещание с упаковки → компоненты, которые должны его выполнять.
+  List<_PromiseRow> get _promiseRows => [
+        for (final claim in _claimAudit)
+          _PromiseRow(
+            claimKey: claim['claim'] as String? ?? '',
+            verdict: claim['verdict'] as String? ?? 'unsupported',
+            evidence: _parseEvidence(claim['evidence']),
+          ),
+      ];
+
+  /// Обещанный компонент ниже рабочей дозы — герой паузы и подсказки.
+  String? get _weakPromisedName {
+    for (final status in const ['decorative', 'borderline']) {
+      for (final row in _promiseRows) {
+        for (final e in row.evidence) {
+          if ((e.status ?? _activeByName(e.name)?.status) == status) {
+            return e.name;
+          }
+        }
+      }
+    }
+    if (_claimAudit.isEmpty) {
+      // Обещаний нет — любой декоративный актив всё равно объясняет прошлое.
+      for (final ing in widget.topIngredients) {
+        if (ing.status == 'decorative') return ing.ingredientName;
+      }
+    }
+    return null;
+  }
+
+  // ── Build ─────────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
+    final pause = _buildPause(theme);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
-      // Порядок отвечает на вопросы в том порядке, в каком их задают: что это
-      // значит → это про меня? → что может пойти не так → что тут работает →
-      // врут ли на упаковке → подробности по запросу.
       children: [
-        _buildVerdict(theme),
-        // Из чего сложилась оценка — сразу под числом, свёрнутым списком осей.
-        ScoreBreakdownWidget(
-          scoringLog: widget.image.saScoringLog,
-          topIngredients: widget.topIngredients,
-          ingredientIssues: widget.ingredientIssues,
-        ),
-        if (widget.profileCta != null) widget.profileCta!,
-        _buildPregnancy(theme),
-        _buildFit(theme),
-        if (_visibleWarnings.isNotEmpty) _buildWarnings(theme),
-        if (widget.topIngredients.isNotEmpty) _buildActives(theme),
-        if (_claimAudit.isNotEmpty) _buildClaimAudit(theme),
+        _buildRule(theme),
+        _buildExpectations(theme),
+        if (pause != null) pause,
+        _buildTrustAndVerdict(theme),
+        _buildFitGroup(theme),
+        if (widget.onScanNext != null || widget.onToggleBag != null)
+          _buildNextBottle(theme),
         if (widget.isPro) _buildProLayer(theme),
       ],
     );
   }
 
-  // ── Verdict ───────────────────────────────────────────────────────────────
+  // ── 1. Правило: состав с линией 1 % ───────────────────────────────────────
+
+  /// Один список вместо колбы и нумерации: тот же поток INCI с подсветкой,
+  /// но каждый ингредиент нажимается, обещанные активы помечены, первый из них
+  /// раскрыт сразу, а линия 1 % проведена прямо в списке.
+  Widget _buildRule(FlutterFlowTheme theme) {
+    final inci = _inciList;
+    if (inci.isEmpty) return const SizedBox.shrink();
+
+    final promised = <String, String>{};
+    String? firstPromised;
+    for (final row in _promiseRows) {
+      for (final e in row.evidence) {
+        promised.putIfAbsent(
+            e.name.toLowerCase().trim(), () => _claimLabel(row.claimKey));
+        firstPromised ??= e.name;
+      }
+    }
+    // Раскрыт по умолчанию компонент ниже дозы, если такой есть: с него
+    // начинается вовлечение. Иначе — первый обещанный.
+    final initial = _weakPromisedName ?? firstPromised;
+
+    return Padding(
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 0),
+      child: IngridientsWidget(
+        inci: inci,
+        linePos: _linePos,
+        lineMarker: widget.image.saOnePercentLineMarker,
+        topIngredients: widget.topIngredients,
+        issues: widget.ingredientIssues,
+        promised: promised,
+        citedNames: _askCited,
+        initiallySelected: initial,
+      ),
+    );
+  }
+
+  // ── 2. Чего ожидать ──────────────────────────────────────────────
+
+  /// Обещание с упаковки → цель, которую движок считает в goal_support.
+  static const _claimToGoal = {
+    'hydration': 'hydration',
+    'barrier': 'barrier',
+    'anti_aging_lifting': 'anti_aging',
+    'brightening': 'pigmentation',
+    'pores': 'pores',
+    'acne': 'acne',
+  };
+
+  Map<String, Map<String, dynamic>> get _goalSupport {
+    final raw = widget.image.saGoalSupport;
+    if (raw is! Map) return const {};
+    return {
+      for (final e in raw.entries)
+        if (e.value is Map)
+          '${e.key}': Map<String, dynamic>.from(e.value as Map),
+    };
+  }
+
+  String _goalLabel(String goal) {
+    final l = _t('cb_goal_$goal');
+    return l.isEmpty ? goal : l;
+  }
+
+  /// Чего можно ждать сверх обещанного: цели, которые формула поддерживает
+  /// (goal_support ≥ 50), но упаковка о них молчит.
+  List<({String goal, int score, List<String> evidence})> get _unclaimedGoods {
+    final claimed = _claimAudit
+        .map((c) => _claimToGoal[c['claim']])
+        .whereType<String>()
+        .toSet();
+    final out = <({String goal, int score, List<String> evidence})>[];
+    for (final e in _goalSupport.entries) {
+      if (claimed.contains(e.key)) continue;
+      final score = (e.value['score'] as num?)?.round() ?? 0;
+      if (score < 50) continue;
+      final ev = _parseEvidence(e.value['evidence'])
+          .where((x) => x.status != 'decorative')
+          .map((x) => x.name)
+          .toList();
+      out.add((goal: e.key, score: score, evidence: ev));
+    }
+    out.sort((a, b) => b.score.compareTo(a.score));
+    return out;
+  }
+
+  /// Замечание движка → ощущение на коже, о котором упаковка не предупреждает.
+  static String? _effectOf(ImageIngredientIssuesRow issue) {
+    switch (issue.issueType) {
+      case 'comedogenic':
+        return 'breakouts';
+      case 'irritant':
+        // Спирты и жёсткие ПАВ адресованы сухой коже — это сухость; эфирные
+        // масла адресованы только чувствительной — это раздражение.
+        return issue.relevantFor.contains('dry') ? 'dryness' : 'irritation';
+      case 'fragrance':
+      case 'allergen':
+      case 'formaldehyde_releaser':
+        return 'irritation';
+      case 'controversial':
+        return 'controversial';
+      default:
+        return null; // informational (eco/regulatory) — не про кожу
+    }
+  }
+
+  static const _effectOrder = [
+    'breakouts',
+    'dryness',
+    'irritation',
+    'controversial',
+  ];
+
+  /// Чего не обещали, но видно по составу: замечания, сгруппированные по
+  /// эффекту, с компонентами-виновниками и адресатами.
+  List<({String effect, List<String> ingredients, Set<String> forWhom})>
+      get _unclaimedBads {
+    final groups = <String, ({List<String> ingredients, Set<String> forWhom})>{};
+    for (final issue in widget.ingredientIssues) {
+      if (issue.relevantFor.isEmpty) continue;
+      final effect = _effectOf(issue);
+      if (effect == null) continue;
+      final g = groups.putIfAbsent(
+          effect, () => (ingredients: <String>[], forWhom: <String>{}));
+      if (!g.ingredients.contains(issue.ingredientName)) {
+        g.ingredients.add(issue.ingredientName);
+      }
+      g.forWhom.addAll(issue.relevantFor);
+    }
+    return [
+      for (final k in _effectOrder)
+        if (groups.containsKey(k))
+          (
+            effect: k,
+            ingredients: groups[k]!.ingredients,
+            forWhom: groups[k]!.forWhom,
+          ),
+    ];
+  }
+
+  String _forWhomLabel(Set<String> types) => types.contains('all')
+      ? _t('cardv2_for_all')
+      : types.map(_skinTypeLabel).join(', ');
+
+  /// Раскрытые строки «чего ожидать» (ключ эффекта).
+  final Set<String> _expandedEffects = {};
+
+  /// Один список ожиданий. Правило цвета: позитивный и подкреплённый составом —
+  /// зелёный; негативный — красный; позитивный, но не подкреплённый (обещание
+  /// без компонента в дозе) — тоже красный. Тап раскрывает, какие компоненты
+  /// дают эффект, или что подтверждения в составе нет.
+  List<_Expectation> get _expectations {
+    final total = _inciList.length;
+    final linePos = _linePos;
+    final out = <_Expectation>[];
+
+    // Обещания с упаковки.
+    for (final row in _promiseRows) {
+      // Подкреплено — вердикт движка «supported» ИЛИ хотя бы один компонент
+      // в рабочей дозе: движок ставит «слабо» одиночному рабочему активу
+      // (35 баллов из порога 55), а для читателя рабочая доза и есть
+      // подтверждение. Объясняют рабочие компоненты; нет — показываем, что
+      // есть, вместе с его позицией и дозой.
+      final hasWorking = row.evidence.any((e) =>
+          (e.status ?? _activeByName(e.name)?.status) == 'working');
+      final backed = row.verdict == 'supported' || hasWorking;
+      final shown = backed
+          ? row.evidence.where((e) => e.status != 'decorative').toList()
+          : row.evidence;
+      final lines = <String>[_t('cardv2_expect_claimed')];
+      if (shown.isNotEmpty) {
+        lines.add(_t('cardv2_reality_thanks')
+            .replaceAll('{names}', shown.take(3).map((e) => e.name).join(', ')));
+        final best = shown.first;
+        final active = _activeByName(best.name);
+        final pos = _positionByName(best.name) ?? best.position;
+        final status = best.status ?? active?.status;
+        final where = <String>[
+          if (pos != null)
+            _t('cardv2_position_of')
+                .replaceAll('{pos}', '$pos')
+                .replaceAll('{total}', '$total'),
+          if (pos != null && linePos != null)
+            pos < linePos
+                ? _t('cardv2_layer_above')
+                : _t('cardv2_layer_below'),
+          if (active?.mec != null)
+            _t('cardv2_dose_needed').replaceAll('{mec}', '${active!.mec}'),
+          if (status != null) _t('cardv2_status_$status'),
+        ];
+        if (where.isNotEmpty) lines.add(where.join(' · '));
+        if (!backed) {
+          lines.add(status == 'decorative'
+              ? _t('cardv2_decorative_note')
+              : _t('cardv2_verdict_${row.verdict}'));
+        }
+      } else {
+        lines.add(_t('cardv2_expect_not_backed'));
+      }
+      out.add(_Expectation(
+        key: 'claim_${row.claimKey}',
+        title: _claimLabel(row.claimKey),
+        good: backed,
+        lines: lines,
+      ));
+    }
+
+    // Чего ещё можно ждать: формула умеет, упаковка молчит.
+    for (final g in _unclaimedGoods) {
+      out.add(_Expectation(
+        key: 'goal_${g.goal}',
+        title: _goalLabel(g.goal),
+        good: true,
+        lines: [
+          if (g.evidence.isNotEmpty)
+            _t('cardv2_reality_thanks')
+                .replaceAll('{names}', g.evidence.take(3).join(', ')),
+        ],
+      ));
+    }
+
+    // Чего не обещали, но видно по составу.
+    for (final b in _unclaimedBads) {
+      out.add(_Expectation(
+        key: 'bad_${b.effect}',
+        title: _t('cardv2_effect_${b.effect}'),
+        good: false,
+        lines: [
+          _t('cardv2_reality_because')
+              .replaceAll('{names}', b.ingredients.take(4).join(', ')),
+          '${_t('cardv2_matters_for')} ${_forWhomLabel(b.forWhom)}',
+        ],
+      ));
+    }
+    return out;
+  }
+
+  Widget _buildExpectations(FlutterFlowTheme theme) {
+    final items = _expectations;
+    if (items.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _sectionTitle(theme, _t('cardv2_expect_title')),
+        for (final e in items) _expectationRow(theme, e),
+      ],
+    );
+  }
+
+  Widget _expectationRow(FlutterFlowTheme theme, _Expectation e) {
+    final color = e.good ? _goodColor : _badColor;
+    final expanded = _expandedEffects.contains(e.key);
+    return InkWell(
+      onTap: () => setState(() {
+        if (!_expandedEffects.remove(e.key)) _expandedEffects.add(e.key);
+      }),
+      child: Padding(
+        padding: const EdgeInsetsDirectional.fromSTEB(16, 6, 16, 6),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 3),
+              child: Icon(
+                e.good
+                    ? Icons.check_circle_rounded
+                    : Icons.remove_circle_rounded,
+                size: 16,
+                color: color,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(e.title,
+                      style: _body(theme, weight: FontWeight.w600, color: color)),
+                  if (expanded)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 3),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          for (final l in e.lines)
+                            Text(l, style: _small(theme)),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            Icon(
+              expanded ? Icons.expand_less : Icons.expand_more,
+              size: 18,
+              color: theme.secondaryText,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── 3. Пауза ──────────────────────────────────────────────────────────────
+
+  /// Одна фраза без карточки и без цифр. Вариант зависит от блока 2: есть
+  /// обещанный актив ниже дозы — снимаем вину; всё в дозе — направляем к фиту.
+  Widget? _buildPause(FlutterFlowTheme theme) {
+    final weak = _weakPromisedName;
+    final String text;
+    if (weak != null) {
+      text = _t('cardv2_pause_decorative').replaceAll('{active}', weak);
+    } else if (_claimAudit.isNotEmpty) {
+      text = _t('cardv2_pause_ok');
+    } else {
+      return null;
+    }
+    return Padding(
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 24, 16, 4),
+      child: Container(
+        padding: const EdgeInsetsDirectional.fromSTEB(14, 0, 0, 0),
+        decoration: BoxDecoration(
+          border: Border(
+            left: BorderSide(color: theme.primary.withOpacity(0.5), width: 2),
+          ),
+        ),
+        child: Text(
+          text,
+          style: theme.bodyMedium.override(
+            fontFamily: theme.bodyMediumFamily,
+            fontSize: 15,
+            fontStyle: FontStyle.italic,
+            letterSpacing: 0.0,
+            useGoogleFonts: !theme.bodyMediumIsCustom,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── 4. Почему этому можно верить → вердикт → спросить ─────────────────────
+
+  Widget _buildTrustAndVerdict(FlutterFlowTheme theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _sectionTitle(theme, _t('cardv2_trust_title')),
+        Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildHonesty(theme),
+              Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(_t('cardv2_neutrality'), style: _small(theme)),
+              ),
+            ],
+          ),
+        ),
+        _sectionTitle(theme, _t('cardv2_verdict_title')),
+        _buildVerdict(theme),
+        ScoreBreakdownWidget(
+          scoringLog: widget.image.saScoringLog,
+          topIngredients: widget.topIngredients,
+          ingredientIssues: widget.ingredientIssues,
+        ),
+        _buildAsk(theme),
+      ],
+    );
+  }
+
+  /// Из чего посчитана оценка: доля разобранного состава, уверенность,
+  /// диапазон и первая причина. Полный список причин — в «Разборе глубже».
+  Widget _buildHonesty(FlutterFlowTheme theme) {
+    final total = widget.image.saIngredientsTotal ?? 0;
+    final recognized = widget.image.saIngredientsRecognized ?? 0;
+    final conf = _confidence;
+    final level = widget.image.saConfidenceLevel ?? '${conf['level'] ?? ''}';
+    final range = conf['composite_range'];
+    final reasons =
+        conf['reasons'] is List ? (conf['reasons'] as List) : const [];
+
+    final parts = <String>[
+      if (total > 0)
+        _t('cardv2_based_on')
+            .replaceAll('{percent}', '${(recognized / total * 100).round()}'),
+      if (level.isNotEmpty && _t('cardv2_conf_$level').isNotEmpty)
+        '${_t('cardv2_confidence_title')}: ${_t('cardv2_conf_$level')}',
+      if (range is List && range.length == 2)
+        _t('cardv2_range')
+            .replaceAll('{lo}', '${range[0]}')
+            .replaceAll('{hi}', '${range[1]}'),
+    ];
+    if (parts.isEmpty && reasons.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (parts.isNotEmpty) Text(parts.join(' · '), style: _small(theme)),
+        if (reasons.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Text('· ${reasons.first}', style: _small(theme)),
+          ),
+      ],
+    );
+  }
 
   Widget _buildVerdict(FlutterFlowTheme theme) {
     final row = _selectedRow;
@@ -200,14 +791,12 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
     final fitScore = row?.compatibilityScore ??
         (widget.image.saCompositeScore?.round() ?? 0);
     // Подпись под кольцом называет тип кожи, для которого посчитано число.
-    // Раньше тут было «для вас», а тот же балл дублировался строкой ниже —
-    // человек видел одну оценку дважды и не понимал, зачем.
     final fitLabel =
         row != null ? _skinTypeLabel(row.skinType) : _t('cardv2_formula');
     final ringColor = _fitColor(fitScore);
 
     return Padding(
-      padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 0),
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 0),
       child: Container(
         decoration: BoxDecoration(
           color: theme.alternate,
@@ -287,22 +876,7 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
             ),
             const SizedBox(width: 16),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    verdictText,
-                    style: theme.bodyMedium.override(
-                      fontFamily: theme.bodyMediumFamily,
-                      fontSize: 14,
-                      letterSpacing: 0.0,
-                      useGoogleFonts: !theme.bodyMediumIsCustom,
-                    ),
-                  ),
-                  _buildHonesty(theme),
-                ],
-              ),
+              child: Text(verdictText, style: _body(theme)),
             ),
           ],
         ),
@@ -310,48 +884,222 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
     );
   }
 
-  /// Из чего посчитана оценка: доля разобранного состава и уверенность разбора.
-  ///
-  /// Раньше доля висела пилюлей «73 %» у названия продукта и читалась как
-  /// оценка самого средства — вторая цифра рядом с первой. Её место здесь:
-  /// это оговорка к числу в кольце, а не свойство крема. Уверенность разбора
-  /// переехала сюда же из «Разбора глубже», где её никто не находил.
-  Widget _buildHonesty(FlutterFlowTheme theme) {
-    final total = widget.image.saIngredientsTotal ?? 0;
-    final recognized = widget.image.saIngredientsRecognized ?? 0;
-    final level =
-        widget.image.saConfidenceLevel ?? '${_confidence['level'] ?? ''}';
+  // ── Спросить карточку ─────────────────────────────────────────────────────
 
-    final parts = <String>[
-      if (total > 0)
-        _t('cardv2_based_on')
-            .replaceAll('{percent}', '${(recognized / total * 100).round()}'),
-      if (level.isNotEmpty && _t('cardv2_conf_$level').isNotEmpty)
-        '${_t('cardv2_confidence_title')}: ${_t('cardv2_conf_$level')}',
+  List<String> get _askSuggestions {
+    final weak = _weakPromisedName;
+    final skin = _selectedSkinType ?? widget.userSkinType ?? 'sensitive';
+    return [
+      _t('cardv2_ask_q_score'),
+      if (weak != null)
+        _t('cardv2_ask_q_active').replaceAll('{active}', weak),
+      _t('cardv2_ask_q_skin').replaceAll('{skin}', _skinTypeLabel(skin)),
     ];
-    if (parts.isEmpty) return const SizedBox.shrink();
+  }
 
+  bool get _askExhausted => !widget.isPro && _askCount >= _freeQuestions;
+
+  Widget _buildAsk(FlutterFlowTheme theme) {
+    final imageId = widget.image.id;
     return Padding(
-      padding: const EdgeInsets.only(top: 6),
-      child: Text(
-        parts.join(' · '),
-        style: theme.labelSmall.override(
-          fontFamily: theme.labelSmallFamily,
-          color: theme.secondaryText,
-          fontSize: 11,
-          letterSpacing: 0.0,
-          useGoogleFonts: !theme.labelSmallIsCustom,
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 0),
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: theme.surfaceMuted,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(_t('cardv2_ask_title'), style: _section(theme)),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                for (final q in _askSuggestions)
+                  ActionChip(
+                    label: Text(q, style: _small(theme, color: theme.primaryText)),
+                    backgroundColor: theme.alternate,
+                    side: BorderSide(color: theme.primary.withOpacity(0.25)),
+                    onPressed: _askLoading ? null : () => _ask(imageId, q),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _askController,
+                    minLines: 1,
+                    maxLines: 3,
+                    maxLength: 500,
+                    textInputAction: TextInputAction.send,
+                    onSubmitted: (v) => _ask(imageId, v),
+                    style: _body(theme),
+                    decoration: InputDecoration(
+                      counterText: '',
+                      hintText: _t('cardv2_ask_hint'),
+                      hintStyle: _small(theme),
+                      isDense: true,
+                      filled: true,
+                      fillColor: theme.alternate,
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 10),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  onPressed: _askLoading
+                      ? null
+                      : () => _ask(imageId, _askController.text),
+                  icon: _askLoading
+                      ? SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: theme.primary),
+                        )
+                      : Icon(Icons.send_rounded, color: theme.primary),
+                  tooltip: _t('cardv2_ask_send'),
+                ),
+              ],
+            ),
+            if (_askAnswer != null) ...[
+              const SizedBox(height: 10),
+              Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: theme.alternate,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(_askAnswer!, style: _body(theme)),
+                    const SizedBox(height: 6),
+                    Text(_t('cardv2_ask_disclaimer'), style: _small(theme)),
+                  ],
+                ),
+              ),
+            ],
+            if (_askError) ...[
+              const SizedBox(height: 8),
+              Text(_t('cardv2_ask_error'),
+                  style: _small(theme, color: _badColor)),
+            ],
+            if (!widget.isPro) ...[
+              const SizedBox(height: 8),
+              InkWell(
+                onTap: _askExhausted
+                    ? () {
+                        unawaited(AnalyticsService.instance
+                            .trackPremiumTap(from: 'card_ask'));
+                        unawaited(showPaywall(context, from: 'card_ask'));
+                      }
+                    : null,
+                child: Text(
+                  _askExhausted
+                      ? _t('cardv2_ask_pro')
+                      : _t('cardv2_ask_left').replaceAll(
+                          '{n}', '${_freeQuestions - _askCount}'),
+                  style: _small(theme,
+                      color: _askExhausted ? theme.primary : null,
+                      weight: _askExhausted ? FontWeight.w600 : null),
+                ),
+              ),
+            ],
+          ],
         ),
       ),
+    );
+  }
+
+  Future<void> _ask(int imageId, String rawQuestion) async {
+    final question = rawQuestion.trim();
+    if (question.isEmpty || _askLoading) return;
+    if (_askExhausted) {
+      unawaited(AnalyticsService.instance.trackPremiumTap(from: 'card_ask'));
+      unawaited(showPaywall(context, from: 'card_ask'));
+      return;
+    }
+    FocusScope.of(context).unfocus();
+    setState(() {
+      _askLoading = true;
+      _askError = false;
+      _askController.text = question;
+    });
+    try {
+      final resp = await ProductAskCall.call(
+        imageId: imageId,
+        question: question,
+        lang: FFLocalizations.of(context).languageCode,
+        skinType: _selectedSkinType ?? widget.userSkinType,
+        token: currentJwtToken,
+      );
+      if (!mounted) return;
+      final answer = resp.succeeded && resp.statusCode == 200
+          ? ProductAskCall.answer(resp.jsonBody)
+          : null;
+      if (answer == null || answer.isEmpty) {
+        setState(() {
+          _askError = true;
+          _askLoading = false;
+        });
+        return;
+      }
+      setState(() {
+        _askAnswer = answer;
+        _askCited = (ProductAskCall.cited(resp.jsonBody) ?? const []).toSet();
+        _askCount += 1;
+        _askLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _askError = true;
+        _askLoading = false;
+      });
+    }
+  }
+
+  // ── 5. Кому подходит, кому нет ────────────────────────────────────────────
+
+  Widget _buildFitGroup(FlutterFlowTheme theme) {
+    final warnings = _visibleWarnings;
+    final hasAnything = widget.skinCompatibility.isNotEmpty ||
+        widget.profileCta != null ||
+        warnings.isNotEmpty ||
+        widget.image.saPregnancySafe != null ||
+        widget.spfBlock != null;
+    if (!hasAnything) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _sectionTitle(theme, _t('cardv2_fit_title')),
+        _buildFit(theme),
+        if (widget.profileCta != null) widget.profileCta!,
+        if (warnings.isNotEmpty) _buildWarnings(theme),
+        _buildPregnancy(theme),
+        if (widget.spfBlock != null) widget.spfBlock!,
+      ],
     );
   }
 
   // ── Skin type matrix (tappable, ephemeral) ───────────────────────────────
 
   /// Тип кожи, для которого посчитана оценка: одна строка на карточке, выбор —
-  /// в листе. Балл и вердикт уже стоят в кольце выше, поэтому повторять их
-  /// строкой незачем; в листе же видны баллы всех типов сразу — то самое
-  /// сравнение, ради которого раньше висела матрица на шесть строк.
+  /// в листе. В листе видны баллы всех типов сразу — то самое сравнение, ради
+  /// которого раньше висела матрица на шесть строк.
   ///
   /// Выбор эфемерный: в профиль не пишется, косметолог так листает типы под
   /// каждого клиента.
@@ -379,7 +1127,7 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
     final row = _selectedRow;
 
     return Padding(
-      padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 0),
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 0),
       child: SettingsRow(
         icon: Icons.face_retouching_natural,
         label: _t('cardv2_skin_type_row'),
@@ -466,115 +1214,6 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
     Navigator.of(sheetContext).pop();
   }
 
-  // ── "What really works": actives with dose-status traffic light ──────────
-
-  Widget _buildActives(FlutterFlowTheme theme) {
-    // Freemium: free users see the first 3 actives; the rest are gated behind
-    // the paywall (hidden entirely, not blurred). Pro sees the full list.
-    final all = widget.topIngredients;
-    final shown = widget.isPro ? all : all.take(3).toList();
-    final hiddenCount = all.length - shown.length;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsetsDirectional.fromSTEB(16, 20, 16, 8),
-          child: Text(
-            _t('cardv2_what_works'),
-            style: theme.labelMedium.override(
-              fontFamily: theme.labelMediumFamily,
-              letterSpacing: 0.0,
-              useGoogleFonts: !theme.labelMediumIsCustom,
-            ),
-          ),
-        ),
-        ...shown.map((ing) {
-          final status = ing.status;
-          final statusLabel = status == null ? '' : _t('cardv2_status_$status');
-          final conc = ing.estimatedConcentration;
-          final subtitle = () {
-            if (statusLabel.isEmpty) return '';
-            // Decorative actives have no meaningful dose — show where they sit
-            // in the list instead of an empty/zero concentration.
-            if (status == 'decorative') {
-              return '$statusLabel · ${_t('cardv2_trace_position')}';
-            }
-            return conc != null ? '~$conc — $statusLabel' : statusLabel;
-          }();
-          return Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(16, 4, 16, 4),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 2),
-                  child: Icon(
-                    statusIcon(status),
-                    size: 16,
-                    color: statusColor(status),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        subtitle.isEmpty
-                            ? ing.ingredientName
-                            : '${ing.ingredientName} · $subtitle',
-                        style: theme.bodyMedium.override(
-                          fontFamily: theme.bodyMediumFamily,
-                          fontSize: 14,
-                          letterSpacing: 0.0,
-                          fontWeight: FontWeight.w500,
-                          useGoogleFonts: !theme.bodyMediumIsCustom,
-                        ),
-                      ),
-                      if ((ing.description ?? '').isNotEmpty)
-                        Text(
-                          ing.description!,
-                          style: theme.bodySmall.override(
-                            fontFamily: theme.bodySmallFamily,
-                            color: theme.secondaryText,
-                            letterSpacing: 0.0,
-                            useGoogleFonts: !theme.bodySmallIsCustom,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          );
-        }),
-        if (!widget.isPro && hiddenCount > 0)
-          Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 0),
-            child: InkWell(
-              onTap: () {
-                unawaited(AnalyticsService.instance.trackPremiumTap(
-                    from: 'card_hidden_ingredients'));
-                unawaited(
-                    showPaywall(context, from: 'card_hidden_ingredients'));
-              },
-              child: Text(
-                '+$hiddenCount ${_t('cardv2_more_in_pro')}',
-                style: theme.bodyMedium.override(
-                  fontFamily: theme.bodyMediumFamily,
-                  fontSize: 14,
-                  color: theme.primary,
-                  letterSpacing: 0.0,
-                  fontWeight: FontWeight.w600,
-                  useGoogleFonts: !theme.bodyMediumIsCustom,
-                ),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
   // ── Pregnancy safety ──────────────────────────────────────────────────────
 
   List<Map<String, dynamic>> get _pregFlags {
@@ -639,13 +1278,7 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
                 Expanded(
                   child: Text(
                     ok ? _t('preg_safe') : _t('preg_caution'),
-                    style: theme.bodyMedium.override(
-                      fontFamily: theme.bodyMediumFamily,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.0,
-                      useGoogleFonts: !theme.bodyMediumIsCustom,
-                    ),
+                    style: _body(theme, weight: FontWeight.w600),
                   ),
                 ),
               ],
@@ -656,11 +1289,7 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
                 child: Text(
                   '${_t('preg_contains')} '
                   '${flags.map((f) => _pregClassLabel('${f['class']}')).join(', ')}',
-                  style: theme.bodySmall.override(
-                    fontFamily: theme.bodySmallFamily,
-                    letterSpacing: 0.0,
-                    useGoogleFonts: !theme.bodySmallIsCustom,
-                  ),
+                  style: _small(theme, color: theme.primaryText),
                 ),
               ),
             // Методика — под ссылкой, а не абзацем на девять строк. Она
@@ -725,15 +1354,8 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsetsDirectional.fromSTEB(16, 20, 16, 8),
-          child: Text(
-            _t('cardv2_watch_out'),
-            style: theme.labelMedium.override(
-              fontFamily: theme.labelMediumFamily,
-              letterSpacing: 0.0,
-              useGoogleFonts: !theme.labelMediumIsCustom,
-            ),
-          ),
+          padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 8),
+          child: Text(_t('cardv2_watch_out'), style: _section(theme)),
         ),
         ..._visibleWarnings.map((issue) {
           final addressees = issue.relevantFor.contains('all')
@@ -762,22 +1384,10 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
                       Text(
                         '${issue.ingredientName}'
                         '${showDescription ? ' — ${issue.description}' : ''}',
-                        style: theme.bodyMedium.override(
-                          fontFamily: theme.bodyMediumFamily,
-                          fontSize: 14,
-                          letterSpacing: 0.0,
-                          useGoogleFonts: !theme.bodyMediumIsCustom,
-                        ),
+                        style: _body(theme),
                       ),
-                      Text(
-                        '${_t('cardv2_matters_for')} $addressees',
-                        style: theme.bodySmall.override(
-                          fontFamily: theme.bodySmallFamily,
-                          color: theme.secondaryText,
-                          letterSpacing: 0.0,
-                          useGoogleFonts: !theme.bodySmallIsCustom,
-                        ),
-                      ),
+                      Text('${_t('cardv2_matters_for')} $addressees',
+                          style: _small(theme)),
                     ],
                   ),
                 ),
@@ -789,132 +1399,71 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
     );
   }
 
-  // ── Claim audit ───────────────────────────────────────────────────────────
+  // ── 6. Следующая баночка ──────────────────────────────────────────────────
 
-  List<Map<String, dynamic>> get _claimAudit {
-    final raw = widget.image.saClaimAudit;
-    if (raw is List) {
-      return raw
-          .whereType<Map>()
-          .map((e) => Map<String, dynamic>.from(e))
-          .toList();
-    }
-    return const [];
-  }
-
-  /// Обещания на упаковке: счёт одной строкой, разбор по пунктам — по тапу.
-  ///
-  /// Это самый убедительный блок карточки («на коробке написали — проверили»),
-  /// но восемь строк прозы его прятали. Счёт «подтверждено 4 из 6» отвечает на
-  /// вопрос «врут или нет» до раскрытия.
-  Widget _buildClaimAudit(FlutterFlowTheme theme) {
-    final supported =
-        _claimAudit.where((c) => c['verdict'] == 'supported').length;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsetsDirectional.fromSTEB(16, 20, 16, 8),
-          child: InkWell(
-            onTap: () => setState(() => _claimsExpanded = !_claimsExpanded),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    '${_t('cardv2_claims_title')} · '
-                    '${_t('cardv2_claims_count').replaceAll('{n}', '$supported').replaceAll('{total}', '${_claimAudit.length}')}',
-                    style: theme.labelMedium.override(
-                      fontFamily: theme.labelMediumFamily,
-                      letterSpacing: 0.0,
-                      useGoogleFonts: !theme.labelMediumIsCustom,
-                    ),
-                  ),
-                ),
-                Icon(
-                  _claimsExpanded ? Icons.expand_less : Icons.expand_more,
-                  size: 20,
-                  color: theme.secondaryText,
-                ),
-              ],
-            ),
-          ),
+  Widget _buildNextBottle(FlutterFlowTheme theme) {
+    final count = widget.bagCount;
+    return Padding(
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 24, 16, 0),
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: theme.alternate,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: theme.primary.withOpacity(0.18)),
         ),
-        if (_claimsExpanded)
-          ..._claimAudit.map((claim) {
-            final claimKey = claim['claim'] as String? ?? '';
-            final verdict = claim['verdict'] as String? ?? 'unsupported';
-            final claimLabel = () {
-              final l = _t('cardv2_claim_$claimKey');
-              return l.isEmpty ? claimKey : l;
-            }();
-            final verdictLabel = _t('cardv2_verdict_$verdict');
-            final verdictColor = verdict == 'supported'
-                ? _goodColor
-                : verdict == 'weak'
-                    ? _warnColor
-                    : _badColor;
-            return Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(16, 3, 16, 3),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Flexible(
-                    child: Text(
-                      '«$claimLabel»',
-                      style: theme.bodyMedium.override(
-                        fontFamily: theme.bodyMediumFamily,
-                        fontSize: 14,
-                        letterSpacing: 0.0,
-                        useGoogleFonts: !theme.bodyMediumIsCustom,
-                      ),
-                    ),
-                  ),
-                  Text(
-                    verdictLabel,
-                    style: theme.bodySmall.override(
-                      fontFamily: theme.bodySmallFamily,
-                      color: verdictColor,
-                      letterSpacing: 0.0,
-                      fontWeight: FontWeight.w500,
-                      useGoogleFonts: !theme.bodySmallIsCustom,
-                    ),
-                  ),
-                ],
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              _t('cardv2_next_title'),
+              style: theme.headlineSmall.override(
+                fontFamily: theme.headlineSmallFamily,
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.0,
+                useGoogleFonts: !theme.headlineSmallIsCustom,
               ),
-            );
-          }),
-      ],
+            ),
+            const SizedBox(height: 6),
+            Text(_t('cardv2_next_body'),
+                style: _body(theme, color: theme.secondaryText)),
+            const SizedBox(height: 14),
+            if (widget.onScanNext != null)
+              AppButton(
+                label: _t('cardv2_next_scan'),
+                icon: Icons.photo_camera_rounded,
+                onPressed: widget.onScanNext,
+              ),
+            if (widget.onToggleBag != null) ...[
+              const SizedBox(height: 8),
+              AppButton(
+                label: widget.inBag
+                    ? _t('cardv2_next_bag_remove')
+                    : _t('cardv2_next_bag_add'),
+                icon: widget.inBag ? Icons.spa_outlined : Icons.spa_rounded,
+                variant: AppButtonVariant.secondary,
+                onPressed: widget.onToggleBag,
+              ),
+            ],
+            if (count != null && count > 0)
+              Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: Text(
+                  _t('cardv2_next_bag_count').replaceAll('{n}', '$count'),
+                  style: _small(theme),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 
-  // ── Pro layer: 1% line composition, evidence vs MEC, confidence ──────────
-
-  Map<String, dynamic> get _confidence {
-    final raw = widget.image.saConfidence;
-    if (raw is Map) return Map<String, dynamic>.from(raw);
-    return const {};
-  }
-
-  /// INCI positions in order. Prefers the backend's pre-parsed array (which
-  /// keeps multi-part names like "1,2-Hexanediol" intact); falls back to a
-  /// client split that does NOT break on the comma inside "1,2-…"/"2,3-…".
-  List<String> get _inciList {
-    final stored = widget.image.saInciList;
-    if (stored.isNotEmpty) {
-      return stored.map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
-    }
-    return (widget.image.ingredients ?? '')
-        .split(RegExp(r',(?!\s*\d)|\n'))
-        .map((s) => s.trim())
-        .where((s) => s.isNotEmpty)
-        .toList();
-  }
+  // ── 7. Pro layer: full MEC table, informational issues, confidence ───────
 
   Widget _buildProLayer(FlutterFlowTheme theme) {
-    final linePos = widget.image.saOnePercentLinePos;
-    final marker = widget.image.saOnePercentLineMarker;
-    final inci = _inciList;
     final conf = _confidence;
     final mecRows = widget.topIngredients
         .where((i) => i.status != null || i.mec != null)
@@ -928,20 +1477,12 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsetsDirectional.fromSTEB(16, 20, 16, 0),
+          padding: const EdgeInsetsDirectional.fromSTEB(16, 24, 16, 0),
           child: InkWell(
             onTap: () => setState(() => _proExpanded = !_proExpanded),
             child: Row(
               children: [
-                Text(
-                  _t('cardv2_pro_title'),
-                  style: theme.labelMedium.override(
-                    fontFamily: theme.labelMediumFamily,
-                    letterSpacing: 0.0,
-                    fontWeight: FontWeight.w600,
-                    useGoogleFonts: !theme.labelMediumIsCustom,
-                  ),
-                ),
+                Text(_t('cardv2_pro_title'), style: _section(theme)),
                 Icon(
                   _proExpanded ? Icons.expand_less : Icons.expand_more,
                   size: 20,
@@ -952,71 +1493,11 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
           ),
         ),
         if (_proExpanded) ...[
-          // Composition split at the 1% line
-          if (inci.isNotEmpty)
-            Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  for (var i = 0; i < inci.length; i++) ...[
-                    if (linePos != null && i + 1 == linePos)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 6),
-                        child: Row(
-                          children: [
-                            Expanded(
-                                child: Divider(color: theme.secondaryText)),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 8),
-                              child: Text(
-                                marker != null
-                                    ? '${_t('cardv2_one_percent_line')} ($marker)'
-                                    : _t('cardv2_one_percent_line'),
-                                style: theme.bodySmall.override(
-                                  fontFamily: theme.bodySmallFamily,
-                                  color: theme.secondaryText,
-                                  letterSpacing: 0.0,
-                                  useGoogleFonts: !theme.bodySmallIsCustom,
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                                child: Divider(color: theme.secondaryText)),
-                          ],
-                        ),
-                      ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 2),
-                      child: Text(
-                        '${i + 1} · ${inci[i]}',
-                        style: theme.bodySmall.override(
-                          fontFamily: theme.bodySmallFamily,
-                          color: linePos != null && i + 1 >= linePos
-                              ? theme.secondaryText
-                              : theme.primaryText,
-                          letterSpacing: 0.0,
-                          useGoogleFonts: !theme.bodySmallIsCustom,
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
           // Evidence vs MEC
           if (mecRows.isNotEmpty) ...[
             Padding(
               padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 4),
-              child: Text(
-                _t('cardv2_evidence_title'),
-                style: theme.labelMedium.override(
-                  fontFamily: theme.labelMediumFamily,
-                  letterSpacing: 0.0,
-                  useGoogleFonts: !theme.labelMediumIsCustom,
-                ),
-              ),
+              child: Text(_t('cardv2_evidence_title'), style: _section(theme)),
             ),
             ...mecRows.map((ing) {
               final mecText = ing.mec != null ? '≥ ${ing.mec}%' : '';
@@ -1029,14 +1510,8 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Flexible(
-                      child: Text(
-                        ing.ingredientName,
-                        style: theme.bodySmall.override(
-                          fontFamily: theme.bodySmallFamily,
-                          letterSpacing: 0.0,
-                          useGoogleFonts: !theme.bodySmallIsCustom,
-                        ),
-                      ),
+                      child: Text(ing.ingredientName,
+                          style: _small(theme, color: theme.primaryText)),
                     ),
                     Text(
                       [
@@ -1044,12 +1519,7 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
                         if (mecText.isNotEmpty) mecText,
                         if (statusLabel.isNotEmpty) statusLabel,
                       ].join(' · '),
-                      style: theme.bodySmall.override(
-                        fontFamily: theme.bodySmallFamily,
-                        color: theme.secondaryText,
-                        letterSpacing: 0.0,
-                        useGoogleFonts: !theme.bodySmallIsCustom,
-                      ),
+                      style: _small(theme),
                     ),
                   ],
                 ),
@@ -1061,14 +1531,7 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
           if (infoIssues.isNotEmpty) ...[
             Padding(
               padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 4),
-              child: Text(
-                _t('cardv2_informational'),
-                style: theme.labelMedium.override(
-                  fontFamily: theme.labelMediumFamily,
-                  letterSpacing: 0.0,
-                  useGoogleFonts: !theme.labelMediumIsCustom,
-                ),
-              ),
+              child: Text(_t('cardv2_informational'), style: _section(theme)),
             ),
             ...infoIssues.map((issue) {
               return Padding(
@@ -1086,12 +1549,7 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
                       child: Text(
                         '${issue.ingredientName}'
                         '${(issue.description ?? '').isNotEmpty ? ' — ${issue.description}' : ''}',
-                        style: theme.bodyMedium.override(
-                          fontFamily: theme.bodyMediumFamily,
-                          fontSize: 14,
-                          letterSpacing: 0.0,
-                          useGoogleFonts: !theme.bodyMediumIsCustom,
-                        ),
+                        style: _body(theme),
                       ),
                     ),
                   ],
@@ -1099,7 +1557,7 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
               );
             }),
           ],
-          // Honest confidence
+          // Honest confidence, in full (the short form sits above the verdict).
           if (conf.isNotEmpty)
             Padding(
               padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 0),
@@ -1116,46 +1574,76 @@ class _ProductCardV2WidgetState extends State<ProductCardV2Widget> {
                     Text(
                       '${_t('cardv2_confidence_title')}: '
                       '${_t('cardv2_conf_${conf['level'] ?? 'medium'}')}',
-                      style: theme.bodyMedium.override(
-                        fontFamily: theme.bodyMediumFamily,
-                        fontSize: 13,
-                        letterSpacing: 0.0,
-                        fontWeight: FontWeight.w600,
-                        useGoogleFonts: !theme.bodyMediumIsCustom,
-                      ),
+                      style: _body(theme, size: 13, weight: FontWeight.w600),
                     ),
                     if (conf['composite_range'] is List &&
                         (conf['composite_range'] as List).length == 2)
                       Text(
                         '${(conf['composite_range'] as List)[0]} – '
                         '${(conf['composite_range'] as List)[1]}',
-                        style: theme.bodySmall.override(
-                          fontFamily: theme.bodySmallFamily,
-                          color: theme.secondaryText,
-                          letterSpacing: 0.0,
-                          useGoogleFonts: !theme.bodySmallIsCustom,
-                        ),
+                        style: _small(theme),
                       ),
                     if (conf['reasons'] is List)
-                      ...((conf['reasons'] as List).map((r) => Text(
-                            '· $r',
-                            style: theme.bodySmall.override(
-                              fontFamily: theme.bodySmallFamily,
-                              color: theme.secondaryText,
-                              letterSpacing: 0.0,
-                              useGoogleFonts: !theme.bodySmallIsCustom,
-                            ),
-                          ))),
+                      ...((conf['reasons'] as List)
+                          .map((r) => Text('· $r', style: _small(theme)))),
                   ],
                 ),
               ),
             ),
-          // Блоки экрана, которым место в подробностях: полный состав, радар
-          // оценки, экспертный текст. Здесь они на своём месте — их читают
-          // единицы, а в основном потоке они занимали больше тысячи пикселей.
+          // Блоки экрана, которым место в подробностях: состав с подсветкой,
+          // экспертный текст, «как использовать». Их читают единицы, а в
+          // основном потоке они занимали больше тысячи пикселей.
           ...widget.deepExtras,
         ],
       ],
     );
   }
+}
+
+/// Компонент-свидетель из claim audit / goal support.
+class _Evidence {
+  const _Evidence({required this.name, this.position, this.status});
+
+  final String name;
+  final int? position;
+
+  /// working / borderline / decorative / null (нет в таблице доз).
+  final String? status;
+
+  int get rank => switch (status) {
+        'working' => 0,
+        'borderline' => 1,
+        null => 2,
+        _ => 3,
+      };
+}
+
+/// Обещание с упаковки и компоненты, которые должны его выполнять.
+class _PromiseRow {
+  const _PromiseRow({
+    required this.claimKey,
+    required this.verdict,
+    required this.evidence,
+  });
+
+  final String claimKey;
+  final String verdict;
+  final List<_Evidence> evidence;
+}
+
+/// Строка списка «чего ожидать».
+class _Expectation {
+  const _Expectation({
+    required this.key,
+    required this.title,
+    required this.good,
+    required this.lines,
+  });
+
+  final String key;
+  final String title;
+
+  /// Зелёный (позитивный и подкреплённый) или красный (всё остальное).
+  final bool good;
+  final List<String> lines;
 }

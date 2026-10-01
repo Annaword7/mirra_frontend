@@ -1,6 +1,5 @@
 import '/backend/supabase/supabase.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/item_card/ingridients/ingridients_widget.dart';
 import '/index.dart';
 import 'itemcard2_widget.dart' show Itemcard2Widget;
 import 'package:flutter/material.dart';
@@ -22,8 +21,6 @@ class Itemcard2Model extends FlutterFlowModel<Itemcard2Widget> {
   List<ImageTopIngredientsRow>? topIngredientsRaw;
   // Stores action output result for [Backend Call - Query Rows] action in itemcard2 widget.
   List<ImageIngredientIssuesRow>? ingredientIssuesRaw;
-  // Model for ingridients component.
-  late IngridientsModel ingridientsModel;
   // Stores action output result for [Backend Call - Query Rows] action in Row widget.
   List<AlbumRow>? albums;
   // Skin type from the user's onboarding profile (null = cold start).
@@ -39,11 +36,9 @@ class Itemcard2Model extends FlutterFlowModel<Itemcard2Widget> {
 
   @override
   void initState(BuildContext context) {
-    ingridientsModel = createModel(context, () => IngridientsModel());
   }
 
   @override
   void dispose() {
-    ingridientsModel.dispose();
   }
 }
