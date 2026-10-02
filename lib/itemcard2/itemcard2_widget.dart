@@ -26,6 +26,7 @@ import '/topratings/makepublic/makepublic_widget.dart';
 import '/index.dart';
 import '/paywall/show_paywall.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_blurhash/flutter_blurhash.dart';
 import 'package:octo_image/octo_image.dart';
@@ -60,6 +61,10 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
   Timer? _pendingPollingTimer;
+
+  /// Бэкенд ответил 422 unsupported_product_type: волосы, тело, декоративка.
+  /// Такой скан не ждёт разбора, ему показывается своя заглушка.
+  bool _unsupported = false;
 
   /// Этот продукт уже в Косметичке — тогда действие обратное: убрать. Для
   /// чужого продукта всегда false: в набор попадает его копия с другим id, и
@@ -208,6 +213,14 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
       if (mounted) safeSetState(() {});
       return !_needsAnalysis(_model.imageraw?.firstOrNull);
     }
+    if ((retry?.statusCode ?? 0) == 422 &&
+        getJsonField(retry?.jsonBody, r'$.status') ==
+            'unsupported_product_type') {
+      // Ждать нечего: разбора у этого средства не будет.
+      _unsupported = true;
+      if (mounted) safeSetState(() {});
+      return true;
+    }
     return false;
   }
 
@@ -318,6 +331,43 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
     // на «убрать». У копии чужого id другой, и переключать нечего.
     if (isOwner) safeSetState(() => _inBag = true);
     _toast(FFLocalizations.of(context).getText('cb_added_toast'));
+  }
+
+  /// «Это не уход за лицом»: волосы, тело, декоративка. Бэкенд их не
+  /// разбирает, карточки не будет.
+  Widget _buildUnsupportedPlaceholder(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 48.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.do_not_disturb_on_outlined,
+              size: 48, color: theme.secondaryText),
+          const SizedBox(height: 16),
+          Text(
+            FFLocalizations.of(context).getText('analysis_unsupported_title'),
+            textAlign: TextAlign.center,
+            style: theme.titleMedium.override(
+              fontFamily: theme.titleMediumFamily,
+              color: theme.primaryText,
+              fontWeight: FontWeight.w700,
+              useGoogleFonts: !theme.titleMediumIsCustom,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            FFLocalizations.of(context).getText('analysis_unsupported_body'),
+            textAlign: TextAlign.center,
+            style: theme.bodyMedium.override(
+              fontFamily: theme.bodyMediumFamily,
+              color: theme.secondaryText,
+              useGoogleFonts: !theme.bodyMediumIsCustom,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildPendingPlaceholder(BuildContext context) {
@@ -588,21 +638,21 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             item(
-              icon: Icons.photo_outlined,
+              icon: LucideIcons.image,
               iconColor: theme.primaryVariant,
               title: _t('card_menu_social'),
               subtitle: _t('card_menu_social_sub'),
               onTap: () async => _openSocialCard(),
             ),
             item(
-              icon: Icons.ios_share_rounded,
+              icon: LucideIcons.share,
               title: _t('card_menu_share_link'),
               onTap: _shareLink,
             ),
             Divider(height: 9, color: theme.divider, indent: 10, endIndent: 10),
             if (isOwner) ...[
               item(
-                icon: (row.favourite ?? false) ? Icons.favorite : Icons.favorite_border,
+                icon: (row.favourite ?? false) ? LucideIcons.heartOff : LucideIcons.heart,
                 title: _t((row.favourite ?? false)
                     ? 'fab_remove_favourite'
                     : 'fab_add_favourite'),
@@ -610,19 +660,19 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
               ),
               item(
                 icon: (row.hided ?? false)
-                    ? Icons.visibility_outlined
-                    : Icons.visibility_off_outlined,
+                    ? LucideIcons.eye
+                    : LucideIcons.eyeOff,
                 title: _t((row.hided ?? false) ? 'fab_show' : 'fab_hide'),
                 onTap: () => _toggleHidden(row),
               ),
             ] else ...[
               item(
-                icon: Icons.copy_all_outlined,
+                icon: LucideIcons.copy,
                 title: _t('fab_copy'),
                 onTap: _copyProduct,
               ),
               item(
-                icon: Icons.block,
+                icon: LucideIcons.ban,
                 title: _t('fab_spam'),
                 onTap: _reportSpam,
               ),
@@ -630,7 +680,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
             if (isOwner) ...[
               Divider(height: 9, color: theme.divider, indent: 10, endIndent: 10),
               item(
-                icon: Icons.delete_outline,
+                icon: LucideIcons.trash2,
                 iconBg: theme.errorBg,
                 iconColor: theme.error,
                 title: _t('card_menu_delete'),
@@ -667,7 +717,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.error_outline, color: theme.error, size: 48),
+                  Icon(LucideIcons.circleAlert, color: theme.error, size: 48),
                   const SizedBox(height: 16),
                   TextButton(
                     onPressed: () => safeSetState(() {}),
@@ -723,14 +773,14 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
               scrolledUnderElevation: 0,
               centerTitle: true,
               leading: IconButton(
-                icon: Icon(Icons.arrow_back_ios_new, size: 20, color: theme.primaryText),
+                icon: Icon(LucideIcons.chevronLeft, size: 20, color: theme.primaryText),
                 onPressed: () => context.safePop(),
               ),
               title: Text(_t('card_title'),
                   style: cardText(theme, size: 15, weight: FontWeight.w600)),
               actions: [
                 IconButton(
-                  icon: Icon(Icons.more_horiz, color: theme.primaryText),
+                  icon: Icon(LucideIcons.ellipsis, color: theme.primaryText),
                   onPressed: () => _openMenu(row),
                 ),
               ],
@@ -745,7 +795,10 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          if (card == null || row.saCompositeScore == null)
+                          if (_unsupported)
+                            _buildUnsupportedPlaceholder(context)
+                          else if (card == null ||
+                              row.saCompositeScore == null)
                             _buildPendingPlaceholder(context)
                           else
                             ProductCardV3Widget(
@@ -840,7 +893,7 @@ class _AnonSaveBanner extends StatelessWidget {
             child: Row(
               children: [
                 Icon(
-                  Icons.bookmark_border_rounded,
+                  LucideIcons.bookmark,
                   color: FlutterFlowTheme.of(context).primary,
                   size: 22,
                 ),
@@ -871,7 +924,7 @@ class _AnonSaveBanner extends StatelessWidget {
                 ),
                 const SizedBox(width: 4),
                 Icon(
-                  Icons.arrow_forward_ios_rounded,
+                  LucideIcons.chevronRight,
                   color: FlutterFlowTheme.of(context).primary,
                   size: 14,
                 ),
@@ -911,7 +964,7 @@ class _AnonSaveSheet extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 20),
-              Icon(Icons.bookmark_rounded,
+              Icon(LucideIcons.bookmark,
                   color: FlutterFlowTheme.of(context).primary, size: 36),
               const SizedBox(height: 12),
               Text(
@@ -1098,7 +1151,7 @@ class _LoginRequiredSheet extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           Icon(
-            Icons.lock_outline_rounded,
+            LucideIcons.lock,
             size: 48,
             color: FlutterFlowTheme.of(context).primary,
           ),
@@ -1377,7 +1430,7 @@ class _ProductPhotosState extends State<_ProductPhotos> {
               ? Container(
                   color: const Color(0xFFF2F2F2),
                   child: const Center(
-                    child: Icon(Icons.image_not_supported_outlined,
+                    child: Icon(LucideIcons.imageOff,
                         color: Colors.black26, size: 48),
                   ),
                 )

@@ -4524,24 +4524,24 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     '48je50c9': {
       'en':
-          'We currently analyse face skincare, sunscreens and makeup. Hair care, body wash, fragrances and similar products are coming soon.',
+          'We currently analyse face skincare, cleansers and sunscreens. Hair care, body care, makeup, fragrances and similar products are coming soon.',
       'es':
-          'Actualmente analizamos cuidado facial, protectores solares y maquillaje. El cuidado del cabello, geles de ducha, fragancias y similares llegarán pronto.',
+          'Actualmente analizamos cuidado facial, limpieza y protectores solares. El cuidado del cabello, el cuerpo, el maquillaje, las fragancias y similares llegarán pronto.',
       'ru':
-          'Мы разбираем уход за лицом, солнцезащитные средства и макияж. Шампуни, гели для душа, ароматы и похожее появятся позже.',
+          'Мы разбираем уход за лицом, очищение и солнцезащитные средства. Волосы, тело, декоративная косметика, ароматы и похожее появятся позже.',
       'de':
-          'Wir analysieren derzeit Gesichtspflege, Sonnenschutz und Make-up. Haarpflege, Duschgel, Parfüms und ähnliche Produkte folgen bald.',
+          'Wir analysieren derzeit Gesichtspflege, Reinigung und Sonnenschutz. Haarpflege, Körperpflege, Make-up, Parfüms und ähnliche Produkte folgen bald.',
       'fr':
-          'Nous analysons actuellement les soins visage, écrans solaires et maquillage. Les soins capillaires, gels douche, parfums et produits similaires arrivent bientôt.',
+          'Nous analysons actuellement les soins visage, le nettoyage et les écrans solaires. Les soins capillaires, le corps, le maquillage, les parfums et produits similaires arrivent bientôt.',
       'it':
-          'Attualmente analizziamo solo skincare viso, solari e makeup. Presto arriveranno prodotti per capelli, detergenti corpo, profumi e simili.',
+          'Attualmente analizziamo skincare viso, detersione e solari. Presto arriveranno prodotti per capelli, corpo, make-up, profumi e simili.',
       'pt':
-          'Atualmente analisamos cuidados faciais, protetores solares e maquiagem. Cuidados com os cabelos, sabonetes corporais, fragrâncias e produtos similares em breve.',
+          'Atualmente analisamos cuidados faciais, limpeza e protetores solares. Cabelos, corpo, maquiagem, fragrâncias e produtos similares em breve.',
       'tr':
-          'Şu anda yüz bakımı, güneş kremleri ve makyaj ürünlerini analiz ediyoruz. Saç bakımı, vücut yıkama, parfümler ve benzeri ürünler yakında eklenecek.',
-      'ja': '現在はフェイススキンケア、日焼け止め、メイクのみ解析しています。ヘアケア、ボディウォッシュ、フレグランスなどは近日対応予定です。',
-      'ko': '현재는 얼굴 스킨케어, 선크림, 메이크업만 분석합니다. 헤어케어, 바디워시, 향수 등은 곧 지원될 예정입니다.',
-      'zh': '目前仅分析面部护肤、防晒和彩妆。发用、沐浴、香氛等产品即将上线。',
+          'Şu anda yüz bakımı, temizleme ve güneş kremlerini analiz ediyoruz. Saç, vücut, makyaj, parfüm ve benzeri ürünler yakında eklenecek.',
+      'ja': '現在はフェイススキンケア、洗顔、日焼け止めのみ解析しています。ヘアケア、ボディ、メイク、フレグランスなどは近日対応予定です。',
+      'ko': '현재는 얼굴 스킨케어, 클렌저, 선크림만 분석합니다. 헤어, 바디, 메이크업, 향수 등은 곧 지원될 예정입니다.',
+      'zh': '目前仅分析面部护肤、清洁和防晒。头发、身体、彩妆、香氛等产品即将上线。',
     },
     't5l3cspz': {
       'en': 'All',
@@ -5092,6 +5092,42 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ja': 'この商品の分析はまだ完了していません。少し後でもう一度ご確認ください。',
       'ko': '이 제품의 분석이 아직 완료되지 않았습니다. 잠시 후 다시 확인해주세요.',
       'zh': '该产品的分析尚未完成，请稍后再来。',
+    },
+    'analysis_unsupported_title': {
+      'en': 'Not a face care product',
+      'es': 'No es un producto para el rostro',
+      'ru': 'Это не уход за лицом',
+      'de': 'Kein Gesichtspflegeprodukt',
+      'fr': 'Ce n’est pas un soin du visage',
+      'it': 'Non è un prodotto per il viso',
+      'pt': 'Não é um produto para o rosto',
+      'tr': 'Yüz bakım ürünü değil',
+      'ja': '顔用のスキンケアではありません',
+      'ko': '얼굴 스킨케어 제품이 아닙니다',
+      'zh': '这不是面部护肤产品',
+    },
+    'analysis_unsupported_body': {
+      'en':
+          'M!RRA analyses face care only: skincare, cleansers and sunscreens. Hair, body and makeup products are not analysed yet.',
+      'es':
+          'M!RRA analiza solo productos para el rostro: cuidado, limpieza y protección solar. Cabello, cuerpo y maquillaje aún no se analizan.',
+      'ru':
+          'M!RRA разбирает только средства для лица: уход, очищение, защиту от солнца. Волосы, тело и декоративную косметику пока не анализируем.',
+      'de':
+          'M!RRA analysiert nur Gesichtspflege: Pflege, Reinigung und Sonnenschutz. Haar-, Körper- und Make-up-Produkte werden noch nicht analysiert.',
+      'fr':
+          'M!RRA analyse uniquement les soins du visage : soin, nettoyage et protection solaire. Cheveux, corps et maquillage ne sont pas encore analysés.',
+      'it':
+          'M!RRA analizza solo prodotti per il viso: cura, detersione e protezione solare. Capelli, corpo e make-up non vengono ancora analizzati.',
+      'pt':
+          'A M!RRA analisa apenas produtos para o rosto: cuidado, limpeza e proteção solar. Cabelo, corpo e maquiagem ainda não são analisados.',
+      'tr':
+          'M!RRA yalnızca yüz ürünlerini inceler: bakım, temizleme ve güneş koruması. Saç, vücut ve makyaj ürünleri henüz incelenmiyor.',
+      'ja':
+          'M!RRAが分析するのは顔用の製品だけです：スキンケア、洗顔、日焼け止め。ヘア、ボディ、メイク製品はまだ分析していません。',
+      'ko':
+          'M!RRA는 얼굴용 제품만 분석합니다: 스킨케어, 클렌저, 자외선 차단제. 헤어, 바디, 메이크업 제품은 아직 분석하지 않습니다.',
+      'zh': 'M!RRA 只分析面部产品：护肤、清洁和防晒。头发、身体和彩妆产品暂不分析。',
     },
   },
   // ── Centralized from code: product category filter labels (home + toprated) ──
