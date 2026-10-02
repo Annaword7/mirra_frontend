@@ -958,7 +958,11 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
 
   Widget _buildHowToUse(FlutterFlowTheme theme) {
     final card = widget.card;
-    if (card.howToUse.isEmpty && !card.usedInMorning && !card.usedInEvening) {
+    // Трек рисуем только с шагами: у типа «other» их нет, и пустые кружки
+    // читались как сломанная рутина.
+    final morning = card.usedInMorning && card.routineMorning.isNotEmpty;
+    final evening = card.usedInEvening && card.routineEvening.isNotEmpty;
+    if (card.howToUse.isEmpty && !morning && !evening) {
       return const SizedBox.shrink();
     }
     return CardSection(
@@ -992,7 +996,7 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
               ),
             ),
           ],
-          if (card.usedInMorning) ...[
+          if (morning) ...[
             const SizedBox(height: 18),
             _routineTrack(theme,
                 title: _t('card_routine_morning'),
@@ -1002,7 +1006,7 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
                 stepKeys: kMorningStepKeys,
                 active: card.routineMorning),
           ],
-          if (card.usedInEvening) ...[
+          if (evening) ...[
             const SizedBox(height: 18),
             _routineTrack(theme,
                 title: _t('card_routine_evening'),
