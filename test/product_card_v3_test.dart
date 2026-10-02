@@ -94,6 +94,9 @@ void main() {
     await _pump(tester, skinType: 'dry');
     expect(find.text('AURELLE'), findsOneWidget);
     expect(find.text('Hydra Balance Day Cream'), findsOneWidget);
+    // Шапка по центру и при коротком названии: колонка на всю ширину.
+    expect(tester.getCenter(find.text('AURELLE')).dx, closeTo(390 / 2, 1));
+    expect(tester.getCenter(find.text('Hydra Balance Day Cream')).dx, closeTo(390 / 2, 1));
     // 57 для сухой: 50–74 «подходит с оговорками».
     expect(find.text('57'), findsOneWidget);
     expect(find.text('подходит с оговорками'), findsOneWidget);

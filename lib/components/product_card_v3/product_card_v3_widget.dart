@@ -76,7 +76,9 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
   @override
   void initState() {
     super.initState();
-    _skinType = kSkinTypes.contains(widget.profileSkinType) ? widget.profileSkinType! : 'normal';
+    _skinType = kSkinTypes.contains(widget.profileSkinType)
+        ? widget.profileSkinType!
+        : 'normal';
     _sensitive = widget.profileSensitive;
     _acneProne = widget.profileAcneProne;
   }
@@ -88,11 +90,16 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
     // кадра: берём его, если человек ещё ничего не выбирал сам.
     if (old.profileSkinType != widget.profileSkinType &&
         kSkinTypes.contains(widget.profileSkinType) &&
-        _skinType == (kSkinTypes.contains(old.profileSkinType) ? old.profileSkinType : 'normal')) {
+        _skinType ==
+            (kSkinTypes.contains(old.profileSkinType)
+                ? old.profileSkinType
+                : 'normal')) {
       _skinType = widget.profileSkinType!;
     }
-    if (old.profileSensitive != widget.profileSensitive) _sensitive = widget.profileSensitive;
-    if (old.profileAcneProne != widget.profileAcneProne) _acneProne = widget.profileAcneProne;
+    if (old.profileSensitive != widget.profileSensitive)
+      _sensitive = widget.profileSensitive;
+    if (old.profileAcneProne != widget.profileAcneProne)
+      _acneProne = widget.profileAcneProne;
   }
 
   @override
@@ -120,8 +127,8 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
     return parts.reduce(min);
   }
 
-  Color _fitColor(FlutterFlowTheme theme, int score) =>
-      fitColor(score, success: theme.success, warning: theme.warning, error: theme.error);
+  Color _fitColor(FlutterFlowTheme theme, int score) => fitColor(score,
+      success: theme.success, warning: theme.warning, error: theme.error);
 
   // ── Build ─────────────────────────────────────────────────────────────────
 
@@ -130,7 +137,8 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
     final theme = FlutterFlowTheme.of(context);
     final card = widget.card;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(CardTokens.gutter, 4, CardTokens.gutter, 32),
+      padding: const EdgeInsets.fromLTRB(
+          CardTokens.gutter, 4, CardTokens.gutter, 32),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -144,11 +152,13 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
           const SizedBox(height: CardTokens.sectionGap),
           _buildHowToUse(theme),
           const SizedBox(height: CardTokens.sectionGap),
-          CardComposition(card: card, pregnant: widget.pregnant, controller: _composition),
+          CardComposition(
+              card: card, pregnant: widget.pregnant, controller: _composition),
           const SizedBox(height: 20),
           AppButton(
             label: _t(widget.inBag ? 'card_remove_bag' : 'card_add_bag'),
-            icon: widget.inBag ? Icons.shopping_bag : Icons.shopping_bag_outlined,
+            icon:
+                widget.inBag ? Icons.shopping_bag : Icons.shopping_bag_outlined,
             onPressed: widget.onToggleBag,
           ),
           const SizedBox(height: 10),
@@ -167,7 +177,8 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
 
   Widget _buildOverview(FlutterFlowTheme theme) {
     final card = widget.card;
-    final showPregnancy = widget.pregnant && card.pregnancy.ingredients.isNotEmpty;
+    final showPregnancy =
+        widget.pregnant && card.pregnancy.ingredients.isNotEmpty;
     return CardSection(
       padding: EdgeInsets.zero,
       child: Column(
@@ -190,7 +201,8 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
           if (card.description.isNotEmpty)
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
-              child: Text(card.description, style: cardText(theme, size: 15, height: 1.5)),
+              child: Text(card.description,
+                  style: cardText(theme, size: 15, height: 1.5)),
             )
           else
             const SizedBox(height: 20),
@@ -201,47 +213,58 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
 
   Widget _buildHeader(FlutterFlowTheme theme) {
     final photo = widget.photoUrl;
+    // Ширина на всю секцию: иначе колонка сжимается до самого широкого
+    // ребёнка, и при коротком названии шапка прижимается к левому краю.
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 28, 24, 8),
-      child: Column(
-        children: [
-          GestureDetector(
-            onTap: photo == null ? null : widget.onOpenPhotos,
-            child: Container(
-              width: 132,
-              height: 132,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: CardTokens.surfaceMuted,
-                border: Border.all(color: theme.alternate, width: 6),
-                boxShadow: [BoxShadow(color: theme.border, spreadRadius: 1)],
+      child: SizedBox(
+        width: double.infinity,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            GestureDetector(
+              onTap: photo == null ? null : widget.onOpenPhotos,
+              child: Container(
+                width: 132,
+                height: 132,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: CardTokens.surfaceMuted,
+                  border: Border.all(color: theme.alternate, width: 6),
+                  boxShadow: [BoxShadow(color: theme.border, spreadRadius: 1)],
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: photo == null
+                    ? Icon(Icons.spa_outlined,
+                        size: 44, color: theme.secondaryBackground)
+                    : Image.network(
+                        photo,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Icon(Icons.spa_outlined,
+                            size: 44, color: theme.secondaryBackground),
+                      ),
               ),
-              clipBehavior: Clip.antiAlias,
-              child: photo == null
-                  ? Icon(Icons.spa_outlined, size: 44, color: theme.secondaryBackground)
-                  : Image.network(
-                      photo,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) =>
-                          Icon(Icons.spa_outlined, size: 44, color: theme.secondaryBackground),
-                    ),
             ),
-          ),
-          const SizedBox(height: 14),
-          if (widget.brand.isNotEmpty)
-            Text(
-              widget.brand.toUpperCase(),
+            const SizedBox(height: 14),
+            if (widget.brand.isNotEmpty)
+              Text(
+                widget.brand.toUpperCase(),
+                textAlign: TextAlign.center,
+                style: cardText(theme,
+                    size: 12,
+                    weight: FontWeight.w600,
+                    color: theme.secondaryText,
+                    letterSpacing: 1.7),
+              ),
+            const SizedBox(height: 6),
+            SelectableText(
+              widget.productName,
               textAlign: TextAlign.center,
-              style: cardText(theme, size: 12, weight: FontWeight.w600,
-                  color: theme.secondaryText, letterSpacing: 1.7),
+              style: cardText(theme,
+                  size: 21, weight: FontWeight.w500, height: 1.25),
             ),
-          const SizedBox(height: 6),
-          SelectableText(
-            widget.productName,
-            textAlign: TextAlign.center,
-            style: cardText(theme, size: 21, weight: FontWeight.w500, height: 1.25),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -268,7 +291,9 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(_t('card_for_skin_type'), style: cardText(theme, size: 13, color: theme.secondaryText)),
+                Text(_t('card_for_skin_type'),
+                    style:
+                        cardText(theme, size: 13, color: theme.secondaryText)),
                 const SizedBox(height: 4),
                 Material(
                   color: Colors.transparent,
@@ -288,18 +313,22 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
                         children: [
                           Flexible(
                             child: Text(pill,
-                                style: cardText(theme, size: 16, weight: FontWeight.w600,
+                                style: cardText(theme,
+                                    size: 16,
+                                    weight: FontWeight.w600,
                                     color: theme.primaryVariant)),
                           ),
                           const SizedBox(width: 6),
-                          Icon(Icons.expand_more, size: 16, color: theme.primaryVariant),
+                          Icon(Icons.expand_more,
+                              size: 16, color: theme.primaryVariant),
                         ],
                       ),
                     ),
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(_t(fitKey(score)), style: cardText(theme, size: 12, weight: FontWeight.w600)),
+                Text(_t(fitKey(score)),
+                    style: cardText(theme, size: 12, weight: FontWeight.w600)),
               ],
             ),
           ),
@@ -317,9 +346,14 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text('$score',
-                    style: cardText(theme, size: 22, weight: FontWeight.w700, height: 1, lining: true)),
+                    style: cardText(theme,
+                        size: 22,
+                        weight: FontWeight.w700,
+                        height: 1,
+                        lining: true)),
                 Text('/100',
-                    style: cardText(theme, size: 11, color: theme.secondaryText, lining: true)),
+                    style: cardText(theme,
+                        size: 11, color: theme.secondaryText, lining: true)),
               ],
             ),
           ),
@@ -353,7 +387,8 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
                 onTap: onTap,
                 borderRadius: BorderRadius.circular(12),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                   child: Row(
                     children: [
                       Expanded(
@@ -362,11 +397,15 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
                           children: [
                             Row(
                               children: [
-                                Text(_skinLabel(type), style: cardText(theme, size: 14, weight: FontWeight.w500)),
+                                Text(_skinLabel(type),
+                                    style: cardText(theme,
+                                        size: 14, weight: FontWeight.w500)),
                                 if (isProfile) ...[
                                   const SizedBox(width: 8),
                                   Text(_t('card_your_type'),
-                                      style: cardText(theme, size: 11, weight: FontWeight.w600,
+                                      style: cardText(theme,
+                                          size: 11,
+                                          weight: FontWeight.w600,
                                           color: theme.primaryVariant)),
                                 ],
                               ],
@@ -379,8 +418,10 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
                                 color: theme.divider,
                                 alignment: AlignmentDirectional.centerStart,
                                 child: FractionallySizedBox(
-                                  widthFactor: ((score ?? 0) / 100).clamp(0.0, 1.0),
-                                  child: Container(color: _fitColor(theme, score ?? 0)),
+                                  widthFactor:
+                                      ((score ?? 0) / 100).clamp(0.0, 1.0),
+                                  child: Container(
+                                      color: _fitColor(theme, score ?? 0)),
                                 ),
                               ),
                             ),
@@ -392,9 +433,15 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
                         width: 34,
                         child: Text(score == null ? '' : '$score',
                             textAlign: TextAlign.right,
-                            style: cardText(theme, size: 15, weight: FontWeight.w700, lining: true)),
+                            style: cardText(theme,
+                                size: 15,
+                                weight: FontWeight.w700,
+                                lining: true)),
                       ),
-                      if (trailing != null) ...[const SizedBox(width: 4), trailing],
+                      if (trailing != null) ...[
+                        const SizedBox(width: 4),
+                        trailing
+                      ],
                     ],
                   ),
                 ),
@@ -404,7 +451,8 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
 
           void pickType(String type) {
             HapticFeedback.lightImpact();
-            unawaited(AnalyticsService.instance.trackProductSkin(skinName: type));
+            unawaited(
+                AnalyticsService.instance.trackProductSkin(skinName: type));
             setState(() => _skinType = type);
             Navigator.of(sheetContext).pop();
           }
@@ -425,7 +473,8 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(_t('card_skin_picker_title'),
-                    style: cardText(theme, size: 12, color: theme.secondaryText)),
+                    style:
+                        cardText(theme, size: 12, color: theme.secondaryText)),
                 const SizedBox(height: 8),
                 for (final type in kSkinTypes)
                   row(
@@ -439,8 +488,11 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
                   row(
                     type: flag,
                     selected: false,
-                    isProfile: flag == 'sensitive' ? widget.profileSensitive : widget.profileAcneProne,
-                    onTap: () => toggle(flag, !(flag == 'sensitive' ? _sensitive : _acneProne)),
+                    isProfile: flag == 'sensitive'
+                        ? widget.profileSensitive
+                        : widget.profileAcneProne,
+                    onTap: () => toggle(
+                        flag, !(flag == 'sensitive' ? _sensitive : _acneProne)),
                     trailing: Switch.adaptive(
                       value: flag == 'sensitive' ? _sensitive : _acneProne,
                       activeColor: theme.primary,
@@ -458,7 +510,8 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
   Widget _buildPregnancy(FlutterFlowTheme theme) {
     final preg = widget.card.pregnancy;
     return Container(
-      decoration: BoxDecoration(color: theme.errorBg, borderRadius: BorderRadius.circular(18)),
+      decoration: BoxDecoration(
+          color: theme.errorBg, borderRadius: BorderRadius.circular(18)),
       padding: const EdgeInsets.all(14),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -466,17 +519,21 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
           Container(
             width: 36,
             height: 36,
-            decoration: BoxDecoration(color: theme.error, shape: BoxShape.circle),
-            child: const Icon(Icons.warning_amber_rounded, color: Colors.white, size: 20),
+            decoration:
+                BoxDecoration(color: theme.error, shape: BoxShape.circle),
+            child: const Icon(Icons.warning_amber_rounded,
+                color: Colors.white, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(_t('card_preg_title'), style: cardText(theme, size: 15, weight: FontWeight.w600)),
+                Text(_t('card_preg_title'),
+                    style: cardText(theme, size: 15, weight: FontWeight.w600)),
                 const SizedBox(height: 6),
-                Text(_t('card_preg_body'), style: cardText(theme, size: 13, height: 1.45)),
+                Text(_t('card_preg_body'),
+                    style: cardText(theme, size: 13, height: 1.45)),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 6,
@@ -490,7 +547,8 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
                           onTap: () => _composition.reveal(name),
                           borderRadius: BorderRadius.circular(6),
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 3),
                             child: Text(name, style: cardText(theme, size: 13)),
                           ),
                         ),
@@ -500,7 +558,8 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
                 const SizedBox(height: 6),
                 Text.rich(
                   TextSpan(
-                    style: cardText(theme, size: 12, color: theme.secondaryText),
+                    style:
+                        cardText(theme, size: 12, color: theme.secondaryText),
                     children: [
                       TextSpan(text: '${_t('card_preg_profile')} · '),
                       WidgetSpan(
@@ -509,8 +568,10 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
                         child: GestureDetector(
                           onTap: widget.onEditProfile,
                           child: Text(_t('card_preg_change'),
-                              style: cardText(theme, size: 12, color: theme.primaryText)
-                                  .copyWith(decoration: TextDecoration.underline)),
+                              style: cardText(theme,
+                                      size: 12, color: theme.primaryText)
+                                  .copyWith(
+                                      decoration: TextDecoration.underline)),
                         ),
                       ),
                     ],
@@ -534,17 +595,22 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(_t('card_product_type'), style: cardText(theme, size: 12, color: theme.secondaryText)),
+              Text(_t('card_product_type'),
+                  style: cardText(theme, size: 12, color: theme.secondaryText)),
               const SizedBox(height: 6),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 decoration: BoxDecoration(
                   color: CardTokens.surfaceMuted,
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
                   typeLabel.isEmpty ? card.productType : typeLabel,
-                  style: cardText(theme, size: 14, weight: FontWeight.w600, color: theme.primaryVariant),
+                  style: cardText(theme,
+                      size: 14,
+                      weight: FontWeight.w600,
+                      color: theme.primaryVariant),
                 ),
               ),
             ],
@@ -558,7 +624,8 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
           label: _t('card_day'),
           activeBg: theme.secondary,
           activeFg: theme.primaryText,
-          badge: card.hasSpf && card.usedInMorning ? _t('card_spf_badge') : null,
+          badge:
+              card.hasSpf && card.usedInMorning ? _t('card_spf_badge') : null,
         ),
         const SizedBox(width: 8),
         _usageIcon(
@@ -593,19 +660,25 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
                 color: active ? activeBg : CardTokens.surfaceMuted,
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, size: 22, color: active ? activeFg : theme.textDisabled),
+              child: Icon(icon,
+                  size: 22, color: active ? activeFg : theme.textDisabled),
             ),
             const SizedBox(height: 4),
             Text(label,
-                style: cardText(theme, size: 12, weight: FontWeight.w500,
+                style: cardText(theme,
+                    size: 12,
+                    weight: FontWeight.w500,
                     color: active ? theme.primaryText : theme.secondaryText)),
             if (badge != null) ...[
               const SizedBox(height: 4),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(color: theme.secondary, borderRadius: BorderRadius.circular(999)),
+                decoration: BoxDecoration(
+                    color: theme.secondary,
+                    borderRadius: BorderRadius.circular(999)),
                 child: Text(badge,
-                    style: cardText(theme, size: 11, weight: FontWeight.w700, letterSpacing: 0.2)),
+                    style: cardText(theme,
+                        size: 11, weight: FontWeight.w700, letterSpacing: 0.2)),
               ),
             ],
           ],
@@ -616,7 +689,8 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
 
   Widget _buildFunctions(FlutterFlowTheme theme) {
     final card = widget.card;
-    if (card.functions.isEmpty && card.drawbacks.isEmpty) return const SizedBox.shrink();
+    if (card.functions.isEmpty && card.drawbacks.isEmpty)
+      return const SizedBox.shrink();
     return CardSection(
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 18),
       child: Column(
@@ -663,7 +737,8 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
   }
 
   /// Сетка из пяти колонок: иконка 52 × 52 и подпись под ней.
-  Widget _iconGrid(FlutterFlowTheme theme, List<({IconData icon, String label, Color bg, Color fg})> items) =>
+  Widget _iconGrid(FlutterFlowTheme theme,
+          List<({IconData icon, String label, Color bg, Color fg})> items) =>
       LayoutBuilder(
         builder: (context, constraints) {
           const gap = 6.0;
@@ -680,7 +755,9 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
                       Container(
                         width: 52,
                         height: 52,
-                        decoration: BoxDecoration(color: item.bg, borderRadius: BorderRadius.circular(18)),
+                        decoration: BoxDecoration(
+                            color: item.bg,
+                            borderRadius: BorderRadius.circular(18)),
                         child: Icon(item.icon, size: 24, color: item.fg),
                       ),
                       const SizedBox(height: 8),
@@ -689,7 +766,8 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
                         textAlign: TextAlign.center,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: cardText(theme, size: 12, weight: FontWeight.w500, height: 1.25),
+                        style: cardText(theme,
+                            size: 12, weight: FontWeight.w500, height: 1.25),
                       ),
                     ],
                   ),
@@ -715,8 +793,11 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
                 Container(
                   width: 20,
                   height: 20,
-                  decoration: BoxDecoration(color: ok ? theme.success : theme.error, shape: BoxShape.circle),
-                  child: Icon(ok ? Icons.check : Icons.close, size: 12, color: Colors.white),
+                  decoration: BoxDecoration(
+                      color: ok ? theme.success : theme.error,
+                      shape: BoxShape.circle),
+                  child: Icon(ok ? Icons.check : Icons.close,
+                      size: 12, color: Colors.white),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -724,7 +805,10 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
                     TextSpan(
                       style: cardText(theme, size: 13, height: 1.25),
                       children: [
-                        TextSpan(text: label, style: const TextStyle(fontWeight: FontWeight.w600)),
+                        TextSpan(
+                            text: label,
+                            style:
+                                const TextStyle(fontWeight: FontWeight.w600)),
                         TextSpan(text: ' · $note'),
                       ],
                     ),
@@ -737,7 +821,9 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
 
     Widget tag(String text) => Container(
           padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-          decoration: BoxDecoration(color: CardTokens.surfaceMuted, borderRadius: BorderRadius.circular(6)),
+          decoration: BoxDecoration(
+              color: CardTokens.surfaceMuted,
+              borderRadius: BorderRadius.circular(6)),
           child: Text(text, style: cardText(theme, size: 11)),
         );
 
@@ -749,8 +835,11 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
             _t('card_sun_protection'),
             trailing: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              decoration: BoxDecoration(color: theme.secondary, borderRadius: BorderRadius.circular(999)),
-              child: Text(_t('card_spf_badge'), style: cardText(theme, size: 13, weight: FontWeight.w700)),
+              decoration: BoxDecoration(
+                  color: theme.secondary,
+                  borderRadius: BorderRadius.circular(999)),
+              child: Text(_t('card_spf_badge'),
+                  style: cardText(theme, size: 13, weight: FontWeight.w700)),
             ),
           ),
           const SizedBox(height: 16),
@@ -758,13 +847,16 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(color: CardTokens.surfaceMuted, borderRadius: BorderRadius.circular(14)),
+            decoration: BoxDecoration(
+                color: CardTokens.surfaceMuted,
+                borderRadius: BorderRadius.circular(14)),
             child: Row(
               children: [
                 for (final type in const ['mineral', 'hybrid', 'chemical'])
                   Expanded(
                     child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 4),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 9, horizontal: 4),
                       decoration: BoxDecoration(
                         color: spf.filterType == type ? theme.primary : null,
                         borderRadius: BorderRadius.circular(11),
@@ -774,9 +866,14 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
                         textAlign: TextAlign.center,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: cardText(theme, size: 13,
-                            weight: spf.filterType == type ? FontWeight.w600 : FontWeight.w400,
-                            color: spf.filterType == type ? Colors.white : theme.secondaryText),
+                        style: cardText(theme,
+                            size: 13,
+                            weight: spf.filterType == type
+                                ? FontWeight.w600
+                                : FontWeight.w400,
+                            color: spf.filterType == type
+                                ? Colors.white
+                                : theme.secondaryText),
                       ),
                     ),
                   ),
@@ -784,7 +881,8 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
             ),
           ),
           const SizedBox(height: 8),
-          Text(_t('card_filter_${spf.filterType}_text'), style: cardText(theme, size: 13, height: 1.45)),
+          Text(_t('card_filter_${spf.filterType}_text'),
+              style: cardText(theme, size: 13, height: 1.45)),
           const SizedBox(height: 16),
           Text(_t('card_spectrum'), style: caption),
           const SizedBox(height: 8),
@@ -803,19 +901,24 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   decoration: BoxDecoration(
                     border: Border.all(color: theme.border, width: 1.5),
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: Row(
                     children: [
-                      Expanded(child: Text(f.name, style: cardText(theme, size: 14))),
+                      Expanded(
+                          child:
+                              Text(f.name, style: cardText(theme, size: 14))),
                       const SizedBox(width: 10),
                       Wrap(
                         spacing: 4,
                         children: [
-                          tag(_t(f.type == 'mineral' ? 'card_tag_mineral' : 'card_tag_chemical')),
+                          tag(_t(f.type == 'mineral'
+                              ? 'card_tag_mineral'
+                              : 'card_tag_chemical')),
                           for (final band in f.spectrum) tag(band),
                         ],
                       ),
@@ -828,7 +931,9 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
             const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              decoration: BoxDecoration(color: theme.warningBg, borderRadius: BorderRadius.circular(14)),
+              decoration: BoxDecoration(
+                  color: theme.warningBg,
+                  borderRadius: BorderRadius.circular(14)),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -837,7 +942,9 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
                     child: Icon(Icons.info_outline, size: 18),
                   ),
                   const SizedBox(width: 10),
-                  Expanded(child: Text(_t('card_uva_missing'), style: cardText(theme, size: 13, height: 1.45))),
+                  Expanded(
+                      child: Text(_t('card_uva_missing'),
+                          style: cardText(theme, size: 13, height: 1.45))),
                 ],
               ),
             ),
@@ -873,11 +980,14 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
                   Container(
                     width: 36,
                     height: 36,
-                    decoration: BoxDecoration(color: theme.alternate, shape: BoxShape.circle),
+                    decoration: BoxDecoration(
+                        color: theme.alternate, shape: BoxShape.circle),
                     child: const Icon(Icons.lightbulb_outline, size: 20),
                   ),
                   const SizedBox(width: 12),
-                  Expanded(child: Text(card.howToUse, style: cardText(theme, size: 14, height: 1.5))),
+                  Expanded(
+                      child: Text(card.howToUse,
+                          style: cardText(theme, size: 14, height: 1.5))),
                 ],
               ),
             ),
@@ -924,11 +1034,13 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
               Container(
                 width: 26,
                 height: 26,
-                decoration: BoxDecoration(color: iconBg, shape: BoxShape.circle),
+                decoration:
+                    BoxDecoration(color: iconBg, shape: BoxShape.circle),
                 child: Icon(icon, size: 15, color: iconFg),
               ),
               const SizedBox(width: 8),
-              Text(title, style: cardText(theme, size: 14, weight: FontWeight.w600)),
+              Text(title,
+                  style: cardText(theme, size: 14, weight: FontWeight.w600)),
             ],
           ),
           const SizedBox(height: 12),
@@ -954,24 +1066,40 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
                             width: 36,
                             height: 36,
                             decoration: BoxDecoration(
-                              color: active.contains(i) ? theme.primary : theme.alternate,
+                              color: active.contains(i)
+                                  ? theme.primary
+                                  : theme.alternate,
                               shape: BoxShape.circle,
                               border: Border.all(
-                                  color: active.contains(i) ? theme.primary : theme.border, width: 2),
+                                  color: active.contains(i)
+                                      ? theme.primary
+                                      : theme.border,
+                                  width: 2),
                             ),
                             alignment: Alignment.center,
                             child: Text('${i + 1}',
-                                style: cardText(theme, size: 14, weight: FontWeight.w600, lining: true,
-                                    color: active.contains(i) ? Colors.white : theme.secondaryText)),
+                                style: cardText(theme,
+                                    size: 14,
+                                    weight: FontWeight.w600,
+                                    lining: true,
+                                    color: active.contains(i)
+                                        ? Colors.white
+                                        : theme.secondaryText)),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             _t(stepKeys[i]),
                             textAlign: TextAlign.center,
                             maxLines: 2,
-                            style: cardText(theme, size: 11, height: 1.25,
-                                weight: active.contains(i) ? FontWeight.w600 : FontWeight.w400,
-                                color: active.contains(i) ? theme.primaryVariant : theme.secondaryText),
+                            style: cardText(theme,
+                                size: 11,
+                                height: 1.25,
+                                weight: active.contains(i)
+                                    ? FontWeight.w600
+                                    : FontWeight.w400,
+                                color: active.contains(i)
+                                    ? theme.primaryVariant
+                                    : theme.secondaryText),
                           ),
                         ],
                       ),
