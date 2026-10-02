@@ -18,6 +18,7 @@ const Map<String, IconData> kFunctionIcons = {
   'acne': Icons.healing_outlined,
   'soothing': Icons.eco_outlined,
   'exfoliation': Icons.grain,
+  'mattifying': Icons.blur_on,
   'uv_protection': Icons.shield_outlined,
   'cleansing': Icons.soap_outlined,
 };
