@@ -17,7 +17,7 @@ class ImagesRowCache {
 
   static const int _limit = 400;
   static const int _chunk = 12;
-  static const Duration _timeout = Duration(seconds: 20);
+  static const Duration _timeout = Duration(seconds: 12);
   static final Map<int, ImagesRow> _rows = <int, ImagesRow>{};
   static final Map<int, Future<List<ImagesRow>>> _inflight =
       <int, Future<List<ImagesRow>>>{};

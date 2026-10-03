@@ -89,7 +89,12 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
     // Строка из кэша ленты или из запроса, стартовавшего по тапу: первый
     // кадр с карточкой без ожидания своего запроса.
     final cached = ImagesRowCache.get(widget.imageid);
-    if (cached != null) _model.imageraw = [cached];
+    if (cached != null) {
+      _model.imageraw = [cached];
+      // Карточка уже в строке: экран не ждёт ни обновления строки, ни
+      // профиля, ни косметички. Они догрузятся и перерисуют карточку.
+      if (!_needsAnalysis(cached)) _model.loading = false;
+    }
     _rowFuture = ImagesRowCache.rowFuture(widget.imageid);
 
     // On page load action.
