@@ -9,14 +9,19 @@ import '/backend/supabase/supabase.dart';
 /// первых плиток, а тап по плитке стартует запрос строки параллельно с
 /// переходом. Экран карточки берёт строку отсюда и перечитывает её после
 /// доразбора.
+///
+/// Экран никогда не ждёт пачку ленты: пачка только наполняет кэш, когда
+/// придёт. Иначе зависший фоновый запрос держал бы лоадер карточки.
 class ImagesRowCache {
   ImagesRowCache._();
 
   static const int _limit = 400;
-  static const int _chunk = 20;
+  static const int _chunk = 12;
+  static const Duration _timeout = Duration(seconds: 20);
   static final Map<int, ImagesRow> _rows = <int, ImagesRow>{};
   static final Map<int, Future<List<ImagesRow>>> _inflight =
       <int, Future<List<ImagesRow>>>{};
+  static final Set<int> _batchPending = <int>{};
 
   static void put(ImagesRow row) {
     final id = row.id;
@@ -40,8 +45,9 @@ class ImagesRowCache {
     if (id != null) _rows.remove(id);
   }
 
-  /// Строка по id: из кэша, из уже идущего запроса или новым запросом.
-  /// [refresh] перечитывает из базы, минуя кэш (после доразбора).
+  /// Строка по id: из кэша, из уже идущего одиночного запроса или новым
+  /// запросом с таймаутом. [refresh] перечитывает из базы, минуя кэш
+  /// (после доразбора).
   static Future<List<ImagesRow>> rowFuture(int? id, {bool refresh = false}) {
     if (id == null) return Future.value(const <ImagesRow>[]);
     if (!refresh) {
@@ -52,6 +58,7 @@ class ImagesRowCache {
     }
     final future = ImagesTable()
         .querySingleRow(queryFn: (q) => q.eqOrNull('id', id))
+        .timeout(_timeout)
         .then((rows) {
       putAll(rows);
       return rows;
@@ -66,29 +73,22 @@ class ImagesRowCache {
     rowFuture(id).catchError((_) => const <ImagesRow>[]);
   }
 
-  /// Подгрузить в фоне строки первых плиток ленты одним запросом на пачку.
-  /// Повторный вызов с теми же id ничего не делает.
+  /// Подгрузить в фоне строки первых плиток ленты пачками. Результат только
+  /// наполняет кэш; ошибка или таймаут ничего не ломают. Повторный вызов с
+  /// теми же id ничего не делает.
   static void prefetchMany(Iterable<int> ids) {
     final missing = ids
-        .where((id) => !_rows.containsKey(id) && !_inflight.containsKey(id))
+        .where((id) => !_rows.containsKey(id) && !_batchPending.contains(id))
         .toList();
     for (var i = 0; i < missing.length; i += _chunk) {
       final batch = missing.sublist(i, (i + _chunk).clamp(0, missing.length));
-      final future = ImagesTable()
+      _batchPending.addAll(batch);
+      ImagesTable()
           .queryRows(queryFn: (q) => q.inFilterOrNull('id', batch))
-          .then((rows) {
-        putAll(rows);
-        return rows;
-      }).whenComplete(() {
-        for (final id in batch) {
-          _inflight.remove(id);
-        }
-      });
-      for (final id in batch) {
-        _inflight[id] = future.then(
-            (rows) => rows.where((r) => r.id == id).toList(growable: false));
-      }
-      future.catchError((_) => const <ImagesRow>[]);
+          .timeout(_timeout)
+          .then(putAll)
+          .catchError((_) {})
+          .whenComplete(() => _batchPending.removeAll(batch));
     }
   }
 }

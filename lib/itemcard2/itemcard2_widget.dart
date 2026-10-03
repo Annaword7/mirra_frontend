@@ -206,13 +206,19 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
   /// ingredients, issues). Shared by the initial page load and the
   /// pending-analysis retry/polling.
   /// Первое чтение идёт через кэш (строка могла прийти заранее), повторные,
-  /// после доразбора, читают базу заново.
+  /// после доразбора, читают базу заново. Ошибка чтения не роняет экран:
+  /// остаётся прежняя строка или строка из FutureBuilder.
   Future<void> _loadAnalysis() async {
     if (widget.imageid == null) return;
-    _model.imageraw = await ImagesRowCache.rowFuture(
-      widget.imageid,
-      refresh: _model.imageraw != null,
-    );
+    try {
+      final rows = await ImagesRowCache.rowFuture(
+        widget.imageid,
+        refresh: _model.imageraw != null,
+      );
+      if (rows.isNotEmpty) _model.imageraw = rows;
+    } catch (_) {
+      // Таймаут или сеть: экран покажет то, что уже есть.
+    }
   }
 
   /// Карточке нужны оценка и объект sa_card. Старый разбор без карточки

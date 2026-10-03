@@ -495,7 +495,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                   // Полные строки первых плиток читаем заранее: карточка
                   // откроется без паузы. Повторный вызов ничего не делает.
                   ImagesRowCache.prefetchMany(
-                      snapshot.data!.take(20).map((r) => r.id));
+                      snapshot.data!.take(12).map((r) => r.id));
                 }
                 List<ImagesRow> containerImagesRowList =
                     snapshot.data ?? _model.loadedImages!;
