@@ -19,6 +19,7 @@ import '/item_card/deleteitem/deleteitem_widget.dart';
 import '/components/product_card_v3/card_data.dart';
 import '/components/product_card_v3/card_tokens.dart';
 import '/components/product_card_v3/product_card_v3_widget.dart';
+import '/components/product_card_v3/skin_profile.dart';
 import '/design_system/components/mirra_bottom_sheet.dart';
 import '/item_card/markasspam/markasspam_widget.dart';
 import '/topratings/copyitem/copyitem_widget.dart';
@@ -119,11 +120,12 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
           );
           final u = userRows.firstOrNull;
           _model.profileRow = u;
-          _model.userSkinType = u?.skinType;
-          _model.userIsSensitive =
-              (u?.skinSensitivity ?? false) || u?.skinType == 'sensitive';
-          _model.userIsAcneProne = u?.skinType == 'acne_prone' ||
-              (u?.skinGoals.contains('acne') ?? false);
+          // Одно правило с лентой Главной: кружок там и балл здесь считаются
+          // по одному профилю.
+          final profile = SkinProfile.fromUser(u);
+          _model.userSkinType = profile.skinType;
+          _model.userIsSensitive = profile.sensitive;
+          _model.userIsAcneProne = profile.acneProne;
         } catch (_) {
           // Columns may not exist before the v2 migration — cold start.
         }
