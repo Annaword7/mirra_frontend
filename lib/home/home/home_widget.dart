@@ -1,11 +1,13 @@
 import '/design_system/components/screen_loader.dart';
 import '/design_system/foundations/layout.dart';
+import '/domain/images/images_row_cache.dart';
 import '/app_state.dart';
 import '/auth/supabase_auth/auth_util.dart';
 import '/backend/api_requests/api_calls.dart';
 import '/backend/supabase/database/tables/product_prices.dart';
 import '/backend/supabase/supabase.dart';
 import '/components/navbar/navbar_widget.dart';
+import '/components/product_card_v3/card_labels.dart' show skinFitScore;
 import '/domain/products/product_photo.dart';
 import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -490,6 +492,10 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                   _model.loadedImages = snapshot.data;
                   _sessionImages = snapshot.data;
                   _sessionImagesUser = currentUserUid;
+                  // Полные строки первых плиток читаем заранее: карточка
+                  // откроется без паузы. Повторный вызов ничего не делает.
+                  ImagesRowCache.prefetchMany(
+                      snapshot.data!.take(20).map((r) => r.id));
                 }
                 List<ImagesRow> containerImagesRowList =
                     snapshot.data ?? _model.loadedImages!;
@@ -852,6 +858,9 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                     hoverColor: Colors.transparent,
                                     highlightColor: Colors.transparent,
                                     onTap: () async {
+                                      // Запрос строки идёт параллельно с переходом.
+                                      ImagesRowCache.prefetch(
+                                          staggeredViewImagesRow.id);
                                       if (Navigator.of(context).canPop()) {
                                         context.pop();
                                       }

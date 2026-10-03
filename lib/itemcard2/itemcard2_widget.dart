@@ -9,6 +9,7 @@ import '/backend/supabase/supabase.dart';
 import '/app_state.dart';
 import '/domain/cosmetic_bag/cosmetic_bag_service.dart';
 import '/domain/client_card/client_card_service.dart';
+import '/domain/images/images_row_cache.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/design_system/components/app_button.dart';
@@ -66,6 +67,15 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
   /// Такой скан не ждёт разбора, ему показывается своя заглушка.
   bool _unsupported = false;
 
+  /// Идёт запрос к бэкенду за карточкой. Пока он идёт, показываем
+  /// нейтральный лоадер, а не «разбор ещё идёт»: слова про ожидание только
+  /// когда бэкенд действительно ответил «ещё не готово».
+  bool _fetchingCard = false;
+
+  /// Строка для FutureBuilder создаётся один раз: инлайн-запрос в build
+  /// перезапрашивал базу при каждой перестройке и мигал лоадером.
+  late Future<List<ImagesRow>> _rowFuture;
+
   /// Этот продукт уже в Косметичке — тогда действие обратное: убрать. Для
   /// чужого продукта всегда false: в набор попадает его копия с другим id, и
   /// связать её с исходной карточкой нельзя.
@@ -76,6 +86,12 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
     super.initState();
     _model = createModel(context, () => Itemcard2Model());
 
+    // Строка из кэша ленты или из запроса, стартовавшего по тапу: первый
+    // кадр с карточкой без ожидания своего запроса.
+    final cached = ImagesRowCache.get(widget.imageid);
+    if (cached != null) _model.imageraw = [cached];
+    _rowFuture = ImagesRowCache.rowFuture(widget.imageid);
+
     // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
       unawaited(AnalyticsService.instance.trackCardOpened(
@@ -83,6 +99,11 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
         source: 'direct',
       ));
       await _loadAnalysis();
+      // Карточка на месте: показываем сразу, профиль и косметичка догрузятся.
+      if (mounted && !_needsAnalysis(_model.imageraw?.firstOrNull)) {
+        _model.loading = false;
+        safeSetState(() {});
+      }
       await _refreshBagState();
       // Skin profile from onboarding — default viewing context for the fit card.
       if (currentUserUid.isNotEmpty) {
@@ -184,10 +205,13 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
   /// Loads the image row + its analysis tables (skin compatibility, top
   /// ingredients, issues). Shared by the initial page load and the
   /// pending-analysis retry/polling.
+  /// Первое чтение идёт через кэш (строка могла прийти заранее), повторные,
+  /// после доразбора, читают базу заново.
   Future<void> _loadAnalysis() async {
     if (widget.imageid == null) return;
-    _model.imageraw = await ImagesTable().queryRows(
-      queryFn: (q) => q.eqOrNull('id', widget.imageid),
+    _model.imageraw = await ImagesRowCache.rowFuture(
+      widget.imageid,
+      refresh: _model.imageraw != null,
     );
   }
 
@@ -201,27 +225,32 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
   /// Просим бэкенд досчитать разбор или только карточку. true, если после
   /// ответа карточка на месте.
   Future<bool> _requestAnalysis() async {
-    final retry = await ScientificanalysisNEWBCNDCall.call(
-      imageId: widget.imageid?.toString(),
-      userId: currentUserUid,
-      languageCode: FFLocalizations.of(context).languageCode,
-      token: currentJwtToken,
-    );
-    if (!mounted) return false;
-    if ((retry?.succeeded ?? false) && (retry?.statusCode ?? 0) == 200) {
-      await _loadAnalysis();
+    _fetchingCard = true;
+    if (mounted) safeSetState(() {});
+    try {
+      final retry = await ScientificanalysisNEWBCNDCall.call(
+        imageId: widget.imageid?.toString(),
+        userId: currentUserUid,
+        languageCode: FFLocalizations.of(context).languageCode,
+        token: currentJwtToken,
+      );
+      if (!mounted) return false;
+      if ((retry?.succeeded ?? false) && (retry?.statusCode ?? 0) == 200) {
+        await _loadAnalysis();
+        return !_needsAnalysis(_model.imageraw?.firstOrNull);
+      }
+      if ((retry?.statusCode ?? 0) == 422 &&
+          getJsonField(retry?.jsonBody, r'$.status') ==
+              'unsupported_product_type') {
+        // Ждать нечего: разбора у этого средства не будет.
+        _unsupported = true;
+        return true;
+      }
+      return false;
+    } finally {
+      _fetchingCard = false;
       if (mounted) safeSetState(() {});
-      return !_needsAnalysis(_model.imageraw?.firstOrNull);
     }
-    if ((retry?.statusCode ?? 0) == 422 &&
-        getJsonField(retry?.jsonBody, r'$.status') ==
-            'unsupported_product_type') {
-      // Ждать нечего: разбора у этого средства не будет.
-      _unsupported = true;
-      if (mounted) safeSetState(() {});
-      return true;
-    }
-    return false;
   }
 
   void _startPendingPolling() {
@@ -331,6 +360,14 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
     // на «убрать». У копии чужого id другой, и переключать нечего.
     if (isOwner) safeSetState(() => _inBag = true);
     _toast(FFLocalizations.of(context).getText('cb_added_toast'));
+  }
+
+  /// Карточка читается или достраивается: нейтральный лоадер без слов.
+  Widget _buildCardLoader(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: 96.0),
+      child: Center(child: ScreenLoader()),
+    );
   }
 
   /// «Это не уход за лицом»: волосы, тело, декоративка. Бэкенд их не
@@ -703,12 +740,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
     final theme = FlutterFlowTheme.of(context);
 
     return FutureBuilder<List<ImagesRow>>(
-      future: ImagesTable().querySingleRow(
-        queryFn: (q) => q.eqOrNull(
-          'id',
-          widget.imageid,
-        ),
-      ),
+      future: _rowFuture,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Scaffold(
@@ -720,7 +752,10 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
                   Icon(LucideIcons.circleAlert, color: theme.error, size: 48),
                   const SizedBox(height: 16),
                   TextButton(
-                    onPressed: () => safeSetState(() {}),
+                    onPressed: () => safeSetState(() {
+                      _rowFuture = ImagesRowCache.rowFuture(widget.imageid,
+                          refresh: true);
+                    }),
                     child: Text(_t('care_retry')),
                   ),
                 ],
@@ -797,6 +832,8 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
                         children: [
                           if (_unsupported)
                             _buildUnsupportedPlaceholder(context)
+                          else if (card == null && _fetchingCard)
+                            _buildCardLoader(context)
                           else if (card == null ||
                               row.saCompositeScore == null)
                             _buildPendingPlaceholder(context)
