@@ -5,9 +5,11 @@ import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/design_system/components/product_tile.dart';
+import '/domain/images/images_row_cache.dart';
 import '/design_system/foundations/layout.dart';
 import '/index.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'imagesby_album_model.dart';
 export 'imagesby_album_model.dart';
@@ -278,6 +280,9 @@ class _ImagesbyAlbumWidgetState extends State<ImagesbyAlbumWidget> {
                             hoverColor: Colors.transparent,
                             highlightColor: Colors.transparent,
                             onTap: () async {
+                              // Запрос строки параллельно с переходом:
+                              // карточка открывается без лоадера.
+                              ImagesRowCache.prefetch(row.id);
                               context.pushNamed(
                                 Itemcard2Widget.routeName,
                                 queryParameters: {

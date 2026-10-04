@@ -2,6 +2,7 @@ import '/auth/supabase_auth/auth_util.dart';
 import '/backend/api_requests/api_calls.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/design_system/components/confirm_dialog.dart';
+import '/domain/images/images_row_cache.dart';
 import '/index.dart';
 import 'package:flutter/material.dart';
 import 'copyitem_model.dart';
@@ -63,6 +64,8 @@ class _CopyitemWidgetState extends State<CopyitemWidget> {
       Navigator.pop(context);
 
       if (newId != null) {
+        // Строка копии читается параллельно с переходом.
+        ImagesRowCache.prefetch(newId);
         context.pushNamed(
           Itemcard2Widget.routeName,
           queryParameters: {

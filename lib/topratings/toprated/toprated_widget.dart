@@ -7,6 +7,7 @@ import '/backend/api_requests/api_calls.dart';
 import '/backend/supabase/database/tables/product_prices.dart';
 import '/backend/supabase/supabase.dart';
 import '/components/navbar/navbar_widget.dart';
+import '/domain/images/images_row_cache.dart';
 import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -421,6 +422,11 @@ class _TopratedWidgetState extends State<TopratedWidget> {
             .order('sa_composite_score', ascending: false),
       );
 
+      // Полные строки первых плиток читаем заранее, как на Главной: карточка
+      // открывается первым кадром.
+      ImagesRowCache.prefetchMany(
+          (_model.allImages ?? const <ImagesRow>[]).take(12).map((r) => r.id));
+
       _sessionImages = _model.allImages;
       _sessionImagesLang = FFLocalizations.of(context).languageCode;
 
@@ -703,6 +709,7 @@ class _TopratedWidgetState extends State<TopratedWidget> {
                                               unawaited(AnalyticsService
                                                   .instance
                                                   .trackOverviewProductTap());
+                                              ImagesRowCache.prefetch(imageId);
                                               context.pushNamed(
                                                 Itemcard2Widget.routeName,
                                                 queryParameters: {
@@ -769,6 +776,10 @@ class _TopratedWidgetState extends State<TopratedWidget> {
                                         onTap: () async {
                                           unawaited(AnalyticsService.instance
                                               .trackOverviewProductTap());
+                                          // Запрос строки идёт параллельно с
+                                          // переходом: карточка откроется без
+                                          // лоадера.
+                                          ImagesRowCache.prefetch(item.id);
                                           context.pushNamed(
                                             Itemcard2Widget.routeName,
                                             queryParameters: {

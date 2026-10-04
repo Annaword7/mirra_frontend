@@ -7,10 +7,12 @@ import '/design_system/components/app_button.dart';
 import '/design_system/components/constrained_content.dart';
 import '/index.dart';
 import '/design_system/components/product_tile.dart';
+import '/domain/images/images_row_cache.dart';
 import 'search_model.dart';
 export 'search_model.dart';
 
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 // ── Vocabulary (mirrors backend search_facets.py) ────────────────────────────
 
@@ -603,12 +605,19 @@ class _SearchWidgetState extends State<SearchWidget> {
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: GestureDetector(
-                onTap: imageId == null ? null : () => context.pushNamed(
-                  Itemcard2Widget.routeName,
-                  queryParameters: {
-                    'imageid': serializeParam(imageId, ParamType.int),
-                  }.withoutNulls,
-                ),
+                onTap: imageId == null
+                    ? null
+                    : () {
+                        // Запрос строки параллельно с переходом: карточка
+                        // открывается без лоадера.
+                        ImagesRowCache.prefetch(imageId);
+                        context.pushNamed(
+                          Itemcard2Widget.routeName,
+                          queryParameters: {
+                            'imageid': serializeParam(imageId, ParamType.int),
+                          }.withoutNulls,
+                        );
+                      },
                 child: ProductTile(
                   imageUrl:  r['image_url']    as String?,
                   brand:     r['brand']        as String?,
