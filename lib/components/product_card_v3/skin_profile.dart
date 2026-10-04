@@ -6,6 +6,12 @@ import '/backend/supabase/supabase.dart';
 /// признаки из типа кожи и целей, а лента читала колонку `acne_prone`, и
 /// один и тот же продукт показывал в кружке ленты одно число, на карточке
 /// другое.
+///
+/// Колонка `users.acne_prone` в расчёт не идёт: у 55 из 145 людей с
+/// `acne_prone = true` ни тип кожи, ни цели про акне не говорят (сухая кожа,
+/// цели «поры, увлажнение, барьер»), и лента показывала им балл для склонной
+/// к акне кожи. Признак берётся только из типа `acne_prone` и цели `acne`,
+/// как на карточке.
 class SkinProfile {
   const SkinProfile({this.skinType, this.sensitive = false, this.acneProne = false});
 
@@ -20,9 +26,7 @@ class SkinProfile {
     return SkinProfile(
       skinType: u.skinType,
       sensitive: (u.skinSensitivity ?? false) || u.skinType == 'sensitive',
-      acneProne: u.skinType == 'acne_prone' ||
-          (u.acneProne ?? false) ||
-          u.skinGoals.contains('acne'),
+      acneProne: u.skinType == 'acne_prone' || u.skinGoals.contains('acne'),
     );
   }
 }
