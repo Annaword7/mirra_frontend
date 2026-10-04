@@ -89,6 +89,11 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
 
     // Строка из кэша ленты или из запроса, стартовавшего по тапу: первый
     // кадр с карточкой без ожидания своего запроса.
+    // Профиль кожи из памяти приложения: первый кадр карточки сразу с нужным
+    // типом, без «нормальной» по умолчанию.
+    final remembered = SkinProfile.remembered;
+    if (remembered != null) _applyProfile(remembered);
+
     final cached = ImagesRowCache.get(widget.imageid);
     if (cached != null) {
       _model.imageraw = [cached];
@@ -104,32 +109,14 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
         imageId: widget.imageid ?? 0,
         source: 'direct',
       ));
+      // Профиль решает, какой балл показать, поэтому он грузится первым и
+      // ни за кем не стоит в очереди. Косметичка тоже не держит карточку:
+      // её запрос без таймаута когда-то задерживал профиль на всё время
+      // ожидания, и карточка оставалась с «нормальной» кожей.
+      unawaited(_loadProfile());
+      unawaited(_refreshBagState());
       await _loadAnalysis();
-      // Карточка на месте: показываем сразу, профиль и косметичка догрузятся.
-      if (mounted && !_needsAnalysis(_model.imageraw?.firstOrNull)) {
-        _model.loading = false;
-        safeSetState(() {});
-      }
-      await _refreshBagState();
-      // Skin profile from onboarding — default viewing context for the fit card.
-      if (currentUserUid.isNotEmpty) {
-        try {
-          final userRows = await UsersTable().queryRows(
-            queryFn: (q) => q.eq('id', currentUserUid),
-            limit: 1,
-          );
-          final u = userRows.firstOrNull;
-          _model.profileRow = u;
-          // Одно правило с лентой Главной: кружок там и балл здесь считаются
-          // по одному профилю.
-          final profile = SkinProfile.fromUser(u);
-          _model.userSkinType = profile.skinType;
-          _model.userIsSensitive = profile.sensitive;
-          _model.userIsAcneProne = profile.acneProne;
-        } catch (_) {
-          // Columns may not exist before the v2 migration — cold start.
-        }
-      }
+      if (!mounted) return;
       _model.loading = false;
       safeSetState(() {});
 
@@ -286,6 +273,35 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
         if (mounted) safeSetState(() {});
       }
     });
+  }
+
+  void _applyProfile(SkinProfile p) {
+    _model.userSkinType = p.skinType;
+    _model.userIsSensitive = p.sensitive;
+    _model.userIsAcneProne = p.acneProne;
+  }
+
+  /// Профиль кожи из онбординга: он задаёт тип кожи, по которому карточка
+  /// показывает балл. Одно правило с лентой Главной ([SkinProfile]).
+  Future<void> _loadProfile() async {
+    if (currentUserUid.isEmpty) return;
+    try {
+      final rows = await UsersTable()
+          .queryRows(
+            queryFn: (q) => q.eq('id', currentUserUid),
+            limit: 1,
+          )
+          .timeout(const Duration(seconds: 12));
+      if (!mounted) return;
+      final u = rows.firstOrNull;
+      if (u == null) return;
+      _model.profileRow = u;
+      _applyProfile(SkinProfile.remember(u));
+      safeSetState(() {});
+    } catch (_) {
+      // Колонок может не быть до миграции, сеть может молчать: карточка
+      // остаётся на запомненном профиле.
+    }
   }
 
   Future<void> _refreshBagState() async {
@@ -469,6 +485,21 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
       out.add(row.imageUrl);
     }
     return out;
+  }
+
+  /// Анкета профиля кожи из подписи «ваш тип». `returnTo` — путь этой же
+  /// карточки целиком: после сохранения анкета делает `go`, и без параметра
+  /// `imageid` карточка открылась бы пустой.
+  void _openSkinQuiz() {
+    final id = widget.imageid;
+    context.pushNamed(
+      OnboardingQuizWidget.routeName,
+      queryParameters: {
+        if (id != null)
+          'returnTo': serializeParam(
+              '${Itemcard2Widget.routePath}?imageid=$id', ParamType.String),
+      }.withoutNulls,
+    );
   }
 
   Future<void> _openPhotos(BuildContext context, List<String> photos) {
@@ -803,8 +834,13 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
         final row = _model.imageraw?.firstOrNull ?? itemcard2ImagesRow;
         final card = ProductCard.parse(row.saCard);
         final photos = _productPhotos();
-        final pregnant = _model.profileRow?.pregnancyStatus ==
-            ClientCardService.pregnantOrNursing;
+        // Беременность берём из запомненного профиля, если своя строка ещё
+        // не пришла: плашка с противопоказаниями не должна появляться
+        // вторым кадром.
+        final pregnant = _model.profileRow != null
+            ? _model.profileRow!.pregnancyStatus ==
+                ClientCardService.pregnantOrNursing
+            : (SkinProfile.remembered?.pregnant ?? false);
 
         return GestureDetector(
           onTap: () {
@@ -869,6 +905,7 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
                                   context.pushNamed(TakeorUploadPageWidget.routeName),
                               onEditProfile: () =>
                                   context.pushNamed(ProfileWidget.routeName),
+                              onEditSkinType: _openSkinQuiz,
                             ),
                           // Запас под липкий баннер «сохранить в историю» у гостя.
                           SizedBox(height: currentUserIsAnonymous ? 72.0 : 16.0),

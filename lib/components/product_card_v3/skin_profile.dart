@@ -1,4 +1,5 @@
 import '/backend/supabase/supabase.dart';
+import '/domain/client_card/client_card_service.dart';
 
 /// Профиль кожи для подбора балла: тип и два признака.
 ///
@@ -13,13 +14,42 @@ import '/backend/supabase/supabase.dart';
 /// к акне кожи. Признак берётся только из типа `acne_prone` и цели `acne`,
 /// как на карточке.
 class SkinProfile {
-  const SkinProfile({this.skinType, this.sensitive = false, this.acneProne = false});
+  const SkinProfile({
+    this.skinType,
+    this.sensitive = false,
+    this.acneProne = false,
+    this.pregnant = false,
+  });
 
   final String? skinType;
   final bool sensitive;
   final bool acneProne;
 
+  /// Беременность или кормление: карточка красит этим флагом состав и
+  /// показывает плашку с противопоказаниями.
+  final bool pregnant;
+
   static const SkinProfile empty = SkinProfile();
+
+
+  /// Профиль, прочитанный любым экраном в этом запуске. Карточка берёт его в
+  /// `initState`, поэтому первый кадр уже с нужным типом кожи: раньше она
+  /// успевала показать запасную «нормальную», пока свой запрос профиля стоял
+  /// в очереди за строкой и косметичкой.
+  static SkinProfile? _last;
+
+  static SkinProfile? get remembered => _last;
+
+  /// Запомнить профиль пользователя. Пустая строка профиля ничего не
+  /// затирает: лучше прежний профиль, чем сброс к «нормальной».
+  static SkinProfile remember(UsersRow? u) {
+    final profile = SkinProfile.fromUser(u);
+    if (u != null) _last = profile;
+    return profile;
+  }
+
+  /// Забыть профиль: при выходе из аккаунта.
+  static void forget() => _last = null;
 
   factory SkinProfile.fromUser(UsersRow? u) {
     if (u == null) return empty;
@@ -27,6 +57,7 @@ class SkinProfile {
       skinType: u.skinType,
       sensitive: (u.skinSensitivity ?? false) || u.skinType == 'sensitive',
       acneProne: u.skinType == 'acne_prone' || u.skinGoals.contains('acne'),
+      pregnant: u.pregnancyStatus == ClientCardService.pregnantOrNursing,
     );
   }
 }
