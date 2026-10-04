@@ -444,9 +444,9 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
             _clearScanOverlay();
             return;
           }
-          // Переход первым, оверлей гаснет сразу после его старта: если
-          // гасить раньше, между оверлеем и карточкой мелькает пустой
-          // сканер.
+          // Оверлей живёт до возврата с карточки: во время анимации перехода
+          // под карточкой виден этот экран, и без оверлея мелькал бы пустой
+          // сканер. Если экран пересоберётся, его initState сам снимет флаги.
           final toCard = context.pushNamed(
             Itemcard2Widget.routeName,
             queryParameters: {
@@ -458,7 +458,6 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
               ),
             }.withoutNulls,
           );
-          _clearScanOverlay();
           await toCard;
           FFAppState().uploadedimageurl = '';
           FFAppState().analysisloading = false;
@@ -854,16 +853,15 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
         _clearScanOverlay();
         return;
       }
-      // Переход первым, оверлей гаснет сразу после его старта: если
-      // гасить раньше, между оверлеем и карточкой мелькает пустой
-      // сканер.
+      // Оверлей живёт до возврата с карточки: во время анимации перехода
+      // под карточкой виден этот экран, и без оверлея мелькал бы пустой
+      // сканер. Если экран пересоберётся, его initState сам снимет флаги.
       final toCard = context.pushNamed(
         Itemcard2Widget.routeName,
         queryParameters: {
           'imageid': serializeParam(imageId, ParamType.int),
         }.withoutNulls,
       );
-      _clearScanOverlay();
       await toCard;
       FFAppState().uploadedimageurl = '';
       FFAppState().analysisloading = false;
@@ -1197,9 +1195,9 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                   _clearScanOverlay();
                   return;
                 }
-                // Переход первым, оверлей гаснет сразу после его старта: если
-                // гасить раньше, между оверлеем и карточкой мелькает пустой
-                // сканер.
+                // Оверлей живёт до возврата с карточки: во время анимации перехода
+                // под карточкой виден этот экран, и без оверлея мелькал бы пустой
+                // сканер. Если экран пересоберётся, его initState сам снимет флаги.
                 final toCard = context.pushNamed(
                   Itemcard2Widget.routeName,
                   queryParameters: {
@@ -1211,7 +1209,6 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                     ),
                   }.withoutNulls,
                 );
-                _clearScanOverlay();
                 await toCard;
                 FFAppState().uploadedimageurl = '';
                 FFAppState().analysisloading = false;
