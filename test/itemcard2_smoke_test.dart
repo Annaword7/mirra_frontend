@@ -162,6 +162,22 @@ void main() {
     await _disposeScreen(tester);
   }, timeout: const Timeout(Duration(minutes: 3)));
 
+  testWidgets('строка не прочиталась: причина и кнопка, а не вечный лоадер',
+      (tester) async {
+    // Кэш пуст, базы нет: запрос строки отказывает. Экран обязан перестать
+    // ждать и объяснить, а не крутить спиннер.
+    await _pumpScreen(tester, imageId: 999);
+    // Потолок чтения строки 12 секунд: ждём чуть дольше.
+    for (var i = 0; i < 15; i++) {
+      await tester.pump(const Duration(seconds: 1));
+      tester.takeException();
+    }
+
+    expect(find.byType(ScreenLoader), findsNothing);
+    expect(find.text('Продукт не найден'), findsOneWidget);
+    await _disposeScreen(tester);
+  }, timeout: const Timeout(Duration(minutes: 3)));
+
   testWidgets('карточка из кэша рисуется, лоадер не висит', (tester) async {
     tester.view.physicalSize = const Size(390 * 3, 844 * 3);
     tester.view.devicePixelRatio = 3.0;

@@ -289,6 +289,18 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
     });
   }
 
+  /// Повторить чтение строки по кнопке.
+  void _retryRow() {
+    _model.loading = true;
+    _rowFuture = ImagesRowCache.rowFuture(widget.imageid, refresh: true);
+    safeSetState(() {});
+    unawaited(_loadAnalysis().then((_) {
+      if (!mounted) return;
+      _model.loading = false;
+      safeSetState(() {});
+    }));
+  }
+
   void _applyProfile(SkinProfile p) {
     _model.userSkinType = p.skinType;
     _model.userIsSensitive = p.sensitive;
@@ -792,58 +804,53 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
     return FutureBuilder<List<ImagesRow>>(
       future: _rowFuture,
       builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return Scaffold(
-            backgroundColor: theme.alternate,
-            body: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(LucideIcons.circleAlert, color: theme.error, size: 48),
-                  const SizedBox(height: 16),
-                  TextButton(
-                    onPressed: () => safeSetState(() {
-                      _rowFuture = ImagesRowCache.rowFuture(widget.imageid,
-                          refresh: true);
-                    }),
-                    child: Text(_t('care_retry')),
-                  ),
-                ],
-              ),
-            ),
-          );
+        // Строка из модели свежее: она перечитывается после доразбора. Запрос
+        // этого FutureBuilder её только дублирует, поэтому экран на него не
+        // опирается: зависший или отказавший запрос раньше оставлял
+        // бесконечный лоадер.
+        final row = _model.imageraw?.firstOrNull ?? snapshot.data?.firstOrNull;
+        if (FFDevEnvironmentValues.isNonProd) {
+          debugPrint('[card] build id=${widget.imageid}'
+              ' loading=${_model.loading} row=${row != null}'
+              ' snapshot=${snapshot.connectionState.name}'
+              ' err=${snapshot.error?.runtimeType}');
         }
-        if (!snapshot.hasData) {
-          return Scaffold(
-            backgroundColor: theme.alternate,
-            body: const Center(child: ScreenLoader()),
-          );
-        }
-        final itemcard2ImagesRow = snapshot.data!.firstOrNull;
-        if (itemcard2ImagesRow == null) {
+        if (row == null) {
+          // Ждём первую строку, но не дольше, чем её читает _loadAnalysis:
+          // после него loading снимается, и человек видит причину с кнопкой.
+          if (_model.loading) {
+            return Scaffold(
+              backgroundColor: theme.alternate,
+              body: const Center(child: ScreenLoader()),
+            );
+          }
           return Scaffold(
             backgroundColor: theme.alternate,
             body: Center(
               child: Padding(
                 padding: const EdgeInsets.all(24.0),
-                child: Text(
-                  _t('item_not_found'),
-                  textAlign: TextAlign.center,
-                  style: theme.bodyMedium,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(LucideIcons.circleAlert, color: theme.error, size: 48),
+                    const SizedBox(height: 16),
+                    Text(
+                      _t('item_not_found'),
+                      textAlign: TextAlign.center,
+                      style: theme.bodyMedium,
+                    ),
+                    const SizedBox(height: 16),
+                    TextButton(
+                      onPressed: _retryRow,
+                      child: Text(_t('care_retry')),
+                    ),
+                  ],
                 ),
               ),
             ),
           );
         }
-
-        // Строка из модели свежее: она перечитывается после доразбора.
-        final row = _model.imageraw?.firstOrNull ?? itemcard2ImagesRow;
         final card = ProductCard.parse(row.saCard);
-        if (FFDevEnvironmentValues.isNonProd) {
-          debugPrint('[card] build id=${widget.imageid}'
-              ' loading=${_model.loading} card=${card != null}'
-              ' score=${row.saCompositeScore} unsupported=$_unsupported');
-        }
         final photos = _productPhotos();
         // Беременность берём из запомненного профиля, если своя строка ещё
         // не пришла: плашка с противопоказаниями не должна появляться

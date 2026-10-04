@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart' show debugPrint;
+
 import '/backend/supabase/supabase.dart';
 
 /// Строки `images` для экрана карточки, прочитанные заранее.
@@ -56,13 +58,25 @@ class ImagesRowCache {
       final running = _inflight[id];
       if (running != null) return running;
     }
+    // Отказ и таймаут возвращают пустой список, а не ошибку: иначе ошибка
+    // уходила тому, кто подписался первым (подогрев по тапу), а экран
+    // получал уже «сломанный» future и показывал лоадер без конца.
     final future = ImagesTable()
         .querySingleRow(queryFn: (q) => q.eqOrNull('id', id))
         .timeout(_timeout)
         .then((rows) {
       putAll(rows);
       return rows;
-    }).whenComplete(() => _inflight.remove(id));
+    }).catchError((e) {
+      debugPrint('ImagesRowCache: строка $id не прочиталась: $e');
+      return const <ImagesRow>[];
+      // Телом, а не стрелкой: `Map.remove` отдаёт этот же future, а
+      // whenComplete ждёт future, который вернул колбэк. Со стрелкой цепочка
+      // ждала саму себя и не завершалась никогда — отсюда вечный лоадер на
+      // карточке всюду, где строки ещё не было в кэше.
+    }).whenComplete(() {
+      _inflight.remove(id);
+    });
     _inflight[id] = future;
     return future;
   }
