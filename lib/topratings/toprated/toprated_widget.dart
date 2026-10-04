@@ -7,6 +7,7 @@ import '/backend/api_requests/api_calls.dart';
 import '/backend/supabase/database/tables/product_prices.dart';
 import '/backend/supabase/supabase.dart';
 import '/components/navbar/navbar_widget.dart';
+import '/components/product_card_v3/skin_profile.dart';
 import '/domain/images/images_row_cache.dart';
 import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -393,6 +394,9 @@ class _TopratedWidgetState extends State<TopratedWidget> {
       _model.userrow = await UsersTable().queryRows(
         queryFn: (q) => q.eqOrNull('id', currentUserUid),
       );
+      // Профиль кожи в память приложения: по нему считается кружок здесь и
+      // балл на карточке продукта.
+      SkinProfile.remember(_model.userrow?.firstOrNull);
       final profileImg = _model.userrow?.firstOrNull?.profileImage;
       if (profileImg != null && profileImg.isNotEmpty) {
         FFAppState().userProfilePicture = profileImg;
@@ -411,8 +415,10 @@ class _TopratedWidgetState extends State<TopratedWidget> {
         // Чужие продукты: показываем каталожное фото (публичное), а не
         // приватный скан владельца (image_url). Без каталожного фото продукт
         // в Top Rated не попадает — заплатки не показываем.
+        // skin_scores: шесть чисел из sa_card, без остального текста
+        // карточки. Кружок считается по ним так же, как на карточке.
         columns:
-            'id,catalog_image_url,product_name,brand,sa_composite_score,product_type',
+            'id,catalog_image_url,product_name,brand,sa_composite_score,product_type,skin_scores:sa_card->skin_scores',
         queryFn: (q) => q
             .neqOrNull('user', currentUserUid)
             .not('catalog_image_url', 'is', null)
@@ -522,6 +528,23 @@ class _TopratedWidgetState extends State<TopratedWidget> {
       name = name.substring(brand.length + 1);
     }
     return '$brand|$name';
+  }
+
+  /// Балл для кружка: по профилю кожи, как на карточке продукта
+  /// ([fitScoreFor]). Пока шести баллов нет (старый разбор без карточки) —
+  /// общий балл состава: кружок не должен пустеть.
+  double? _tileScore(ImagesRow row) {
+    final scores = skinScoresOf(row);
+    if (scores == null) return row.saCompositeScore;
+    final profile = SkinProfile.remembered ??
+        SkinProfile.fromUser(_model.userrow?.firstOrNull);
+    final fit = fitScoreFor(
+      scores,
+      skinType: profile.skinType,
+      sensitive: profile.sensitive,
+      acneProne: profile.acneProne,
+    );
+    return fit?.toDouble() ?? row.saCompositeScore;
   }
 
   List<ImagesRow> _filteredImages() {
@@ -796,7 +819,7 @@ class _TopratedWidgetState extends State<TopratedWidget> {
                                           imageUrl: item.catalogImageUrl,
                                           brand: item.brand,
                                           name: item.productName,
-                                          score: item.saCompositeScore,
+                                          score: _tileScore(item),
                                           variant: ProductTileVariant.plain,
                                           avgPrice: _model.priceMap['${(item.productName ?? '').toLowerCase().trim()}|${(item.brand ?? '').toLowerCase().trim()}']?.avgPrice,
                                           priceCurrencyCode: _model.priceMap['${(item.productName ?? '').toLowerCase().trim()}|${(item.brand ?? '').toLowerCase().trim()}']?.priceCurrencyCode,
