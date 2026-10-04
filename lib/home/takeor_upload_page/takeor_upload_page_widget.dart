@@ -17,14 +17,15 @@ import '/design_system/foundations/layout.dart';
 import '/flutter_flow/upload_data.dart';
 import '/limits/limit_out/limit_out_widget.dart';
 import '/components/error_popup/error_popup_widget.dart';
+import '/domain/images/images_row_cache.dart';
 import '/components/guest_prefs_sheet/guest_prefs_sheet_widget.dart';
 import '/paywall/show_paywall.dart';
 import 'dart:ui';
 import '/index.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -417,6 +418,8 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
             ));
           }
           _recordSuccessfulScan();
+          // Строка скана читается параллельно с переходом на карточку.
+          ImagesRowCache.prefetch(_completedImageId);
           if (!mounted) {
             FFAppState().uploadedimageurl = '';
             FFAppState().analysisloading = false;
@@ -824,6 +827,8 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
         ),
       ));
       _recordSuccessfulScan();
+      // Строка скана читается параллельно с переходом на карточку.
+      ImagesRowCache.prefetch(imageId);
       if (!mounted) {
         FFAppState().uploadedimageurl = '';
         FFAppState().analysisloading = false;
@@ -1141,6 +1146,8 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                   ));
                 }
                 _recordSuccessfulScan();
+                // Строка скана читается параллельно с переходом на карточку.
+                ImagesRowCache.prefetch(_completedImageId);
                 if (!mounted) {
                   FFAppState().uploadedimageurl = '';
                   FFAppState().analysisloading = false;

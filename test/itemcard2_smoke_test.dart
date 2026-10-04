@@ -40,6 +40,23 @@ final Map<String, dynamic> _card = {
   ],
 };
 
+/// Строка сразу после скана: разбор ещё не досчитан, карточки нет.
+void _cacheFreshScanRow() {
+  ImagesRowCache.put(ImagesRow({
+    'id': 778,
+    'user': 'someone',
+    'brand': 'Aurelle',
+    'product_name': 'Hydra Balance Day Cream',
+    'image_url': null,
+    'catalog_image_url': null,
+    'created_at': '2026-10-04T10:00:00Z',
+    'hided': false,
+    'sa_composite_score': null,
+    'sa_card': null,
+    'product_type': 'moisturizer',
+  }));
+}
+
 void _cacheRow() {
   ImagesRowCache.put(ImagesRow({
     'id': 777,
@@ -56,7 +73,7 @@ void _cacheRow() {
   }));
 }
 
-Future<void> _pumpScreen(WidgetTester tester) async {
+Future<void> _pumpScreen(WidgetTester tester, {int imageId = 777}) async {
   tester.view.physicalSize = const Size(390 * 3, 844 * 3);
   tester.view.devicePixelRatio = 3.0;
   addTearDown(tester.view.reset);
@@ -71,13 +88,26 @@ Future<void> _pumpScreen(WidgetTester tester) async {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      home: const Itemcard2Widget(imageid: 777),
+      home: Itemcard2Widget(imageid: imageId),
     ),
   ));
   // Сеть в тесте не отвечает вовсе: карточка из кэша обязана появиться за
   // первые кадры, не дожидаясь ни строки, ни профиля, ни косметички.
   for (var i = 0; i < 4; i++) {
     await tester.pump(const Duration(milliseconds: 250));
+    tester.takeException();
+  }
+  debugPrint('DIAG id=$imageId loaders: ${find.byType(ScreenLoader).evaluate().length}, '
+      'cards: ${find.byType(ProductCardV3Widget).evaluate().length}, '
+      'texts: ${find.byType(Text).evaluate().map((e) => (e.widget as Text).data).whereType<String>().take(6).toList()}');
+}
+
+/// Снять экран с дерева: это отменяет опрос и фоновые запросы, иначе их
+/// отказы (в тесте базы нет) падают уже после конца теста.
+Future<void> _disposeScreen(WidgetTester tester) async {
+  await tester.pumpWidget(const SizedBox.shrink());
+  for (var i = 0; i < 3; i++) {
+    await tester.pump(const Duration(milliseconds: 200));
     tester.takeException();
   }
 }
@@ -114,7 +144,22 @@ void main() {
     // акне (30).
     expect(find.text('30'), findsOneWidget);
     expect(find.text('75'), findsNothing);
-    await tester.pump(const Duration(seconds: 30));
+    await _disposeScreen(tester);
+  }, timeout: const Timeout(Duration(minutes: 3)));
+
+  testWidgets('скан без карточки ждёт словами, а не голым лоадером',
+      (tester) async {
+    // После скана с незнакомыми ингредиентами бэкенд отвечает 202, и экран
+    // досчитывает разбор запросом до двух минут. Это ожидание должно
+    // читаться как ожидание, а не как застрявший спиннер.
+    _cacheFreshScanRow();
+
+    await _pumpScreen(tester, imageId: 778);
+
+    expect(find.text('Разбор ещё идёт'), findsOneWidget);
+    expect(find.byType(ScreenLoader), findsNothing);
+    expect(find.byType(ProductCardV3Widget), findsNothing);
+    await _disposeScreen(tester);
   }, timeout: const Timeout(Duration(minutes: 3)));
 
   testWidgets('карточка из кэша рисуется, лоадер не висит', (tester) async {
@@ -167,8 +212,6 @@ void main() {
 
     expect(find.byType(ProductCardV3Widget), findsOneWidget);
     expect(find.byType(ScreenLoader), findsNothing);
-    // Висящие запросы строки и профиля должны отвалиться по таймауту, не
-    // оставив таймеров.
-    await tester.pump(const Duration(seconds: 30));
+    await _disposeScreen(tester);
   }, timeout: const Timeout(Duration(minutes: 3)));
 }

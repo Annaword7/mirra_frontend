@@ -68,11 +68,6 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
   /// Такой скан не ждёт разбора, ему показывается своя заглушка.
   bool _unsupported = false;
 
-  /// Идёт запрос к бэкенду за карточкой. Пока он идёт, показываем
-  /// нейтральный лоадер, а не «разбор ещё идёт»: слова про ожидание только
-  /// когда бэкенд действительно ответил «ещё не готово».
-  bool _fetchingCard = false;
-
   /// Строка для FutureBuilder создаётся один раз: инлайн-запрос в build
   /// перезапрашивал базу при каждой перестройке и мигал лоадером.
   late Future<List<ImagesRow>> _rowFuture;
@@ -96,10 +91,11 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
 
     final cached = ImagesRowCache.get(widget.imageid);
     if (cached != null) {
+      // Строка есть, экрану есть что показать: карточку или честное
+      // ожидание разбора. Полноэкранный лоадер больше не ждёт ни
+      // обновления строки, ни профиля, ни косметички.
       _model.imageraw = [cached];
-      // Карточка уже в строке: экран не ждёт ни обновления строки, ни
-      // профиля, ни косметички. Они догрузятся и перерисуют карточку.
-      if (!_needsAnalysis(cached)) _model.loading = false;
+      _model.loading = false;
     }
     _rowFuture = ImagesRowCache.rowFuture(widget.imageid);
 
@@ -115,7 +111,14 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
       // ожидания, и карточка оставалась с «нормальной» кожей.
       unawaited(_loadProfile());
       unawaited(_refreshBagState());
-      await _loadAnalysis();
+      if (_model.imageraw == null) {
+        // Без строки показывать нечего, её ждём.
+        await _loadAnalysis();
+      } else {
+        // Строка из кэша уже на экране: обновляем её в фоне, чтобы медленная
+        // сеть не держала лоадер.
+        unawaited(_loadAnalysis());
+      }
       if (!mounted) return;
       _model.loading = false;
       safeSetState(() {});
@@ -224,33 +227,31 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
 
   /// Просим бэкенд досчитать разбор или только карточку. true, если после
   /// ответа карточка на месте.
+  /// Пока запрос идёт, экран показывает заглушку «разбор ещё идёт»: это
+  /// честное ожидание, у запроса потолок в две минуты. Голый спиннер на его
+  /// месте читался как застрявший экран.
   Future<bool> _requestAnalysis() async {
-    _fetchingCard = true;
-    if (mounted) safeSetState(() {});
-    try {
-      final retry = await ScientificanalysisNEWBCNDCall.call(
-        imageId: widget.imageid?.toString(),
-        userId: currentUserUid,
-        languageCode: FFLocalizations.of(context).languageCode,
-        token: currentJwtToken,
-      );
-      if (!mounted) return false;
-      if ((retry?.succeeded ?? false) && (retry?.statusCode ?? 0) == 200) {
-        await _loadAnalysis();
-        return !_needsAnalysis(_model.imageraw?.firstOrNull);
-      }
-      if ((retry?.statusCode ?? 0) == 422 &&
-          getJsonField(retry?.jsonBody, r'$.status') ==
-              'unsupported_product_type') {
-        // Ждать нечего: разбора у этого средства не будет.
-        _unsupported = true;
-        return true;
-      }
-      return false;
-    } finally {
-      _fetchingCard = false;
+    final retry = await ScientificanalysisNEWBCNDCall.call(
+      imageId: widget.imageid?.toString(),
+      userId: currentUserUid,
+      languageCode: FFLocalizations.of(context).languageCode,
+      token: currentJwtToken,
+    );
+    if (!mounted) return false;
+    if ((retry?.succeeded ?? false) && (retry?.statusCode ?? 0) == 200) {
+      await _loadAnalysis();
       if (mounted) safeSetState(() {});
+      return !_needsAnalysis(_model.imageraw?.firstOrNull);
     }
+    if ((retry?.statusCode ?? 0) == 422 &&
+        getJsonField(retry?.jsonBody, r'$.status') ==
+            'unsupported_product_type') {
+      // Ждать нечего: разбора у этого средства не будет.
+      _unsupported = true;
+      if (mounted) safeSetState(() {});
+      return true;
+    }
+    return false;
   }
 
   void _startPendingPolling() {
@@ -261,9 +262,15 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
         _pendingPollingTimer?.cancel();
         return;
       }
-      final rows = await ImagesTable().queryRows(
-        queryFn: (q) => q.eqOrNull('id', widget.imageid),
-      );
+      List<ImagesRow> rows = const [];
+      try {
+        rows = await ImagesTable().queryRows(
+          queryFn: (q) => q.eqOrNull('id', widget.imageid),
+        );
+      } catch (e) {
+        // Сеть молчит: ждём следующего тика, а не роняем ошибку наружу.
+        debugPrint('card: pending poll failed: $e');
+      }
       if ((rows.firstOrNull?.saCompositeScore ?? 0) > 0) {
         _pendingPollingTimer?.cancel();
         await _loadAnalysis();
@@ -389,14 +396,6 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
     // на «убрать». У копии чужого id другой, и переключать нечего.
     if (isOwner) safeSetState(() => _inBag = true);
     _toast(FFLocalizations.of(context).getText('cb_added_toast'));
-  }
-
-  /// Карточка читается или достраивается: нейтральный лоадер без слов.
-  Widget _buildCardLoader(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.symmetric(vertical: 96.0),
-      child: Center(child: ScreenLoader()),
-    );
   }
 
   /// «Это не уход за лицом»: волосы, тело, декоративка. Бэкенд их не
@@ -881,8 +880,6 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
                         children: [
                           if (_unsupported)
                             _buildUnsupportedPlaceholder(context)
-                          else if (card == null && _fetchingCard)
-                            _buildCardLoader(context)
                           else if (card == null ||
                               row.saCompositeScore == null)
                             _buildPendingPlaceholder(context)
