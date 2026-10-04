@@ -20,6 +20,7 @@ import '/components/product_card_v3/card_data.dart';
 import '/components/product_card_v3/card_tokens.dart';
 import '/components/product_card_v3/product_card_v3_widget.dart';
 import '/components/product_card_v3/skin_profile.dart';
+import '/environment_values.dart';
 import '/design_system/components/mirra_bottom_sheet.dart';
 import '/item_card/markasspam/markasspam_widget.dart';
 import '/topratings/copyitem/copyitem_widget.dart';
@@ -88,6 +89,12 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
     // типом, без «нормальной» по умолчанию.
     final remembered = SkinProfile.remembered;
     if (remembered != null) _applyProfile(remembered);
+
+    if (FFDevEnvironmentValues.isNonProd) {
+      final c = ImagesRowCache.get(widget.imageid);
+      debugPrint('[card] init id=${widget.imageid} cached=${c != null}'
+          '${c == null ? '' : ' needsAnalysis=${_needsAnalysis(c)}'}');
+    }
 
     final cached = ImagesRowCache.get(widget.imageid);
     if (cached != null) {
@@ -832,6 +839,11 @@ class _Itemcard2WidgetState extends State<Itemcard2Widget> {
         // Строка из модели свежее: она перечитывается после доразбора.
         final row = _model.imageraw?.firstOrNull ?? itemcard2ImagesRow;
         final card = ProductCard.parse(row.saCard);
+        if (FFDevEnvironmentValues.isNonProd) {
+          debugPrint('[card] build id=${widget.imageid}'
+              ' loading=${_model.loading} card=${card != null}'
+              ' score=${row.saCompositeScore} unsupported=$_unsupported');
+        }
         final photos = _productPhotos();
         // Беременность берём из запомненного профиля, если своя строка ещё
         // не пришла: плашка с противопоказаниями не должна появляться

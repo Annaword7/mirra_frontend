@@ -420,11 +420,15 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
           _recordSuccessfulScan();
           // Строка скана читается параллельно с переходом на карточку.
           ImagesRowCache.prefetch(_completedImageId);
+          _clearScanOverlay();
+          if (FFDevEnvironmentValues.isNonProd) {
+            debugPrint('[scan] → card id=$_completedImageId mounted=$mounted');
+          }
           if (!mounted) {
-            FFAppState().uploadedimageurl = '';
-            FFAppState().analysisloading = false;
-            FFAppState().Producanalysstate = 0;
             final navCtx = appNavigatorKey.currentContext;
+            if (FFDevEnvironmentValues.isNonProd && navCtx == null) {
+              debugPrint('[scan] навигатор недоступен, карточка не открыта');
+            }
             if (navCtx != null) {
               navCtx.pushNamed(
                 Itemcard2Widget.routeName,
@@ -829,10 +833,11 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
       _recordSuccessfulScan();
       // Строка скана читается параллельно с переходом на карточку.
       ImagesRowCache.prefetch(imageId);
+      _clearScanOverlay();
+      if (FFDevEnvironmentValues.isNonProd) {
+        debugPrint('[scan] → card id=$imageId mounted=$mounted');
+      }
       if (!mounted) {
-        FFAppState().uploadedimageurl = '';
-        FFAppState().analysisloading = false;
-        FFAppState().Producanalysstate = 0;
         final navCtx = appNavigatorKey.currentContext;
         if (navCtx != null) {
           navCtx.pushNamed(
@@ -868,6 +873,16 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
         matchingRows: (rows) => rows.eqOrNull('id', imageId),
       );
     }
+  }
+
+  /// Гасит оверлей скана. Зовётся ДО перехода на карточку: если экран
+  /// пересоберётся во время перехода (корневой маршрут перестроился на
+  /// событии авторизации), флаг не останется включённым и человек не
+  /// увидит бесконечный лоадер вместо сканера.
+  void _clearScanOverlay() {
+    FFAppState().uploadedimageurl = '';
+    FFAppState().analysisloading = false;
+    FFAppState().Producanalysstate = 0;
   }
 
   Future<void> _loadHintState() async {
@@ -1148,11 +1163,15 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                 _recordSuccessfulScan();
                 // Строка скана читается параллельно с переходом на карточку.
                 ImagesRowCache.prefetch(_completedImageId);
+                _clearScanOverlay();
+                if (FFDevEnvironmentValues.isNonProd) {
+                  debugPrint('[scan] → card id=$_completedImageId mounted=$mounted');
+                }
                 if (!mounted) {
-                  FFAppState().uploadedimageurl = '';
-                  FFAppState().analysisloading = false;
-                  FFAppState().Producanalysstate = 0;
                   final navCtx = appNavigatorKey.currentContext;
+                  if (FFDevEnvironmentValues.isNonProd && navCtx == null) {
+                    debugPrint('[scan] навигатор недоступен, карточка не открыта');
+                  }
                   if (navCtx != null) {
                     navCtx.pushNamed(
                       Itemcard2Widget.routeName,
