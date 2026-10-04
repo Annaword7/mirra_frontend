@@ -420,7 +420,6 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
           _recordSuccessfulScan();
           // Строка скана читается параллельно с переходом на карточку.
           ImagesRowCache.prefetch(_completedImageId);
-          _clearScanOverlay();
           if (FFDevEnvironmentValues.isNonProd) {
             debugPrint('[scan] → card id=$_completedImageId mounted=$mounted');
           }
@@ -442,9 +441,13 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                 }.withoutNulls,
               );
             }
+            _clearScanOverlay();
             return;
           }
-          await context.pushNamed(
+          // Переход первым, оверлей гаснет сразу после его старта: если
+          // гасить раньше, между оверлеем и карточкой мелькает пустой
+          // сканер.
+          final toCard = context.pushNamed(
             Itemcard2Widget.routeName,
             queryParameters: {
               'imageid': serializeParam(
@@ -455,6 +458,8 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
               ),
             }.withoutNulls,
           );
+          _clearScanOverlay();
+          await toCard;
           FFAppState().uploadedimageurl = '';
           FFAppState().analysisloading = false;
           FFAppState().Producanalysstate = 0;
@@ -833,7 +838,6 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
       _recordSuccessfulScan();
       // Строка скана читается параллельно с переходом на карточку.
       ImagesRowCache.prefetch(imageId);
-      _clearScanOverlay();
       if (FFDevEnvironmentValues.isNonProd) {
         debugPrint('[scan] → card id=$imageId mounted=$mounted');
       }
@@ -847,14 +851,20 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
             }.withoutNulls,
           );
         }
+        _clearScanOverlay();
         return;
       }
-      await context.pushNamed(
+      // Переход первым, оверлей гаснет сразу после его старта: если
+      // гасить раньше, между оверлеем и карточкой мелькает пустой
+      // сканер.
+      final toCard = context.pushNamed(
         Itemcard2Widget.routeName,
         queryParameters: {
           'imageid': serializeParam(imageId, ParamType.int),
         }.withoutNulls,
       );
+      _clearScanOverlay();
+      await toCard;
       FFAppState().uploadedimageurl = '';
       FFAppState().analysisloading = false;
       FFAppState().Producanalysstate = 0;
@@ -1163,7 +1173,6 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                 _recordSuccessfulScan();
                 // Строка скана читается параллельно с переходом на карточку.
                 ImagesRowCache.prefetch(_completedImageId);
-                _clearScanOverlay();
                 if (FFDevEnvironmentValues.isNonProd) {
                   debugPrint('[scan] → card id=$_completedImageId mounted=$mounted');
                 }
@@ -1185,9 +1194,13 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                       }.withoutNulls,
                     );
                   }
+                  _clearScanOverlay();
                   return;
                 }
-                await context.pushNamed(
+                // Переход первым, оверлей гаснет сразу после его старта: если
+                // гасить раньше, между оверлеем и карточкой мелькает пустой
+                // сканер.
+                final toCard = context.pushNamed(
                   Itemcard2Widget.routeName,
                   queryParameters: {
                     'imageid': serializeParam(
@@ -1198,6 +1211,8 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                     ),
                   }.withoutNulls,
                 );
+                _clearScanOverlay();
+                await toCard;
                 FFAppState().uploadedimageurl = '';
                 FFAppState().analysisloading = false;
                 FFAppState().Producanalysstate = 0;
