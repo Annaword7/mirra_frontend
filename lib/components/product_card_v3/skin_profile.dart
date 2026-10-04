@@ -1,18 +1,18 @@
+import 'dart:math' show min;
+
 import '/backend/supabase/supabase.dart';
 import '/domain/client_card/client_card_service.dart';
+import 'card_labels.dart' show kSkinTypes;
 
 /// Профиль кожи для подбора балла: тип и два признака.
 ///
-/// Одно правило на карточку и на ленту Главной. Раньше карточка выводила
-/// признаки из типа кожи и целей, а лента читала колонку `acne_prone`, и
-/// один и тот же продукт показывал в кружке ленты одно число, на карточке
-/// другое.
+/// Одно правило на карточку и на ленту Главной: считали в двух местах по
+/// разному, и один и тот же продукт показывал в кружке ленты одно число, а
+/// на карточке другое.
 ///
-/// Колонка `users.acne_prone` в расчёт не идёт: у 55 из 145 людей с
-/// `acne_prone = true` ни тип кожи, ни цели про акне не говорят (сухая кожа,
-/// цели «поры, увлажнение, барьер»), и лента показывала им балл для склонной
-/// к акне кожи. Признак берётся только из типа `acne_prone` и цели `acne`,
-/// как на карточке.
+/// Признаки это два тумблера из анкеты: `users.skin_sensitivity` и
+/// `users.acne_prone`, их пишет онбординг. Цели ухода в признаки не идут:
+/// «хочу убрать акне» это задача, а не свойство кожи.
 class SkinProfile {
   const SkinProfile({
     this.skinType,
@@ -30,7 +30,6 @@ class SkinProfile {
   final bool pregnant;
 
   static const SkinProfile empty = SkinProfile();
-
 
   /// Профиль, прочитанный любым экраном в этом запуске. Карточка берёт его в
   /// `initState`, поэтому первый кадр уже с нужным типом кожи: раньше она
@@ -56,10 +55,35 @@ class SkinProfile {
     return SkinProfile(
       skinType: u.skinType,
       sensitive: (u.skinSensitivity ?? false) || u.skinType == 'sensitive',
-      acneProne: u.skinType == 'acne_prone' || u.skinGoals.contains('acne'),
+      acneProne: (u.acneProne ?? false) || u.skinType == 'acne_prone',
       pregnant: u.pregnancyStatus == ClientCardService.pregnantOrNursing,
     );
   }
+}
+
+/// Балл продукта для профиля кожи: включённые тумблеры перекрывают основной
+/// тип. Включён один признак, показываем его балл; включены оба, меньший из
+/// двух; ни одного, балл основного типа.
+///
+/// Общий на карточку и на кружок в ленте Главной.
+///
+/// [scores] это `sa_card.skin_scores`. null, если нужного балла в нём нет
+/// (старый разбор): зовущий сам решает, чем это заменить.
+int? fitScoreFor(
+  Map<String, int> scores, {
+  required String? skinType,
+  required bool sensitive,
+  required bool acneProne,
+}) {
+  final flags = <int>[
+    if (sensitive && scores['sensitive'] != null) scores['sensitive']!,
+    if (acneProne && scores['acne_prone'] != null) scores['acne_prone']!,
+  ];
+  if (flags.isNotEmpty) return flags.reduce(min);
+  // Тип вне списка (пусто у того, кто пропустил анкету) читаем как
+  // «нормальная»: так же поступает карточка, когда профиля нет.
+  final type = kSkinTypes.contains(skinType) ? skinType! : 'normal';
+  return scores[type];
 }
 
 /// `sa_card.skin_scores` из строки `images`, прочитанный целиком или через

@@ -110,10 +110,10 @@ void main() {
     expect(find.byType(ProductCardV3Widget), findsOneWidget);
     expect(find.text('сухая'), findsOneWidget);
     expect(find.text('нормальная'), findsNothing);
-    // Худший из сухой (70) и чувствительной (50). Склонность к акне (30)
-    // в расчёт не идёт: её нет ни в типе, ни в целях.
-    expect(find.text('50'), findsOneWidget);
-    expect(find.text('30'), findsNothing);
+    // Оба тумблера включены: меньший из чувствительной (50) и склонной к
+    // акне (30).
+    expect(find.text('30'), findsOneWidget);
+    expect(find.text('75'), findsNothing);
     await tester.pump(const Duration(seconds: 30));
   }, timeout: const Timeout(Duration(minutes: 3)));
 
