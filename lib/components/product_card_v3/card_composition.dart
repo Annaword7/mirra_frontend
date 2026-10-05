@@ -188,7 +188,13 @@ class _CardCompositionState extends State<CardComposition> {
               Text('$n',
                   style: cardText(theme, size: 22, weight: FontWeight.w600, height: 1.1, lining: true)),
               const SizedBox(height: 2),
-              Text(label, style: cardText(theme, size: 12)),
+              // Длинные слова («Perjudiciales») ломаются по мягким переносам
+              // из локализации; многоточие только на случай очень крупного
+              // системного шрифта.
+              Text(label,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: cardText(theme, size: 12)),
             ],
           ),
         ),
