@@ -9,6 +9,7 @@ import '/flutter_flow/flutter_flow_util.dart';
 import '/design_system/components/app_button.dart';
 import '/flutter_flow/custom_functions.dart' as functions;
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'albumslist_model.dart';
@@ -145,8 +146,8 @@ class _AlbumslistWidgetState extends State<AlbumslistWidget> {
                             ),
                             Icon(
                               selected
-                                  ? Icons.check_box
-                                  : Icons.check_box_outline_blank,
+                                  ? LucideIcons.squareCheck
+                                  : LucideIcons.square,
                               color: selected
                                   ? FlutterFlowTheme.of(context).primary
                                   : FlutterFlowTheme.of(context).secondaryText,

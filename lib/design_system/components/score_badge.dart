@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import '/design_system/foundations/score_status.dart';
 
@@ -42,7 +43,7 @@ class ScoreBadge extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.science_outlined, size: 18.0, color: Colors.grey.shade400),
+            Icon(LucideIcons.flaskConical, size: 18.0, color: Colors.grey.shade400),
             const SizedBox(width: 6.0),
             Text(
               '···',

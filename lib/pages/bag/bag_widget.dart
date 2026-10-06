@@ -19,6 +19,7 @@ import '/paywall/show_paywall.dart';
 import '/pages/care_review/care_review_widget.dart';
 import '/domain/client_card/client_card_service.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/services.dart';
 
 /// «Косметичка» (M3c, контекст «Понимание продукта», Architecture v1).
@@ -272,27 +273,27 @@ class _BagWidgetState extends State<BagWidget> {
     final bool ctaIsCheck = !hasRegimen || stale;
     if (_regimenLoading) {
       accent = theme.primary;
-      icon = Icons.hourglass_empty_rounded;
+      icon = LucideIcons.hourglass;
       status = _t('cb_compat_loading');
       button = _t('cb_compat_open');
     } else if (!hasRegimen) {
       accent = theme.primary;
-      icon = Icons.rule_rounded;
+      icon = LucideIcons.listChecks;
       status = _t('cb_compat_unchecked');
       button = _t('cb_compat_check');
     } else if (stale) {
       accent = const Color(0xFFFFB300);
-      icon = Icons.sync_problem_rounded;
+      icon = LucideIcons.refreshCwOff;
       status = _t('cb_compat_stale');
       button = _t('cb_compat_recalc');
     } else if (warnings > 0) {
       accent = const Color(0xFFFFB300);
-      icon = Icons.info_rounded;
+      icon = LucideIcons.info;
       status = pluralText(context, 'cb_compat_warnings', warnings);
       button = _t('cb_compat_open');
     } else {
       accent = const Color(0xFF1B5E20);
-      icon = Icons.check_circle_rounded;
+      icon = LucideIcons.circleCheck;
       status = _t('cb_compat_ok');
       button = _t('cb_compat_open');
     }
@@ -386,7 +387,7 @@ class _BagWidgetState extends State<BagWidget> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(
-            ok ? Icons.check_circle_rounded : Icons.warning_amber_rounded,
+            ok ? LucideIcons.circleCheck : LucideIcons.triangleAlert,
             size: 18,
             color: accent,
           ),
@@ -548,7 +549,7 @@ class _FilledSlot extends StatelessWidget {
                   BoxShadow(color: Color(0x22000000), blurRadius: 4),
                 ],
               ),
-              child: const Icon(Icons.close_rounded,
+              child: const Icon(LucideIcons.x,
                   size: 14, color: Colors.black54),
             ),
           ),
@@ -627,7 +628,7 @@ class _EmptySlot extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.add_rounded,
+              LucideIcons.plus,
               color: locked ? primary.withValues(alpha: 0.55) : primary,
               size: 28,
             ),

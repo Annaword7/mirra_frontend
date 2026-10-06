@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 
 /// One premium-feature row (Design Review Initiative 10): a circular icon badge
@@ -12,7 +11,6 @@ class FeatureRow extends StatelessWidget {
     super.key,
     required this.icon,
     required this.label,
-    this.faIcon = false,
     this.iconSize = 20.0,
     this.badgeColor,
     this.iconColor,
@@ -23,9 +21,6 @@ class FeatureRow extends StatelessWidget {
 
   final IconData icon;
   final String label;
-
-  /// Render the glyph with FontAwesome ([FaIcon]) instead of a Material [Icon].
-  final bool faIcon;
   final double iconSize;
 
   /// Circle fill. Defaults to `primary`.
@@ -58,9 +53,7 @@ class FeatureRow extends StatelessWidget {
           ),
           child: Align(
             alignment: const AlignmentDirectional(0.0, 0.0),
-            child: faIcon
-                ? FaIcon(icon, color: glyphColor, size: iconSize)
-                : Icon(icon, color: glyphColor, size: iconSize),
+            child: Icon(icon, color: glyphColor, size: iconSize),
           ),
         ),
         const SizedBox(width: 12.0),

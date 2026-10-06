@@ -1,6 +1,7 @@
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter_blurhash/flutter_blurhash.dart';
 import 'package:octo_image/octo_image.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -193,7 +194,7 @@ class ProductTile extends StatelessWidget {
                         child: const Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.wb_sunny_rounded,
+                            Icon(LucideIcons.sun,
                                 size: 12, color: Colors.white),
                             SizedBox(width: 4),
                             Text(
@@ -284,7 +285,7 @@ class ProductTile extends StatelessWidget {
                       for (var i = 1; i <= 5; i++)
                         if ((stars ?? 0) >= i)
                           Icon(
-                            Icons.star_rounded,
+                            LucideIcons.star,
                             color: theme.primary,
                             size: 26.0,
                           ),

@@ -14,6 +14,7 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'care_frames_sheet.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// «Разбор косметички» (M3b, контекст «Назначение ухода», Architecture v1).
 ///
@@ -288,7 +289,7 @@ class _CareReviewWidgetState extends State<CareReviewWidget> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.check_circle_rounded,
+                  const Icon(LucideIcons.circleCheck,
                       size: 18, color: Color(0xFF1B5E20)),
                   const SizedBox(width: 8),
                   Expanded(
@@ -390,7 +391,7 @@ class _CareReviewWidgetState extends State<CareReviewWidget> {
         children: [
           Row(
             children: [
-              Icon(part == 'am' ? Icons.wb_sunny_rounded : Icons.nightlight_round,
+              Icon(part == 'am' ? LucideIcons.sun : LucideIcons.moon,
                   color: theme.primary, size: 20),
               const SizedBox(width: 8),
               Text(_t(part == 'am' ? 'cb_sec_am' : 'cb_sec_pm'),
@@ -441,7 +442,7 @@ class _CareReviewWidgetState extends State<CareReviewWidget> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(Icons.remove_circle_outline,
+                    const Icon(LucideIcons.circleMinus,
                         size: 18, color: Colors.black38),
                     const SizedBox(width: 8),
                     Expanded(
@@ -505,7 +506,7 @@ class _CareReviewWidgetState extends State<CareReviewWidget> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.auto_awesome_rounded,
+                    Icon(LucideIcons.sparkles,
                         size: 16, color: theme.primary),
                     const SizedBox(width: 8),
                     Expanded(
@@ -525,11 +526,11 @@ class _CareReviewWidgetState extends State<CareReviewWidget> {
 
   (Color, Color, IconData) _sevStyle(String severity) => switch (severity) {
         'hard' => (const Color(0xFFFDECEA), const Color(0xFFC62828),
-            Icons.error_rounded),
+            LucideIcons.circleAlert),
         'strong' => (const Color(0xFFFFF4E5), const Color(0xFFE65100),
-            Icons.warning_rounded),
+            LucideIcons.triangleAlert),
         _ => (const Color(0xFFF3F4F6), const Color(0xFF6B7280),
-            Icons.info_rounded),
+            LucideIcons.info),
       };
 
   /// Локализованный текст предупреждения по subject правила (fallback — сырой
@@ -642,8 +643,8 @@ class _CareReviewWidgetState extends State<CareReviewWidget> {
                     ),
                     Icon(
                       expanded
-                          ? Icons.keyboard_arrow_up_rounded
-                          : Icons.keyboard_arrow_down_rounded,
+                          ? LucideIcons.chevronUp
+                          : LucideIcons.chevronDown,
                       size: 20,
                       color: fg,
                     ),
@@ -694,7 +695,7 @@ class _CareReviewWidgetState extends State<CareReviewWidget> {
             ),
             child: Row(
               children: [
-                Icon(Icons.tune_rounded,
+                Icon(LucideIcons.slidersHorizontal,
                     size: theme.size.iconSm, color: theme.primary),
                 const SizedBox(width: 10),
                 Expanded(
@@ -705,7 +706,7 @@ class _CareReviewWidgetState extends State<CareReviewWidget> {
                           letterSpacing: 0,
                           lineHeight: 1.35)),
                 ),
-                Icon(Icons.chevron_right_rounded,
+                Icon(LucideIcons.chevronRight,
                     size: theme.size.iconMd, color: theme.secondaryText),
               ],
             ),
@@ -735,7 +736,7 @@ class _CareReviewWidgetState extends State<CareReviewWidget> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.tune_rounded, color: Colors.black54),
+            icon: const Icon(LucideIcons.slidersHorizontal, color: Colors.black54),
             tooltip: _t('care_frames_title'),
             onPressed: _openFrames,
           ),
@@ -997,7 +998,7 @@ class _QueuedCard extends StatelessWidget {
               ],
             ),
           ),
-          const Icon(Icons.schedule_rounded, color: Colors.black26, size: 20),
+          const Icon(LucideIcons.clock, color: Colors.black26, size: 20),
         ],
       ),
     );

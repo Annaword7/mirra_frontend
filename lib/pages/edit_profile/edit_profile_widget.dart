@@ -12,6 +12,7 @@ import '/flutter_flow/upload_data.dart';
 import '/index.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -90,7 +91,7 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.error_outline,
+                  Icon(LucideIcons.circleAlert,
                       color: FlutterFlowTheme.of(context).error, size: 48),
                   const SizedBox(height: 16),
                   TextButton(
@@ -145,7 +146,7 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
                   borderRadius: 24.0,
                   buttonSize: 48.0,
                   icon: Icon(
-                    Icons.arrow_back_outlined,
+                    LucideIcons.arrowLeft,
                     color: FlutterFlowTheme.of(context).primaryText,
                     size: 24.0,
                   ),
@@ -207,7 +208,7 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
                           borderWidth: 1.0,
                           buttonSize: 48.0,
                           icon: Icon(
-                            Icons.share_outlined,
+                            LucideIcons.share,
                             color: Colors.transparent,
                             size: 1.0,
                           ),

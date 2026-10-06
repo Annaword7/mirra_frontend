@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/services.dart';
 
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -129,8 +130,8 @@ class _AppTextFieldState extends State<AppTextField> {
         splashRadius: 22,
         icon: Icon(
           _obscured
-              ? Icons.visibility_off_rounded
-              : Icons.visibility_rounded,
+              ? LucideIcons.eyeOff
+              : LucideIcons.eye,
           size: 20,
           color: theme.textTertiary,
         ),

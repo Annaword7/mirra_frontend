@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/design_system/components/app_button.dart';
@@ -119,35 +120,35 @@ class ErrorPopupWidget extends StatelessWidget {
     switch (type) {
       case ErrorPopupType.productNotFound:
         return _PopupConfig(
-          icon: Icons.search_off_rounded,
+          icon: LucideIcons.searchX,
           iconColor: const Color(0xFFE65100),
           title: loc.getText('err_product_not_found_title'),
           body: loc.getText('err_product_not_found_body'),
         );
       case ErrorPopupType.ingredientsNotFound:
         return _PopupConfig(
-          icon: Icons.science_rounded,
+          icon: LucideIcons.flaskConical,
           iconColor: const Color(0xFF7B1FA2),
           title: loc.getText('err_ingredients_not_found_title'),
           body: loc.getText('err_ingredients_not_found_body'),
         );
       case ErrorPopupType.subscriptionSync:
         return _PopupConfig(
-          icon: Icons.sync_rounded,
+          icon: LucideIcons.refreshCw,
           iconColor: const Color(0xFF1565C0),
           title: loc.getText('err_sub_sync_title'),
           body: loc.getText('err_sub_sync_body'),
         );
       case ErrorPopupType.unsupported:
         return _PopupConfig(
-          icon: Icons.block_rounded,
+          icon: LucideIcons.ban,
           iconColor: const Color(0xFFF9A825),
           title: loc.getText('nnsq0kj5'),
           body: loc.getText('48je50c9'),
         );
       case ErrorPopupType.generic:
         return _PopupConfig(
-          icon: Icons.error_outline_rounded,
+          icon: LucideIcons.circleAlert,
           iconColor: const Color(0xFFD32F2F),
           title: loc.getText('err_generic_title'),
           body: loc.getText('err_generic_body'),
@@ -260,7 +261,7 @@ class _IngredientsInputSheetState extends State<_IngredientsInputSheet> {
             children: [
               const Center(
                 child: MirraDialogIcon(
-                  icon: Icons.science_rounded,
+                  icon: LucideIcons.flaskConical,
                   color: Color(0xFF7B1FA2),
                 ),
               ),
@@ -272,7 +273,7 @@ class _IngredientsInputSheetState extends State<_IngredientsInputSheet> {
               SizedBox(height: theme.space.s24),
               AppButton(
                 label: loc.getText('err_photograph_ingredients'),
-                icon: Icons.photo_camera_rounded,
+                icon: LucideIcons.camera,
                 onPressed: () => Navigator.pop(
                   context,
                   const IngredientInputResult(IngredientInputAction.photo),
@@ -324,7 +325,7 @@ class _LowConfidenceChoiceDialog extends StatelessWidget {
     final loc = FFLocalizations.of(context);
 
     return MirraDialogCard(
-      icon: Icons.fact_check_rounded,
+      icon: LucideIcons.clipboardCheck,
       iconColor: const Color(0xFFE65100),
       children: [
         _DialogTitleBody(
@@ -334,7 +335,7 @@ class _LowConfidenceChoiceDialog extends StatelessWidget {
         const SizedBox(height: 24.0),
         AppButton(
           label: loc.getText('err_photograph_ingredients'),
-          icon: Icons.photo_camera_rounded,
+          icon: LucideIcons.camera,
           onPressed: () {
             unawaited(AnalyticsService.instance.trackScanPhotoIngredients());
             Navigator.pop(context, IngredientInputAction.photo);

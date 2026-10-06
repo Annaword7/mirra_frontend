@@ -13,6 +13,7 @@ import '/design_system/components/app_button.dart';
 import '/design_system/foundations/layout.dart';
 import '/index.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'boards_model.dart';
 export 'boards_model.dart';
 
@@ -137,7 +138,7 @@ class _BoardsWidgetState extends State<BoardsWidget> {
                               label: FFLocalizations.of(context).getText(
                                 'lkfbdixo' /* New board */,
                               ),
-                              icon: Icons.add,
+                              icon: LucideIcons.plus,
                               size: AppButtonSize.md,
                               fullWidth: false,
                               onPressed: () async {

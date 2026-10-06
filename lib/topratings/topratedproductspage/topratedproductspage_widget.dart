@@ -1,6 +1,7 @@
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'topratedproductspage_model.dart';
 export 'topratedproductspage_model.dart';
 
@@ -63,7 +64,7 @@ class _TopratedproductspageWidgetState
               child: Align(
                 alignment: AlignmentDirectional(0.0, 0.0),
                 child: Icon(
-                  Icons.emoji_events,
+                  LucideIcons.trophy,
                   color: Colors.orange,
                   size: 40.0,
                 ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '/design_system/components/app_button.dart';
 import '/design_system/components/mirra_bottom_sheet.dart';
@@ -37,7 +38,7 @@ class SaveSubscriptionSheet extends StatelessWidget {
               color: theme.primary.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(Icons.workspace_premium_rounded,
+            child: Icon(LucideIcons.award,
                 color: theme.primary, size: 40),
           ),
           const SizedBox(height: 20),

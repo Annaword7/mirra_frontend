@@ -8,6 +8,7 @@ import '/design_system/components/mirra_bottom_sheet.dart';
 import '/index.dart';
 import '/paywall/show_paywall.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -97,7 +98,7 @@ class _OutOfGenerationsWidgetState extends State<OutOfGenerationsWidget>
               Padding(
                 padding: EdgeInsetsDirectional.fromSTEB(0.0, 24.0, 0.0, 12.0),
                 child: Icon(
-                  Icons.error_outline_sharp,
+                  LucideIcons.circleAlert,
                   color: FlutterFlowTheme.of(context).primary,
                   size: 56.0,
                 ),

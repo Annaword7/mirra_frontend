@@ -16,6 +16,7 @@ import '/pages/bag/bag_widget.dart';
 import '/pages/care_review/care_review_widget.dart';
 import '/domain/products/product_photo.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/services.dart';
 
 /// «Моя рутина» (M4, Architecture v1) — календарное ПРЕДСТАВЛЕНИЕ принятого
@@ -246,7 +247,7 @@ class _RoutineWidgetState extends State<RoutineWidget> {
         actions: [
           if (!_loading && !_noRegimen)
             IconButton(
-              icon: const Icon(Icons.tune_rounded, color: Colors.black54),
+              icon: const Icon(LucideIcons.slidersHorizontal, color: Colors.black54),
               onPressed: () {
                 unawaited(
                     AnalyticsService.instance.trackRoutineViewAnalysis());
@@ -259,7 +260,7 @@ class _RoutineWidgetState extends State<RoutineWidget> {
           ? const ScreenLoader(hasAppBar: true, hasBottomNavBar: true)
           : _noRegimen
               ? MirraEmptyState(
-                  icon: Icons.auto_awesome_rounded,
+                  icon: LucideIcons.sparkles,
                   headline: _t('care_routine_empty_title'),
                   body: _t('care_routine_empty_body'),
                   ctaLabel: _t('care_routine_empty_cta'),
@@ -287,7 +288,7 @@ class _RoutineWidgetState extends State<RoutineWidget> {
                           children: [
                             _Section(
                               title: _t('cb_sec_am'),
-                              icon: Icons.wb_sunny_rounded,
+                              icon: LucideIcons.sun,
                               imageIds: _sectionItems('am'),
                               images: _images,
                               prescriptionOf: _prescriptionByImage,
@@ -302,7 +303,7 @@ class _RoutineWidgetState extends State<RoutineWidget> {
                             const SizedBox(height: 20),
                             _Section(
                               title: _t('cb_sec_pm'),
-                              icon: Icons.nightlight_round,
+                              icon: LucideIcons.moon,
                               imageIds: _sectionItems('pm'),
                               images: _images,
                               prescriptionOf: _prescriptionByImage,
@@ -426,8 +427,8 @@ class _Section extends StatelessWidget {
                 children: [
                   Icon(
                     pushOn
-                        ? Icons.notifications_active_rounded
-                        : Icons.notifications_off_outlined,
+                        ? LucideIcons.bellRing
+                        : LucideIcons.bellOff,
                     color: pushOn ? primary : const Color(0xFFAEAEAE),
                     size: 20,
                   ),
@@ -483,7 +484,7 @@ class _Section extends StatelessWidget {
                               width: 44,
                               height: 44,
                               color: const Color(0xFFF2F2F2),
-                              child: const Icon(Icons.spa_outlined,
+                              child: const Icon(LucideIcons.flower,
                                   color: Colors.black38, size: 20),
                             ),
                     ),
@@ -536,7 +537,7 @@ class _Section extends StatelessWidget {
                       ),
                     const Padding(
                       padding: EdgeInsets.only(left: 4),
-                      child: Icon(Icons.chevron_right_rounded,
+                      child: Icon(LucideIcons.chevronRight,
                           color: Colors.black26),
                     ),
                   ],
@@ -654,7 +655,7 @@ class _PrescriptionSheetState extends State<_PrescriptionSheet> {
                           width: 44,
                           height: 44,
                           color: const Color(0xFFF2F2F2),
-                          child: const Icon(Icons.spa_outlined,
+                          child: const Icon(LucideIcons.flower,
                               color: Colors.black38, size: 20),
                         ),
                 ),

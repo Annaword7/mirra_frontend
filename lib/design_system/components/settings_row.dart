@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/services.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 
@@ -89,7 +90,7 @@ class SettingsRow extends StatelessWidget {
                 ),
               ],
               const SizedBox(width: 8.0),
-              Icon(Icons.chevron_right, color: theme.secondaryText, size: 24.0),
+              Icon(LucideIcons.chevronRight, color: theme.secondaryText, size: 24.0),
             ],
           ),
         ),

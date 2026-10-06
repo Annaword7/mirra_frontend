@@ -2,6 +2,7 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/paywall/show_paywall.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'upgrade_model.dart';
@@ -67,7 +68,7 @@ class _UpgradeWidgetState extends State<UpgradeWidget> {
               mainAxisSize: MainAxisSize.max,
               children: [
                 Icon(
-                  Icons.auto_awesome_rounded,
+                  LucideIcons.sparkles,
                   color: FlutterFlowTheme.of(context).alternate,
                   size: 14.0,
                 ),

@@ -8,6 +8,7 @@ import '/design_system/foundations/layout.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/index.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'navbar_model.dart';
@@ -226,8 +227,8 @@ class _NavbarWidgetState extends State<NavbarWidget>
                             children: [
                               _buildTab(
                                 pageId: 2,
-                                iconData: Icons.home_outlined,
-                                activeIconData: Icons.home_rounded,
+                                iconData: LucideIcons.house,
+                                activeIconData: LucideIcons.house300,
                                 label: FFLocalizations.of(context)
                                     .getText('kndykt66' /* Home */),
                                 routeName: HomeWidget.routeName,
@@ -235,7 +236,7 @@ class _NavbarWidgetState extends State<NavbarWidget>
                               ),
                               _buildTab(
                                 pageId: 1,
-                                iconData: Icons.search_rounded,
+                                iconData: LucideIcons.search,
                                 label: FFLocalizations.of(context)
                                     .getText('f0lv5sbb' /* Explore */),
                                 routeName: TopratedWidget.routeName,
@@ -244,8 +245,8 @@ class _NavbarWidgetState extends State<NavbarWidget>
                               const Expanded(child: SizedBox(height: 40.0)),
                               _buildTab(
                                 pageId: 3,
-                                iconData: Icons.spa_outlined,
-                                activeIconData: Icons.spa_rounded,
+                                iconData: LucideIcons.toolCase,
+                                activeIconData: LucideIcons.toolCase300,
                                 label: FFLocalizations.of(context)
                                     .getText('cb_bag_title'),
                                 routeName: BagWidget.routeName,
@@ -254,8 +255,8 @@ class _NavbarWidgetState extends State<NavbarWidget>
                               ),
                               _buildTab(
                                 pageId: 4,
-                                iconData: Icons.calendar_today_outlined,
-                                activeIconData: Icons.calendar_month_rounded,
+                                iconData: LucideIcons.calendar,
+                                activeIconData: LucideIcons.calendarDays300,
                                 label: FFLocalizations.of(context)
                                     .getText('cb_routine_title'),
                                 routeName: RoutineWidget.routeName,
@@ -309,7 +310,7 @@ class _NavbarWidgetState extends State<NavbarWidget>
                   child: const SizedBox(
                     width: 62.0,
                     height: 62.0,
-                    child: Icon(Icons.auto_awesome_rounded,
+                    child: Icon(LucideIcons.sparkles,
                         color: Colors.white, size: 32.0),
                   ),
                 ),

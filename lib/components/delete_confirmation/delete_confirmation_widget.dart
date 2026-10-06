@@ -6,6 +6,7 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/revenue_cat_util.dart' as revenue_cat;
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'delete_confirmation_model.dart';
@@ -47,7 +48,7 @@ class _DeleteConfirmationWidgetState extends State<DeleteConfirmationWidget> {
   Widget build(BuildContext context) {
     final loc = FFLocalizations.of(context);
     return ConfirmDialog(
-      icon: Icons.delete_outline_rounded,
+      icon: LucideIcons.trash2,
       iconColor: const Color(0xFFD32F2F),
       destructive: true,
       surfaceColor: FlutterFlowTheme.of(context).alternate,

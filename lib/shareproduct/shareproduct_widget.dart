@@ -5,6 +5,7 @@ import '/custom_code/widgets/index.dart' as custom_widgets;
 import '/domain/products/product_photo.dart';
 import '/design_system/components/constrained_content.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'shareproduct_model.dart';
 export 'shareproduct_model.dart';
 
@@ -173,7 +174,7 @@ class _ShareproductWidgetState extends State<ShareproductWidget> {
                                   child: Align(
                                     alignment: AlignmentDirectional.centerStart,
                                     child: Icon(
-                                      Icons.arrow_back,
+                                      LucideIcons.arrowLeft,
                                       color:
                                           FlutterFlowTheme.of(context).primaryText,
                                       size: 24.0,

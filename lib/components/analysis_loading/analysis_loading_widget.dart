@@ -4,6 +4,7 @@ import 'dart:math';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'analysis_loading_model.dart';
@@ -224,7 +225,7 @@ class _AnalysisLoadingWidgetState extends State<AnalysisLoadingWidget> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(Icons.lightbulb_outline_rounded,
+        Icon(LucideIcons.lightbulb,
             size: theme.size.iconXs + 2, color: theme.primary),
         SizedBox(width: theme.space.s8 + 2),
         Expanded(
@@ -279,7 +280,7 @@ class _StepIcon extends StatelessWidget {
           color: theme.primary.withValues(alpha: theme.opacity.o16),
           shape: BoxShape.circle,
         ),
-        child: Icon(Icons.check_rounded, size: 14, color: theme.primary),
+        child: Icon(LucideIcons.check, size: 14, color: theme.primary),
       );
     }
     if (isActive) {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '/backend/supabase/supabase.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -227,7 +228,7 @@ class _CardCompositionState extends State<CardComposition> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Icon(_expanded ? Icons.expand_less : Icons.expand_more, size: 18),
+                Icon(_expanded ? LucideIcons.chevronUp : LucideIcons.chevronDown, size: 18),
               ],
             ),
           ),
@@ -381,7 +382,7 @@ class _CardCompositionState extends State<CardComposition> {
             child: SizedBox(
               width: 32,
               height: 32,
-              child: Icon(Icons.close, size: 16, color: theme.secondaryText),
+              child: Icon(LucideIcons.x, size: 16, color: theme.secondaryText),
             ),
           ),
         ],

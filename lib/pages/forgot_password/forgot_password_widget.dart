@@ -6,6 +6,7 @@ import '/flutter_flow/flutter_flow_util.dart';
 import '/design_system/components/app_text_field.dart';
 import '/design_system/components/app_button.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'forgot_password_model.dart';
@@ -90,7 +91,7 @@ class _ForgotPasswordWidgetState extends State<ForgotPasswordWidget>
               borderRadius: 24.0,
               buttonSize: 48.0,
               icon: Icon(
-                Icons.arrow_back_outlined,
+                LucideIcons.arrowLeft,
                 color: FlutterFlowTheme.of(context).primaryText,
                 size: 24.0,
               ),

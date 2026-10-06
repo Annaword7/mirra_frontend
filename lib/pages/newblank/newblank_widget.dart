@@ -10,6 +10,7 @@ import '/flutter_flow/nav/nav.dart';
 import '/index.dart';
 
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:flutter/services.dart';
 
@@ -157,7 +158,7 @@ class _NewblankWidgetState extends State<NewblankWidget> {
 
                   AppButton(
                     label: FFLocalizations.of(context).getText('nb_try_free'),
-                    trailingIcon: Icons.arrow_forward_rounded,
+                    trailingIcon: LucideIcons.arrowRight,
                     onPressed: () {
                       _tryAnonymously();
                     },
@@ -254,7 +255,7 @@ class _HeroIcon extends StatelessWidget {
           // Camera icon
 
           Icon(
-            Icons.camera_alt_rounded,
+            LucideIcons.camera,
             size: 52,
             color: primary,
           ),
@@ -279,7 +280,7 @@ class _HeroIcon extends StatelessWidget {
                 ],
               ),
               child: Icon(
-                Icons.science_rounded,
+                LucideIcons.flaskConical,
                 size: 18,
                 color: primary,
               ),

@@ -6,6 +6,7 @@ import '/design_system/components/feature_row.dart';
 import '/design_system/components/pro_pill.dart';
 import '/design_system/components/mirra_bottom_sheet.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -172,7 +173,7 @@ class _PaywallConfirmationWidgetState extends State<PaywallConfirmationWidget>
                     label: FFLocalizations.of(context).getText(
                       '0t5sc45u' /* PRO */,
                     ),
-                    icon: Icons.auto_awesome_rounded,
+                    icon: LucideIcons.sparkles,
                     contentColor: FlutterFlowTheme.of(context).info,
                     height: 40.0,
                     fontSize: 14.0,
@@ -197,7 +198,7 @@ class _PaywallConfirmationWidgetState extends State<PaywallConfirmationWidget>
                 padding:
                     const EdgeInsetsDirectional.fromSTEB(16.0, 16.0, 16.0, 0.0),
                 child: FeatureRow(
-                  icon: Icons.auto_awesome_outlined,
+                  icon: LucideIcons.sparkles,
                   label: FFLocalizations.of(context).getText(
                     'l13naqtt' /* 200 analytics requests per mon... */,
                   ),
@@ -210,7 +211,7 @@ class _PaywallConfirmationWidgetState extends State<PaywallConfirmationWidget>
                 padding:
                     const EdgeInsetsDirectional.fromSTEB(16.0, 8.0, 16.0, 0.0),
                 child: FeatureRow(
-                  icon: Icons.download_outlined,
+                  icon: LucideIcons.download,
                   iconSize: 22.0,
                   label: FFLocalizations.of(context).getText(
                     '8slgbpit' /* Save to collections */,
@@ -224,7 +225,7 @@ class _PaywallConfirmationWidgetState extends State<PaywallConfirmationWidget>
                 padding:
                     const EdgeInsetsDirectional.fromSTEB(16.0, 8.0, 16.0, 0.0),
                 child: FeatureRow(
-                  icon: Icons.share,
+                  icon: LucideIcons.share,
                   label: FFLocalizations.of(context).getText(
                     'nyi1gh42' /* Share your finds */,
                   ),
@@ -237,7 +238,7 @@ class _PaywallConfirmationWidgetState extends State<PaywallConfirmationWidget>
                 padding:
                     const EdgeInsetsDirectional.fromSTEB(16.0, 8.0, 16.0, 0.0),
                 child: FeatureRow(
-                  icon: Icons.stars_rounded,
+                  icon: LucideIcons.star,
                   label: FFLocalizations.of(context).getText(
                     'nzvzb6kk' /* High-rated formulas */,
                   ),

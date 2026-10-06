@@ -14,6 +14,7 @@ import '/flutter_flow/random_data_util.dart' as random_data;
 import '/index.dart';
 import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
@@ -256,7 +257,7 @@ class _OnboardingProfileWidgetState extends State<OnboardingProfileWidget>
                     ),
                     child: hasPhoto
                         ? null
-                        : Icon(Icons.person_rounded,
+                        : Icon(LucideIcons.user,
                             color: theme.secondaryText, size: 36),
                   ),
                   Positioned(
@@ -271,7 +272,7 @@ class _OnboardingProfileWidgetState extends State<OnboardingProfileWidget>
                         border: Border.all(
                             color: theme.secondaryBackground, width: 2),
                       ),
-                      child: const Icon(Icons.camera_alt_rounded,
+                      child: const Icon(LucideIcons.camera,
                           color: Colors.white, size: 13),
                     ),
                   ),

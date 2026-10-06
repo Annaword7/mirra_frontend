@@ -9,6 +9,7 @@ import 'index.dart'; // Imports other custom widgets
 import '/custom_code/actions/index.dart'; // Imports custom actions
 import '/flutter_flow/custom_functions.dart'; // Imports custom functions
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 // Begin custom widget code
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
 
@@ -236,7 +237,7 @@ class _ShareCardWidgetState extends State<ShareCardWidget> {
                     height: 16,
                     child: CircularProgressIndicator(
                         strokeWidth: 2, color: Colors.white))
-                : const Icon(Icons.download_rounded),
+                : const Icon(LucideIcons.download),
             label: Text(
               _isCapturing
                   ? _t('creating', widget.lang)
@@ -766,7 +767,7 @@ class _TagsSectionState extends State<_TagsSection> {
                           key: const ValueKey('copied'),
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.check_rounded,
+                            Icon(LucideIcons.check,
                                 size: 14, color: Colors.green.shade600),
                             const SizedBox(width: 4),
                             Text(
@@ -783,7 +784,7 @@ class _TagsSectionState extends State<_TagsSection> {
                           key: const ValueKey('copy'),
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.copy_rounded,
+                            Icon(LucideIcons.copy,
                                 size: 14, color: _primary.withOpacity(0.7)),
                             const SizedBox(width: 4),
                             Text(

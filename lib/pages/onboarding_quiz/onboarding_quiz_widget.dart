@@ -11,6 +11,7 @@ import '/index.dart';
 import '/paywall/show_paywall.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/services.dart';
 import 'skin_type_resolver.dart';
 import 'onboarding_quiz_model.dart';
@@ -261,7 +262,7 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (ctx) => ConfirmDialog(
-        icon: Icons.auto_awesome,
+        icon: LucideIcons.sparkles,
         title: _t('obq_skip_confirm_title'),
         body: _t('obq_skip_confirm_body'),
         // Prominent = остаться в настройке; уход — вторичным действием.
@@ -355,7 +356,7 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
             width: 44,
             child: _canGoBack
                 ? IconButton(
-                    icon: Icon(Icons.arrow_back_ios_new,
+                    icon: Icon(LucideIcons.chevronLeft,
                         size: theme.size.iconSm, color: theme.primaryText),
                     onPressed: _back,
                   )
@@ -386,7 +387,7 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
             width: 44,
             child: _canDismiss
                 ? IconButton(
-                    icon: Icon(Icons.close,
+                    icon: Icon(LucideIcons.x,
                         size: theme.size.iconMd, color: theme.secondaryText),
                     onPressed: _dismiss,
                   )
@@ -524,10 +525,10 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
                   ),
                 ),
                 if (selected)
-                  Icon(Icons.check_circle_rounded,
+                  Icon(LucideIcons.circleCheck,
                       size: theme.size.iconMd, color: theme.primary),
                 if (quiet)
-                  Icon(Icons.chevron_right_rounded,
+                  Icon(LucideIcons.chevronRight,
                       size: theme.size.iconMd, color: theme.secondaryText),
               ],
             ),
@@ -641,7 +642,7 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (selected) ...[
-                Icon(Icons.check_rounded,
+                Icon(LucideIcons.check,
                     size: theme.size.iconXs, color: theme.onPrimary),
                 const SizedBox(width: 6),
               ],
@@ -694,7 +695,7 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
                 height: 56,
                 decoration:
                     BoxDecoration(color: theme.primary, shape: BoxShape.circle),
-                child: Icon(Icons.auto_awesome,
+                child: Icon(LucideIcons.sparkles,
                     color: theme.onPrimary, size: theme.size.iconLg),
               ),
               const SizedBox(height: 20),
@@ -715,7 +716,7 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
               const SizedBox(height: 16),
               Row(
                 children: [
-                  Icon(Icons.schedule_rounded,
+                  Icon(LucideIcons.clock,
                       size: theme.size.iconXs, color: theme.secondaryText),
                   const SizedBox(width: 6),
                   Text(_t('obq_welcome_time'),
@@ -748,31 +749,31 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
         _optionCard(theme,
             title: _t('obq_type_dry'),
             subtitle: _t('obq_type_dry_sub'),
-            icon: Icons.water_drop_outlined,
+            icon: LucideIcons.droplet,
             selected: _skinType == 'dry',
             onTap: () => pick('dry')),
         _optionCard(theme,
             title: _t('obq_type_oily'),
             subtitle: _t('obq_type_oily_sub'),
-            icon: Icons.auto_awesome_outlined,
+            icon: LucideIcons.sparkles,
             selected: _skinType == 'oily',
             onTap: () => pick('oily')),
         _optionCard(theme,
             title: _t('obq_type_combo'),
             subtitle: _t('obq_type_combo_sub'),
-            icon: Icons.contrast_rounded,
+            icon: LucideIcons.contrast,
             selected: _skinType == 'combination',
             onTap: () => pick('combination')),
         _optionCard(theme,
             title: _t('obq_type_normal'),
             subtitle: _t('obq_type_normal_sub'),
-            icon: Icons.sentiment_satisfied_outlined,
+            icon: LucideIcons.smile,
             selected: _skinType == 'normal',
             onTap: () => pick('normal')),
         const SizedBox(height: 4),
         _optionCard(theme,
             title: _t('obq_type_unknown'),
-            icon: Icons.help_outline_rounded,
+            icon: LucideIcons.circleHelp,
             quiet: true,
             selected: false,
             onTap: () => _pickTap(() {
@@ -1000,7 +1001,7 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
             children: [
               Row(
                 children: [
-                  Icon(Icons.check_circle_rounded,
+                  Icon(LucideIcons.circleCheck,
                       color: theme.primary, size: theme.size.iconMd),
                   const SizedBox(width: 8),
                   Expanded(
@@ -1059,7 +1060,7 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(Icons.camera_alt_outlined,
+            Icon(LucideIcons.camera,
                 size: theme.size.iconSm, color: theme.secondaryText),
             const SizedBox(width: 8),
             Expanded(
@@ -1084,7 +1085,7 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
       case _Step.welcome:
         children.add(AppButton(
           label: _t('obq_welcome_start'),
-          trailingIcon: Icons.arrow_forward_rounded,
+          trailingIcon: LucideIcons.arrowRight,
           onPressed: () {
             unawaited(AnalyticsService.instance.trackOnboardingGo());
             _go(_Step.type);

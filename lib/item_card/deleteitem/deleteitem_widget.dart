@@ -3,6 +3,7 @@ import '/flutter_flow/flutter_flow_util.dart';
 import '/design_system/components/confirm_dialog.dart';
 import '/index.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'deleteitem_model.dart';
 export 'deleteitem_model.dart';
 
@@ -45,7 +46,7 @@ class _DeleteitemWidgetState extends State<DeleteitemWidget> {
   Widget build(BuildContext context) {
     final loc = FFLocalizations.of(context);
     return ConfirmDialog(
-      icon: Icons.delete_outline_rounded,
+      icon: LucideIcons.trash2,
       iconColor: const Color(0xFFD32F2F),
       destructive: true,
       title: loc.getText('ww2bynjy'),

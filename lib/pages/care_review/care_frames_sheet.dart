@@ -9,6 +9,7 @@ import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/services.dart';
 
 /// «Рамки рутины»: беременность/кормление и предпочтения (без отдушек, максимум
@@ -260,8 +261,8 @@ class _CareFramesSheetState extends State<CareFramesSheet> {
               const SizedBox(width: 12),
               Icon(
                 _fragranceFree
-                    ? Icons.check_circle_rounded
-                    : Icons.circle_outlined,
+                    ? LucideIcons.circleCheck
+                    : LucideIcons.circle,
                 color: _fragranceFree ? theme.primary : theme.border,
                 size: theme.size.iconMd,
               ),

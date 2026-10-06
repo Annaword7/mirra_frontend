@@ -16,6 +16,7 @@ import '/environment_values.dart';
 import '/index.dart';
 import '/paywall/show_paywall.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -71,7 +72,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.error_outline,
+                  Icon(LucideIcons.circleAlert,
                       color: FlutterFlowTheme.of(context).error, size: 48),
                   const SizedBox(height: 16),
                   TextButton(
@@ -227,7 +228,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                               children: [
                                 if (!FFAppState().isprouser)
                                   SettingsRow(
-                                    icon: Icons.workspace_premium,
+                                    icon: LucideIcons.award,
                                     label: FFLocalizations.of(context)
                                         .getText('1g4dikoz' /* Try premium */),
                                     onTap: () {
@@ -240,7 +241,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                   ),
                                 if (!currentUserIsAnonymous)
                                   SettingsRow(
-                                    icon: Icons.edit_outlined,
+                                    icon: LucideIcons.pencil,
                                     label: FFLocalizations.of(context)
                                         .getText('45rliy0n' /* Edit Profile */),
                                     onTap: () {
@@ -253,7 +254,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                 if (!currentUserIsAnonymous &&
                                     FFAppState().showLinkTelegram)
                                   SettingsRow(
-                                    icon: Icons.send_rounded,
+                                    icon: LucideIcons.send,
                                     label: FFLocalizations.of(context)
                                         .getText('cm_link_telegram'),
                                     onTap: () {
@@ -277,7 +278,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                 if (!isWeb)
                                   Builder(
                                     builder: (context) => SettingsRow(
-                                      icon: Icons.share_outlined,
+                                      icon: LucideIcons.share,
                                       label: FFLocalizations.of(context)
                                           .getText('0nawsp0z' /* Share */),
                                       onTap: () {
@@ -292,7 +293,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                     ),
                                   ),
                                 SettingsRow(
-                                  icon: Icons.textsms_outlined,
+                                  icon: LucideIcons.messageSquare,
                                   label: FFLocalizations.of(context)
                                       .getText('yyo7sp77' /* Leave a Review */),
                                   onTap: () {
@@ -329,7 +330,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                   },
                                 ),
                                 SettingsRow(
-                                  icon: Icons.face_retouching_natural,
+                                  icon: LucideIcons.scanFace,
                                   label: FFLocalizations.of(context)
                                       .getText('prof_skin_profile'),
                                   onTap: () {
@@ -340,14 +341,14 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                                   },
                                 ),
                                 SettingsRow(
-                                  icon: Icons.language_sharp,
+                                  icon: LucideIcons.languages,
                                   label: FFLocalizations.of(context)
                                       .getText('su4nz9dy' /* App language */),
                                   onTap: () =>
                                       context.pushNamed(LangsWidget.routeName),
                                 ),
                                 SettingsRow(
-                                  icon: Icons.flag_circle_outlined,
+                                  icon: LucideIcons.flag,
                                   label: FFLocalizations.of(context)
                                       .getText('gcl2zbxg' /* Your Region */),
                                   onTap: () =>
@@ -571,7 +572,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
               shape: BoxShape.circle,
               color: primary.withOpacity(0.08),
             ),
-            child: Icon(Icons.person_outline_rounded, size: 48, color: primary),
+            child: Icon(LucideIcons.user, size: 48, color: primary),
           ),
           const SizedBox(height: 16),
           // Title

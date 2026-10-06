@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' show min;
 
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/services.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 
@@ -157,14 +158,13 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
           const SizedBox(height: 20),
           AppButton(
             label: _t(widget.inBag ? 'card_remove_bag' : 'card_add_bag'),
-            icon:
-                widget.inBag ? Icons.shopping_bag : Icons.shopping_bag_outlined,
+            icon: LucideIcons.toolCase,
             onPressed: widget.onToggleBag,
           ),
           const SizedBox(height: 10),
           AppButton(
             label: _t('card_scan_more'),
-            icon: Icons.document_scanner_outlined,
+            icon: LucideIcons.scanText,
             variant: AppButtonVariant.outline,
             onPressed: widget.onScanMore,
           ),
@@ -235,12 +235,12 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
                 ),
                 clipBehavior: Clip.antiAlias,
                 child: photo == null
-                    ? Icon(Icons.spa_outlined,
+                    ? Icon(LucideIcons.flower,
                         size: 44, color: theme.secondaryBackground)
                     : Image.network(
                         photo,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Icon(Icons.spa_outlined,
+                        errorBuilder: (_, __, ___) => Icon(LucideIcons.flower,
                             size: 44, color: theme.secondaryBackground),
                       ),
               ),
@@ -521,7 +521,7 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
             height: 36,
             decoration:
                 BoxDecoration(color: theme.error, shape: BoxShape.circle),
-            child: const Icon(Icons.warning_amber_rounded,
+            child: const Icon(LucideIcons.triangleAlert,
                 color: Colors.white, size: 20),
           ),
           const SizedBox(width: 12),
@@ -620,7 +620,7 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
         _usageIcon(
           theme,
           active: card.usedInMorning,
-          icon: Icons.wb_sunny_outlined,
+          icon: LucideIcons.sun,
           label: _t('card_day'),
           activeBg: theme.secondary,
           activeFg: theme.primaryText,
@@ -631,7 +631,7 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
         _usageIcon(
           theme,
           active: card.usedInEvening,
-          icon: Icons.nightlight_outlined,
+          icon: LucideIcons.moon,
           label: _t('card_night'),
           activeBg: theme.secondaryBackground,
           activeFg: theme.primaryVariant,
@@ -705,7 +705,7 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
             _iconGrid(theme, [
               for (final f in card.functions)
                 (
-                  icon: kFunctionIcons[f.key] ?? Icons.check_circle_outline,
+                  icon: kFunctionIcons[f.key] ?? LucideIcons.circleCheck,
                   label: _labelOr(functionLabelKey(f.key), f.key),
                   bg: CardTokens.surfaceMuted,
                   fg: theme.primaryVariant,
@@ -720,7 +720,7 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
             _iconGrid(theme, [
               for (final d in card.drawbacks)
                 (
-                  icon: kDrawbackIcons[d.key] ?? Icons.remove_circle_outline,
+                  icon: kDrawbackIcons[d.key] ?? LucideIcons.circleMinus,
                   label: _labelOr(drawbackLabelKey(d.key), d.key),
                   bg: theme.errorBg,
                   fg: CardTokens.minusIcon,
@@ -796,7 +796,7 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
                   decoration: BoxDecoration(
                       color: ok ? theme.success : theme.error,
                       shape: BoxShape.circle),
-                  child: Icon(ok ? Icons.check : Icons.close,
+                  child: Icon(ok ? LucideIcons.check : LucideIcons.x,
                       size: 12, color: Colors.white),
                 ),
                 const SizedBox(width: 8),
@@ -939,7 +939,7 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
                 children: [
                   const Padding(
                     padding: EdgeInsets.only(top: 1),
-                    child: Icon(Icons.info_outline, size: 18),
+                    child: Icon(LucideIcons.info, size: 18),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -986,7 +986,7 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
                     height: 36,
                     decoration: BoxDecoration(
                         color: theme.alternate, shape: BoxShape.circle),
-                    child: const Icon(Icons.lightbulb_outline, size: 20),
+                    child: const Icon(LucideIcons.lightbulb, size: 20),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -1000,7 +1000,7 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
             const SizedBox(height: 18),
             _routineTrack(theme,
                 title: _t('card_routine_morning'),
-                icon: Icons.wb_sunny_outlined,
+                icon: LucideIcons.sun,
                 iconBg: theme.secondary,
                 iconFg: theme.primaryText,
                 stepKeys: kMorningStepKeys,
@@ -1010,7 +1010,7 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
             const SizedBox(height: 18),
             _routineTrack(theme,
                 title: _t('card_routine_evening'),
-                icon: Icons.nightlight_outlined,
+                icon: LucideIcons.moon,
                 iconBg: theme.secondaryBackground,
                 iconFg: theme.primaryVariant,
                 stepKeys: kEveningStepKeys,

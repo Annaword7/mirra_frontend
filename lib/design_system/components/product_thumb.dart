@@ -1,6 +1,7 @@
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '/design_system/foundations/image_thumb.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -51,7 +52,7 @@ class ProductThumb extends StatelessWidget {
           width: double.infinity,
           color: theme.surfaceMuted,
           child: Center(
-            child: Icon(Icons.spa_outlined,
+            child: Icon(LucideIcons.flower,
                 color: theme.textDisabled, size: theme.size.iconMd),
           ),
         ),

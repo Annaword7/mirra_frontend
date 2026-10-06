@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/services.dart';
 import '/auth/supabase_auth/auth_util.dart';
 import '/backend/api_requests/api_calls.dart';
@@ -55,7 +56,7 @@ class _BotNameChipState extends State<_BotNameChip> {
             ),
             const SizedBox(width: 8),
             Icon(
-              _copied ? Icons.check_rounded : Icons.copy_rounded,
+              _copied ? LucideIcons.check : LucideIcons.copy,
               size: 18,
               color: _copied
                   ? const Color(0xFF4CAF50)

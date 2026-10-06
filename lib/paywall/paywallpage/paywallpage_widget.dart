@@ -15,6 +15,7 @@ import '/design_system/components/app_button.dart';
 import '/design_system/components/plan_card.dart';
 import '/design_system/components/pro_pill.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import '../show_paywall.dart';
@@ -333,7 +334,7 @@ class _PaywallpageWidgetState extends State<PaywallpageWidget> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               IconButton(
-                                icon: Icon(Icons.close,
+                                icon: Icon(LucideIcons.x,
                                     color: paywallIconMuted,
                                     size: theme.size.iconSm),
                                 // 44 — минимальный тап-таргет (Initiative 3.3).

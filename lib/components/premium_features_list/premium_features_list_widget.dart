@@ -2,6 +2,7 @@ import '/domain/cosmetic_bag/cosmetic_bag_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// Что PRO даёт на самом деле: снимает два лимита — на сканы и на косметичку.
 /// Больше за подпиской ничего не закрыто (клиентский гейт на разборе состава
@@ -26,13 +27,13 @@ class PremiumFeaturesListWidget extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           _BenefitCard(
-            icon: Icons.all_inclusive_rounded,
+            icon: LucideIcons.infinity,
             title: t.getText('ic2_pro_unlimited'),
             body: t.getText('pro_benefit_scans_sub'),
           ),
           SizedBox(height: theme.space.s12),
           _BenefitCard(
-            icon: Icons.spa_rounded,
+            icon: LucideIcons.toolCase,
             title: t.getText('pro_benefit_bag_title'),
             // Бесплатный лимит подставляем из той же константы, по которой
             // косметичка его и считает, — чтобы обещание не разошлось с кодом.

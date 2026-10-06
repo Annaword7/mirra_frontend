@@ -2,6 +2,7 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 
 import 'form_field_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class FlutterFlowDropDown<T> extends StatefulWidget {
   const FlutterFlowDropDown({
@@ -257,9 +258,9 @@ class _FlutterFlowDropDownState<T> extends State<FlutterFlowDropDown<T>> {
                     child: Row(
                       children: [
                         if (isSelected)
-                          const Icon(Icons.check_box_outlined)
+                          const Icon(LucideIcons.squareCheck)
                         else
-                          const Icon(Icons.check_box_outline_blank),
+                          const Icon(LucideIcons.square),
                         const SizedBox(width: 16),
                         Expanded(
                           child: Text(

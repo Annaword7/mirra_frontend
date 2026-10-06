@@ -10,6 +10,7 @@ import '/design_system/components/constrained_content.dart';
 import 'dart:async';
 import '/index.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/services.dart';
 import 'log_in_page_model.dart';
 export 'log_in_page_model.dart';
@@ -398,7 +399,7 @@ class _LogInPageWidgetState extends State<LogInPageWidget>
               borderWidth: 1.0,
               buttonSize: 60.0,
               icon: Icon(
-                Icons.arrow_back_rounded,
+                LucideIcons.arrowLeft,
                 color: theme.primaryText,
                 size: 30.0,
               ),

@@ -277,7 +277,7 @@ class _SearchWidgetState extends State<SearchWidget> {
           backgroundColor: theme.alternate,
           elevation: 0,
           leading: IconButton(
-            icon: Icon(Icons.arrow_back_ios_new_rounded, color: theme.primaryText, size: 20),
+            icon: Icon(LucideIcons.chevronLeft, color: theme.primaryText, size: 20),
             onPressed: () => context.pop(),
           ),
           title: Text(
@@ -368,10 +368,10 @@ class _SearchWidgetState extends State<SearchWidget> {
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
                   ),
-                  prefixIcon: Icon(Icons.search_rounded, color: theme.secondaryText, size: 20),
+                  prefixIcon: Icon(LucideIcons.search, color: theme.secondaryText, size: 20),
                   suffixIcon: _model.phraseController?.text.isNotEmpty == true
                       ? IconButton(
-                          icon: Icon(Icons.clear_rounded, color: theme.secondaryText, size: 18),
+                          icon: Icon(LucideIcons.x, color: theme.secondaryText, size: 18),
                           onPressed: () => setState(() {
                                 _model.phraseController?.clear();
                                 _model.unparsed = '';
@@ -401,7 +401,7 @@ class _SearchWidgetState extends State<SearchWidget> {
             padding: const EdgeInsets.only(top: 6),
             child: Row(
               children: [
-                Icon(Icons.info_outline_rounded, size: 14, color: theme.warning),
+                Icon(LucideIcons.info, size: 14, color: theme.warning),
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
@@ -663,7 +663,7 @@ class _SearchWidgetState extends State<SearchWidget> {
         padding: const EdgeInsets.symmetric(vertical: 40),
         child: Column(
           children: [
-            Icon(Icons.search_off_rounded, size: 48, color: theme.secondaryText.withOpacity(0.4)),
+            Icon(LucideIcons.searchX, size: 48, color: theme.secondaryText.withOpacity(0.4)),
             const SizedBox(height: 16),
             Text(
               lang == 'ru' ? 'Ничего не найдено' : 'No results found',

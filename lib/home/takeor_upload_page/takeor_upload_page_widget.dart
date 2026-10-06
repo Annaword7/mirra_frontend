@@ -195,7 +195,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
-                      Icons.hourglass_top_rounded,
+                      LucideIcons.hourglass,
                       color: Color(0xFF1565C0),
                       size: 28.0,
                     ),
@@ -913,7 +913,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
       label: FFLocalizations.of(context).getText(
         'xirptk6c' /* Take a photo */,
       ),
-      icon: Icons.camera_alt,
+      icon: LucideIcons.camera,
       onPressed: () async {
         unawaited(AnalyticsService.instance.trackScanPhotoTake());
         if (await _blockedByQuota('camera')) return;
@@ -1423,7 +1423,7 @@ class _TakeorUploadPageWidgetState extends State<TakeorUploadPageWidget>
       label: FFLocalizations.of(context).getText(
         'pznd0mgm' /* Choose from gallery */,
       ),
-      icon: Icons.photo_library,
+      icon: LucideIcons.images,
       onPressed: () async {
         unawaited(AnalyticsService.instance.trackScanPhotoChooseGallery());
         debugPrint('[gallery] tap: '
@@ -1720,7 +1720,7 @@ class _ScannerIllustrationState extends State<_ScannerIllustration>
                     ],
                   ),
                   child: const Icon(
-                    Icons.camera_alt_rounded,
+                    LucideIcons.camera,
                     color: Colors.white,
                     size: 30,
                   ),
@@ -1770,7 +1770,7 @@ class _HintCard extends StatelessWidget {
       children: [
         const Padding(
           padding: EdgeInsets.only(top: 2),
-          child: Icon(Icons.check_sharp, color: Color(0xFFFBBF23), size: 20),
+          child: Icon(LucideIcons.check, color: Color(0xFFFBBF23), size: 20),
         ),
         const SizedBox(width: 10),
         Expanded(
@@ -1823,7 +1823,7 @@ class _HintCard extends StatelessWidget {
           ),
           alignment: Alignment.center,
           child: const Icon(
-            FontAwesomeIcons.solidLightbulb,
+            LucideIcons.lightbulb,
             color: Colors.white,
             size: 16,
           ),
@@ -1843,7 +1843,7 @@ class _HintCard extends StatelessWidget {
           ),
         ),
         const Icon(
-          Icons.keyboard_arrow_up_rounded,
+          LucideIcons.chevronUp,
           color: Color(0xFFFBBF23),
         ),
       ],
@@ -1865,7 +1865,7 @@ class _HintCard extends StatelessWidget {
               ),
               alignment: Alignment.center,
               child: const Icon(
-                FontAwesomeIcons.solidLightbulb,
+                LucideIcons.lightbulb,
                 color: Colors.white,
                 size: 18,
               ),
@@ -1888,7 +1888,7 @@ class _HintCard extends StatelessWidget {
             GestureDetector(
               onTap: onToggle,
               child: const Icon(
-                Icons.keyboard_arrow_down_rounded,
+                LucideIcons.chevronDown,
                 color: Color(0xFFFBBF23),
                 size: 28,
               ),

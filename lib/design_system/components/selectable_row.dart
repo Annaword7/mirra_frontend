@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 
 /// A selectable list row (Design Review Initiative 9): a `surfaceMuted` r12 pill
@@ -80,8 +81,8 @@ class SelectableRow extends StatelessWidget {
               ],
               Icon(
                 selected
-                    ? Icons.check_circle_rounded
-                    : Icons.radio_button_off,
+                    ? LucideIcons.circleCheck
+                    : LucideIcons.circle,
                 color: const Color(0xFF555555),
                 size: 24.0,
               ),

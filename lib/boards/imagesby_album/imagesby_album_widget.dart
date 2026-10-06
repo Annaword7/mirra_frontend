@@ -118,7 +118,7 @@ class _ImagesbyAlbumWidgetState extends State<ImagesbyAlbumWidget> {
                   borderRadius: 24.0,
                   buttonSize: 48.0,
                   icon: Icon(
-                    Icons.arrow_back_outlined,
+                    LucideIcons.arrowLeft,
                     color: FlutterFlowTheme.of(context).primaryBackground,
                     size: 24.0,
                   ),
@@ -165,7 +165,7 @@ class _ImagesbyAlbumWidgetState extends State<ImagesbyAlbumWidget> {
                       borderWidth: 1.0,
                       buttonSize: 48.0,
                       icon: Icon(
-                        Icons.edit,
+                        LucideIcons.pencil,
                         color: FlutterFlowTheme.of(context).primaryBackground,
                         size: 24.0,
                       ),
@@ -236,7 +236,7 @@ class _ImagesbyAlbumWidgetState extends State<ImagesbyAlbumWidget> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
-                                Icons.photo_library_outlined,
+                                LucideIcons.images,
                                 size: 64,
                                 color:
                                     FlutterFlowTheme.of(context).secondaryText,

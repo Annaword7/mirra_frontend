@@ -2,6 +2,7 @@ import '/components/new_album/new_album_widget.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/design_system/components/mirra_empty_state.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'newboardempty_model.dart';
 export 'newboardempty_model.dart';
 
@@ -59,7 +60,7 @@ class _NewboardemptyWidgetState extends State<NewboardemptyWidget> {
   @override
   Widget build(BuildContext context) {
     return MirraEmptyState(
-      icon: Icons.collections_bookmark_outlined,
+      icon: LucideIcons.bookMarked,
       headline: FFLocalizations.of(context).getText(
         '95giorwg' /* Your collections */,
       ),
@@ -69,7 +70,7 @@ class _NewboardemptyWidgetState extends State<NewboardemptyWidget> {
       ctaLabel: FFLocalizations.of(context).getText(
         'o1bipgy8' /* Create collection */,
       ),
-      ctaIcon: Icons.add,
+      ctaIcon: LucideIcons.plus,
       onCta: _openNewAlbum,
     );
   }

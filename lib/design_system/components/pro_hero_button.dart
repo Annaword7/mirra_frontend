@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 
 /// The PRO upgrade CTA (home hero): a glossy pill built only from the design
@@ -52,8 +52,7 @@ class _ProHeroButtonState extends State<ProHeroButton> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const FaIcon(FontAwesomeIcons.crown,
-                size: 14.0, color: Colors.white),
+            const Icon(LucideIcons.crown, size: 14.0, color: Colors.white),
             const SizedBox(width: 9.0),
             Text(
               widget.label,

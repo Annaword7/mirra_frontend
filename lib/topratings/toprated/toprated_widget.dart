@@ -17,6 +17,7 @@ import '/design_system/components/product_tile.dart';
 import '/design_system/foundations/layout.dart';
 import '/index.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:provider/provider.dart';
@@ -661,7 +662,7 @@ class _TopratedWidgetState extends State<TopratedWidget> {
                                       shape: BoxShape.circle,
                                     ),
                                     child: Icon(
-                                      Icons.tune_rounded,
+                                      LucideIcons.slidersHorizontal,
                                       size: 22,
                                       color: _hasFilters
                                           ? FlutterFlowTheme.of(context).primary

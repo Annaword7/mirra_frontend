@@ -8,6 +8,7 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/design_system/components/selectable_row.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'langs_model.dart';
 export 'langs_model.dart';
 
@@ -59,7 +60,7 @@ class _LangsWidgetState extends State<LangsWidget> {
             borderRadius: 24.0,
             buttonSize: 48.0,
             icon: Icon(
-              Icons.arrow_back_rounded,
+              LucideIcons.arrowLeft,
               color: FlutterFlowTheme.of(context).primaryText,
               size: 24.0,
             ),

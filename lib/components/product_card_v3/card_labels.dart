@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// Словари карточки v3: ключ бэкенда → ключ локализации и иконка Material.
 ///
@@ -10,26 +11,26 @@ import 'package:flutter/material.dart';
 
 /// Функция «что делает» → иконка.
 const Map<String, IconData> kFunctionIcons = {
-  'hydration': Icons.water_drop_outlined,
-  'barrier': Icons.layers_outlined,
-  'anti_age': Icons.auto_awesome_outlined,
-  'brightening': Icons.wb_sunny_outlined,
-  'pores': Icons.blur_circular_outlined,
-  'acne': Icons.healing_outlined,
-  'soothing': Icons.eco_outlined,
-  'exfoliation': Icons.grain,
-  'mattifying': Icons.blur_on,
-  'uv_protection': Icons.shield_outlined,
-  'cleansing': Icons.soap_outlined,
+  'hydration': LucideIcons.droplet,
+  'barrier': LucideIcons.layers,
+  'anti_age': LucideIcons.sparkles,
+  'brightening': LucideIcons.sun,
+  'pores': LucideIcons.circleDotDashed,
+  'acne': LucideIcons.bandage,
+  'soothing': LucideIcons.leaf,
+  'exfoliation': LucideIcons.grip,
+  'mattifying': LucideIcons.haze,
+  'uv_protection': LucideIcons.shield,
+  'cleansing': LucideIcons.soapDispenserDroplet,
 };
 
 /// Минус → иконка.
 const Map<String, IconData> kDrawbackIcons = {
-  'drying': Icons.format_color_reset_outlined,
-  'comedogenic': Icons.lens,
-  'irritating': Icons.local_fire_department_outlined,
-  'photosensitizing': Icons.brightness_low_outlined,
-  'controversial': Icons.report_outlined,
+  'drying': LucideIcons.dropletOff,
+  'comedogenic': LucideIcons.circleDot,
+  'irritating': LucideIcons.flame,
+  'photosensitizing': LucideIcons.sunDim,
+  'controversial': LucideIcons.octagonAlert,
 };
 
 /// Шаги рутины: индексы 0–4 как в `routine.morning` / `routine.evening`.

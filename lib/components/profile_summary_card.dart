@@ -3,6 +3,7 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/index.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// Shared "outline + glow" decoration used by the Косметичка cards
 /// ("Твой профиль" and "Совместимость") so they look identical.
@@ -92,7 +93,7 @@ class ProfileSummaryCard extends StatelessWidget {
             color: theme.primary.withOpacity(0.15),
             shape: BoxShape.circle,
           ),
-          child: Icon(Icons.auto_awesome, color: theme.primary, size: 22),
+          child: Icon(LucideIcons.sparkles, color: theme.primary, size: 22),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -118,7 +119,7 @@ class ProfileSummaryCard extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 8),
-        Icon(Icons.arrow_forward_ios, color: theme.primary, size: 16),
+        Icon(LucideIcons.chevronRight, color: theme.primary, size: 16),
       ],
     );
   }
@@ -139,7 +140,7 @@ class ProfileSummaryCard extends StatelessWidget {
       children: [
         Row(
           children: [
-            Icon(Icons.face_retouching_natural,
+            Icon(LucideIcons.scanFace,
                 color: theme.primary, size: 18),
             const SizedBox(width: 8),
             Expanded(
@@ -160,7 +161,7 @@ class ProfileSummaryCard extends StatelessWidget {
                   fontWeight: FontWeight.w600,
                   letterSpacing: 0),
             ),
-            Icon(Icons.chevron_right, color: theme.primary, size: 18),
+            Icon(LucideIcons.chevronRight, color: theme.primary, size: 18),
           ],
         ),
         const SizedBox(height: 12),

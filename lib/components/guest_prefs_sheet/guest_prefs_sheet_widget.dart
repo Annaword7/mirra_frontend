@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '/design_system/components/mirra_bottom_sheet.dart';
 import '/auth/supabase_auth/auth_util.dart';
 import '/backend/supabase/supabase.dart';
@@ -148,7 +149,7 @@ class _GuestPrefsSheetState extends State<GuestPrefsSheet> {
               child: DropdownButton<String>(
                 isExpanded: true,
                 value: _lang,
-                icon: Icon(Icons.keyboard_arrow_down_rounded,
+                icon: Icon(LucideIcons.chevronDown,
                     color: theme.textTertiary),
                 dropdownColor: Colors.white,
                 borderRadius: BorderRadius.circular(theme.radii.r16),

@@ -6,6 +6,7 @@ import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/internationalization.dart' show kTranslationsMap;
 import '/flutter_flow/form_field_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'countryselector_model.dart';
 export 'countryselector_model.dart';
 
@@ -194,7 +195,7 @@ class _CountryselectorWidgetState extends State<CountryselectorWidget> {
                   kTranslationsMap['qsbnew6g']?['en'] ??
                   'Search...'),
           icon: Icon(
-            Icons.keyboard_arrow_down_rounded,
+            LucideIcons.chevronDown,
             color: widget.iconColor ??
                 FlutterFlowTheme.of(context).secondaryText,
             size: 24.0,

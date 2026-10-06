@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// Semantic color + score/status foundation (Design Review Initiative 4).
 ///
@@ -66,8 +67,8 @@ Color statusColor(String? status) => switch (status) {
 /// Icon for an ingredient status — the status's **non-color cue** so meaning
 /// is not carried by color alone.
 IconData statusIcon(String? status) => switch (status) {
-      'working' => Icons.check_circle_rounded,
-      'borderline' => Icons.warning_amber_rounded,
-      'decorative' => Icons.remove_circle_outline_rounded,
-      _ => Icons.help_outline_rounded,
+      'working' => LucideIcons.circleCheck,
+      'borderline' => LucideIcons.triangleAlert,
+      'decorative' => LucideIcons.circleMinus,
+      _ => LucideIcons.circleHelp,
     };

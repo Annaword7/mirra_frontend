@@ -22,6 +22,7 @@ import 'dart:async';
 import '/index.dart';
 import '/paywall/show_paywall.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
@@ -471,7 +472,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.error_outline,
+                        Icon(LucideIcons.circleAlert,
                             color: FlutterFlowTheme.of(context).error,
                             size: 48),
                         const SizedBox(height: 16),
@@ -601,7 +602,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                               .primary,
                                         ),
                                         child: const Icon(
-                                          Icons.person,
+                                          LucideIcons.user,
                                           color: Colors.white,
                                           size: 24,
                                         ),
@@ -750,7 +751,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                     child: Column(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Icon(Icons.error_outline,
+                                        Icon(LucideIcons.circleAlert,
                                             color: FlutterFlowTheme.of(context)
                                                 .error,
                                             size: 48),
@@ -802,7 +803,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                   return SliverFillRemaining(
                                     hasScrollBody: false,
                                     child: MirraEmptyState(
-                                      icon: Icons.camera_alt_outlined,
+                                      icon: LucideIcons.camera,
                                       headline: title,
                                       body: subtitle,
                                       ctaLabel: btnLabel,
@@ -981,7 +982,7 @@ class _HomeQuotaBar extends StatelessWidget {
     if (isPro) {
       return Row(
         children: [
-          Icon(Icons.all_inclusive, size: 14, color: Colors.black),
+          Icon(LucideIcons.infinity, size: 14, color: Colors.black),
           const SizedBox(width: 6),
           Text(
             FFLocalizations.of(context).getText('home_pro_unlimited'),
