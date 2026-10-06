@@ -12,6 +12,7 @@ import '/domain/products/product_photo.dart';
 import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
+import '/index.dart';
 import 'care_frames_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -75,6 +76,19 @@ class _CareReviewWidgetState extends State<CareReviewWidget> {
     if (!await CareFramesSheet.show(context, _card)) return;
     await _loadCard();
     if (mounted) await _compose();
+  }
+
+  /// Беременность спрашивает анкета, а не «Рамки рутины», — плашка ведёт туда.
+  /// `returnTo` возвращает на этот же экран, и он пересобирает разбор заново в
+  /// initState: ответ успевает попасть в составитель.
+  void _openPregnancyQuestion() {
+    context.pushNamed(
+      OnboardingQuizWidget.routeName,
+      queryParameters: {
+        'returnTo':
+            serializeParam(CareReviewWidget.routePath, ParamType.String),
+      }.withoutNulls,
+    );
   }
 
   Future<void> _applyRegimen({
@@ -686,7 +700,7 @@ class _CareReviewWidgetState extends State<CareReviewWidget> {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(theme.radii.r16),
-          onTap: _openFrames,
+          onTap: _openPregnancyQuestion,
           child: Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(

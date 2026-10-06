@@ -282,6 +282,12 @@ class AnalyticsService {
 
   Future<void> trackOnboardingNoGoal() => _log('onboarding_no_goal');
 
+  /// Ответ на вопрос о беременности и кормлении. Вопрос жил в «Рамках рутины»
+  /// (событие звалось `care_frames_pregnancy`) и вернулся в анкету четвёртым
+  /// шагом, поэтому событие снова названо по месту, где срабатывает.
+  Future<void> trackOnboardingPregnancy({required String typePregnancy}) =>
+      _log('onboarding_pregnancy', {'type_pregnancy': typePregnancy});
+
   /// Анкета пройдена и профиль сохранён — это та же кнопка «Сохранить и
   /// сканировать», что в таблице значилась как `onbording_scan`; отдельного
   /// экрана «Готово» в приложении нет. Возраст и бюджет мы не спрашиваем, их
@@ -291,23 +297,22 @@ class AnalyticsService {
     required bool? sensitive,
     required bool? acneProne,
     required int goalsCount,
+    required String? pregnancy,
   }) =>
       _log('onboarding_done', {
         if (skinType != null) 'skin_type': skinType,
         if (sensitive != null) 'sensitive': sensitive,
         if (acneProne != null) 'acne_prone': acneProne,
         'goals_count': goalsCount,
+        if (pregnancy != null) 'type_pregnancy': pregnancy,
       });
 
   Future<void> trackOnboardingEdit() => _log('onboarding_edit');
 
-  // ── Рамки рутины (было onbording_pregnancy / onbording_routine_continue) ──
+  // ── Рамки рутины (было onbording_routine_continue) ──
   //
-  // Вопросы про беременность и рамки рутины переехали из онбординга в «Разбор
-  // косметички», поэтому и события названы по месту, где живут.
-
-  Future<void> trackCareFramesPregnancy({required String typePregnancy}) =>
-      _log('care_frames_pregnancy', {'type_pregnancy': typePregnancy});
+  // В «Разборе косметички» остались отдушки и число шагов; беременность вернулась
+  // в анкету — см. [trackOnboardingPregnancy].
 
   Future<void> trackCareFramesContinue({
     required bool fragranceFree,

@@ -2,8 +2,10 @@ import '/auth/supabase_auth/auth_util.dart';
 import '/backend/supabase/supabase.dart';
 import '/design_system/components/app_button.dart';
 import '/design_system/components/confirm_dialog.dart';
+import '/design_system/components/selectable_row.dart';
 import '/design_system/components/constrained_content.dart';
 import '/domain/care_planning/care_planning_service.dart';
+import '/domain/client_card/client_card_service.dart';
 import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -47,7 +49,7 @@ class OnboardingQuizWidget extends StatefulWidget {
   State<OnboardingQuizWidget> createState() => _OnboardingQuizWidgetState();
 }
 
-enum _Step { welcome, type, determine, traits, goals, result }
+enum _Step { welcome, type, determine, traits, goals, pregnancy, result }
 
 // Goal chips → backend goal keys (mirra _VALID_SKIN_GOALS, the shipped 6).
 const _goalKeys = <List<String>>[
@@ -61,8 +63,8 @@ const _goalKeys = <List<String>>[
 
 const _maxGoals = 3;
 
-/// Обязательных вопросов три — столько же делений в прогрессе.
-const _questionCount = 3;
+/// Обязательных вопросов четыре — столько же делений в прогрессе.
+const _questionCount = 4;
 
 class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
   late OnboardingQuizModel _model;
@@ -85,6 +87,12 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
   bool? _sensitive;
   bool? _acneProne;
   final List<String> _goals = [];
+
+  /// Одно из [ClientCardService.pregnantOrNursing] / `pregnancyNone` /
+  /// `pregnancyUndisclosed`. Было в «Рамках рутины», вернулось в анкету: правило
+  /// противопоказаний решает, что человек вообще увидит в разборе, и спрашивать
+  /// об этом позже, чем про тип кожи, незачем.
+  String? _pregnancy;
 
   // «Не знаю» sub-quiz
   bool _typeViaDetermine = false;
@@ -126,6 +134,7 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
         _goals
           ..clear()
           ..addAll(row.skinGoals);
+        _pregnancy = row.pregnancyStatus;
         if (_step == _Step.welcome) _step = _Step.type;
       });
     } catch (_) {}
@@ -171,8 +180,11 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
       case _Step.goals:
         _go(_Step.traits, forward: false);
         break;
-      case _Step.result:
+      case _Step.pregnancy:
         _go(_Step.goals, forward: false);
+        break;
+      case _Step.result:
+        _go(_Step.pregnancy, forward: false);
         break;
       // Шаги без стрелки в шапке: возвращаться некуда.
       case _Step.welcome:
@@ -186,14 +198,17 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
     if (save) {
       if (currentUserUid.isNotEmpty) {
         // Already authenticated (re-edit from settings): write now.
-        // Беременность и care_preferences здесь не трогаем — их задают в
-        // «Разборе косметички», и повторная анкета не должна их стирать.
+        // care_preferences здесь не трогаем — отдушки и число шагов задают в
+        // «Рамках рутины», и повторная анкета не должна их стирать. Беременность
+        // спрашиваем сами, но пишем только выбранное: пустым значением затёрли
+        // бы ответ, данный раньше.
         await UsersTable().update(
           data: {
             'skin_type': _skinType,
             'skin_sensitivity': _sensitive,
             'acne_prone': _acneProne,
             'skin_goals': _goals,
+            if (_pregnancy != null) 'pregnancy_status': _pregnancy,
             'onboarded': true,
           },
           matchingRows: (rows) => rows.eqOrNull('id', currentUserUid),
@@ -209,6 +224,7 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
           app.obSensitive = _sensitive;
           app.obAcneProne = _acneProne;
           app.obGoals = List<String>.from(_goals);
+          if (_pregnancy != null) app.obPregnancy = _pregnancy;
           app.obPendingFlush = true;
         });
       }
@@ -292,6 +308,8 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
         return 2;
       case _Step.goals:
         return 3;
+      case _Step.pregnancy:
+        return 4;
       case _Step.welcome:
       case _Step.result:
         return 0;
@@ -410,6 +428,8 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
         return _buildTraits(theme);
       case _Step.goals:
         return _buildGoals(theme);
+      case _Step.pregnancy:
+        return _buildPregnancy(theme);
       case _Step.result:
         return _buildResult(theme);
     }
@@ -972,6 +992,34 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
     );
   }
 
+  /// Беременность и кормление. Три варианта списком, а не парой сегментов:
+  /// ответы разной длины («Нет» против «Предпочитаю не указывать») в сегментах
+  /// выглядели сломанными, а выбор здесь ровно один из трёх.
+  Widget _buildPregnancy(FlutterFlowTheme theme) {
+    Widget option(String value, String labelKey) => Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: SelectableRow(
+            label: _t(labelKey),
+            selected: _pregnancy == value,
+            onTap: () => _pickTap(() {
+              unawaited(AnalyticsService.instance
+                  .trackOnboardingPregnancy(typePregnancy: value));
+              _pregnancy = value;
+            }),
+          ),
+        );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _heading(theme, 'obq_preg_title', 'obq_preg_why'),
+        option(ClientCardService.pregnantOrNursing, 'obq_preg_yes'),
+        option(ClientCardService.pregnancyNone, 'obq_preg_no'),
+        option(ClientCardService.pregnancyUndisclosed, 'obq_preg_skip'),
+      ],
+    );
+  }
+
   Widget _buildResult(FlutterFlowTheme theme) {
     final parts = <String>[
       if (_skinType != null) _t(_typeNameKey(_skinType!)),
@@ -1123,7 +1171,7 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
               : () {
                   unawaited(AnalyticsService.instance
                       .trackOnboardingImportantContinue(typeImportant: _goals));
-                  _go(_Step.result);
+                  _go(_Step.pregnancy);
                 },
         ));
         children.add(const SizedBox(height: 4));
@@ -1134,8 +1182,17 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
           onPressed: () {
             unawaited(AnalyticsService.instance.trackOnboardingNoGoal());
             _goals.clear();
-            _go(_Step.result);
+            _go(_Step.pregnancy);
           },
+        ));
+        break;
+      case _Step.pregnancy:
+        children.add(AppButton(
+          label: _t('obq_next'),
+          // Без выбора дальше не пускаем: «предпочитаю не указывать» — тоже
+          // ответ, и только он отличает «не хочу говорить» от незаполненного
+          // поля, на котором правило противопоказаний не включается.
+          onPressed: _pregnancy == null ? null : () => _go(_Step.result),
         ));
         break;
       case _Step.result:
@@ -1147,6 +1204,7 @@ class _OnboardingQuizWidgetState extends State<OnboardingQuizWidget> {
               sensitive: _sensitive,
               acneProne: _acneProne,
               goalsCount: _goals.length,
+              pregnancy: _pregnancy,
             ));
             _finish(save: true);
           },

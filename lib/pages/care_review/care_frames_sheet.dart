@@ -3,7 +3,6 @@ import 'dart:async';
 import '/backend/supabase/database/database.dart';
 import '/design_system/components/app_button.dart';
 import '/design_system/components/mirra_bottom_sheet.dart';
-import '/design_system/components/selectable_row.dart';
 import '/domain/client_card/client_card_service.dart';
 import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -12,10 +11,11 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/services.dart';
 
-/// «Рамки рутины»: беременность/кормление и предпочтения (без отдушек, максимум
-/// шагов). Спрашиваем здесь, а не в онбординге: эти ответы читает только
-/// составитель режима, и здесь же видно их последствие — средство вне рамок
-/// уходит в очередь, а не в рутину.
+/// «Рамки рутины»: предпочтения состава — без отдушек и максимум шагов.
+/// Спрашиваем здесь, а не в онбординге: эти ответы читает только составитель
+/// режима, и здесь же видно их последствие — средство вне рамок уходит в
+/// очередь, а не в рутину. Беременность переехала в анкету: от неё зависит не
+/// порядок шагов, а сам допуск средства.
 ///
 /// Возвращает `true`, если что-то изменили: разбор после этого пересобирают.
 class CareFramesSheet extends StatefulWidget {
@@ -40,7 +40,6 @@ class CareFramesSheet extends StatefulWidget {
 }
 
 class _CareFramesSheetState extends State<CareFramesSheet> {
-  String? _pregnancy;
   bool _fragranceFree = false;
   int? _maxSteps;
   bool _saving = false;
@@ -48,7 +47,6 @@ class _CareFramesSheetState extends State<CareFramesSheet> {
   @override
   void initState() {
     super.initState();
-    _pregnancy = widget.card?.pregnancyStatus;
     final prefs =
         (widget.card?.carePreferences as Map?)?.cast<String, dynamic>() ?? {};
     _fragranceFree = prefs['fragrance_free'] == true;
@@ -64,11 +62,6 @@ class _CareFramesSheetState extends State<CareFramesSheet> {
       maxSteps: _maxSteps,
     ));
     try {
-      await ClientCardService.instance.updateAnamnesis(
-        // «Не указывать» — тоже ответ: без него правило беременности не
-        // применяется, а карта остаётся с null и лист снова просит заполнить.
-        pregnancyStatus: _pregnancy,
-      );
       await ClientCardService.instance.setPreferences({
         'fragrance_free': _fragranceFree ? true : null,
         'max_steps': _maxSteps,
@@ -84,8 +77,9 @@ class _CareFramesSheetState extends State<CareFramesSheet> {
     final theme = FlutterFlowTheme.of(context);
     return MirraBottomSheet(
       surfaceColor: theme.alternate,
-      // Три варианта ответа списком сделали лист выше: на маленьком экране или
-      // при увеличенном шрифте содержимое обязано скроллиться, а не ломаться.
+      // Скролл остаётся и после переезда вопроса о беременности: на маленьком
+      // экране с увеличенным шрифтом содержимое обязано скроллиться, а не
+      // ломаться.
       child: ConstrainedBox(
         constraints: BoxConstraints(
           maxHeight: MediaQuery.sizeOf(context).height * 0.8,
@@ -107,23 +101,6 @@ class _CareFramesSheetState extends State<CareFramesSheet> {
                       color: theme.secondaryText,
                       fontSize: 13,
                       letterSpacing: 0)),
-              const SizedBox(height: 24),
-
-              // ── Беременность / кормление ──
-              // Список с радио-кнопками, а не парные «кнопки»: ответы разной длины
-              // («Нет» против «Предпочитаю не указывать») в сегментах выглядели
-              // сломанными, а выбор здесь ровно один из трёх.
-              _label(theme, _t('obq_preg_title')),
-              const SizedBox(height: 4),
-              _hint(theme, _t('obq_preg_why')),
-              const SizedBox(height: 10),
-              _pregnancyOption(
-                  ClientCardService.pregnantOrNursing, 'obq_preg_yes'),
-              const SizedBox(height: 8),
-              _pregnancyOption(ClientCardService.pregnancyNone, 'obq_preg_no'),
-              const SizedBox(height: 8),
-              _pregnancyOption(
-                  ClientCardService.pregnancyUndisclosed, 'obq_preg_skip'),
               const SizedBox(height: 24),
 
               // ── Без отдушек ──
@@ -161,21 +138,6 @@ class _CareFramesSheetState extends State<CareFramesSheet> {
           fontSize: 16,
           fontWeight: FontWeight.w600,
           letterSpacing: 0));
-
-  Widget _hint(FlutterFlowTheme theme, String text) => Text(text,
-      style: theme.bodySmall.override(
-          color: theme.secondaryText, fontSize: 13, letterSpacing: 0));
-
-  Widget _pregnancyOption(String value, String labelKey) => SelectableRow(
-        label: _t(labelKey),
-        selected: _pregnancy == value,
-        onTap: () {
-          HapticFeedback.lightImpact();
-          unawaited(AnalyticsService.instance
-              .trackCareFramesPregnancy(typePregnancy: value));
-          setState(() => _pregnancy = value);
-        },
-      );
 
   Widget _stepChip(FlutterFlowTheme theme, int? value, String label,
       {bool wide = false}) {
