@@ -1,6 +1,7 @@
 import '/design_system/components/screen_loader.dart';
 import '/design_system/foundations/layout.dart';
 import '/domain/images/images_row_cache.dart';
+import '/components/product_card_v3/skin_profile.dart';
 import '/app_state.dart';
 import '/auth/supabase_auth/auth_util.dart';
 import '/backend/api_requests/api_calls.dart';
@@ -266,6 +267,9 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
             currentUserUid,
           ),
         );
+        // Профиль кожи в память приложения: карточка продукта рисует первый
+        // кадр по нему, не дожидаясь своего запроса.
+        SkinProfile.remember(_model.usersanswer?.firstOrNull);
       } catch (e) {
         debugPrint('Home initState: user query failed: $e');
         return;
@@ -373,7 +377,9 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
         // ~85% веса ответа (≈1 МБ на активном аккаунте) — за ним ходит только
         // карточка продукта, когда её открывают.
         columns:
-            'id,image_url,catalog_image_url,product_name,brand,sa_composite_score,created_at,product_type',
+            // skin_scores: шесть чисел из sa_card, без остального текста
+            // карточки. Кружок ленты считается по ним так же, как карточка.
+            'id,image_url,catalog_image_url,product_name,brand,sa_composite_score,created_at,product_type,skin_scores:sa_card->skin_scores',
         queryFn: (q) => q
             .eqOrNull('user', currentUserUid)
             .order('created_at', ascending: false),
@@ -389,6 +395,9 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
       _model.imagesFuture = future;
     });
     future.then((images) async {
+      // Не в очереди с ценами: это два независимых запроса, и застрявший первый
+      // не должен задерживать второй.
+      unawaited(_loadSkinScores(images));
       if (FFAppState().countrycodeiso.isNotEmpty && mounted) {
         await _loadPriceMap(images);
         if (mounted) safeSetState(() {});
@@ -396,6 +405,48 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
     }).catchError((_) {
       // Network error is already surfaced by the FutureBuilder error state.
     });
+  }
+
+  /// Баллы совместимости для ленты. Отдельным запросом, а не колонкой в
+  /// `_fetchImages`: нужные числа лежат в `sa_card`, но это весь текст карточки
+  /// на каждый снимок, а здесь — шесть коротких строк, те же самые баллы.
+  Future<void> _loadSkinScores(List<ImagesRow> images) async {
+    final ids = images.map((r) => r.id).toList();
+    if (ids.isEmpty || !mounted) return;
+    try {
+      final rows = await ImageSkinCompatibilityTable().queryRows(
+        columns: 'image_id,skin_type,compatibility_score',
+        queryFn: (q) => q.inFilterOrNull('image_id', ids),
+      );
+      if (!mounted) return;
+      final map = <int, Map<String, int>>{};
+      for (final r in rows) {
+        map.putIfAbsent(r.imageId, () => {})[r.skinType] = r.compatibilityScore;
+      }
+      safeSetState(() => _model.skinScoreMap = map);
+    } catch (e) {
+      // Лента без этих баллов остаётся рабочей: кружок покажет общий балл.
+      debugPrint('Home: skin compatibility unavailable: $e');
+    }
+  }
+
+  /// Балл для кружка в ленте — по типу кожи, как на карточке продукта.
+  /// Пока баллов совместимости нет (старый снимок или запрос ещё в пути) —
+  /// общий балл анализа: кружок не должен пустеть.
+  double? _tileScore(ImagesRow row) {
+    // Сначала баллы самой карточки (sa_card.skin_scores): для сканов, у
+    // которых карточка досчитана позже разбора, таблица совместимости
+    // осталась от прежнего движка и расходилась с карточкой.
+    final scores = skinScoresOf(row) ?? _model.skinScoreMap[row.id];
+    if (scores == null) return row.saCompositeScore;
+    final profile = SkinProfile.fromUser(_model.usersanswer?.firstOrNull);
+    final fit = fitScoreFor(
+      scores,
+      skinType: profile.skinType,
+      sensitive: profile.sensitive,
+      acneProne: profile.acneProne,
+    );
+    return fit?.toDouble() ?? row.saCompositeScore;
   }
 
   Future<void> _loadPriceMap(List<ImagesRow> images) async {
@@ -890,8 +941,7 @@ class _HomeWidgetState extends State<HomeWidget> with TickerProviderStateMixin {
                                         staggeredViewImagesRow.productName,
                                         'No product name info',
                                       ),
-                                      score: staggeredViewImagesRow
-                                          .saCompositeScore,
+                                      score: _tileScore(staggeredViewImagesRow),
                                       stars: 0,
                                       hasSpf: staggeredViewImagesRow.saHasSpf,
                                       avgPrice: _model

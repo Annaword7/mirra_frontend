@@ -33,6 +33,10 @@ class HomeModel extends FlutterFlowModel<HomeWidget> {
   // Prices from product_prices table, keyed by 'product_name_key|brand_key'.
   Map<String, ProductPricesRow> priceMap = {};
 
+  // Баллы совместимости из image_skin_compatibility: image_id → {тип кожи: балл}.
+  // По ним кружок в ленте показывает балл для своего типа кожи, как и карточка.
+  Map<int, Map<String, int>> skinScoreMap = {};
+
   final scrollController = ScrollController();
 
   @override

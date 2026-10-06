@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math' show min;
 
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -15,6 +14,7 @@ import 'card_composition.dart';
 import 'card_data.dart';
 import 'card_labels.dart';
 import 'card_tokens.dart';
+import 'skin_profile.dart' show fitScoreFor;
 
 /// Карточка проанализированного продукта по макету от 01.10.2026.
 ///
@@ -42,6 +42,7 @@ class ProductCardV3Widget extends StatefulWidget {
     required this.onToggleBag,
     required this.onScanMore,
     this.onEditProfile,
+    this.onEditSkinType,
   });
 
   final ProductCard card;
@@ -63,6 +64,11 @@ class ProductCardV3Widget extends StatefulWidget {
   final Future<void> Function() onToggleBag;
   final VoidCallback onScanMore;
   final VoidCallback? onEditProfile;
+
+  /// Правка профиля кожи из списка типов: подпись «ваш тип» ведёт в анкету, где
+  /// тип и признаки и задавались. Отдельно от [onEditProfile] — тот открывает
+  /// Профиль ради беременности, а её анкета не спрашивает.
+  final VoidCallback? onEditSkinType;
 
   @override
   State<ProductCardV3Widget> createState() => _ProductCardV3WidgetState();
@@ -116,17 +122,11 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
     return l.isEmpty ? type : l;
   }
 
-  /// Балл для выбранной кожи: худший из типа и включённых признаков.
-  int? _scoreFor(String type, {required bool sensitive, required bool acne}) {
-    final scores = widget.card.skinScores;
-    final parts = <int>[
-      if (scores[type] != null) scores[type]!,
-      if (sensitive && scores['sensitive'] != null) scores['sensitive']!,
-      if (acne && scores['acne_prone'] != null) scores['acne_prone']!,
-    ];
-    if (parts.isEmpty) return null;
-    return parts.reduce(min);
-  }
+  /// Балл для выбранной кожи. Считает общий [skinFitScore] — тот же, что у
+  /// кружка в ленте Главной.
+  int? _scoreFor(String type, {required bool sensitive, required bool acne}) =>
+      fitScoreFor(widget.card.skinScores,
+          skinType: type, sensitive: sensitive, acneProne: acne);
 
   Color _fitColor(FlutterFlowTheme theme, int score) => fitColor(score,
       success: theme.success, warning: theme.warning, error: theme.error);
@@ -273,11 +273,9 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
     final score = _scoreFor(_skinType, sensitive: _sensitive, acne: _acneProne);
     if (score == null) return const SizedBox.shrink();
     final color = _fitColor(theme, score);
-    final pill = [
-      _skinLabel(_skinType).toLowerCase(),
-      if (_sensitive) _skinLabel('sensitive').toLowerCase(),
-      if (_acneProne) _skinLabel('acne_prone').toLowerCase(),
-    ].join(', ');
+    // Триггер как у shadcn Select: одна строка с многоточием, фиксированная
+    // высота, признаки кожи сворачиваются в счётчик «+N», полный список в шите.
+    final extras = (_sensitive ? 1 : 0) + (_acneProne ? 1 : 0);
 
     return Container(
       decoration: BoxDecoration(
@@ -301,8 +299,8 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
                     onTap: _openSkinSheet,
                     borderRadius: BorderRadius.circular(999),
                     child: Container(
-                      constraints: const BoxConstraints(minHeight: 36),
-                      padding: const EdgeInsets.fromLTRB(12, 4, 10, 4),
+                      height: 36,
+                      padding: const EdgeInsets.fromLTRB(14, 0, 12, 0),
                       decoration: BoxDecoration(
                         color: theme.alternate,
                         borderRadius: BorderRadius.circular(999),
@@ -312,14 +310,32 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Flexible(
-                            child: Text(pill,
+                            child: Text(_skinLabel(_skinType).toLowerCase(),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                                 style: cardText(theme,
                                     size: 16,
                                     weight: FontWeight.w600,
                                     color: theme.primaryVariant)),
                           ),
-                          const SizedBox(width: 6),
-                          Icon(Icons.expand_more,
+                          if (extras > 0) ...[
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 7, vertical: 1),
+                              decoration: BoxDecoration(
+                                color: theme.primary.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Text('+$extras',
+                                  style: cardText(theme,
+                                      size: 12,
+                                      weight: FontWeight.w600,
+                                      color: theme.primaryVariant)),
+                            ),
+                          ],
+                          const SizedBox(width: 8),
+                          Icon(LucideIcons.chevronDown,
                               size: 16, color: theme.primaryVariant),
                         ],
                       ),
@@ -372,6 +388,14 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
       backgroundColor: Colors.transparent,
       builder: (sheetContext) => StatefulBuilder(
         builder: (sheetContext, setSheet) {
+          // «Ваш тип» ведёт в анкету: список здесь только примеряет чужой тип,
+          // а менять свой нужно там, где его и спрашивали.
+          void editSkinType() {
+            HapticFeedback.lightImpact();
+            Navigator.of(sheetContext).pop();
+            widget.onEditSkinType?.call();
+          }
+
           Widget row({
             required String type,
             required bool selected,
@@ -402,11 +426,28 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
                                         size: 14, weight: FontWeight.w500)),
                                 if (isProfile) ...[
                                   const SizedBox(width: 8),
-                                  Text(_t('card_your_type'),
-                                      style: cardText(theme,
-                                          size: 11,
-                                          weight: FontWeight.w600,
-                                          color: theme.primaryVariant)),
+                                  GestureDetector(
+                                    onTap: editSkinType,
+                                    // Подпись мелкая, без запаса по краям в неё
+                                    // не попасть пальцем.
+                                    behavior: HitTestBehavior.opaque,
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 2, vertical: 6),
+                                      child: Text(_t('card_your_type'),
+                                          style: cardText(theme,
+                                                  size: 11,
+                                                  weight: FontWeight.w600,
+                                                  color: theme.primaryVariant)
+                                              // Подчёркивание — единственный
+                                              // признак, что подпись нажимается;
+                                              // так же помечена «изменить» в
+                                              // плашке беременности.
+                                              .copyWith(
+                                                  decoration:
+                                                      TextDecoration.underline)),
+                                    ),
+                                  ),
                                 ],
                               ],
                             ),
@@ -1061,6 +1102,11 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
                 ),
               ),
               Row(
+                // По верхнему краю, а не по центру: подписи под шагами разной
+                // длины, и центрирование разводило кружки с цифрами по разной
+                // высоте — заодно линия, прибитая к top: 17, проходила мимо их
+                // центров.
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   for (var i = 0; i < stepKeys.length; i++)
                     Expanded(
@@ -1091,19 +1137,34 @@ class _ProductCardV3WidgetState extends State<ProductCardV3Widget> {
                                         : theme.secondaryText)),
                           ),
                           const SizedBox(height: 8),
-                          Text(
-                            _t(stepKeys[i]),
-                            textAlign: TextAlign.center,
-                            maxLines: 2,
-                            style: cardText(theme,
-                                size: 11,
-                                height: 1.25,
-                                weight: active.contains(i)
-                                    ? FontWeight.w600
-                                    : FontWeight.w400,
-                                color: active.contains(i)
-                                    ? theme.primaryVariant
-                                    : theme.secondaryText),
+                          SizedBox(
+                            // Под подпись отведены два ряда всегда, даже если
+                            // слово короткое: высота трека не должна зависеть
+                            // от того, переносится ли текст. Считаем по
+                            // системному масштабу шрифта, иначе на крупном
+                            // тексте подпись обрежется.
+                            height: MediaQuery.textScalerOf(context).scale(11) *
+                                1.25 *
+                                2,
+                            // Длинные слова ломаются по мягким переносам из
+                            // локализации («Увлаж‑нение»), а не по последней
+                            // букве; многоточие только на случай очень
+                            // крупного системного шрифта.
+                            child: Text(
+                              _t(stepKeys[i]),
+                              textAlign: TextAlign.center,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: cardText(theme,
+                                  size: 11,
+                                  height: 1.25,
+                                  weight: active.contains(i)
+                                      ? FontWeight.w600
+                                      : FontWeight.w400,
+                                  color: active.contains(i)
+                                      ? theme.primaryVariant
+                                      : theme.secondaryText),
+                            ),
                           ),
                         ],
                       ),
