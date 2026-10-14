@@ -8,6 +8,7 @@ import '/design_system/components/app_button.dart';
 import '/design_system/components/product_thumb.dart';
 import '/domain/care_planning/care_planning_service.dart';
 import '/domain/client_card/client_card_service.dart';
+import '/domain/diagnostics/client_error_reporter.dart';
 import '/domain/products/product_photo.dart';
 import '/flutter_flow/analytics_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -143,12 +144,12 @@ class _CareReviewWidgetState extends State<CareReviewWidget> {
         });
         return;
       }
-      if (!resp.succeeded) {
-        throw Exception('compose failed: ${resp.statusCode}');
-      }
+      if (!resp.succeeded) throw ApiCallFailure('compose', resp);
       // Режим мог быть пересобран — сводка совместимости в Косметичке
       // перестала быть актуальной.
       CarePlanningService.instance.invalidateCare();
+      // Сеть есть — отчёты о прошлых сбоях теперь есть куда отправить.
+      unawaited(ClientErrorReporter.instance.flush());
       final map = (resp.jsonBody as Map).cast<String, dynamic>();
       await _applyRegimen(
         regimenId: map['regimen_id'] as String?,
@@ -160,6 +161,7 @@ class _CareReviewWidgetState extends State<CareReviewWidget> {
       );
     } catch (e) {
       debugPrint('care compose failed: $e');
+      unawaited(ClientErrorReporter.instance.report('care_compose', e));
       if (mounted)
 
         setState(() {
@@ -182,6 +184,8 @@ class _CareReviewWidgetState extends State<CareReviewWidget> {
           .showSnackBar(SnackBar(content: Text(_t('care_accepted'))));
       context.goNamed('Routine');
     } else {
+      unawaited(ClientErrorReporter.instance
+          .report('care_accept', ApiCallFailure('accept', resp)));
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(_t('care_error'))));
     }
